@@ -43,6 +43,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `requirements.docker.txt` | Docker 경량 런타임 |
 | `Dockerfile` | 컨테이너 이미지 |
 
+## 테스트
+
+```powershell
+# 저장소 루트에서
+pip install -r tests/requirements-test.txt
+pytest tests/unit tests/smoke
+```
+
+전체 전략: `docs/plan/TESTING.md`
+
 ## 관련 문서
 
 - `docs/plan/LOGIC_STRUCTURE.md`

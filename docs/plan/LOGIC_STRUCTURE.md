@@ -8,6 +8,7 @@
 - `PROJECT_STRUCTURE.md` — 디렉토리·모듈 구조
 - `DATABASE.md` — SQLite / MariaDB, ERD, Repository
 - `AI_MODEL_STRATEGY.md` — YOLO26n-seg · Ollama E4B · OpenAI/Gemini
+- `TESTING.md` — pytest 구조·실행 전 검증 전략
 - `LOGIC_AND_GIT_BRANCH_STRATEGY.md` — 실행 규칙·브랜치
 - `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` — 환경·실행·배포
 

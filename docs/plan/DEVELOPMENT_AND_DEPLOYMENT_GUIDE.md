@@ -158,6 +158,18 @@ cp .env.example .env
 # .env 파일에 필요한 값 입력 (OPENAI_API_KEY, REDIS_URL 등)
 ```
 
+### 3.9 테스트 (실행 전 검증)
+
+```bash
+# 저장소 루트
+pip install -r backend/requirements.txt
+pip install -r tests/requirements-test.txt
+pytest
+# 또는 골격만: pytest tests/structure
+```
+
+상세: `docs/plan/TESTING.md`, `tests/README.md`
+
 ### 4.1 주요 환경변수 (.env)
 
 ```env

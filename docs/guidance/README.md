@@ -15,6 +15,8 @@
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
 | [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · YOLO26n-seg · OpenAI/Gemini |
 
+테스트 실행: [`../plan/TESTING.md`](../plan/TESTING.md), [`../../tests/README.md`](../../tests/README.md)
+
 
 ## 작성 규칙
 

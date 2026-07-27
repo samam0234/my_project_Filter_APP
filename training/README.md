@@ -57,9 +57,17 @@ ONNX 배포:
 python yolo/export_onnx.py --weights ../models/yolo26n-seg.pt --out ../models/yolo26n-seg.onnx
 ```
 
+## 학습 전 검증
+
+```powershell
+# 저장소 루트 — training 스크립트·config 존재 확인
+pytest tests/structure -q
+```
+
 ## 관련 문서
 
 - `docs/plan/AI_MODEL_STRATEGY.md`
+- `docs/plan/TESTING.md`
 - `docs/guidance/llm-and-vision.md`
 - `models/README.md`
 - `scripts/README.md` (레거시 유틸 — 점진적으로 training/ 로 이전)

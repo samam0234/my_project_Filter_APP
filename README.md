@@ -47,6 +47,7 @@ npm run dev
 
 문서 허브: [docs/README.md](docs/README.md)  
 실행 가이드: [RUN.md](./RUN.md)  
+테스트: [tests/README.md](./tests/README.md) · [docs/plan/TESTING.md](./docs/plan/TESTING.md)  
 커밋 규칙: [docs/guidance/commit-message.md](docs/guidance/commit-message.md) (제목 영어 / 본문·바닥글 한국어)  
 브랜치 규칙: [docs/guidance/branch-merge.md](docs/guidance/branch-merge.md) (작업=feature, 일자 병합=develop/main)  
 에이전트 스킬: [.agents/skills/cutnkeep/SKILL.md](.agents/skills/cutnkeep/SKILL.md) · [AGENTS.md](./AGENTS.md)  
@@ -63,6 +64,7 @@ npm run dev
 | [console/](./console/README.md) | ✅ | 운영 콘솔 (:5174) |
 | [scripts/](./scripts/README.md) | ✅ | ONNX 변환, cleanup 등 |
 | [training/](./training/README.md) | ✅ | **YOLO detect/seg · LoRA 학습 구역** |
+| [tests/](./tests/README.md) | ✅ | **pytest 실행 전 검증** |
 | [data/](./data/README.md) | ✅ | 업로드·피드백·SQLite |
 | [models/](./models/README.md) | ✅ | 추론용 가중치 (git ignore) |
 | [logs/](./logs/README.md) | ✅ | 런타임 로그 |

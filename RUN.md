@@ -146,15 +146,29 @@ docker compose -p cut_and_keep down
 
 ---
 
-## 5. 기동 순서 권장
+## 5. 기동 전 테스트 (권장)
 
-1. Backend (또는 Docker 스택)  
-2. Frontend / Console  
-3. 브라우저에서 health → 업로드 또는 Job 목록 확인  
+```powershell
+cd d:\my_project\CutNKeep
+pip install -r tests/requirements-test.txt
+# backend 의존성 설치 후:
+pytest
+# 의존성 없을 때 골격만:
+pytest tests/structure -q
+```
+
+상세: `docs/plan/TESTING.md`, `tests/README.md`
+
+## 6. 기동 순서 권장
+
+1. (선택) `pytest`  
+2. Backend (또는 Docker 스택)  
+3. Frontend / Console  
+4. 브라우저에서 health → 업로드 또는 Job 목록 확인  
 
 ---
 
-## 6. 자주 막히는 것
+## 7. 자주 막히는 것
 
 | 증상 | 확인 |
 |------|------|
@@ -166,7 +180,7 @@ docker compose -p cut_and_keep down
 
 ---
 
-## 7. 관련 문서
+## 8. 관련 문서
 
 | 문서 | 내용 |
 |------|------|

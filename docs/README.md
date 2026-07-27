@@ -28,6 +28,7 @@
 
 - **실행 · 서버:** [../RUN.md](../RUN.md)
 - **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md)
+- **테스트 전략:** [plan/TESTING.md](./plan/TESTING.md) · [../tests/README.md](../tests/README.md)
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 - 배포: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)

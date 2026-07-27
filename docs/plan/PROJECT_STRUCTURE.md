@@ -17,6 +17,7 @@ cut-and-keep/
 ├── console/                          # React 운영 관리자 콘솔 (:5174)
 ├── scripts/                          # 운영 유틸 (cleanup 등)
 ├── training/                         # YOLO detect/seg · LoRA 학습 구역
+├── tests/                            # pytest 실행 전 검증 (unit/structure/smoke)
 ├── models/                           # 추론용 가중치 (ONNX, pt)
 ├── data/                             # 데이터셋 & 피드백 데이터
 ├── docker/                           # Docker 관련 설정
@@ -89,7 +90,8 @@ backend/
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
 
 **DB**: 로컬 `SQLite` (`data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
-**AI 모델**: YOLO26n-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`
+**AI 모델**: YOLO26n-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
+**테스트**: 루트 `tests/` + `pytest.ini` — `docs/plan/TESTING.md`
 
 
 ### 2.2 frontend/ (React + Vite)
