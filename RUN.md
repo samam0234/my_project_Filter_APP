@@ -95,12 +95,14 @@ Vite가 `/api`, `/health` 를 `8000` 으로 프록시한다.
 
 ```powershell
 cd d:\my_project\CutNKeep\console
+# 최초 1회 필수 — node_modules 없으면 vite 실행 불가
 npm install
 npm run dev
 ```
 
 → http://localhost:5174  
-Job 목록·헬스 조회. **백엔드가 떠 있어야** 데이터가 채워진다.
+Job 목록·헬스 조회. **백엔드가 떠 있어야** 데이터가 채워진다.  
+(UI 기동만은 backend 없이도 가능)
 
 ---
 

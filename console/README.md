@@ -4,6 +4,9 @@
 
 ## 실행
 
+**필수:** 최초 1회(또는 `node_modules` 없을 때) `npm install`  
+`node_modules` 없이 `npm run dev` 하면 `vite` 를 찾지 못해 실패한다.
+
 ```bash
 cd console
 npm install
@@ -11,7 +14,8 @@ npm run dev
 ```
 
 - URL: http://localhost:5174  
-- Backend API: http://localhost:8000 (Vite proxy)
+- Backend API: http://localhost:8000 (Vite proxy)  
+- API 데이터(Job/헬스)는 **backend :8000** 이 떠 있어야 채워진다. UI 자체는 backend 없이도 기동된다.
 
 ## 기능
 
