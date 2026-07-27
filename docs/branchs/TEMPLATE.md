@@ -24,7 +24,7 @@ feat(scope): english summary only
 ```
 
 상세 가이드: [`docs/guidance/commit-message.md`](../guidance/commit-message.md)  
-에이전트 스킬: `.agents/SKILL.md`
+에이전트 스킬: `.agents/skills/cutnkeep/SKILL.md`
 
 ---
 

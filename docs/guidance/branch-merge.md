@@ -116,4 +116,4 @@ git tag v0.1.0
 - `docs/branchs/BRANCH_MAP.md`
 - `docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md`
 - `docs/guidance/commit-message.md`
-- `.agents/SKILL.md`
+- `.agents/skills/cutnkeep/SKILL.md`
