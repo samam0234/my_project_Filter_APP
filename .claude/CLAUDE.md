@@ -2,7 +2,7 @@
 
 이 저장소는 공유 에이전트 규칙을 사용한다.
 
-**주 지시:** `.agents/AGENTS.md`, `.agents/SKILL.md`
+**주 지시:** 루트 `AGENTS.md`, `.agents/skills/cutnkeep/SKILL.md`
 
 ## 커밋 메시지
 
