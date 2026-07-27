@@ -1,4 +1,4 @@
-"""Request / parsed-prompt schemas (Pydantic)."""
+"""요청·구조화 프롬프트 스키마 (Pydantic)."""
 
 from typing import List
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class ParsedPrompt(BaseModel):
-    """Structured result of natural-language prompt analysis."""
+    """자연어 프롬프트 분석 결과 구조체."""
 
     target: List[str] = Field(default_factory=lambda: ["person"])
     effect: str = Field(default="remove_bg")  # remove_bg | blur | crop | none
@@ -15,6 +15,6 @@ class ParsedPrompt(BaseModel):
 
 
 class UploadFormMeta(BaseModel):
-    """Optional metadata accompanying multipart upload."""
+    """multipart 업로드 부가 메타데이터."""
 
     prompt: str = Field(..., min_length=1, max_length=1000)

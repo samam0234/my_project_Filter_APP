@@ -1,4 +1,4 @@
-"""Aggregate all API routers under /api/v1."""
+"""/api/v1 하위 API 라우터 집합."""
 
 from fastapi import APIRouter
 

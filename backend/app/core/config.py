@@ -1,4 +1,4 @@
-"""Centralized settings (Pydantic Settings). Paths and model names live here only."""
+"""중앙 설정 (Pydantic Settings). 경로·모델명은 여기서만 관리."""
 
 from functools import lru_cache
 from pathlib import Path
@@ -10,9 +10,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def _project_root() -> Path:
     """
-    Resolve data/models root.
-    - Local monorepo: repo root (…/CutNKeep)
-    - Docker (backend-only image): backend workdir (/app)
+    data/models 루트 경로 해석.
+    - 로컬 모노레포: 저장소 루트 (…/CutNKeep)
+    - Docker (backend 전용 이미지): 작업 디렉터리 (/app)
     """
     here = Path(__file__).resolve()
     backend_root = here.parents[2]  # …/backend or /app
@@ -51,8 +51,8 @@ class Settings(BaseSettings):
         alias="PSEUDO_LABEL_DIR",
     )
 
-    # LLM: ollama (default) | openai | gemini | heuristic
-    # See docs/plan/AI_MODEL_STRATEGY.md
+    # LLM: ollama(기본) | openai | gemini | heuristic
+    # 참고: docs/plan/AI_MODEL_STRATEGY.md
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     llm_base_url: str | None = Field(
         default="http://localhost:11434",
@@ -73,10 +73,10 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
 
-    # --- Database: local SQLite / prod MariaDB ---
+    # --- DB: 로컬 SQLite / 배포 MariaDB ---
     # DB_DIALECT: sqlite | mariadb
     db_dialect: str = Field(default="sqlite", alias="DB_DIALECT")
-    # Full URL override (if set, wins over dialect helpers)
+    # 전체 URL 덮어쓰기 (있으면 dialect 헬퍼보다 우선)
     database_url_override: str | None = Field(default=None, alias="DATABASE_URL")
     sqlite_path: str = Field(default="data/cutnkeep.db", alias="SQLITE_PATH")
     mariadb_host: str = Field(default="localhost", alias="MARIADB_HOST")
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     db_echo: bool = Field(default=False, alias="DB_ECHO")
 
 
-    # Segmentation / validator thresholds (Phase 1 defaults)
+    # 세그/검증 임계값 (Phase 1 기본)
     mask_min_area_ratio: float = 0.005
     mask_max_area_ratio: float = 0.95
     min_confidence: float = 0.25
@@ -133,10 +133,10 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         """
-        Resolve SQLAlchemy URL.
-        - DATABASE_URL env wins if set
-        - else sqlite → file under project root (local default)
-        - else mariadb → mysql+pymysql://...
+        SQLAlchemy URL 해석.
+        - DATABASE_URL 환경변수가 있으면 최우선
+        - 아니면 sqlite → 프로젝트 루트 하위 파일 (로컬 기본)
+        - 아니면 mariadb → mysql+pymysql://...
         """
         if self.database_url_override:
             return self.database_url_override
@@ -159,7 +159,7 @@ class Settings(BaseSettings):
             )
 
         raise ValueError(
-            f"Unsupported DB_DIALECT={self.db_dialect!r}. Use 'sqlite' or 'mariadb'."
+            f"지원하지 않는 DB_DIALECT={self.db_dialect!r}. 'sqlite' 또는 'mariadb'를 사용하세요."
         )
 
 

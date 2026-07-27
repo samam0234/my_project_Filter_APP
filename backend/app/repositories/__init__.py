@@ -1,4 +1,4 @@
-"""Repository layer: DB access only (no business orchestration)."""
+"""레포지토리 계층: DB 접근만 (비즈니스 로직 없음)."""
 
 from app.repositories.batch_repository import BatchRepository
 from app.repositories.feedback_repository import FeedbackRepository

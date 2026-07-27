@@ -1,4 +1,4 @@
-"""Single-image upload + process router (Phase 1)."""
+"""단일 이미지 업로드·처리 라우터 (Phase 1)."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ async def upload_and_process(
     prompt: str = Form(..., min_length=1, max_length=1000),
     db: Session = Depends(get_db),
 ) -> UploadResponse:
-    """Receive + validate file, run pipeline, persist job to DB."""
+    """파일 수신·검증 후 파이프라인 실행, job을 DB에 저장."""
     try:
         data = await validate_upload_file(file)
     except FileValidationError as exc:
@@ -35,7 +35,7 @@ async def upload_and_process(
     except CutAndKeepError as exc:
         raise to_http_exception(exc) from exc
     except Exception as exc:
-        logger.exception("upload failed")
+        logger.exception("업로드 실패")
         raise to_http_exception(CutAndKeepError(str(exc))) from exc
 
     before_url = (
@@ -62,7 +62,7 @@ async def get_before(job_id: str) -> FileResponse:
 
     path = get_settings().upload_path / job_id / "before.jpg"
     if not path.exists():
-        raise HTTPException(status_code=404, detail="before image not found")
+        raise HTTPException(status_code=404, detail="before 이미지 없음")
     return FileResponse(path)
 
 
@@ -76,4 +76,4 @@ async def get_after(job_id: str) -> FileResponse:
         path = base / name
         if path.exists():
             return FileResponse(path)
-    raise HTTPException(status_code=404, detail="after image not found")
+    raise HTTPException(status_code=404, detail="after 이미지 없음")

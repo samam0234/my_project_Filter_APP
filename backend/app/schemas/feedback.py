@@ -1,4 +1,4 @@
-"""Feedback request/response schemas (Pydantic)."""
+"""피드백 요청/응답 스키마 (Pydantic)."""
 
 from typing import Optional
 
@@ -18,4 +18,4 @@ class FeedbackResponse(BaseModel):
     job_id: str
     feedback_id: Optional[str] = None
     saved_path: Optional[str] = None
-    message: str = "Feedback recorded."
+    message: str = "피드백이 기록되었습니다."

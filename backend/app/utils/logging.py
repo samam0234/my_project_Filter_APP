@@ -1,4 +1,4 @@
-"""Loguru logging setup."""
+"""Loguru 로깅 설정."""
 
 import sys
 

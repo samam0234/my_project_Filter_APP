@@ -1,4 +1,4 @@
-"""Engine / session factory. SQLite (local) or MariaDB (prod/docker)."""
+"""엔진/세션 팩토리. 로컬 SQLite 또는 배포 MariaDB."""
 
 from __future__ import annotations
 
@@ -23,13 +23,13 @@ SessionLocal: sessionmaker[Session] = sessionmaker(
 
 
 def _normalize_sqlite_url(url: str) -> str:
-    """Ensure SQLite file parent directory exists; return usable URL."""
+    """SQLite 파일 상위 디렉터리를 만들고 사용 가능한 URL을 반환."""
     if not url.startswith("sqlite"):
         return url
     if url in {"sqlite://", "sqlite:///:memory:", "sqlite:///:memory"}:
         return "sqlite:///:memory:"
 
-    # forms: sqlite:///relative/path.db  or  sqlite:////absolute/path.db
+    # 형식: sqlite:///상대경로.db 또는 sqlite:////절대경로.db
     prefix = "sqlite:///"
     if not url.startswith(prefix):
         return url
@@ -67,7 +67,7 @@ def _build_engine() -> Engine:
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
 
-    logger.info("DB engine ready dialect={} url_scheme={}", eng.dialect.name, url.split(":")[0])
+    logger.info("DB 엔진 준비됨 dialect={} url_scheme={}", eng.dialect.name, url.split(":")[0])
     return eng
 
 
@@ -79,7 +79,7 @@ def get_engine() -> Engine:
 
 
 def get_db() -> Generator[Session, None, None]:
-    """FastAPI dependency: yield a DB session."""
+    """FastAPI 의존성: DB 세션을 yield."""
     SessionLocal.configure(bind=get_engine())
     db = SessionLocal()
     try:
@@ -89,10 +89,10 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    """Create tables if they do not exist (Phase 1 scaffold; Alembic optional later)."""
-    import app.models  # noqa: F401 — register metadata
+    """테이블이 없으면 생성 (Phase 1; 이후 Alembic 선택)."""
+    import app.models  # noqa: F401 — 메타데이터 등록
 
     eng = get_engine()
     SessionLocal.configure(bind=eng)
     Base.metadata.create_all(bind=eng)
-    logger.info("DB tables ensured dialect={}", eng.dialect.name)
+    logger.info("DB 테이블 확인/생성 완료 dialect={}", eng.dialect.name)

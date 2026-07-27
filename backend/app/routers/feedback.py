@@ -1,4 +1,4 @@
-"""User feedback router — persists to DB (+ optional file sidecar)."""
+"""사용자 피드백 라우터 — DB 저장 (+ 선택적 파일 사이드카)."""
 
 from __future__ import annotations
 
@@ -31,8 +31,8 @@ async def submit_feedback(
         feedback_id=row.id if row else None,
         saved_path=str(path) if path else None,
         message=(
-            "Thanks — failure case stored."
+            "감사합니다 — 실패 케이스를 저장했습니다."
             if body.vote == FeedbackVote.DISLIKE
-            else "Thanks for the feedback."
+            else "피드백 감사합니다."
         ),
     )

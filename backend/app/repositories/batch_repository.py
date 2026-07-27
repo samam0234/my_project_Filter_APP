@@ -1,4 +1,4 @@
-"""Batch job table persistence (Phase 2)."""
+"""batch_jobs 테이블 영속화 (Phase 2)."""
 
 from __future__ import annotations
 

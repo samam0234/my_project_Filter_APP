@@ -1,4 +1,4 @@
-"""ORM: processing job records."""
+"""ORM: 처리 Job 레코드."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class Job(Base):
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     labels: Mapped[Optional[list[Any]]] = mapped_column(JSON, nullable=True)
     confidences: Mapped[Optional[list[Any]]] = mapped_column(JSON, nullable=True)
-    feedback_saved: Mapped[int] = mapped_column(Integer, default=0)  # 0/1 for SQLite compat
+    feedback_saved: Mapped[int] = mapped_column(Integer, default=0)  # 0/1 (SQLite 호환)
     error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

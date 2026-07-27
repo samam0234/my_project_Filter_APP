@@ -1,4 +1,4 @@
-"""FastAPI entrypoint: lifespan, middleware, routers."""
+"""FastAPI 진입점: lifespan, 미들웨어, 라우터."""
 
 from __future__ import annotations
 
@@ -30,21 +30,21 @@ async def lifespan(app: FastAPI):
         ensure_dir(path)
     init_db()
     logger.info(
-        "Cut & Keep starting env={} phase={} db={} upload={}",
+        "컷앤킵 시작 env={} phase={} db={} upload={}",
         settings.app_env,
         PHASE,
         get_engine().dialect.name,
         settings.upload_path,
     )
     yield
-    logger.info("Cut & Keep shutdown")
+    logger.info("컷앤킵 종료")
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title="Cut & Keep",
-        description="Prompt-based selective background removal filter API",
+        description="프롬프트 기반 선택적 배경 제거 필터 API",
         version=__version__,
         lifespan=lifespan,
     )

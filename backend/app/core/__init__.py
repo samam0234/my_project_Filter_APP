@@ -1,1 +1,1 @@
-"""Core configuration, security, and constants."""
+"""설정, 보안, 상수 코어 모듈."""

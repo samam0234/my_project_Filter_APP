@@ -1,4 +1,4 @@
-"""Shared constants for Cut & Keep."""
+"""컷앤킵 공통 상수."""
 
 from enum import Enum
 
@@ -22,12 +22,12 @@ class FeedbackVote(str, Enum):
     DISLIKE = "dislike"
 
 
-# Allowed file extensions (paired with MIME checks)
+# 허용 확장자 (MIME 검사와 함께 사용)
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
-# API prefix
+# API 접두사
 API_V1_PREFIX = "/api/v1"
 
-# Phase markers (documentation / feature flags)
+# Phase 표시 (문서 / 기능 플래그)
 PHASE = 1
 MAX_BATCH_SIZE = 500  # Phase 2

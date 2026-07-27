@@ -1,26 +1,26 @@
-"""Application exceptions."""
+"""애플리케이션 예외 정의."""
 
 from fastapi import HTTPException, status
 
 
 class CutAndKeepError(Exception):
-    """Base application error."""
+    """애플리케이션 기본 예외."""
 
-    def __init__(self, message: str = "Unexpected error") -> None:
+    def __init__(self, message: str = "예기치 않은 오류") -> None:
         self.message = message
         super().__init__(message)
 
 
 class FileValidationError(CutAndKeepError):
-    """Invalid upload (MIME, size, extension)."""
+    """업로드 검증 실패 (MIME, 크기, 확장자)."""
 
 
 class PipelineError(CutAndKeepError):
-    """Image processing / workflow failure."""
+    """이미지 처리 / 워크플로 실패."""
 
 
 class ModelNotReadyError(CutAndKeepError):
-    """Model weights missing or failed to load."""
+    """모델 가중치 없음 또는 로드 실패."""
 
 
 def to_http_exception(exc: CutAndKeepError) -> HTTPException:

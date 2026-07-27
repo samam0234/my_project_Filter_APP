@@ -1,4 +1,4 @@
-"""Job query router — read persisted processing jobs from DB."""
+"""Job 조회 라우터 — DB에 저장된 처리 이력 조회."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def _to_response(row) -> JobResponse:
 async def get_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse:
     row = JobRepository(db).get(job_id)
     if row is None:
-        raise HTTPException(status_code=404, detail="job not found")
+        raise HTTPException(status_code=404, detail="job 없음")
     return _to_response(row)
 
 

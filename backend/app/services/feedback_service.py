@@ -1,4 +1,4 @@
-"""Feedback collection: DB (repository) + optional image/JSON sidecar on disk."""
+"""피드백 수집: DB(레포지토리) + 선택적 이미지/JSON 사이드카."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ class FeedbackService:
         ensure_dir(self.settings.feedback_path)
 
     def _session(self) -> Tuple[Session, bool]:
-        """Return (session, owned). Owned sessions must be closed by caller."""
+        """(session, owned) 반환. owned=True 이면 호출측에서 close 필요."""
         if self._db is not None:
             return self._db, False
         from app.db.session import SessionLocal, get_engine
@@ -50,8 +50,8 @@ class FeedbackService:
         source: str = "user",
     ) -> Tuple[Optional[Feedback], Optional[Path]]:
         """
-        Persist feedback to MariaDB/SQLite via repository.
-        Also writes optional sidecar image + JSON under data/feedback/ for training dumps.
+        레포지토리를 통해 MariaDB/SQLite에 피드백 저장.
+        학습용으로 data/feedback/ 에 이미지+JSON 사이드카도 선택 저장.
         """
         case_id = f"{job_id}_{uuid4().hex[:8]}"
         vote_str = str(vote.value if isinstance(vote, FeedbackVote) else vote)
@@ -88,7 +88,7 @@ class FeedbackService:
         db, owned = self._session()
         row: Optional[Feedback] = None
         try:
-            # Ensure parent job exists (feedback FK) — create stub if missing
+            # 부모 job 존재 확인 (FK) — 없으면 stub 생성
             job_repo = JobRepository(db, self.settings)
             if job_repo.get(job_id) is None:
                 job_repo.create_pending(job_id, prompt=str(meta.get("prompt") or ""))
@@ -104,7 +104,7 @@ class FeedbackService:
             job_repo.mark_feedback_saved(job_id)
             logger.info("Feedback saved db_id={} path={}", row.id, json_path)
         except Exception:
-            logger.exception("Failed to persist feedback to DB (file sidecar kept)")
+            logger.exception("DB 피드백 저장 실패 (파일 사이드카는 유지)")
             if owned:
                 db.rollback()
         finally:

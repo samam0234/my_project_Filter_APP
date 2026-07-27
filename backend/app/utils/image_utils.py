@@ -1,4 +1,4 @@
-"""Image encode/decode helpers. Always preserve originals via .copy() in pipelines."""
+"""이미지 인코딩/디코딩 헬퍼. 파이프라인에서는 .copy()로 원본 보존."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ import numpy as np
 
 
 def decode_image_bytes(data: bytes) -> np.ndarray:
-    """Decode image bytes to BGR ndarray."""
+    """이미지 바이트를 BGR ndarray로 디코딩."""
     arr = np.frombuffer(data, dtype=np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if image is None:
-        raise ValueError("Failed to decode image bytes.")
+        raise ValueError("이미지 바이트 디코딩 실패.")
     return image
 
 
@@ -23,7 +23,7 @@ def encode_image(
     ext: str = ".png",
     quality: int = 95,
 ) -> bytes:
-    """Encode BGR or BGRA image to bytes."""
+    """BGR/BGRA 이미지를 바이트로 인코딩."""
     params: list[int] = []
     if ext.lower() in {".jpg", ".jpeg"}:
         params = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
@@ -31,7 +31,7 @@ def encode_image(
         params = [int(cv2.IMWRITE_PNG_COMPRESSION), 3]
     ok, buf = cv2.imencode(ext, image, params)
     if not ok:
-        raise ValueError(f"Failed to encode image as {ext}.")
+        raise ValueError(f"이미지 인코딩 실패: {ext}.")
     return buf.tobytes()
 
 
@@ -39,7 +39,7 @@ def resize_keep_aspect(
     image: np.ndarray,
     max_side: int,
 ) -> Tuple[np.ndarray, float]:
-    """Resize so longest side <= max_side. Returns (image_copy, scale)."""
+    """긴 변이 max_side 이하가 되도록 리사이즈. (복사본, scale) 반환."""
     src = image.copy()
     h, w = src.shape[:2]
     longest = max(h, w)
@@ -61,5 +61,5 @@ def save_image(path: Path, image: np.ndarray) -> Path:
     ensure_dir(path.parent)
     ok = cv2.imwrite(str(path), image)
     if not ok:
-        raise ValueError(f"Failed to write image: {path}")
+        raise ValueError(f"이미지 저장 실패: {path}")
     return path

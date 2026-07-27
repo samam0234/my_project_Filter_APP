@@ -1,4 +1,4 @@
-"""Mask refinement and visual effects (blur, crop, remove background)."""
+"""마스크 정제 및 시각 효과 (블러, 크롭, 배경 제거)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from app.schemas.request import ParsedPrompt
 
 
 def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray:
-    """Morphology close + optional GrabCut refinement. Always works on copies."""
+    """모폴로지 close + 선택적 GrabCut 정제. 항상 복사본에서 작업."""
     m = mask.copy()
     if m.ndim == 3:
         m = cv2.cvtColor(m, cv2.COLOR_BGR2GRAY)
@@ -20,12 +20,12 @@ def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, kernel, iterations=2)
 
-    # Light GrabCut only when image provided and mask has content
+    # 이미지 있고 마스크 내용 있을 때만 GrabCut
     if image is not None and m.any() and not np.all(m > 0):
         try:
             m = _grabcut_refine(image.copy(), m)
         except Exception:
-            pass  # keep morphology-only mask
+            pass  # 모폴로지 마스크만 유지
     return m
 
 
@@ -46,7 +46,7 @@ def _grabcut_refine(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
 
 
 def apply_remove_bg(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """Return BGRA image with transparent background."""
+    """투명 배경 BGRA 이미지 반환."""
     img = image.copy()
     m = mask.copy()
     if m.ndim == 3:
@@ -64,12 +64,12 @@ def apply_blur(
     mask: np.ndarray,
     intensity: int = 15,
 ) -> np.ndarray:
-    """Blur background, keep subject sharp."""
+    """배경만 블러, 피사체는 선명하게."""
     img = image.copy()
     m = mask.copy()
     if m.ndim == 3:
         m = cv2.cvtColor(m, cv2.COLOR_BGR2GRAY)
-    k = max(1, intensity // 2 * 2 + 1)  # odd kernel
+    k = max(1, intensity // 2 * 2 + 1)  # 홀수 커널
     blurred = cv2.GaussianBlur(img, (k, k), 0)
     m3 = cv2.cvtColor(m, cv2.COLOR_GRAY2BGR)
     subject = cv2.bitwise_and(img, m3)
@@ -84,7 +84,7 @@ def apply_crop(
     mask: np.ndarray,
     padding: int = 8,
 ) -> np.ndarray:
-    """Crop to mask bounding rect with padding."""
+    """마스크 bounding rect 기준 크롭 (패딩 포함)."""
     img = image.copy()
     m = mask.copy()
     if m.ndim == 3:
@@ -107,7 +107,7 @@ def apply_effects(
     mask: np.ndarray,
     parsed: ParsedPrompt,
 ) -> np.ndarray:
-    """Dispatch effect based on parsed prompt."""
+    """구조화 프롬프트에 따라 효과 적용."""
     refined = refine_mask(mask, image)
     effect = (parsed.effect or "remove_bg").lower()
 
@@ -121,7 +121,7 @@ def apply_effects(
         out = apply_remove_bg(image, refined)
 
     if parsed.crop and effect != "crop":
-        # crop after other effects when flag set
+        # crop 플래그 시 다른 효과 후 크롭
         if out.shape[2] == 4:
             alpha = out[:, :, 3]
             out = apply_crop(out, alpha)
