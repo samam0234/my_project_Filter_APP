@@ -58,3 +58,4 @@ YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
 | `5420cfb` | console + docs hub | [commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md](./commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md) |
 | `4ccdc4d` | agents + commit guide | [commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md](./commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md) |
 | `2b22d75` | branch-merge guide | [commits/26_07_27_2b22d75_branch-merge-guide_feature-docs.md](./commits/26_07_27_2b22d75_branch-merge-guide_feature-docs.md) |
+| `2d2a2df` | agents 한국어화 | [commits/26_07_27_2d2a2df_agents-korean_feature-docs.md](./commits/26_07_27_2d2a2df_agents-korean_feature-docs.md) |
