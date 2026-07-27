@@ -26,3 +26,4 @@
 | `1342117` | ignore TypeScript build info | [commits/1342117-ignore-tsbuildinfo.md](./commits/1342117-ignore-tsbuildinfo.md) |
 | `8914abe` | schema/router/repo + dual DB | [commits/8914abe-backend-layers-db.md](./commits/8914abe-backend-layers-db.md) |
 | `8157388` | cut_and_keep docker stack | [commits/8157388-docker-cut-and-keep.md](./commits/8157388-docker-cut-and-keep.md) |
+| `5420cfb` | console + docs hub | [commits/5420cfb-console-and-docs-hub.md](./commits/5420cfb-console-and-docs-hub.md) |
