@@ -1,17 +1,54 @@
 # 커밋 기록 템플릿
 
-아래 형식을 **그대로** 복사해 `commits/` 아래 새 파일을 만든다.  
-파일명 권장: `{short_sha}-{kebab-slug}.md`  
-예: `8914abe-backend-layers-db.md`
+아래 형식을 **그대로** 복사해 `commits/` 아래 새 파일을 만든다.
 
 ---
+
+## 파일명 규칙 (필수)
+
+```text
+YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
+```
+
+| 조각 | 규칙 | 예시 |
+|------|------|------|
+| `YY` | 연도 뒤 2자리 | `26` (2026) |
+| `MM` | 월 2자리 | `07` |
+| `DD` | 일 2자리 | `27` |
+| `커밋ID` | short SHA (보통 7자) | `8914abe` |
+| `커밋이름` | 소문자 kebab 또는 snake (공백·`/` 금지) | `backend-layers-db` |
+| `커밋브랜치` | 브랜치명, `/` 는 `-` 로 치환 | `feature-backend` |
+
+### 올바른 예
+
+```text
+26_07_27_8914abe_backend-layers-db_feature-backend.md
+26_07_27_8157388_docker-cut-and-keep_feature-backend.md
+26_07_27_5420cfb_console-and-docs-hub_feature-docs.md
+```
+
+### 잘못된 예
+
+```text
+8914abe-backend-layers-db.md          ← 날짜 없음
+26-07-27_8914abe_....md               ← 구분자 `-` 대신 `_` 사용
+26_07_27_8914abe_backend layers.md    ← 공백
+26_07_27_8914abe_x_feature/backend.md ← 슬래시
+```
+
+날짜는 **커밋 작성일(또는 기록 작성일)** 기준으로 붙인다.
+
+---
+
+## 본문 템플릿
 
 ```markdown
 # {제목} / `{full_or_short_sha}`
 
 > 브랜치: `{branch_name}`  
 > 작성일: `YYYY-MM-DD`  
-> 작성자: `{name}`
+> 작성자: `{name}`  
+> 파일명: `YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md`
 
 ## 1. 제목 / 커밋 번호
 
@@ -69,3 +106,4 @@
 - 제목만 한 줄 적고 끝내기
 - “버그 수정함”, “작업함” 수준의 모호한 상세
 - SHA 없이 브랜치만 적기
+- **날짜 없는 파일명** / 규칙과 다른 파일명

@@ -11,19 +11,31 @@
 | [BRANCH_MAP.md](./BRANCH_MAP.md) | 브랜치 전략 요약 |
 | [commits/](./commits/) | 커밋별 상세 기록 파일 |
 
+## 파일명 규칙 (commits/)
+
+```text
+YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
+```
+
+예: `26_07_27_8914abe_backend-layers-db_feature-backend.md`
+
+- 연도 **뒤 2자리** + 월 + 일 (언더스코어 구분)
+- 브랜치명의 `/` 는 `-` 로 치환 (`feature/backend` → `feature-backend`)
+- 상세: [TEMPLATE.md](./TEMPLATE.md)
+
 ## 작성 절차
 
 1. 커밋 완료 후 `TEMPLATE.md`를 복사한다.
-2. `commits/{shortsha}-{slug}.md` 로 저장한다.
+2. 위 파일명 규칙으로 `commits/` 에 저장한다.
 3. 제목/커밋 번호 · 주 내용 · 상세 · 결과 4섹션을 채운다.
-4. (선택) 이 README 표에 링크를 추가한다.
+4. 이 README 표에 링크를 추가한다.
 
 ## 기록 목록
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
-| `4b1e6ad` | initial project scaffold | [commits/4b1e6ad-initial-scaffold.md](./commits/4b1e6ad-initial-scaffold.md) |
-| `1342117` | ignore TypeScript build info | [commits/1342117-ignore-tsbuildinfo.md](./commits/1342117-ignore-tsbuildinfo.md) |
-| `8914abe` | schema/router/repo + dual DB | [commits/8914abe-backend-layers-db.md](./commits/8914abe-backend-layers-db.md) |
-| `8157388` | cut_and_keep docker stack | [commits/8157388-docker-cut-and-keep.md](./commits/8157388-docker-cut-and-keep.md) |
-| `5420cfb` | console + docs hub | [commits/5420cfb-console-and-docs-hub.md](./commits/5420cfb-console-and-docs-hub.md) |
+| `4b1e6ad` | initial project scaffold | [commits/26_07_27_4b1e6ad_initial-scaffold_main.md](./commits/26_07_27_4b1e6ad_initial-scaffold_main.md) |
+| `1342117` | ignore TypeScript build info | [commits/26_07_27_1342117_ignore-tsbuildinfo_develop.md](./commits/26_07_27_1342117_ignore-tsbuildinfo_develop.md) |
+| `8914abe` | schema/router/repo + dual DB | [commits/26_07_27_8914abe_backend-layers-db_feature-backend.md](./commits/26_07_27_8914abe_backend-layers-db_feature-backend.md) |
+| `8157388` | cut_and_keep docker stack | [commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md](./commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md) |
+| `5420cfb` | console + docs hub | [commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md](./commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md) |
