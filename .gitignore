@@ -68,3 +68,13 @@ Scribble/**
 console/dist/
 console/.vite/
 
+# Training zone (keep scripts/configs/README; ignore data & runs)
+training/.venv/
+training/datasets/**
+!training/datasets/.gitkeep
+training/outputs/**
+!training/outputs/.gitkeep
+training/**/runs/
+training/**/wandb/
+
+

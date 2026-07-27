@@ -1,0 +1,13 @@
+# YOLO detect 데이터셋 예시
+# labels 는 bbox (class x_center y_center w h 정규화)
+
+path: ../datasets/my_detect
+train: images/train
+val: images/val
+
+names:
+  0: person
+  1: dog
+  2: cat
+  3: car
+  4: bag

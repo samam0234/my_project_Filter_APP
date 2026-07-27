@@ -32,6 +32,14 @@ python scripts/convert_to_onnx.py --weights models/yolo26n-seg.pt --out models/y
 Compose 는 `./models` → `/app/models` 마운트.  
 경량 이미지에 torch 가 없으면 **ONNX + onnxruntime** 경로를 쓰는 편이 안전하다.
 
+## 학습은 어디서?
+
+**`training/`** 폴더에서 YOLO detect/seg · LoRA 학습을 돌린 뒤,  
+완성된 `best.pt` / `.onnx` 를 이 `models/` 로 복사해 서비스에 연결한다.
+
+- `training/README.md`
+- `training/yolo/README.md`
+
 ## 관련 문서
 
 - `docs/plan/AI_MODEL_STRATEGY.md`

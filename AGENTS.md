@@ -18,6 +18,7 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | 비전 | YOLO26n-seg |
 | LLM 기본 | Ollama `gemma4:e4b` |
 | OpenCV 위치 | `backend/app/services/image_processor.py`, `effects.py` |
+| 학습 구역 | `training/` (YOLO detect/seg, LoRA) — 추론과 분리 |
 
 ## 실행
 

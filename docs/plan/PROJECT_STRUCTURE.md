@@ -15,8 +15,9 @@ cut-and-keep/
 ├── backend/                          # FastAPI 백엔드 (Python)
 ├── frontend/                         # React 사용자 앱 (:5173)
 ├── console/                          # React 운영 관리자 콘솔 (:5174)
-├── scripts/                          # 유틸리티 & 학습 스크립트
-├── models/                           # 학습된 모델 저장소 (ONNX, LoRA)
+├── scripts/                          # 운영 유틸 (cleanup 등)
+├── training/                         # YOLO detect/seg · LoRA 학습 구역
+├── models/                           # 추론용 가중치 (ONNX, pt)
 ├── data/                             # 데이터셋 & 피드백 데이터
 ├── docker/                           # Docker 관련 설정
 ├── docs/                             # 문서 허브 (Architecture, branchs, guidance, …)
