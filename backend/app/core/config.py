@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     )
 
     yolo_model_path: str = Field(
-        default="models/yolov8n-seg.onnx",
+        default="models/yolo26n-seg.pt",
         alias="YOLO_MODEL_PATH",
     )
     upload_dir: str = Field(default="data/uploads", alias="UPLOAD_DIR")
@@ -51,8 +51,19 @@ class Settings(BaseSettings):
         alias="PSEUDO_LABEL_DIR",
     )
 
+    # LLM: ollama (default) | openai | gemini | heuristic
+    # See docs/plan/AI_MODEL_STRATEGY.md
+    llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
+    llm_base_url: str | None = Field(
+        default="http://localhost:11434",
+        alias="LLM_BASE_URL",
+    )
+    ollama_model: str = Field(default="gemma4:e4b", alias="OLLAMA_MODEL")
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
-    llm_base_url: str | None = Field(default=None, alias="LLM_BASE_URL")
+    openai_model: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL")
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-2.0-flash", alias="GEMINI_MODEL")
+
 
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
     file_retention_hours: int = Field(default=24, alias="FILE_RETENTION_HOURS")

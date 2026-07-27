@@ -7,6 +7,7 @@
 | 문서 | 설명 |
 |------|------|
 | [docs/plan/LOGIC_STRUCTURE.md](docs/plan/LOGIC_STRUCTURE.md) | **통합 로직 구조 (구현 1순위)** |
+| [docs/plan/AI_MODEL_STRATEGY.md](docs/plan/AI_MODEL_STRATEGY.md) | **YOLO26n-seg · Ollama E4B · OpenAI/Gemini** |
 | [docs/plan/PROJECT_STRUCTURE.md](docs/plan/PROJECT_STRUCTURE.md) | 폴더·모듈 구조 |
 | [docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md](docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md) | 실행 규칙 + Git |
 | [docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md](docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md) | 환경·실행·배포 |

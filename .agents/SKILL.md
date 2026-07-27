@@ -13,6 +13,8 @@ description: >
 - 이름: 컷앤킵 / Cut & Keep  
 - 루트: `backend/`, `frontend/`, `console/`, `docs/`, `docker-compose.yml`  
 - Phase 1: 단일 이미지 파이프라인, 계층형 백엔드, 로컬 SQLite / Docker MariaDB, 운영 콘솔  
+- 비전: **YOLO26n-seg** · LLM 기본: **Ollama gemma4:e4b** · 고도화: OpenAI/Gemini  
+  → `docs/plan/AI_MODEL_STRATEGY.md`
 
 ## 백엔드 아키텍처
 

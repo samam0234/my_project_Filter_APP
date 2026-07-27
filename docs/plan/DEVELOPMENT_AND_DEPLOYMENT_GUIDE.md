@@ -170,15 +170,23 @@ SECRET_KEY=your-secret-key-here
 MAX_UPLOAD_SIZE_MB=20
 ALLOWED_MIME_TYPES=image/jpeg,image/png,image/webp
 
-# 모델 경로
-YOLO_MODEL_PATH=models/yolov8n-seg.onnx
+# 모델 경로 (YOLO26n instance segmentation)
+YOLO_MODEL_PATH=models/yolo26n-seg.pt
+# YOLO_MODEL_PATH=models/yolo26n-seg.onnx
 UPLOAD_DIR=data/uploads
 FEEDBACK_DIR=data/feedback
 
-# LLM (프롬프트 분석용)
-OPENAI_API_KEY=sk-...
-# 또는 로컬 LLM 사용 시
-# LLM_BASE_URL=http://localhost:11434
+# LLM — 기본 로컬 Ollama E4B, 고도화 openai/gemini
+# 상세: docs/plan/AI_MODEL_STRATEGY.md
+LLM_PROVIDER=ollama
+LLM_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=gemma4:e4b
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4o-mini
+# LLM_PROVIDER=gemini
+# GEMINI_API_KEY=...
+# GEMINI_MODEL=gemini-2.0-flash
 
 # Redis (Phase 2)
 REDIS_URL=redis://localhost:6379/0
