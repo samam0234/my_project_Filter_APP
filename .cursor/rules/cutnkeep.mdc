@@ -1,38 +1,38 @@
 ---
-description: Cut & Keep project conventions — commits, layers, docs
+description: 컷앤킵 프로젝트 규칙 — 커밋, 계층, 문서, 브랜치
 globs:
   - "**/*"
 alwaysApply: true
 ---
 
-# Cut & Keep (Cursor rules)
+# 컷앤킵 (Cursor 규칙)
 
-Follow `.agents/SKILL.md` and `.agents/AGENTS.md`.
+`.agents/SKILL.md`, `.agents/AGENTS.md` 를 따른다.
 
-## Git commits
+## Git 커밋
 
-- **Title:** English only — `type(scope): summary`
-- **Body:** Korean
-- **Footer:** Korean
+- **제목:** 영어만 — `type(scope): summary`
+- **본문:** 한국어
+- **바닥글:** 한국어
 
-Never put Korean in the commit title.
+제목에 한글 넣지 말 것.
 
-After documenting a commit, create:
+커밋 이력 문서화 시:
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[name]_[branch].md`
+`docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md`
 
-## Branches
+## 브랜치
 
-- Work/commits on `feature/*` only.
-- Linear integrate merges **only into `develop` or `main`**.
-- Finish feature → merge to `develop` (not feature→feature as main path).
-- See `docs/guidance/branch-merge.md`.
+- 작업·커밋은 `feature/*` 에서만
+- 일자 통합 병합은 **`develop` 또는 `main` 에만**
+- feature 완료 → `develop` merge (feature→feature 가 메인 경로 아님)
+- `docs/guidance/branch-merge.md` 참고
 
-## Code layout
+## 코드 배치
 
 - `backend/app/routers|schemas|repositories|models|db|services|workflows`
-- `frontend/` user app · `console/` ops console
+- `frontend/` 사용자 앱 · `console/` 운영 콘솔
 
-## Docs
+## 문서
 
-Prefer updating the matching folder under `docs/` (guidance, repeater, branchs, …).
+`docs/` 아래 맞는 폴더에 갱신 (guidance, repeater, branchs 등).

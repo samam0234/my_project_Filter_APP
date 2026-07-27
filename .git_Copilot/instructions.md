@@ -1,3 +1,3 @@
-# Copilot instructions (alias)
+# Copilot 지시 (별칭)
 
-See `copilot-instructions.md` and `.agents/AGENTS.md`.
+`copilot-instructions.md` 와 `.agents/AGENTS.md` 를 본다.

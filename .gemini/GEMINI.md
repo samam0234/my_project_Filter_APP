@@ -1,17 +1,22 @@
-# Gemini — Cut & Keep
+# Gemini — 컷앤킵
 
-Follow: `.agents/AGENTS.md` and `.agents/SKILL.md`.
+따를 것: `.agents/AGENTS.md`, `.agents/SKILL.md`
 
-## Commits
+## 커밋
 
-| Part | Language |
-|------|----------|
-| Title | English |
-| Body | Korean |
-| Footer | Korean |
+| 구간 | 언어 |
+|------|------|
+| 제목 | 영어 |
+| 본문 | 한국어 |
+| 바닥글 | 한국어 |
 
 `docs/guidance/commit-message.md`
 
-## branchs log
+## branchs 로그
 
-`YY_MM_DD_[commitId]_[commitName]_[commitBranch].md` under `docs/branchs/commits/`.
+`docs/branchs/commits/YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md`
+
+## 브랜치
+
+작업 = `feature/*` · 일자 병합 = `develop` / `main` 만  
+`docs/guidance/branch-merge.md`

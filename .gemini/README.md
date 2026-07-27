@@ -1,8 +1,8 @@
 # .gemini
 
-Google Gemini / Gemini CLI project instructions.
+Google Gemini / Gemini CLI 프로젝트 지시.
 
-| File | Role |
+| 파일 | 역할 |
 |------|------|
-| `GEMINI.md` | Project context |
-| `skills/cutnkeep.md` | Skill-style rules |
+| `GEMINI.md` | 프로젝트 컨텍스트 |
+| `skills/cutnkeep.md` | 스킬형 규칙 |

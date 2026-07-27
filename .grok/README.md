@@ -1,9 +1,9 @@
 # .grok
 
-Grok Build / Grok agent project skills.
+Grok Build / Grok 에이전트용 프로젝트 스킬.
 
-| Path | Role |
+| 경로 | 역할 |
 |------|------|
-| `skills/cutnkeep/SKILL.md` | Project skill (auto / slash) |
+| `skills/cutnkeep/SKILL.md` | 프로젝트 스킬 (자동 / 슬래시) |
 
-Canonical rules live in `.agents/SKILL.md`.
+정본 규칙은 `.agents/SKILL.md` 에 있다.

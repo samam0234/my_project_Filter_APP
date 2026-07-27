@@ -1,10 +1,10 @@
 # .git_Copilot
 
-GitHub Copilot project instructions.
+GitHub Copilot 프로젝트 지시.
 
-| File | Role |
+| 파일 | 역할 |
 |------|------|
-| `copilot-instructions.md` | Main Copilot agent instructions |
-| `instructions.md` | Alias pointer |
+| `copilot-instructions.md` | 메인 Copilot 지시 |
+| `instructions.md` | 별칭 포인터 |
 
-Also consider linking or copying to `.github/copilot-instructions.md` if your Copilot version only reads that path.
+Copilot 버전이 `.github/copilot-instructions.md` 만 읽는 경우 그 경로도 동일 내용을 둔다.

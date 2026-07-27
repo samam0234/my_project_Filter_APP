@@ -1,8 +1,8 @@
 # .Codex
 
-OpenAI Codex CLI / IDE agent project config.
+OpenAI Codex CLI / IDE 에이전트 설정.
 
-| File | Role |
+| 파일 | 역할 |
 |------|------|
-| `AGENTS.md` | Agent entry instructions |
-| `skills/cutnkeep.md` | Compact skill |
+| `AGENTS.md` | 에이전트 진입 지시 |
+| `skills/cutnkeep.md` | 요약 스킬 |

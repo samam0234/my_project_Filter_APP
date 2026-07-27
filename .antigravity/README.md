@@ -1,8 +1,8 @@
 # .antigravity
 
-Antigravity agent project config.
+Antigravity 에이전트 프로젝트 설정.
 
-| File | Role |
+| 파일 | 역할 |
 |------|------|
-| `AGENTS.md` | Entry instructions |
-| `skills/cutnkeep.md` | Compact skill |
+| `AGENTS.md` | 진입 지시 |
+| `skills/cutnkeep.md` | 요약 스킬 |

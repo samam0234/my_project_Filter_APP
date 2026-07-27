@@ -1,9 +1,9 @@
 # .cursor
 
-Cursor IDE project rules.
+Cursor IDE 프로젝트 규칙.
 
-| Path | Role |
+| 경로 | 역할 |
 |------|------|
-| `rules/cutnkeep.mdc` | Always-on project rule |
+| `rules/cutnkeep.mdc` | 항상 적용 규칙 |
 
-Canonical skill: `.agents/SKILL.md`
+정본 스킬: `.agents/SKILL.md`

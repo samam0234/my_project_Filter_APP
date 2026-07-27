@@ -1,15 +1,15 @@
-# GitHub Copilot — Cut & Keep
+# GitHub Copilot — 컷앤킵
 
-This file guides Copilot Chat / coding agent in this repo.
+이 파일은 본 저장소의 Copilot Chat / 코딩 에이전트용이다.
 
-## Project
+## 프로젝트
 
-Cut & Keep: prompt-based background removal.  
-`backend` FastAPI, `frontend` user UI (:5173), `console` ops UI (:5174).
+컷앤킵: 프롬프트 기반 배경 제거.  
+`backend` FastAPI, `frontend` 사용자 UI (:5173), `console` 운영 UI (:5174).
 
-## Commit messages (required)
+## 커밋 메시지 (필수)
 
-When suggesting or creating commits:
+커밋 제안·생성 시:
 
 ```
 type(scope): English summary
@@ -19,20 +19,26 @@ type(scope): English summary
 한국어로 바닥글 작성 (선택)
 ```
 
-- Title must **not** contain Hangul.  
-- Body and footer must be Korean.  
-- Details: `docs/guidance/commit-message.md`
+- 제목에 **한글 금지**  
+- 본문·바닥글은 **한국어**  
+- 상세: `docs/guidance/commit-message.md`
 
-## Architecture
+## 아키텍처
 
 Routers → services/workflows → repositories → models.  
-Schemas are Pydantic DTOs only.
+schemas 는 Pydantic DTO 전용.
 
-## Docs after commits
+## 브랜치
 
-`docs/branchs/commits/YY_MM_DD_[id]_[name]_[branch].md`  
-Template: `docs/branchs/TEMPLATE.md`
+- 작업 커밋: `feature/*`  
+- 일자 병합: `develop` / `main` 만  
+- `docs/guidance/branch-merge.md`
 
-## Full skill
+## 커밋 후 문서
+
+`docs/branchs/commits/YY_MM_DD_[id]_[이름]_[브랜치].md`  
+템플릿: `docs/branchs/TEMPLATE.md`
+
+## 전체 스킬
 
 `.agents/SKILL.md`

@@ -1,10 +1,10 @@
 # .claude
 
-Claude Code / Claude-oriented project instructions.
+Claude Code / Claude용 프로젝트 지시.
 
-| File | Role |
+| 파일 | 역할 |
 |------|------|
-| `CLAUDE.md` | Loaded as project memory / instructions |
-| `skills/cutnkeep/SKILL.md` | Optional skill package |
+| `CLAUDE.md` | 프로젝트 메모리 / 지시 |
+| `skills/cutnkeep/SKILL.md` | 스킬 패키지 |
 
-Note: folder is `.claude` (correct spelling), not `.cluade`.
+참고: 폴더명은 `.claude` (올바른 철자).

@@ -1,22 +1,29 @@
-# Claude — Cut & Keep
+# Claude — 컷앤킵
 
-This repository uses shared agent rules.
+이 저장소는 공유 에이전트 규칙을 사용한다.
 
-**Primary instructions:** `.agents/AGENTS.md` and `.agents/SKILL.md`
+**주 지시:** `.agents/AGENTS.md`, `.agents/SKILL.md`
 
-## Commit messages
+## 커밋 메시지
 
-- **Title:** English only (Conventional Commits)  
-- **Body:** Korean  
-- **Footer:** Korean  
+- **제목:** 영어만 (Conventional Commits)  
+- **본문:** 한국어  
+- **바닥글:** 한국어  
 
-See `docs/guidance/commit-message.md`.
+→ `docs/guidance/commit-message.md`
 
-## After commits
+## 커밋 후
 
-Write `docs/branchs/commits/YY_MM_DD_[id]_[name]_[branch].md` per `docs/branchs/TEMPLATE.md`.
+`docs/branchs/commits/YY_MM_DD_[id]_[이름]_[브랜치].md` 작성  
+(`docs/branchs/TEMPLATE.md` 준수)
 
-## Stack
+## 브랜치
+
+- 작업 커밋: `feature/*`  
+- 일자 병합: `develop` / `main` 만  
+→ `docs/guidance/branch-merge.md`
+
+## 스택
 
 - `backend/` FastAPI · `frontend/` :5173 · `console/` :5174  
 - Docker: `-p cut_and_keep`

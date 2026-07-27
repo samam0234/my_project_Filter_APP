@@ -1,17 +1,23 @@
-# Codex — Cut & Keep
+# Codex — 컷앤킵
 
-Include and follow repository files:
+아래 저장소 파일을 포함하고 따른다:
 
 - `.agents/AGENTS.md`
 - `.agents/SKILL.md`
 - `docs/guidance/commit-message.md`
+- `docs/guidance/branch-merge.md`
 
-## Commit policy
+## 커밋 정책
 
-1. **Subject line: English only**  
-2. **Body: Korean**  
-3. **Footer: Korean**
+1. **제목 줄: 영어만**  
+2. **본문: 한국어**  
+3. **바닥글: 한국어**  
 
-## Post-commit docs
+## 커밋 후 문서
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[slug]_[branch].md`
+`docs/branchs/commits/YY_MM_DD_[sha]_[slug]_[브랜치].md`
+
+## 브랜치
+
+- 작업은 feature 등에서  
+- 일자 통합은 develop / main 만  

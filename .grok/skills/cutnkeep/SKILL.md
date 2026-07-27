@@ -1,31 +1,31 @@
 ---
 name: cutnkeep
 description: >
-  Cut & Keep repo rules for Grok: English commit titles, Korean body/footer,
-  branchs log filenames YY_MM_DD_*, backend layers, console vs frontend.
-  Use for any work in this repository. /cutnkeep
+  컷앤킵 저장소 Grok 규칙: 커밋 제목 영어·본문/바닥글 한국어,
+  branchs 로그 YY_MM_DD_*, 백엔드 계층, console vs frontend.
+  이 저장소 작업 전반에 사용. /cutnkeep
 ---
 
-# Grok skill — Cut & Keep
+# Grok 스킬 — 컷앤킵
 
-Follow the canonical skill:
+정본 스킬을 따른다:
 
-**Read and obey:** `.agents/SKILL.md` and `.agents/AGENTS.md`
+**읽고 준수:** `.agents/SKILL.md`, `.agents/AGENTS.md`
 
-### Commit (reminder)
+### 커밋 (요약)
 
-- Title: **English** only (`feat(scope): ...`)  
-- Body: **Korean**  
-- Footer: **Korean**  
+- 제목: **영어만** (`feat(scope): ...`)  
+- 본문: **한국어**  
+- 바닥글: **한국어**  
 
-Guide: `docs/guidance/commit-message.md`
+가이드: `docs/guidance/commit-message.md`
 
-### Commit log file
+### 커밋 기록 파일
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[name]_[branch].md`
+`docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md`
 
-### Branches
+### 브랜치
 
-- Work on `feature/*` only.  
-- Linear integrate merges **only to `develop` or `main`**.  
-- Guide: `docs/guidance/branch-merge.md`
+- 작업은 `feature/*` 에서만  
+- 일자 통합 병합은 **`develop` 또는 `main` 에만**  
+- 가이드: `docs/guidance/branch-merge.md`  
