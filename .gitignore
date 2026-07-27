@@ -1,0 +1,56 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.log
+npm-debug.log*
+
+# Env & secrets
+.env
+.env.local
+*.pem
+
+# Runtime data / models (keep directories via .gitkeep)
+data/uploads/*
+data/feedback/*
+data/pseudo_labels/*
+!data/**/.gitkeep
+backend/data/uploads/*
+backend/data/feedback/*
+backend/data/pseudo_labels/*
+!backend/data/**/.gitkeep
+models/*
+!models/.gitkeep
+backend/models/*
+!backend/models/.gitkeep
+logs/*
+!logs/.gitkeep
+backend/logs/*
+!backend/logs/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Build / temp
+*.onnx
+*.pt
+*.safetensors
+tmp/
+temp/
