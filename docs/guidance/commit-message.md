@@ -109,9 +109,10 @@ feat(backend): add DB                     ← 본문 없음(가능은 하나 비
 
 ## 5. 브랜치
 
-- 작업은 `feature/*` 등 문서 전략 브랜치에서  
-- 완료 후 `develop` 병합  
-- 상세: `docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md`, `docs/branchs/BRANCH_MAP.md`
+- **작업·커밋:** `feature/*` 등 작업 브랜치에서만  
+- **일자 통합 병합:** **`develop` 또는 `main` 에만** 붙인다  
+- feature 완료 시 → **`develop` merge** (feature끼리 장기 합치기 금지)  
+- 상세: `docs/guidance/branch-merge.md`, `docs/branchs/BRANCH_MAP.md`
 
 ---
 

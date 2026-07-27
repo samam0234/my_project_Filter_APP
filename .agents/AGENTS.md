@@ -43,7 +43,11 @@ Branch `/` → `-` in filenames (`feature/docs` → `feature-docs`).
 | OpenCV | `feature/opencv` |
 | YOLO | `feature/yolo` |
 
-Integrate via `develop`. Do not force-push `main` without release process.
+- Commit **only on feature (work) branches**.  
+- **Linear merge target:** **`develop` or `main` only** (attach when merging finished work).  
+- Do not use feature→feature as the long-term integration line.  
+- Guide: `docs/guidance/branch-merge.md`.  
+- Do not force-push `main`/`develop` without user approval.
 
 ## Stack map
 

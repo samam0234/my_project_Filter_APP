@@ -86,8 +86,12 @@ Example: `26_07_27_8914abe_backend-layers-db_feature-backend.md`
 
 ## Branch selection
 
-Work on the matching `feature/*` branch, then merge to `develop`.  
-See `docs/branchs/BRANCH_MAP.md`.
+- **Daily work/commits:** only on matching `feature/*` (or bugfix/experimental).  
+- **Linear integrate line:** merge **only into `develop` or `main`**.  
+- Do **not** long-merge feature→feature as the integration path.  
+- When feature is done → **merge into `develop`**.  
+- Release path: `release/*` → **`main`**.  
+- Guide: `docs/guidance/branch-merge.md`, `docs/branchs/BRANCH_MAP.md`.
 
 ## Docker
 

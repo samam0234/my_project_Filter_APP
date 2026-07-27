@@ -23,3 +23,9 @@ Guide: `docs/guidance/commit-message.md`
 ### Commit log file
 
 `docs/branchs/commits/YY_MM_DD_[sha]_[name]_[branch].md`
+
+### Branches
+
+- Work on `feature/*` only.  
+- Linear integrate merges **only to `develop` or `main`**.  
+- Guide: `docs/guidance/branch-merge.md`

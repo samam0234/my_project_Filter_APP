@@ -21,6 +21,13 @@ After documenting a commit, create:
 
 `docs/branchs/commits/YY_MM_DD_[sha]_[name]_[branch].md`
 
+## Branches
+
+- Work/commits on `feature/*` only.
+- Linear integrate merges **only into `develop` or `main`**.
+- Finish feature → merge to `develop` (not feature→feature as main path).
+- See `docs/guidance/branch-merge.md`.
+
 ## Code layout
 
 - `backend/app/routers|schemas|repositories|models|db|services|workflows`

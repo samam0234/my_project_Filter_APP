@@ -11,6 +11,14 @@
 
 → [`docs/guidance/commit-message.md`](../guidance/commit-message.md)
 
+## 브랜치 · 병합 (필수)
+
+| 작업 | 통합(일자 병합) |
+|------|-----------------|
+| `feature/*` 등에서 커밋 | **`develop` / `main` 에만** merge로 붙임 |
+
+→ [`docs/guidance/branch-merge.md`](../guidance/branch-merge.md) · [`BRANCH_MAP.md`](./BRANCH_MAP.md)
+
 ## 필수 문서
 
 
