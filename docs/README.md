@@ -35,5 +35,5 @@
 - **브랜치 병합 규칙:** [guidance/branch-merge.md](./guidance/branch-merge.md)
 - 커밋 기록 템플릿: [branchs/TEMPLATE.md](./branchs/TEMPLATE.md)
 
-- 에이전트 스킬: [../.agents/SKILL.md](../.agents/SKILL.md)
+- 에이전트 스킬: [../.agents/skills/cutnkeep/SKILL.md](../.agents/skills/cutnkeep/SKILL.md) · [../AGENTS.md](../AGENTS.md)
 

@@ -1,16 +1,19 @@
 # .agents — 공통 에이전트 스킬 허브
 
-이 폴더는 **도구 공통** 프로젝트 지시의 기준점이다.
+Grok 등이 스킬을 찾는 경로: **`.agents/skills/<name>/SKILL.md`**
 
-| 파일 | 용도 |
+| 경로 | 용도 |
 |------|------|
-| [SKILL.md](./SKILL.md) | 에이전트가 따를 작업 규칙 (스킬 본체) |
-| [AGENTS.md](./AGENTS.md) | 짧은 진입 지시 (다른 도구에서 참조) |
+| [`skills/cutnkeep/SKILL.md`](./skills/cutnkeep/SKILL.md) | **정본 스킬** (자동 발견) |
+| [`AGENTS.md`](./AGENTS.md) | 짧은 진입 지시 |
+| 루트 [`../AGENTS.md`](../AGENTS.md) | Grok 프로젝트 규칙 자동 로드 |
 
-도구별 어댑터:
+## 잘못된 예전 경로 (사용 금지)
 
-- `.grok/` · `.claude/` · `.gemini/` · `.Codex/`
-- `.git_Copilot/` · `.antigravity/` · `.cursor/`
+- ~~`.agents/SKILL.md`~~ → `skills/cutnkeep/SKILL.md` 로 이동됨  
+  (스킬 루트에 바로 두면 도구가 못 찾거나 경고가 날 수 있음)
 
-커밋 규칙: `docs/guidance/commit-message.md`  
-브랜치 규칙: `docs/guidance/branch-merge.md`
+## 도구별 어댑터
+
+`.grok/skills/`, `.claude/skills/`, `.cursor/skills/`, `.gemini/skills/` 등  
+각 폴더에도 `cutnkeep/SKILL.md` 가 있고 정본을 가리킨다.

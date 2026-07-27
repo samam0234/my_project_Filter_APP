@@ -121,4 +121,4 @@ feat(backend): add DB                     ← 본문 없음(가능은 하나 비
 ## 6. 에이전트
 
 AI 에이전트는 커밋 시 이 문서를 따른다.  
-프로젝트 스킬 진입점: `.agents/SKILL.md` 및 각 도구 폴더(`.grok`, `.claude`, `.cursor` 등).
+프로젝트 스킬 진입점: `.agents/skills/cutnkeep/SKILL.md`, 루트 `AGENTS.md`, 각 도구 폴더(`.grok`, `.claude`, `.cursor` 등).

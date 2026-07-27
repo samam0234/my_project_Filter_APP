@@ -3,7 +3,8 @@
 프로젝트 정본 지시는 다음에도 있다:
 
 - `.git_Copilot/copilot-instructions.md`
-- `.agents/SKILL.md`
+- `.agents/skills/cutnkeep/SKILL.md`
+- 루트 `AGENTS.md`
 
 ## 커밋
 
