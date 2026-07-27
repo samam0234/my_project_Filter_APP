@@ -47,21 +47,21 @@ git checkout -b feature/opencv
 - `develop` / `main` 에 직접 기능 커밋하지 않는다.  
   (문서 긴급 핫픽스 등 예외는 최소화)
 
-### 2.3 develop 에 붙이기 (통합)
+### 2.3 develop 에 붙이기 (통합) — **반드시 `--no-ff`**
 
 ```bash
 git checkout develop
 git pull origin develop
-git merge feature/opencv
-# 또는 PR: feature/opencv → develop
+# 금지: git merge feature/opencv   ← FF 되면 그래프가 다시 일자로 합쳐짐
+git merge --no-ff feature/opencv -m "merge: feature/opencv into develop"
 git push origin develop
 ```
 
-- **일자 히스토리(FF)를 원할 때:** feature가 develop 최신에서 분기했고 충돌이 없으면  
-  `git merge` 가 fast-forward 되어 그래프가 일직선으로 이어진다.
-- **갈림길을 남기고 싶을 때:**  
-  `git merge --no-ff feature/opencv` (명시적 merge 커밋)  
-  → 기본 정책은 **일자 통합 선호 FF 허용**. 감사용 분기가 필요하면 `--no-ff` 를 문서에 남기고 사용.
+| 규칙 | 내용 |
+|------|------|
+| **필수** | `develop` / `main` 합류 시 **`git merge --no-ff`** |
+| **금지** | feature → develop **fast-forward** (일직선 그래프 원인) |
+| **금지** | 일상 작업을 develop 에 직접 커밋하고 feature 포인터만 따라가기 |
 
 ### 2.4 main 에 붙이기 (배포)
 
@@ -69,12 +69,12 @@ git push origin develop
 git checkout -b release/0.1.0 develop
 # 검증 …
 git checkout main
-git merge release/0.1.0   # 또는 develop 안정 태그 기준
+git merge --no-ff release/0.1.0 -m "merge: release/0.1.0 into main"
 git tag v0.1.0
 ```
 
 - 일상 feature를 **직접 main에 merge 하지 않는다.**
-- main 은 배포·핫픽스 창구만.
+- main 은 배포·핫픽스 창구만. `merge --no-ff` 권장.
 
 ---
 
@@ -89,16 +89,14 @@ git tag v0.1.0
 
 ---
 
-## 4. 그래프가 일자로 보이는 경우 (정상)
+## 4. 그래프가 일자로만 보이던 원인 (피해야 할 패턴)
 
-다음이면 Git Graph 가 **직선**에 가깝다 — 버그가 아니다.
+1. feature 를 만들었지만 **커밋 없이** develop 과 같은 tip 만 가리킴  
+2. develop 병합을 **fast-forward** 로 함 (`merge` 기본 동작)  
+3. 실제 작업을 **한 브랜치 체인**에만 쌓고 다른 feature 는 중간 커밋 포인터만 둠  
 
-1. 작업은 feature 에서 했지만  
-2. develop 병합이 **fast-forward** 이고  
-3. feature 가 develop 최신에서 짧게 분기한 경우  
-
-**의도:** 통합 라인(`develop`/`main`)은 깨끗하게 일자로 유지하고,  
-작업 단위 분리는 **브랜치 이름 + 커밋 메시지 + `docs/branchs/commits/` 기록**으로 한다.
+**현재 정책:** feature 는 develop 에서 분기한 뒤 **반드시 자기 커밋**을 쌓고,  
+합칠 때는 **`--no-ff`**. 빈 작업 브랜치도 tip 이 develop 과 같지 않도록 앵커 커밋을 둘 수 있다.
 
 ---
 

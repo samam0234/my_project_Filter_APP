@@ -89,9 +89,10 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 - **일상 작업·커밋:** 해당 `feature/*` (또는 bugfix/experimental) **에서만**  
 - **일자 통합 라인:** **`develop` 또는 `main` 에만** merge  
+- develop/main 병합 시 **반드시 `git merge --no-ff`** (FF 금지 — 그래프 일자 합침 방지)  
 - feature끼리 장기간 merge 하며 통합하지 말 것  
-- 작업 끝나면 → **`develop`에 merge**  
-- 배포: `release/*` → **`main`**  
+- 작업 끝나면 → **`develop`에 --no-ff merge**  
+- 배포: `release/*` → **`main`** (`--no-ff` 권장)  
 - 가이드: `docs/guidance/branch-merge.md`, `docs/branchs/BRANCH_MAP.md`  
 
 ## Docker
