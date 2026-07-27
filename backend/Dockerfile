@@ -7,8 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Prefer slim Docker deps (see requirements.docker.txt). Full ML stack: requirements.txt
+COPY requirements.docker.txt requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.docker.txt
 
 COPY . .
 

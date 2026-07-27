@@ -55,9 +55,11 @@ services:
 
   redis:
     image: redis:7-alpine
+    # Host 6379 often taken by other stacks; map alternate or omit for internal-only.
     ports:
-      - "6379:6379"
+      - "6380:6379"
     restart: unless-stopped
+
 
   # Phase 2 — uncomment when batch processing is ready
   # celery_worker:
