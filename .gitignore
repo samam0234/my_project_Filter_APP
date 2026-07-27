@@ -36,10 +36,12 @@ backend/data/pseudo_labels/*
 !backend/data/**/.gitkeep
 models/*
 !models/.gitkeep
+!models/README.md
 backend/models/*
 !backend/models/.gitkeep
 logs/*
 !logs/.gitkeep
+!logs/README.md
 backend/logs/*
 !backend/logs/.gitkeep
 
