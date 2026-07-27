@@ -1,0 +1,31 @@
+---
+description: Cut & Keep project conventions — commits, layers, docs
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# Cut & Keep (Cursor rules)
+
+Follow `.agents/SKILL.md` and `.agents/AGENTS.md`.
+
+## Git commits
+
+- **Title:** English only — `type(scope): summary`
+- **Body:** Korean
+- **Footer:** Korean
+
+Never put Korean in the commit title.
+
+After documenting a commit, create:
+
+`docs/branchs/commits/YY_MM_DD_[sha]_[name]_[branch].md`
+
+## Code layout
+
+- `backend/app/routers|schemas|repositories|models|db|services|workflows`
+- `frontend/` user app · `console/` ops console
+
+## Docs
+
+Prefer updating the matching folder under `docs/` (guidance, repeater, branchs, …).

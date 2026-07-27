@@ -4,7 +4,32 @@
 
 ---
 
+## Git 커밋 메시지 규칙 (필수)
+
+커밋 **자체**의 메시지 언어:
+
+| 구간 | 언어 |
+|------|------|
+| **제목 (title/subject)** | **영어만** |
+| **본문 (body)** | **한국어** |
+| **바닥글 (footer)** | **한국어** |
+
+```text
+feat(scope): english summary only
+
+한국어 본문 — 변경 이유와 내용
+
+관련: …          ← 바닥글도 한국어
+후속: …
+```
+
+상세 가이드: [`docs/guidance/commit-message.md`](../guidance/commit-message.md)  
+에이전트 스킬: `.agents/SKILL.md`
+
+---
+
 ## 파일명 규칙 (필수)
+
 
 ```text
 YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md

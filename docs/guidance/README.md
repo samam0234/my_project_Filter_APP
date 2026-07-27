@@ -6,11 +6,13 @@
 
 | 파일 | 설명 |
 |------|------|
+| [commit-message.md](./commit-message.md) | **커밋 제목 영어 / 본문·바닥글 한국어** |
 | [getting-started.md](./getting-started.md) | 로컬 전체 기동 |
 | [api-usage.md](./api-usage.md) | 주요 API 사용 |
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
+
 
 ## 작성 규칙
 

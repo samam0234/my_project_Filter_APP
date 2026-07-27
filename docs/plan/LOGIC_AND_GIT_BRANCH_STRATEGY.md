@@ -104,8 +104,19 @@ AI 학습 데이터 준비 시 bounding box를 수작업으로 그리는 번거�
 - 모든 작업은 `develop`에서 파생된 `feature/*` 브랜치에서만 진행한다.
 - `main`에는 오직 `release/*` 또는 `hotfix/*`만 merge한다.
 - Feature 브랜치는 1~2주 이내에 끝내고 develop에 merge 후 삭제한다.
-- 커밋 메시지는 Conventional Commits 형식을 따른다.  
-  예: `feat(opencv): CLAHE + GrabCut 파이프라인 구현`
+- 커밋 메시지는 Conventional Commits + **언어 분리**를 따른다.  
+  - **제목: 영어만** · **본문: 한국어** · **바닥글: 한국어**  
+  - 예:
+    ```text
+    feat(opencv): implement CLAHE and GrabCut pipeline
+
+    CLAHE와 GrabCut 기반 OpenCV 파이프라인을 구현함.
+
+    관련: docs/guidance/commit-message.md
+    ```
+  - 상세: `docs/guidance/commit-message.md`  
+  - 커밋 후 기록 파일: `docs/branchs/commits/YY_MM_DD_[id]_[name]_[branch].md`
+
 
 ### 2.6 문서화 규칙
 - 새로운 기능 추가 시 반드시 `docs/` 또는 해당 feature 브랜치에서 문서도 함께 업데이트한다.

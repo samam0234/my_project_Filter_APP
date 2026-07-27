@@ -29,4 +29,7 @@
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 - 배포: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)
+- **커밋 메시지 규칙:** [guidance/commit-message.md](./guidance/commit-message.md)
 - 커밋 기록 템플릿: [branchs/TEMPLATE.md](./branchs/TEMPLATE.md)
+- 에이전트 스킬: [../.agents/SKILL.md](../.agents/SKILL.md)
+
