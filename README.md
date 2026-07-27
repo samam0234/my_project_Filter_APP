@@ -25,25 +25,40 @@ python -m venv .venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Frontend (다른 터미널)
+# Frontend (사용자 앱)
 cd frontend
+npm install
+npm run dev
+
+# Console (운영 관리자)
+cd console
 npm install
 npm run dev
 ```
 
-- Backend API docs: http://localhost:8000/docs  
-- Frontend: http://localhost:5173  
+| 앱 | URL |
+|----|-----|
+| Backend API docs | http://localhost:8000/docs |
+| Frontend (사용자) | http://localhost:5173 |
+| **Console (운영)** | http://localhost:5174 |
+
+문서 허브: [docs/README.md](docs/README.md)
+
 
 ## 아키텍처 요약
 
 ```
-Frontend → Routers → Services/Workflow → Repositories → SQLite(local) | MariaDB(prod)
+frontend(:5173) ─┐
+console(:5174)  ─┼→ backend(:8000) → Repositories → SQLite | MariaDB
+                 └→ files: data/uploads, data/feedback
 ```
 
 처리 파이프라인: **보안 검증 → 프롬프트 분석 → 전처리 → 세그멘테이션 → 효과 → 검증 → DB 저장 / 피드백**
 
 계층: `schemas` · `routers` · `repositories` · `models`(ORM) · `db`  
-DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)
+DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)  
+운영 콘솔: [console/README.md](console/README.md) · [docs/guidance/console-admin.md](docs/guidance/console-admin.md)
+
 
 
 ## Phase

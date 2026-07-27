@@ -13,18 +13,19 @@
 ```bash
 cut-and-keep/
 ├── backend/                          # FastAPI 백엔드 (Python)
-├── frontend/                         # React + TypeScript 프론트엔드
+├── frontend/                         # React 사용자 앱 (:5173)
+├── console/                          # React 운영 관리자 콘솔 (:5174)
 ├── scripts/                          # 유틸리티 & 학습 스크립트
 ├── models/                           # 학습된 모델 저장소 (ONNX, LoRA)
 ├── data/                             # 데이터셋 & 피드백 데이터
 ├── docker/                           # Docker 관련 설정
-├── docs/                             # 문서화
+├── docs/                             # 문서 허브 (Architecture, branchs, guidance, …)
 ├── logs/                             # 런타임 로그
 ├── .env
 ├── docker-compose.yml
-├── README.md
-└── requirements.txt / package.json
+└── README.md
 ```
+
 
 ---
 
