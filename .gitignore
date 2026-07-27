@@ -52,5 +52,6 @@ Thumbs.db
 *.onnx
 *.pt
 *.safetensors
+*.tsbuildinfo
 tmp/
 temp/
