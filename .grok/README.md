@@ -1,9 +1,9 @@
 # .grok
 
-Grok Build / Grok 에이전트용 프로젝트 스킬.
-
-| 경로 | 역할 |
+| 경로 | 용도 |
 |------|------|
-| `skills/cutnkeep/SKILL.md` | 프로젝트 스킬 (자동 / 슬래시) |
+| `skills/cutnkeep/SKILL.md` | 프로젝트 스킬 (자동 스캔) |
+| `rules/cutnkeep.md` | 프로젝트 규칙 (`*.md` in rules/) |
 
-정본 규칙은 `.agents/SKILL.md` 에 있다.
+정본 스킬: `.agents/skills/cutnkeep/SKILL.md`  
+루트 규칙: `AGENTS.md`

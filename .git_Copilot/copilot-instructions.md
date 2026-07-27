@@ -41,4 +41,4 @@ schemas 는 Pydantic DTO 전용.
 
 ## 전체 스킬
 
-`.agents/SKILL.md`
+`.agents/skills/cutnkeep/SKILL.md` · 루트 `AGENTS.md`

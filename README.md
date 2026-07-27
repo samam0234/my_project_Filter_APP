@@ -49,7 +49,7 @@ npm run dev
 실행 가이드: [RUN.md](./RUN.md)  
 커밋 규칙: [docs/guidance/commit-message.md](docs/guidance/commit-message.md) (제목 영어 / 본문·바닥글 한국어)  
 브랜치 규칙: [docs/guidance/branch-merge.md](docs/guidance/branch-merge.md) (작업=feature, 일자 병합=develop/main)  
-에이전트 스킬: [.agents/SKILL.md](.agents/SKILL.md)  
+에이전트 스킬: [.agents/skills/cutnkeep/SKILL.md](.agents/skills/cutnkeep/SKILL.md) · [AGENTS.md](./AGENTS.md)  
 개인 메모: [Scribble/README.md](./Scribble/README.md) (내용물 git ignore)
 
 
