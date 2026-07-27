@@ -54,6 +54,21 @@ npm run dev
 
 
 
+## 주요 폴더
+
+| 폴더 | README | 역할 |
+|------|--------|------|
+| [backend/](./backend/README.md) | ✅ | FastAPI API · 파이프라인 · DB |
+| [frontend/](./frontend/README.md) | ✅ | 사용자 웹 앱 (:5173) |
+| [console/](./console/README.md) | ✅ | 운영 콘솔 (:5174) |
+| [scripts/](./scripts/README.md) | ✅ | ONNX 변환, cleanup 등 |
+| [data/](./data/README.md) | ✅ | 업로드·피드백·SQLite |
+| [models/](./models/README.md) | ✅ | YOLO 가중치 (git ignore) |
+| [logs/](./logs/README.md) | ✅ | 런타임 로그 |
+| [docs/](./docs/README.md) | ✅ | 문서 허브 |
+| [docker/](./docker/README.md) | ✅ | Compose 메모 |
+| [Scribble/](./Scribble/README.md) | ✅ | 개인 메모 (내용 ignore) |
+
 ## 아키텍처 요약
 
 ```
