@@ -1,0 +1,39 @@
+---
+description: 컷앤킵 프로젝트 규칙 — 커밋, 계층, 문서, 브랜치
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# 컷앤킵 (Cursor 규칙)
+
+`.agents/SKILL.md`, `.agents/AGENTS.md` 를 따른다.
+
+## Git 커밋
+
+- **제목:** 영어만 — `type(scope): summary`
+- **본문:** 한국어
+- **바닥글:** 한국어
+
+제목에 한글 넣지 말 것.
+
+커밋 이력 문서화 시:
+
+`docs/branchs/commits/YYMMDD_HHMM_[sha]_[이름]_[브랜치].md`  
+예: `260727_1446_..._feature-docs.md`
+
+## 브랜치
+
+- 작업·커밋은 `feature/*` 에서만
+- 일자 통합 병합은 **`develop` 또는 `main` 에만**
+- feature 완료 → `develop` merge (feature→feature 가 메인 경로 아님)
+- `docs/guidance/branch-merge.md` 참고
+
+## 코드 배치
+
+- `backend/app/routers|schemas|repositories|models|db|services|workflows`
+- `frontend/` 사용자 앱 · `console/` 운영 콘솔
+
+## 문서
+
+`docs/` 아래 맞는 폴더에 갱신 (guidance, repeater, branchs 등).

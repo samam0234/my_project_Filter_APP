@@ -1,4 +1,4 @@
-"""Compile and run the Cut & Keep LangGraph pipeline."""
+"""컷앤킵 LangGraph 파이프라인 컴파일 및 실행."""
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ from app.workflows.state import GraphState
 
 def build_graph():
     """
-    Build StateGraph when langgraph is installed.
-    Falls back to a linear runner if import fails (dev scaffold).
+    langgraph 설치 시 StateGraph 구성.
+    import 실패 시 선형 runner로 fallback (개발 스캐폴드).
     """
     try:
         from langgraph.graph import END, StateGraph
     except ImportError:
-        logger.warning("langgraph not installed — using linear fallback runner")
+        logger.warning("langgraph 미설치 — 선형 fallback runner 사용")
         return None
 
     graph = StateGraph(GraphState)
@@ -67,7 +67,7 @@ def get_compiled_graph():
 
 
 def _run_linear(state: GraphState) -> GraphState:
-    """Linear Phase-1 path without langgraph (always available)."""
+    """langgraph 없이 Phase 1 선형 경로 (항상 사용 가능)."""
     state = nodes.prompt_analyzer(state)
     state = nodes.preprocessor(state)
     if state.get("status") == JobStatus.FAILED.value:
@@ -92,7 +92,7 @@ def run_pipeline(
     prompt: str,
     job_id: Optional[str] = None,
 ) -> ProcessResult:
-    """Public entry: image + prompt → ProcessResult."""
+    """공개 진입점: 이미지 + 프롬프트 → ProcessResult."""
     job_id = job_id or uuid4().hex
     initial: GraphState = {
         "job_id": job_id,
@@ -111,7 +111,7 @@ def run_pipeline(
         else:
             final = _run_linear(initial)
     except Exception as exc:
-        logger.exception("Pipeline failed: {}", exc)
+        logger.exception("파이프라인 실패: {}", exc)
         final = {
             **initial,
             "status": JobStatus.FAILED.value,
@@ -123,7 +123,7 @@ def run_pipeline(
         except Exception:
             pass
     finally:
-        # drop heavy bytes from result; keep disk paths
+        # 결과에서 대용량 바이트 제거, 디스크 경로만 유지
         nodes.clear_job_cache(job_id)
 
     parsed_raw = final.get("parsed_prompt") or {}

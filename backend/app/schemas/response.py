@@ -1,4 +1,4 @@
-"""API response schemas (Pydantic)."""
+"""API 응답 스키마 (Pydantic)."""
 
 from typing import Any, Dict, Optional
 
@@ -15,7 +15,7 @@ class HealthResponse(BaseModel):
 
 
 class ProcessResult(BaseModel):
-    """Internal processing outcome (mapped to UploadResponse / Job row)."""
+    """내부 처리 결과 (UploadResponse / Job 행에 매핑)."""
 
     job_id: str
     status: str
@@ -40,7 +40,7 @@ class UploadResponse(BaseModel):
 
 
 class JobResponse(BaseModel):
-    """Persisted job view from DB."""
+    """DB에 저장된 Job 조회 뷰."""
 
     job_id: str
     prompt: str

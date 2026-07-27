@@ -1,4 +1,4 @@
-"""ORM: user / pipeline feedback records."""
+"""ORM: 사용자/파이프라인 피드백 레코드."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""LangGraph node functions. Orchestration only — heavy work in services."""
+"""LangGraph 노드 함수. 오케스트레이션만 — 무거운 연산은 services."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
 from app.workflows.state import GraphState
 
-# Module-level processor (lazy)
+# 모듈 수준 프로세서 (lazy)
 _processor: ImageProcessor | None = None
 _feedback: FeedbackService | None = None
-# In-memory image cache keyed by job_id (avoids putting ndarray in graph state)
+# job_id 키 인메모리 이미지 캐시 (GraphState에 ndarray 넣지 않음)
 _IMAGE_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
@@ -37,8 +37,8 @@ def _get_feedback() -> FeedbackService:
 
 def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     """
-    Phase 1 fallback parser without LLM.
-    Examples: '강아지만 남기고 배경 블러', 'person remove background'
+    LLM 없이 쓰는 Phase 1 휴리스틱 파서.
+    예: '강아지만 남기고 배경 블러', 'person remove background'
     """
     text = prompt.lower().strip()
     effect = "remove_bg"
@@ -53,12 +53,12 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     if "크롭" in text or "crop" in text:
         crop = True
 
-    # intensity like "blur 20" / "강도 20"
+    # 강도 예: "blur 20" / "강도 20"
     m = re.search(r"(?:intensity|강도|blur)\s*[:=]?\s*(\d{1,3})", text)
     if m:
         intensity = max(0, min(100, int(m.group(1))))
 
-    # crude target extraction: quoted word or last known class keywords
+    # 대상 추출: 따옴표 단어 또는 클래스 키워드
     targets = []
     quoted = re.findall(r"[\"'“”](.+?)[\"'“”]", prompt)
     if quoted:
@@ -81,7 +81,7 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
 
 
 def prompt_analyzer(state: GraphState) -> GraphState:
-    """Node: natural language → structured ParsedPrompt (heuristic / LLM later)."""
+    """노드: 자연어 → 구조화 ParsedPrompt (휴리스틱 / 이후 LLM)."""
     prompt = state.get("prompt") or ""
     job_id = state.get("job_id") or uuid4().hex
     parsed = parse_prompt_heuristic(prompt)
@@ -96,11 +96,11 @@ def prompt_analyzer(state: GraphState) -> GraphState:
 
 
 def preprocessor(state: GraphState) -> GraphState:
-    """Node: decode + CLAHE preprocess (via ImageProcessor)."""
+    """노드: 디코드 + CLAHE 전처리 (ImageProcessor)."""
     job_id = state["job_id"]
     image_bytes = state.get("image_bytes")
     if not image_bytes:
-        return {**state, "status": JobStatus.FAILED.value, "error": "No image_bytes"}
+        return {**state, "status": JobStatus.FAILED.value, "error": "image_bytes 없음"}
 
     processor = _get_processor()
     from app.utils.image_utils import decode_image_bytes
@@ -116,12 +116,12 @@ def preprocessor(state: GraphState) -> GraphState:
 
 
 def segmentor(state: GraphState) -> GraphState:
-    """Node: run segmentation on preprocessed image."""
+    """노드: 전처리 이미지에 세그멘테이션 실행."""
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     pre = cache.get("preprocessed")
     if pre is None:
-        return {**state, "status": JobStatus.FAILED.value, "error": "Missing preprocessed image"}
+        return {**state, "status": JobStatus.FAILED.value, "error": "전처리 이미지 없음"}
 
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
     processor = _get_processor()
@@ -139,14 +139,14 @@ def segmentor(state: GraphState) -> GraphState:
 
 
 def validator_node(state: GraphState) -> GraphState:
-    """Node: score mask quality."""
+    """노드: 마스크 품질 점수 계산."""
     from app.services.validator import score_mask
 
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     mask = cache.get("mask")
     if mask is None:
-        return {**state, "status": JobStatus.FAILED.value, "error": "Missing mask"}
+        return {**state, "status": JobStatus.FAILED.value, "error": "마스크 없음"}
 
     confidences = state.get("confidences") or []
     result = score_mask(mask, confidences)
@@ -160,7 +160,7 @@ def validator_node(state: GraphState) -> GraphState:
 
 
 def effect_applier(state: GraphState) -> GraphState:
-    """Node: refine mask + apply blur/crop/remove_bg."""
+    """노드: 마스크 정제 + 블러/크롭/배경제거 적용."""
     from app.services.effects import apply_effects, refine_mask
     from app.core.config import get_settings
     from app.utils.image_utils import ensure_dir, save_image
@@ -170,7 +170,7 @@ def effect_applier(state: GraphState) -> GraphState:
     original = cache.get("original")
     mask = cache.get("mask")
     if original is None or mask is None:
-        return {**state, "status": JobStatus.FAILED.value, "error": "Missing image/mask"}
+        return {**state, "status": JobStatus.FAILED.value, "error": "이미지/마스크 없음"}
 
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
     refined = refine_mask(mask, original)
@@ -205,7 +205,7 @@ def effect_applier(state: GraphState) -> GraphState:
 
 
 def feedback_collector(state: GraphState) -> GraphState:
-    """Node: persist failed/fallback case (DB + file sidecar)."""
+    """노드: 실패/fallback 케이스 영속화 (DB + 파일 사이드카)."""
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     original = cache.get("original")

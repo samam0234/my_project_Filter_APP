@@ -1,4 +1,4 @@
-"""HTTP router layer (FastAPI APIRouter modules)."""
+"""HTTP 라우터 계층 (FastAPI APIRouter)."""
 
 from app.routers.router import api_router
 

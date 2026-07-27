@@ -1,4 +1,4 @@
-"""ONNX Runtime helpers for Phase 1 YOLO-seg inference."""
+"""Phase 1 YOLO-seg 추론용 ONNX Runtime 헬퍼."""
 
 from __future__ import annotations
 
@@ -9,23 +9,23 @@ from loguru import logger
 
 
 def create_session(model_path: Path | str, providers: Optional[list[str]] = None) -> Any:
-    """Create an onnxruntime InferenceSession if the model file exists."""
+    """모델 파일이 있으면 onnxruntime InferenceSession 생성."""
     path = Path(model_path)
     if not path.exists():
-        logger.warning("ONNX model not found: {}", path)
+        logger.warning("ONNX 모델 없음: {}", path)
         return None
 
     try:
         import onnxruntime as ort
     except ImportError as exc:
-        logger.error("onnxruntime not installed: {}", exc)
+        logger.error("onnxruntime 미설치: {}", exc)
         return None
 
     if providers is None:
         providers = ["CPUExecutionProvider"]
 
     session = ort.InferenceSession(str(path), providers=providers)
-    logger.info("Loaded ONNX model: {} providers={}", path, session.get_providers())
+    logger.info("ONNX 모델 로드: {} providers={}", path, session.get_providers())
     return session
 
 

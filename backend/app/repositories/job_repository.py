@@ -1,4 +1,4 @@
-"""Job table persistence."""
+"""jobs 테이블 영속화."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ class JobRepository:
         return row
 
     def save_result(self, result: ProcessResult, prompt: str) -> Job:
-        """Insert or update job from pipeline ProcessResult."""
+        """파이프라인 ProcessResult로 job을 삽입 또는 갱신."""
         row = self.get(result.job_id)
         hours = self.settings.file_retention_hours
         expires = datetime.now(timezone.utc) + timedelta(hours=hours)

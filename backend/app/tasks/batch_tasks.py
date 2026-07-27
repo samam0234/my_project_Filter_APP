@@ -1,7 +1,7 @@
 """
-Batch processing tasks (Phase 2).
+배치 처리 작업 (Phase 2).
 
-Scaffold only — enable Celery + Redis when Phase 2 starts.
+스캐폴드만 — Phase 2에서 Celery + Redis 활성화.
 """
 
 from __future__ import annotations
@@ -18,12 +18,12 @@ from loguru import logger
 
 def process_batch_stub(job_id: str, items: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Placeholder for Celery task.
+    Celery 작업 placeholder.
     items: [{ "filename": str, "prompt": str, "path": str }, ...]
-    Must process via generator for memory safety (max 500).
+    메모리 안전을 위해 generator로 처리 (최대 500).
     """
     logger.warning(
-        "batch_tasks.process_batch_stub called (Phase 2 not implemented) job_id={} n={}",
+        "batch stub 호출 (Phase 2 미구현) job_id={} n={}",
         job_id,
         len(items),
     )
@@ -32,7 +32,7 @@ def process_batch_stub(job_id: str, items: List[Dict[str, Any]]) -> Dict[str, An
         "status": "not_implemented",
         "total": len(items),
         "completed": 0,
-        "message": "Batch processing is Phase 2. Use /api/v1/upload for single images.",
+        "message": "배치는 Phase 2. 단일 이미지는 /api/v1/upload 사용.",
     }
 
 

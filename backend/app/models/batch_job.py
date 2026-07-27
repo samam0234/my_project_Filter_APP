@@ -1,4 +1,4 @@
-"""ORM: batch job records (Phase 2)."""
+"""ORM: 배치 Job 레코드 (Phase 2)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Batch processing router (Phase 2 scaffold) — records batch job in DB."""
+"""배치 처리 라우터 (Phase 2 스캐폴드) — batch job을 DB에 기록."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ async def get_batch_status(job_id: str, db: Session = Depends(get_db)):
             "job_id": job_id,
             "status": "not_found",
             "progress": 0.0,
-            "message": "Batch job not found (Phase 2 scaffold).",
+            "message": "배치 job 없음 (Phase 2 스캐폴드).",
         }
     return {
         "job_id": row.id,

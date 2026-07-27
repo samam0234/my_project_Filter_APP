@@ -1,0 +1,22 @@
+export interface HealthResponse {
+  status: string;
+  version: string;
+  phase: number;
+  db_dialect?: string | null;
+}
+
+export interface JobResponse {
+  job_id: string;
+  prompt: string;
+  status: string;
+  parsed_prompt?: Record<string, unknown> | null;
+  quality_score: number;
+  before_url?: string | null;
+  after_url?: string | null;
+  backend?: string | null;
+  message?: string | null;
+  feedback_saved: boolean;
+  created_at?: string | null;
+}
+
+export type ConsolePage = "dashboard" | "jobs" | "system" | "links";

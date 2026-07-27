@@ -1,4 +1,4 @@
-"""Pydantic API schemas (request/response DTOs). ORM tables live in app.models."""
+"""Pydantic API 스키마 (요청/응답 DTO). ORM은 app.models."""
 
 from app.schemas.feedback import FeedbackRequest, FeedbackResponse
 from app.schemas.request import ParsedPrompt, UploadFormMeta

@@ -1,4 +1,4 @@
-"""Segmentation backends. Phase 1: YOLO-seg (ONNX / Ultralytics). Phase 2: DINO+SAM2."""
+"""세그멘테이션 백엔드. Phase 1: YOLO-seg (ONNX/Ultralytics). Phase 2: DINO+SAM2."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class SegmentationResult:
 
 
 class Segmentor:
-    """Phase-gated segmentor. Phase 1 uses YOLO; Phase 2 can swap backends."""
+    """Phase 게이트 세그멘터. Phase 1은 YOLO, Phase 2에서 백엔드 교체 가능."""
 
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
@@ -33,24 +33,24 @@ class Segmentor:
 
     def _init_backend(self) -> None:
         model_path = self.settings.yolo_model_file
-        # Prefer Ultralytics if .pt or package available; else ONNX session
+        # .pt/패키지 있으면 Ultralytics, 아니면 ONNX 세션
         if model_path.suffix.lower() in {".pt", ".onnx"} and model_path.exists():
             try:
                 from ultralytics import YOLO
 
                 self._yolo = YOLO(str(model_path))
                 self._ready = True
-                logger.info("YOLO segmentor ready: {}", model_path)
+                logger.info("YOLO 세그멘터 준비: {}", model_path)
                 return
             except Exception as exc:
-                logger.warning("Ultralytics load failed: {}", exc)
+                logger.warning("Ultralytics 로드 실패: {}", exc)
 
         self._session = create_session(model_path)
         self._ready = self._session is not None
         if not self._ready:
             logger.warning(
-                "No segmentation model loaded. Using center-prior stub mask. "
-                "Place weights at: {}",
+                "세그 모델 없음. 중앙 stub 마스크 사용. "
+                "가중치 경로: {}",
                 model_path,
             )
 
@@ -63,7 +63,7 @@ class Segmentor:
         image: np.ndarray,
         targets: Optional[List[str]] = None,
     ) -> SegmentationResult:
-        """Return instance-union mask for requested targets."""
+        """요청 대상에 대한 인스턴스 마스크 합집합 반환."""
         targets = targets or ["person"]
         if self._yolo is not None:
             return self._predict_yolo(image, targets)
@@ -94,7 +94,7 @@ class Segmentor:
                 conf = float(boxes.conf[i].item()) if boxes is not None else 0.0
                 label = str(names.get(cls_id, cls_id)).lower()
                 if target_set and label not in target_set and "all" not in target_set:
-                    # if targets are free-form, keep high-conf detections as fallback
+                    # 자유 형식 target이면 고신뢰 탐지를 fallback으로 유지
                     if conf < self.settings.min_confidence:
                         continue
                 m_resized = cv2.resize(m, (w, h), interpolation=cv2.INTER_LINEAR)
@@ -118,13 +118,13 @@ class Segmentor:
         image: np.ndarray,
         targets: List[str],
     ) -> SegmentationResult:
-        """Deterministic placeholder mask (center ellipse) for scaffold/demo."""
+        """스캐폴드/데모용 중앙 타원 stub 마스크."""
         h, w = image.shape[:2]
         mask = np.zeros((h, w), dtype=np.uint8)
         center = (w // 2, h // 2)
         axes = (max(1, w // 4), max(1, h // 3))
         cv2.ellipse(mask, center, axes, 0, 0, 360, 255, -1)
-        logger.debug("Using stub segmentation mask for targets={}", targets)
+        logger.debug("stub 세그 마스크 사용 targets={}", targets)
         return SegmentationResult(
             mask=mask,
             confidences=[0.5],
@@ -138,5 +138,5 @@ def predict_grounding_sam2(
     image: np.ndarray,
     prompt: str,
 ) -> SegmentationResult:
-    """Phase 2: Grounding DINO + SAM2. Not implemented in Phase 1."""
+    """Phase 2: Grounding DINO + SAM2. Phase 1 미구현."""
     raise NotImplementedError("Grounding DINO + SAM2 is Phase 2.")

@@ -13,18 +13,19 @@
 ```bash
 cut-and-keep/
 ├── backend/                          # FastAPI 백엔드 (Python)
-├── frontend/                         # React + TypeScript 프론트엔드
+├── frontend/                         # React 사용자 앱 (:5173)
+├── console/                          # React 운영 관리자 콘솔 (:5174)
 ├── scripts/                          # 유틸리티 & 학습 스크립트
 ├── models/                           # 학습된 모델 저장소 (ONNX, LoRA)
 ├── data/                             # 데이터셋 & 피드백 데이터
 ├── docker/                           # Docker 관련 설정
-├── docs/                             # 문서화
+├── docs/                             # 문서 허브 (Architecture, branchs, guidance, …)
 ├── logs/                             # 런타임 로그
 ├── .env
 ├── docker-compose.yml
-├── README.md
-└── requirements.txt / package.json
+└── README.md
 ```
+
 
 ---
 
@@ -86,7 +87,8 @@ backend/
 **계층 규칙**: `routers` → `services`/`workflows` → `repositories` → `models`/`db`  
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
 
-**DB**: 로컬 `SQLite` (`data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`
+**DB**: 로컬 `SQLite` (`data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
+**AI 모델**: YOLO26n-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`
 
 
 ### 2.2 frontend/ (React + Vite)

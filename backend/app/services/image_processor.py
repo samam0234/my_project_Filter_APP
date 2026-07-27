@@ -1,8 +1,8 @@
 """
-OpenCV pipeline facade (steps 3 & 5 of the 7-step flow).
+OpenCV 파이프라인 파사드 (7단계 중 3·5단계).
 
-Steps:
-  preprocess → (segmentation external) → refine/effects
+흐름:
+  전처리 → (외부 세그멘테이션) → 정제/효과
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ class PipelineOutput:
 
 
 class ImageProcessor:
-    """Synchronous single-image processing entry used by LangGraph nodes / API."""
+    """LangGraph 노드/API에서 쓰는 단일 이미지 동기 처리 진입점."""
 
     def __init__(
         self,
@@ -45,7 +45,7 @@ class ImageProcessor:
         self.segmentor = segmentor or Segmentor(self.settings)
 
     def preprocess(self, image: np.ndarray) -> np.ndarray:
-        """Resize + CLAHE on L channel. Always copy."""
+        """리사이즈 + L채널 CLAHE. 항상 복사본 사용."""
         img, _ = resize_keep_aspect(image.copy(), self.settings.max_image_side)
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
@@ -76,7 +76,7 @@ class ImageProcessor:
         if validation.ok:
             result = apply_effects(original, mask_for_fx, parsed)
         else:
-            logger.warning("Validation: {} — applying best-effort effects", validation.message)
+            logger.warning("검증: {} — best-effort 효과 적용", validation.message)
             result = apply_effects(original, mask_for_fx, parsed)
 
         return PipelineOutput(

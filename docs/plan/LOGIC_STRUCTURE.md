@@ -7,8 +7,10 @@
 - `DEVELOPMENT_PLAN.docx` — 원본 상세 계획서
 - `PROJECT_STRUCTURE.md` — 디렉토리·모듈 구조
 - `DATABASE.md` — SQLite / MariaDB, ERD, Repository
+- `AI_MODEL_STRATEGY.md` — YOLO26n-seg · Ollama E4B · OpenAI/Gemini
 - `LOGIC_AND_GIT_BRANCH_STRATEGY.md` — 실행 규칙·브랜치
 - `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` — 환경·실행·배포
+
 
 
 ---
@@ -28,7 +30,7 @@
 ### 1.3 범위 (Phase 게이트)
 | Phase | 범위 | 성공 기준(요약) |
 |-------|------|-----------------|
-| **P1 MVP** | 단일 이미지, YOLO-seg, 기본 워크플로우, 피드백 UI | 기본 프롬프트 처리 데모 동작 |
+| **P1 MVP** | 단일 이미지, **YOLO26n-seg**, Ollama E4B 프롬프트 분석, 피드백 UI | 기본 프롬프트 처리 데모 동작 |
 | **P2** | Grounding DINO+SAM2, 배치 500장, LoRA | 배치 안정 완료 + 개선 루프 |
 | **P3** | 영상 + Temporal Smoothing + 배포 | Docker 배포 가능한 완성 앱 |
 
@@ -109,8 +111,10 @@ DB 상세·ERD: **`DATABASE.md`**
         │
         ▼
 [4] Segmentation
-    · P1: YOLOv8/11-seg (ONNX Runtime)
+    · P1: **YOLO26n-seg** (.pt / ONNX)
     · P2: Grounding DINO + SAM2 (오픈보캐브 대상)
+    · 프롬프트 분석 LLM: 기본 Ollama gemma4:e4b → 고도화 OpenAI/Gemini
+      (docs/plan/AI_MODEL_STRATEGY.md)
         │
         ▼
 [5] Mask Refinement + Effect

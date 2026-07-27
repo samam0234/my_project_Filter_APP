@@ -1,4 +1,4 @@
-"""Conditional edges for LangGraph."""
+"""LangGraph 조건부 엣지."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from app.workflows.state import GraphState
 
 def after_validator(state: GraphState) -> str:
     """
-    Route after validator:
+    validator 이후 분기:
       - ok → effect_applier
-      - fallback with retries left → segmentor (retry)
-      - failed / exhausted → feedback_collector then still try effects for UX
+      - fallback 이고 재시도 남음 → segmentor (재시도)
+      - failed / 재시도 소진 → feedback_collector 후 효과 적용 (UX)
     """
     status = state.get("status") or JobStatus.FAILED.value
     retries = int(state.get("retry_count") or 0)

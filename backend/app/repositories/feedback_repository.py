@@ -1,4 +1,4 @@
-"""Feedback table persistence."""
+"""feedbacks 테이블 영속화."""
 
 from __future__ import annotations
 

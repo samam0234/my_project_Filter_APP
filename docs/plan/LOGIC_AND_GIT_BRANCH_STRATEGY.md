@@ -101,11 +101,27 @@ AI 학습 데이터 준비 시 bounding box를 수작업으로 그리는 번거�
 - 추론 속도가 느려지면 즉시 ONNX 변환 또는 모델 경량화를 우선 검토한다.
 
 ### 2.5 Git & 브랜치 규칙
-- 모든 작업은 `develop`에서 파생된 `feature/*` 브랜치에서만 진행한다.
-- `main`에는 오직 `release/*` 또는 `hotfix/*`만 merge한다.
+- 모든 **작업·커밋**은 `develop`에서 파생된 `feature/*`(등) **작업 브랜치에서만** 진행한다.
+- **일자로 합치는 통합 라인은 `develop` 또는 `main` 만** 사용한다.  
+  - feature 끼리 장기간 merge 하며 통합하지 않는다.  
+  - 작업이 끝나면 **`develop`에 merge** 할 때만 통합 라인에 붙인다.  
+  - 배포는 `release/*` 검증 후 **`main`**.  
+  - 상세: `docs/guidance/branch-merge.md`
+- `main`에는 일상 feature를 직접 넣지 않는다. (`release/*` / `hotfix/*` 경유)
 - Feature 브랜치는 1~2주 이내에 끝내고 develop에 merge 후 삭제한다.
-- 커밋 메시지는 Conventional Commits 형식을 따른다.  
-  예: `feat(opencv): CLAHE + GrabCut 파이프라인 구현`
+- 커밋 메시지는 Conventional Commits + **언어 분리**를 따른다.  
+  - **제목: 영어만** · **본문: 한국어** · **바닥글: 한국어**  
+  - 예:
+    ```text
+    feat(opencv): implement CLAHE and GrabCut pipeline
+
+    CLAHE와 GrabCut 기반 OpenCV 파이프라인을 구현함.
+
+    관련: docs/guidance/commit-message.md
+    ```
+  - 상세: `docs/guidance/commit-message.md`  
+  - 커밋 후 기록 파일: `docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md`
+
 
 ### 2.6 문서화 규칙
 - 새로운 기능 추가 시 반드시 `docs/` 또는 해당 feature 브랜치에서 문서도 함께 업데이트한다.
@@ -152,9 +168,16 @@ main                    ← 최종 배포용 (Production)
 
 ### 3.3 작업 흐름 요약
 ```
-develop → feature/xxx 생성 → 작업 완료 → develop merge → 
-충분히 안정되면 release/* → main merge → 태그 생성
+develop
+  → feature/xxx 생성  (작업·커밋은 여기서만)
+  → 작업 완료
+  → develop 에 merge   ← 통합 라인에 붙는 시점 (일자 FF 허용)
+  → 안정 시 release/* → main merge → 태그
 ```
+
+**통합 창구:** 일자 병합 = `develop` / `main` 만.  
+**작업 창구:** `feature/*` 등. (`docs/guidance/branch-merge.md`)
+
 
 ---
 
