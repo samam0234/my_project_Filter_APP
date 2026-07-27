@@ -21,7 +21,6 @@
 
 ## 필수 문서
 
-
 | 파일 | 설명 |
 |------|------|
 | [TEMPLATE.md](./TEMPLATE.md) | **커밋 기록 작성 템플릿 (필수 준수)** |
@@ -31,19 +30,24 @@
 ## 파일명 규칙 (commits/)
 
 ```text
-YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
+YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 ```
 
-예: `26_07_27_8914abe_backend-layers-db_feature-backend.md`
+예: `260727_1446_5420cfb_console-and-docs-hub_feature-docs.md`
 
-- 연도 **뒤 2자리** + 월 + 일 (언더스코어 구분)
-- 브랜치명의 `/` 는 `-` 로 치환 (`feature/backend` → `feature-backend`)
+| 조각 | 의미 |
+|------|------|
+| `260727` | 날짜 (년2+월+일, 구분자 없음) |
+| `1446` | **시분** (14:46) |
+| 이후 | 커밋 ID · 이름 · 브랜치 (기존과 동일) |
+
+- 브랜치 `/` → `-`  
 - 상세: [TEMPLATE.md](./TEMPLATE.md)
 
 ## 작성 절차
 
 1. 커밋 완료 후 `TEMPLATE.md`를 복사한다.
-2. 위 파일명 규칙으로 `commits/` 에 저장한다.
+2. 위 파일명 규칙으로 `commits/` 에 저장한다. (`git log -1 --format=%ci` 로 시분 확인)
 3. 제목/커밋 번호 · 주 내용 · 상세 · 결과 4섹션을 채운다.
 4. 이 README 표에 링크를 추가한다.
 
@@ -51,12 +55,12 @@ YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
-| `4b1e6ad` | initial project scaffold | [commits/26_07_27_4b1e6ad_initial-scaffold_main.md](./commits/26_07_27_4b1e6ad_initial-scaffold_main.md) |
-| `1342117` | ignore TypeScript build info | [commits/26_07_27_1342117_ignore-tsbuildinfo_develop.md](./commits/26_07_27_1342117_ignore-tsbuildinfo_develop.md) |
-| `8914abe` | schema/router/repo + dual DB | [commits/26_07_27_8914abe_backend-layers-db_feature-backend.md](./commits/26_07_27_8914abe_backend-layers-db_feature-backend.md) |
-| `8157388` | cut_and_keep docker stack | [commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md](./commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md) |
-| `5420cfb` | console + docs hub | [commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md](./commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md) |
-| `4ccdc4d` | agents + commit guide | [commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md](./commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md) |
-| `2b22d75` | branch-merge guide | [commits/26_07_27_2b22d75_branch-merge-guide_feature-docs.md](./commits/26_07_27_2b22d75_branch-merge-guide_feature-docs.md) |
-| `2d2a2df` | agents 한국어화 | [commits/26_07_27_2d2a2df_agents-korean_feature-docs.md](./commits/26_07_27_2d2a2df_agents-korean_feature-docs.md) |
-| `a49e922` | RUN.md + Scribble | [commits/26_07_27_a49e922_run-scribble_feature-docs.md](./commits/26_07_27_a49e922_run-scribble_feature-docs.md) |
+| `4b1e6ad` | initial project scaffold | [commits/260727_1207_4b1e6ad_initial-scaffold_main.md](./commits/260727_1207_4b1e6ad_initial-scaffold_main.md) |
+| `1342117` | ignore TypeScript build info | [commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md](./commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md) |
+| `8914abe` | schema/router/repo + dual DB | [commits/260727_1220_8914abe_backend-layers-db_feature-backend.md](./commits/260727_1220_8914abe_backend-layers-db_feature-backend.md) |
+| `8157388` | cut_and_keep docker stack | [commits/260727_1303_8157388_docker-cut-and-keep_feature-backend.md](./commits/260727_1303_8157388_docker-cut-and-keep_feature-backend.md) |
+| `5420cfb` | console + docs hub | [commits/260727_1446_5420cfb_console-and-docs-hub_feature-docs.md](./commits/260727_1446_5420cfb_console-and-docs-hub_feature-docs.md) |
+| `4ccdc4d` | agents + commit guide | [commits/260727_1456_4ccdc4d_agents-commit-guide_feature-docs.md](./commits/260727_1456_4ccdc4d_agents-commit-guide_feature-docs.md) |
+| `2b22d75` | branch-merge guide | [commits/260727_1502_2b22d75_branch-merge-guide_feature-docs.md](./commits/260727_1502_2b22d75_branch-merge-guide_feature-docs.md) |
+| `2d2a2df` | agents 한국어화 | [commits/260727_1505_2d2a2df_agents-korean_feature-docs.md](./commits/260727_1505_2d2a2df_agents-korean_feature-docs.md) |
+| `a49e922` | RUN.md + Scribble | [commits/260727_1510_a49e922_run-scribble_feature-docs.md](./commits/260727_1510_a49e922_run-scribble_feature-docs.md) |

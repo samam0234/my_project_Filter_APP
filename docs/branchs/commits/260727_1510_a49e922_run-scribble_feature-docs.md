@@ -1,8 +1,8 @@
-# RUN.md + Scribble ignore / `a49e922`
+﻿# RUN.md + Scribble ignore / `a49e922`
 
 > 브랜치: `feature/docs`  
 > 작성일: `2026-07-27`  
-> 파일명: `26_07_27_a49e922_run-scribble_feature-docs.md`
+> 파일명: `260727_1510_a49e922_run-scribble_feature-docs.md`
 
 ## 1. 제목 / 커밋 번호
 

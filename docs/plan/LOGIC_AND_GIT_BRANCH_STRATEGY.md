@@ -120,7 +120,7 @@ AI 학습 데이터 준비 시 bounding box를 수작업으로 그리는 번거�
     관련: docs/guidance/commit-message.md
     ```
   - 상세: `docs/guidance/commit-message.md`  
-  - 커밋 후 기록 파일: `docs/branchs/commits/YY_MM_DD_[id]_[name]_[branch].md`
+  - 커밋 후 기록 파일: `docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md`
 
 
 ### 2.6 문서화 규칙

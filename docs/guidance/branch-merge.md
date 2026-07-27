@@ -109,7 +109,7 @@ git tag v0.1.0
 - [ ] 완료 후 **develop 에만** merge
 - [ ] 배포 시 **main** (release 경유 권장)
 - [ ] 커밋 메시지: 제목 영어 / 본문·바닥글 한국어
-- [ ] `docs/branchs/commits/YY_MM_DD_...md` 기록
+- [ ] `docs/branchs/commits/YYMMDD_HHMM_...md` 기록
 
 ---
 

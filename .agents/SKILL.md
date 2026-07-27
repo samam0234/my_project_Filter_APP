@@ -2,7 +2,7 @@
 name: cutnkeep-project
 description: >
   컷앤킵(CutNKeep) 프로젝트 규칙: 백엔드 계층, SQLite/MariaDB, 커밋 제목 영어·본문/바닥글 한국어,
-  branchs 로그 파일명 YY_MM_DD_*, feature 브랜치 선택, console vs frontend.
+  branchs 로그 파일명 YYMMDD_HHMM_*, feature 브랜치 선택, console vs frontend.
   이 저장소에서 코딩·커밋·문서·Docker 작업 시 사용. 트리거: commit, branchs, console, backend, cut_and_keep.
 ---
 
@@ -73,11 +73,12 @@ Docker Compose 프로젝트명 cut_and_keep으로 스택을 구성함.
 2. 파일명 **필수**:
 
 ```text
-YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
+YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 ```
 
-예: `26_07_27_8914abe_backend-layers-db_feature-backend.md`  
-- 연도 = 뒤 2자리  
+예: `260727_1446_5420cfb_console-and-docs-hub_feature-docs.md`  
+- `YYMMDD` = 날짜 (예: 260727)  
+- `HHMM` = 시분 (예: 1446 = 14:46, 커밋 시각)  
 - 브랜치 `/` → `-`  
 
 3. `docs/branchs/README.md` 표 갱신  

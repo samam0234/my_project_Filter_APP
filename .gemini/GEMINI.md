@@ -14,7 +14,7 @@
 
 ## branchs 로그
 
-`docs/branchs/commits/YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md`
+`docs/branchs/commits/YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md`
 
 ## 브랜치
 

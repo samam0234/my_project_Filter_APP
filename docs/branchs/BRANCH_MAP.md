@@ -22,7 +22,7 @@ main                 ← 배포 통합 라인 (일자로 붙이는 곳 ②)
 | **feature 완료 시** | **`develop` 에 merge** (feature끼리 장기 통합 금지) |
 | **배포** | `release/*` 검증 후 **`main`** |
 | **커밋 메시지** | 제목 영어 / 본문·바닥글 한국어 |
-| **커밋 후 기록** | `docs/branchs/commits/YY_MM_DD_[id]_[name]_[branch].md` |
+| **커밋 후 기록** | `docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md` |
 
 ### 한 줄
 

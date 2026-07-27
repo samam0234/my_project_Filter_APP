@@ -1,9 +1,9 @@
-# Multi-tool agent skills + commit guide / `4ccdc4d`
+﻿# Multi-tool agent skills + commit guide / `4ccdc4d`
 
 > 브랜치: `feature/docs`  
 > 작성일: `2026-07-27`  
 > 작성자: project  
-> 파일명: `26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md`
+> 파일명: `260727_1456_4ccdc4d_agents-commit-guide_feature-docs.md`
 
 ## 1. 제목 / 커밋 번호
 

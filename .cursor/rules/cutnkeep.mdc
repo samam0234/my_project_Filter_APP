@@ -19,7 +19,8 @@ alwaysApply: true
 
 커밋 이력 문서화 시:
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md`
+`docs/branchs/commits/YYMMDD_HHMM_[sha]_[이름]_[브랜치].md`  
+예: `260727_1446_..._feature-docs.md`
 
 ## 브랜치
 

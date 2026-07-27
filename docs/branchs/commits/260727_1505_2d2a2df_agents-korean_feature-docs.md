@@ -1,8 +1,8 @@
-# 에이전트 스킬 한국어화 / `2d2a2df`
+﻿# 에이전트 스킬 한국어화 / `2d2a2df`
 
 > 브랜치: `feature/docs`  
 > 작성일: `2026-07-27`  
-> 파일명: `26_07_27_2d2a2df_agents-korean_feature-docs.md`
+> 파일명: `260727_1505_2d2a2df_agents-korean_feature-docs.md`
 
 ## 1. 제목 / 커밋 번호
 

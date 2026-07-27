@@ -2,7 +2,7 @@
 name: cutnkeep
 description: >
   컷앤킵 저장소 Grok 규칙: 커밋 제목 영어·본문/바닥글 한국어,
-  branchs 로그 YY_MM_DD_*, 백엔드 계층, console vs frontend.
+  branchs 로그 YYMMDD_HHMM_*, 백엔드 계층, console vs frontend.
   이 저장소 작업 전반에 사용. /cutnkeep
 ---
 
@@ -22,7 +22,8 @@ description: >
 
 ### 커밋 기록 파일
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md`
+`docs/branchs/commits/YYMMDD_HHMM_[sha]_[이름]_[브랜치].md`  
+예: `260727_1446_5420cfb_console-and-docs-hub_feature-docs.md`
 
 ### 브랜치
 

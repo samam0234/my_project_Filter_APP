@@ -32,7 +32,7 @@ Cut & Keep 저장소의 **모든 커밋**은 아래 언어·형식을 따른다.
 ```text
 feat(backend): add job repository and dual database support
 fix(docker): map redis host port to 6380
-docs(branchs): enforce YY_MM_DD commit log filename
+docs(branchs): enforce YYMMDD_HHMM commit log filename
 chore(gitignore): ignore TypeScript build info files
 ```
 
@@ -102,7 +102,9 @@ feat(backend): add DB                     ← 본문 없음(가능은 하나 비
 ## 4. 커밋 후 필수 후속
 
 1. `docs/branchs/TEMPLATE.md` 형식으로 기록 파일 작성  
-2. 파일명: `YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md`  
+2. 파일명: `YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md`  
+   - 예: `260727_1446_5420cfb_console-and-docs-hub_feature-docs.md`  
+   - `HHMM` = 시분 (커밋 시각)  
 3. `docs/branchs/README.md` 목록 표 갱신  
 
 ---

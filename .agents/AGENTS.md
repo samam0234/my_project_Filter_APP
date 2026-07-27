@@ -31,8 +31,8 @@ Job 조회 API를 추가하고 콘솔에서 사용 가능하게 함.
 
 ## 커밋 후
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md` 작성 (템플릿 준수).  
-파일명에서 브랜치 `/` → `-` (`feature/docs` → `feature-docs`).
+`docs/branchs/commits/YYMMDD_HHMM_[sha]_[이름]_[브랜치].md` 작성 (템플릿 준수).  
+예: `260727_1446_..._feature-docs.md` (날짜+시분). 브랜치 `/` → `-`.
 
 ## 브랜치
 

@@ -36,8 +36,8 @@ schemas 는 Pydantic DTO 전용.
 
 ## 커밋 후 문서
 
-`docs/branchs/commits/YY_MM_DD_[id]_[이름]_[브랜치].md`  
-템플릿: `docs/branchs/TEMPLATE.md`
+`docs/branchs/commits/YYMMDD_HHMM_[id]_[이름]_[브랜치].md`  
+예: `260727_1446_...` · 템플릿: `docs/branchs/TEMPLATE.md`
 
 ## 전체 스킬
 

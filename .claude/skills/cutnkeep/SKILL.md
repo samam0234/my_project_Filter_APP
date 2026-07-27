@@ -17,4 +17,4 @@ feat(scope): english title
 한국어 바닥글
 ```
 
-기록 파일: `docs/branchs/commits/YY_MM_DD_[sha]_[이름]_[브랜치].md`
+기록 파일: `docs/branchs/commits/YYMMDD_HHMM_[sha]_[이름]_[브랜치].md`

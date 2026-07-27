@@ -1,8 +1,8 @@
-# Branch merge guide (feature work / develop-main integrate) / `2b22d75`
+﻿# Branch merge guide (feature work / develop-main integrate) / `2b22d75`
 
 > 브랜치: `feature/docs`  
 > 작성일: `2026-07-27`  
-> 파일명: `26_07_27_2b22d75_branch-merge-guide_feature-docs.md`
+> 파일명: `260727_1502_2b22d75_branch-merge-guide_feature-docs.md`
 
 ## 1. 제목 / 커밋 번호
 

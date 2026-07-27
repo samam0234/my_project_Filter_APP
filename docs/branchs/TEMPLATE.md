@@ -30,38 +30,38 @@ feat(scope): english summary only
 
 ## 파일명 규칙 (필수)
 
-
 ```text
-YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
+YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 ```
 
 | 조각 | 규칙 | 예시 |
 |------|------|------|
-| `YY` | 연도 뒤 2자리 | `26` (2026) |
-| `MM` | 월 2자리 | `07` |
-| `DD` | 일 2자리 | `27` |
+| `YYMMDD` | 연 뒤2 + 월2 + 일2 (구분자 없음) | `260727` (2026-07-27) |
+| `HHMM` | **시·분** 24시간제 4자리 | `1446` (14시 46분) |
 | `커밋ID` | short SHA (보통 7자) | `8914abe` |
-| `커밋이름` | 소문자 kebab 또는 snake (공백·`/` 금지) | `backend-layers-db` |
-| `커밋브랜치` | 브랜치명, `/` 는 `-` 로 치환 | `feature-backend` |
+| `커밋이름` | 소문자 kebab (공백·`/` 금지) | `backend-layers-db` |
+| `커밋브랜치` | `/` → `-` | `feature-backend` |
 
 ### 올바른 예
 
 ```text
-26_07_27_8914abe_backend-layers-db_feature-backend.md
-26_07_27_8157388_docker-cut-and-keep_feature-backend.md
-26_07_27_5420cfb_console-and-docs-hub_feature-docs.md
+260727_1220_8914abe_backend-layers-db_feature-backend.md
+260727_1303_8157388_docker-cut-and-keep_feature-backend.md
+260727_1446_5420cfb_console-and-docs-hub_feature-docs.md
 ```
 
 ### 잘못된 예
 
 ```text
-8914abe-backend-layers-db.md          ← 날짜 없음
-26-07-27_8914abe_....md               ← 구분자 `-` 대신 `_` 사용
-26_07_27_8914abe_backend layers.md    ← 공백
-26_07_27_8914abe_x_feature/backend.md ← 슬래시
+26_07_27_8914abe_....md              ← 날짜를 언더스코어로 쪼갬 (구 규칙)
+260727_8914abe_backend-layers-db.md  ← 시분(HHMM) 없음
+260727_14_46_8914abe_....md          ← 시·분 사이에 언더스코어 (HHMM 한 덩어리)
+260727_1446_8914abe_backend layers.md ← 공백
+260727_1446_8914abe_x_feature/backend.md ← 슬래시
 ```
 
-날짜는 **커밋 작성일(또는 기록 작성일)** 기준으로 붙인다.
+- **날짜·시각**: 커밋 시각(로컬, `git log` 기준) 권장. 기록 작성 시각도 가능하나 일관되게 쓸 것.
+- Windows 예: `git log -1 --format=%ci` → `2026-07-27 14:46:50 +0900` → `260727_1446`
 
 ---
 
@@ -71,9 +71,9 @@ YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
 # {제목} / `{full_or_short_sha}`
 
 > 브랜치: `{branch_name}`  
-> 작성일: `YYYY-MM-DD`  
+> 작성일: `YYYY-MM-DD HH:MM`  
 > 작성자: `{name}`  
-> 파일명: `YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md`
+> 파일명: `YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md`
 
 ## 1. 제목 / 커밋 번호
 
@@ -131,4 +131,4 @@ YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
 - 제목만 한 줄 적고 끝내기
 - “버그 수정함”, “작업함” 수준의 모호한 상세
 - SHA 없이 브랜치만 적기
-- **날짜 없는 파일명** / 규칙과 다른 파일명
+- **날짜·시분 없는 파일명** / 구 규칙(`26_07_27_...`) 사용

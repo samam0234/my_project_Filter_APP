@@ -15,7 +15,7 @@
 
 ## 커밋 후 문서
 
-`docs/branchs/commits/YY_MM_DD_[sha]_[slug]_[브랜치].md`
+`docs/branchs/commits/YYMMDD_HHMM_[sha]_[slug]_[브랜치].md`
 
 ## 브랜치
 
