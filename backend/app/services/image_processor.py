@@ -15,7 +15,7 @@ import numpy as np
 from loguru import logger
 
 from app.core.config import Settings, get_settings
-from app.models.request import ParsedPrompt
+from app.schemas.request import ParsedPrompt
 from app.services.effects import apply_effects, refine_mask
 from app.services.segmentation import SegmentationResult, Segmentor
 from app.services.validator import ValidationResult, score_mask

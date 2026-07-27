@@ -7,7 +7,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from app.models.request import ParsedPrompt
+from app.schemas.request import ParsedPrompt
 
 
 def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray:

@@ -8,8 +8,8 @@ from uuid import uuid4
 from loguru import logger
 
 from app.core.constants import JobStatus
-from app.models.request import ParsedPrompt
-from app.models.response import ProcessResult
+from app.schemas.request import ParsedPrompt
+from app.schemas.response import ProcessResult
 from app.workflows import edges, nodes
 from app.workflows.state import GraphState
 

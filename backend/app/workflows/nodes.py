@@ -9,7 +9,7 @@ from uuid import uuid4
 from loguru import logger
 
 from app.core.constants import JobStatus
-from app.models.request import ParsedPrompt
+from app.schemas.request import ParsedPrompt
 from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
 from app.workflows.state import GraphState
@@ -205,11 +205,11 @@ def effect_applier(state: GraphState) -> GraphState:
 
 
 def feedback_collector(state: GraphState) -> GraphState:
-    """Node: persist failed/fallback case."""
+    """Node: persist failed/fallback case (DB + file sidecar)."""
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     original = cache.get("original")
-    path = _get_feedback().save_failure(
+    row, path = _get_feedback().save_failure(
         job_id=job_id,
         image=original,
         meta={
@@ -223,7 +223,10 @@ def feedback_collector(state: GraphState) -> GraphState:
     return {
         **state,
         "feedback_saved": True,
-        "feedback_meta": {"path": str(path)},
+        "feedback_meta": {
+            "path": str(path) if path else None,
+            "feedback_id": row.id if row else None,
+        },
         "message": "feedback_saved",
     }
 

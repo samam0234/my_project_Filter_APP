@@ -37,10 +37,14 @@ npm run dev
 ## 아키텍처 요약
 
 ```
-Frontend (React) → FastAPI → LangGraph workflow → Services (OpenCV / YOLO / effects)
+Frontend → Routers → Services/Workflow → Repositories → SQLite(local) | MariaDB(prod)
 ```
 
-처리 파이프라인: **보안 검증 → 프롬프트 분석 → 전처리 → 세그멘테이션 → 효과 → 검증 → 피드백**
+처리 파이프라인: **보안 검증 → 프롬프트 분석 → 전처리 → 세그멘테이션 → 효과 → 검증 → DB 저장 / 피드백**
+
+계층: `schemas` · `routers` · `repositories` · `models`(ORM) · `db`  
+DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)
+
 
 ## Phase
 

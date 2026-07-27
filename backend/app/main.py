@@ -9,10 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from app import __version__
-from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.constants import PHASE
-from app.models.response import HealthResponse
+from app.db.session import get_engine, init_db
+from app.routers import api_router
+from app.schemas.response import HealthResponse
 from app.utils.image_utils import ensure_dir
 from app.utils.logging import setup_logging
 
@@ -27,10 +28,12 @@ async def lifespan(app: FastAPI):
         settings.pseudo_label_path,
     ):
         ensure_dir(path)
+    init_db()
     logger.info(
-        "Cut & Keep starting env={} phase={} upload={}",
+        "Cut & Keep starting env={} phase={} db={} upload={}",
         settings.app_env,
         PHASE,
+        get_engine().dialect.name,
         settings.upload_path,
     )
     yield
@@ -56,7 +59,17 @@ def create_app() -> FastAPI:
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     async def health() -> HealthResponse:
-        return HealthResponse(status="ok", version=__version__, phase=PHASE)
+        dialect = None
+        try:
+            dialect = get_engine().dialect.name
+        except Exception:
+            dialect = None
+        return HealthResponse(
+            status="ok",
+            version=__version__,
+            phase=PHASE,
+            db_dialect=dialect,
+        )
 
     return app
 

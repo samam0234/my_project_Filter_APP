@@ -1,20 +1,21 @@
-"""API response schemas."""
+"""API response schemas (Pydantic)."""
 
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.request import ParsedPrompt
+from app.schemas.request import ParsedPrompt
 
 
 class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = "0.1.0"
     phase: int = 1
+    db_dialect: Optional[str] = None
 
 
 class ProcessResult(BaseModel):
-    """Internal processing outcome (mapped to UploadResponse)."""
+    """Internal processing outcome (mapped to UploadResponse / Job row)."""
 
     job_id: str
     status: str
@@ -36,3 +37,19 @@ class UploadResponse(BaseModel):
     quality_score: float = 0.0
     message: Optional[str] = None
     feedback_saved: bool = False
+
+
+class JobResponse(BaseModel):
+    """Persisted job view from DB."""
+
+    job_id: str
+    prompt: str
+    status: str
+    parsed_prompt: Optional[dict[str, Any]] = None
+    quality_score: float = 0.0
+    before_url: Optional[str] = None
+    after_url: Optional[str] = None
+    backend: Optional[str] = None
+    message: Optional[str] = None
+    feedback_saved: bool = False
+    created_at: Optional[str] = None

@@ -185,7 +185,21 @@ REDIS_URL=redis://localhost:6379/0
 
 # 파일 자동 삭제 (시간)
 FILE_RETENTION_HOURS=24
+
+# Database — 로컬 SQLite / 배포 MariaDB
+DB_DIALECT=sqlite
+SQLITE_PATH=data/cutnkeep.db
+# DB_DIALECT=mariadb
+# MARIADB_HOST=localhost
+# MARIADB_PORT=3306
+# MARIADB_USER=cutnkeep
+# MARIADB_PASSWORD=cutnkeep
+# MARIADB_DATABASE=cutnkeep
+# DATABASE_URL=mysql+pymysql://...
 ```
+
+DB 설계·ERD·Repository 규칙은 `docs/plan/DATABASE.md` 참고.
+
 
 ---
 

@@ -1,15 +1,7 @@
-"""Pydantic request/response schemas."""
+"""SQLAlchemy ORM models (DB tables). API DTOs live in app.schemas."""
 
-from app.models.feedback import FeedbackRequest, FeedbackResponse
-from app.models.request import ParsedPrompt, UploadFormMeta
-from app.models.response import HealthResponse, ProcessResult, UploadResponse
+from app.models.batch_job import BatchJob
+from app.models.feedback import Feedback
+from app.models.job import Job
 
-__all__ = [
-    "FeedbackRequest",
-    "FeedbackResponse",
-    "ParsedPrompt",
-    "UploadFormMeta",
-    "HealthResponse",
-    "ProcessResult",
-    "UploadResponse",
-]
+__all__ = ["Job", "Feedback", "BatchJob"]

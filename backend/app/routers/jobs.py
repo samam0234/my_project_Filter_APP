@@ -1,0 +1,45 @@
+"""Job query router — read persisted processing jobs from DB."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.repositories.job_repository import JobRepository
+from app.schemas.response import JobResponse
+
+router = APIRouter(tags=["jobs"])
+
+
+def _to_response(row) -> JobResponse:
+    return JobResponse(
+        job_id=row.id,
+        prompt=row.prompt,
+        status=row.status,
+        parsed_prompt=row.parsed_prompt,
+        quality_score=row.quality_score or 0.0,
+        before_url=f"/api/v1/files/{row.id}/before" if row.before_path else None,
+        after_url=f"/api/v1/files/{row.id}/after" if row.after_path else None,
+        backend=row.backend,
+        message=row.message,
+        feedback_saved=bool(row.feedback_saved),
+        created_at=row.created_at.isoformat() if row.created_at else None,
+    )
+
+
+@router.get("/jobs/{job_id}", response_model=JobResponse)
+async def get_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse:
+    row = JobRepository(db).get(job_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    return _to_response(row)
+
+
+@router.get("/jobs", response_model=list[JobResponse])
+async def list_jobs(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+) -> list[JobResponse]:
+    rows = JobRepository(db).list_recent(limit=min(limit, 200))
+    return [_to_response(r) for r in rows]

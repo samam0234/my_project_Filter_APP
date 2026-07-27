@@ -27,6 +27,8 @@ npm-debug.log*
 data/uploads/*
 data/feedback/*
 data/pseudo_labels/*
+data/*.db
+data/*.db-*
 !data/**/.gitkeep
 backend/data/uploads/*
 backend/data/feedback/*

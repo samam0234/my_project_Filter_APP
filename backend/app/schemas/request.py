@@ -1,4 +1,4 @@
-"""Request / parsed-prompt schemas."""
+"""Request / parsed-prompt schemas (Pydantic)."""
 
 from typing import List
 

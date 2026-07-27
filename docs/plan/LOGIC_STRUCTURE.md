@@ -6,8 +6,10 @@
 **근거 문서** (동일 폴더)
 - `DEVELOPMENT_PLAN.docx` — 원본 상세 계획서
 - `PROJECT_STRUCTURE.md` — 디렉토리·모듈 구조
+- `DATABASE.md` — SQLite / MariaDB, ERD, Repository
 - `LOGIC_AND_GIT_BRANCH_STRATEGY.md` — 실행 규칙·브랜치
 - `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` — 환경·실행·배포
+
 
 ---
 
@@ -43,38 +45,42 @@
 └───────────────────────────┬─────────────────────────────────┘
                             │ HTTP (multipart) / SSE·WS (P2)
 ┌───────────────────────────▼─────────────────────────────────┐
-│  API Layer (FastAPI)                                        │
-│  /upload  /batch(P2)  /feedback  /health                    │
-│  security: MIME · size · extension                          │
+│  Router Layer  app/routers/                                 │
+│  upload · feedback · jobs · batch · /health                 │
+│  + schemas (Pydantic DTO)  · security (MIME/size)           │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  Workflow Orchestrator (LangGraph)                          │
-│  GraphState + nodes + conditional edges                        │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│  Domain Services                                            │
-│  image_processor · segmentation · effects · validator       │
-│  feedback_service                                           │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌──────────────┬────────────▼────────────┬────────────────────┐
-│ OpenCV       │ Models (ONNX/YOLO)      │ Storage            │
-│ preproc/FX   │ + LLM (prompt parse)    │ uploads · feedback │
-└──────────────┴─────────────────────────┴────────────────────┘
+│  Workflow (LangGraph) + Services                            │
+│  GraphState · nodes · image_processor · segment · effects   │
+└───────────────┬─────────────────────────────┬───────────────┘
+                │                             │
+┌───────────────▼───────────────┐   ┌─────────▼────────────────┐
+│  Repository Layer             │   │  Files / Models          │
+│  job / feedback / batch repo │   │  uploads · feedback · ONNX│
+└───────────────┬───────────────┘   └──────────────────────────┘
+                │
+┌───────────────▼───────────────────────────────────────────────┐
+│  ORM models + db/session                                      │
+│  Local: SQLite (data/cutnkeep.db)  |  Prod: MariaDB           │
+└───────────────────────────────────────────────────────────────┘
          P2: Celery+Redis  |  P3: Video + Optical Flow + LSTM
 ```
 
 ### 2.1 계층별 책임
 
-| 계층 | 책임 | 하지 않는 것 |
-|------|------|--------------|
-| **Frontend** | UX, 상태, API 호출, 피드백 수집 UI | 모델 추론, 파일 영구 보관 |
-| **API** | 요청 검증, 직렬화, HTTP 계약 | OpenCV/모델 세부 구현 |
-| **Workflow** | 단계 순서·분기·재시도 | 저수준 이미지 연산 |
-| **Services** | 전처리·세그·효과·검증·피드백 I/O | 라우팅·HTTP |
-| **Infra** | 모델 파일, Redis/Celery, Docker | 비즈니스 규칙 |
+| 계층 | 경로 | 책임 | 하지 않는 것 |
+|------|------|------|--------------|
+| **Frontend** | `frontend/` | UX, API 호출 | 모델 추론, DB 직접 접근 |
+| **Router** | `app/routers/` | HTTP, Depends, 응답 매핑 | SQL, OpenCV 세부 |
+| **Schema** | `app/schemas/` | 요청/응답 DTO | DB 테이블 정의 |
+| **Workflow/Service** | `workflows/`, `services/` | 파이프라인·도메인 로직 | raw SQL |
+| **Repository** | `app/repositories/` | CRUD / commit | 비즈니스 분기 |
+| **Model (ORM)** | `app/models/` | 테이블 매핑 | HTTP |
+| **DB** | `app/db/` | engine, session, init | 도메인 규칙 |
+
+DB 상세·ERD: **`DATABASE.md`**
+
 
 ---
 
@@ -231,12 +237,15 @@ P2: text prompt → Grounding DINO boxes → SAM2 masks
 
 | Method | Path | Phase | 설명 |
 |--------|------|-------|------|
-| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 |
-| POST | `/api/v1/feedback` | P1 | like/dislike + job_id |
-| GET | `/health` | P1 | 헬스체크 |
-| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id |
+| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 (**DB jobs 저장**) |
+| GET | `/api/v1/jobs/{job_id}` | P1 | DB에서 job 조회 |
+| GET | `/api/v1/jobs` | P1 | 최근 job 목록 |
+| POST | `/api/v1/feedback` | P1 | like/dislike → **DB feedbacks** + 파일 사이드카 |
+| GET | `/health` | P1 | 헬스체크 (+ `db_dialect`) |
+| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id (**batch_jobs**) |
 | GET | `/api/v1/batch/{job_id}` | P2 | 진행률·결과 |
 | WS/SSE | `/api/v1/batch/{job_id}/stream` | P2 | 실시간 진행률 |
+
 
 ### 6.2 업로드 요청/응답 (개념)
 
@@ -392,10 +401,12 @@ frontend ↛ backend 내부 모듈 (HTTP만)
 | 파일 | 역할 |
 |------|------|
 | **`LOGIC_STRUCTURE.md`** (본 문서) | 통합 로직 구조 — 구현 시 1순위 참조 |
+| **`DATABASE.md`** | SQLite/MariaDB, ERD, Repository, 환경변수 |
 | `DEVELOPMENT_PLAN.docx` | 원본 상세 계획서 (Why/Phase/일정) |
 | `PROJECT_STRUCTURE.md` | 폴더·파일 트리 |
 | `LOGIC_AND_GIT_BRANCH_STRATEGY.md` | 실행 규칙 + Git 전략 |
 | `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` | 환경 세팅·로컬 실행·Docker |
+
 
 ---
 

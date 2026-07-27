@@ -62,6 +62,20 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
 
+    # --- Database: local SQLite / prod MariaDB ---
+    # DB_DIALECT: sqlite | mariadb
+    db_dialect: str = Field(default="sqlite", alias="DB_DIALECT")
+    # Full URL override (if set, wins over dialect helpers)
+    database_url_override: str | None = Field(default=None, alias="DATABASE_URL")
+    sqlite_path: str = Field(default="data/cutnkeep.db", alias="SQLITE_PATH")
+    mariadb_host: str = Field(default="localhost", alias="MARIADB_HOST")
+    mariadb_port: int = Field(default=3306, alias="MARIADB_PORT")
+    mariadb_user: str = Field(default="cutnkeep", alias="MARIADB_USER")
+    mariadb_password: str = Field(default="cutnkeep", alias="MARIADB_PASSWORD")
+    mariadb_database: str = Field(default="cutnkeep", alias="MARIADB_DATABASE")
+    db_echo: bool = Field(default=False, alias="DB_ECHO")
+
+
     # Segmentation / validator thresholds (Phase 1 defaults)
     mask_min_area_ratio: float = 0.005
     mask_max_area_ratio: float = 0.95
@@ -105,7 +119,40 @@ class Settings(BaseSettings):
     def yolo_model_file(self) -> Path:
         return self.resolve_path(self.yolo_model_path)
 
+    @property
+    def database_url(self) -> str:
+        """
+        Resolve SQLAlchemy URL.
+        - DATABASE_URL env wins if set
+        - else sqlite → file under project root (local default)
+        - else mariadb → mysql+pymysql://...
+        """
+        if self.database_url_override:
+            return self.database_url_override
+
+        dialect = (self.db_dialect or "sqlite").strip().lower()
+        if dialect in {"sqlite", "local"}:
+            path = self.resolve_path(self.sqlite_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            return f"sqlite:///{path.as_posix()}"
+
+        if dialect in {"mariadb", "mysql"}:
+            user = self.mariadb_user
+            password = self.mariadb_password
+            host = self.mariadb_host
+            port = self.mariadb_port
+            db = self.mariadb_database
+            return (
+                f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}"
+                f"?charset=utf8mb4"
+            )
+
+        raise ValueError(
+            f"Unsupported DB_DIALECT={self.db_dialect!r}. Use 'sqlite' or 'mariadb'."
+        )
+
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

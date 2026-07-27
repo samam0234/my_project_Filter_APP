@@ -7,12 +7,22 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      DB_DIALECT: mariadb
+      MARIADB_HOST: mariadb
+      MARIADB_PORT: 3306
+      MARIADB_USER: cutnkeep
+      MARIADB_PASSWORD: cutnkeep
+      MARIADB_DATABASE: cutnkeep
     volumes:
       - ./data:/app/data
       - ./models:/app/models
       - ./logs:/app/logs
     depends_on:
-      - redis
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
 
   frontend:
@@ -23,6 +33,24 @@ services:
       - "80:80"
     depends_on:
       - backend
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: cutnkeep
+      MYSQL_USER: cutnkeep
+      MYSQL_PASSWORD: cutnkeep
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   redis:
@@ -38,10 +66,17 @@ services:
   #   command: celery -A app.tasks.batch_tasks worker --loglevel=info
   #   env_file:
   #     - .env
+  #   environment:
+  #     DB_DIALECT: mariadb
+  #     MARIADB_HOST: mariadb
   #   volumes:
   #     - ./data:/app/data
   #     - ./models:/app/models
   #   depends_on:
   #     - redis
   #     - backend
+  #     - mariadb
   #   restart: unless-stopped
+
+volumes:
+  mariadb_data:

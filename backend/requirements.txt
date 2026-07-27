@@ -29,6 +29,12 @@ python-dotenv==1.0.1
 aiofiles==24.1.0
 loguru==0.7.2
 
+# Database (local SQLite / prod MariaDB)
+SQLAlchemy==2.0.35
+PyMySQL==1.1.1
+cryptography==43.0.1
+
 # Phase 2 (uncomment when needed)
 # celery==5.4.0
 # redis==5.0.8
+
