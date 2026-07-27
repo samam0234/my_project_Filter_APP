@@ -48,3 +48,4 @@ YY_MM_DD_[커밋ID]_[커밋이름]_[커밋브랜치].md
 | `8914abe` | schema/router/repo + dual DB | [commits/26_07_27_8914abe_backend-layers-db_feature-backend.md](./commits/26_07_27_8914abe_backend-layers-db_feature-backend.md) |
 | `8157388` | cut_and_keep docker stack | [commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md](./commits/26_07_27_8157388_docker-cut-and-keep_feature-backend.md) |
 | `5420cfb` | console + docs hub | [commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md](./commits/26_07_27_5420cfb_console-and-docs-hub_feature-docs.md) |
+| `4ccdc4d` | agents + commit guide | [commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md](./commits/26_07_27_4ccdc4d_agents-commit-guide_feature-docs.md) |
