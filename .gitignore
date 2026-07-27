@@ -57,3 +57,12 @@ Thumbs.db
 *.tsbuildinfo
 tmp/
 temp/
+
+# Personal scratch (local only) — keep README as guide
+Scribble/**
+!Scribble/README.md
+
+# Console build
+console/dist/
+console/.vite/
+

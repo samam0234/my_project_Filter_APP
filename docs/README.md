@@ -26,6 +26,7 @@
 
 ## 빠른 링크
 
+- **실행 · 서버:** [../RUN.md](../RUN.md)
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 - 배포: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)

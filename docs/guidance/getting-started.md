@@ -1,5 +1,7 @@
 # Getting Started
 
+루트 상세 가이드: **[RUN.md](../../RUN.md)** (서버 열기 · 포트 · Docker)
+
 ## 전제
 
 - Python 3.10–3.12 (3.11 권장)
