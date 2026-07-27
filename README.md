@@ -62,8 +62,9 @@ npm run dev
 | [frontend/](./frontend/README.md) | ✅ | 사용자 웹 앱 (:5173) |
 | [console/](./console/README.md) | ✅ | 운영 콘솔 (:5174) |
 | [scripts/](./scripts/README.md) | ✅ | ONNX 변환, cleanup 등 |
+| [training/](./training/README.md) | ✅ | **YOLO detect/seg · LoRA 학습 구역** |
 | [data/](./data/README.md) | ✅ | 업로드·피드백·SQLite |
-| [models/](./models/README.md) | ✅ | YOLO 가중치 (git ignore) |
+| [models/](./models/README.md) | ✅ | 추론용 가중치 (git ignore) |
 | [logs/](./logs/README.md) | ✅ | 런타임 로그 |
 | [docs/](./docs/README.md) | ✅ | 문서 허브 |
 | [docker/](./docker/README.md) | ✅ | Compose 메모 |

@@ -1,0 +1,15 @@
+# YOLO-seg 데이터셋 예시
+# 사용: train_segment.py --data configs/dataset_seg.example.yaml
+# path 를 본인 데이터 루트로 수정
+
+path: ../datasets/my_seg   # training/datasets/my_seg 권장
+train: images/train
+val: images/val
+
+# 클래스 이름 — 프롬프트 target 키워드와 맞추면 매칭이 쉬움
+names:
+  0: person
+  1: dog
+  2: cat
+  3: car
+  4: bag

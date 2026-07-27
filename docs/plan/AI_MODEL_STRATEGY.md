@@ -202,10 +202,13 @@ prompt_analyzer 노드
 
 | 경로 | 내용 |
 |------|------|
+| **`training/`** | **학습 전용 구역** (yolo detect/seg, lora, datasets, outputs) |
+| `training/yolo/train_segment.py` | 세그 학습 진입점 |
+| `training/yolo/train_detect.py` | 탐지 학습 진입점 |
+| `training/lora/train_lora.py` | LoRA 스캐폴드 (Phase 2) |
 | `.env.example` | YOLO / LLM 환경변수 템플릿 |
-| `backend/app/core/config.py` | Settings (구현 시 키 추가) |
-| `backend/app/workflows/nodes.py` | prompt_analyzer / heuristic |
-| `backend/app/services/segmentation.py` | YOLO 로드 |
+| `backend/app/core/config.py` | Settings |
+| `backend/app/services/segmentation.py` | 추론 시 YOLO 로드 |
 | `docs/guidance/llm-and-vision.md` | 실행 가이드 (요약) |
 | `RUN.md` | Ollama·모델 기동 메모 |
 
