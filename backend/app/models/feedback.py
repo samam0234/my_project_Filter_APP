@@ -1,4 +1,10 @@
-"""ORM: 사용자/파이프라인 피드백 레코드."""
+"""ORM: 사용자/파이프라인 피드백 레코드.
+
+jobs 와 1:N. job 삭제 시 CASCADE.
+source:
+  - user              : 프론트 like/dislike
+  - pipeline_failure  : 그래프 feedback_collector 자동 저장
+"""
 
 from __future__ import annotations
 
@@ -16,6 +22,7 @@ class Feedback(Base):
     __tablename__ = "feedbacks"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 부모 job (없으면 FK 위반 — FeedbackService 가 stub job 생성)
     job_id: Mapped[str] = mapped_column(
         String(64),
         ForeignKey("jobs.id", ondelete="CASCADE"),

@@ -1,5 +1,13 @@
-# Phase 1 — Cut & Keep backend
-# Python 3.10 ~ 3.12 (3.11 recommended)
+# 컷앤킵 — 로컬 개발용 Python 의존성 (저장소 루트)
+# Python 3.10 ~ 3.12 (3.11 권장, 3.14 비권장)
+#
+# 설치 (저장소 루트에서):
+#   python -m venv .venv
+#   .\.venv\Scripts\activate
+#   pip install -r requirements.txt
+#
+# Docker 경량 런타임은 requirements.docker.txt 를 사용한다.
+# 학습 전용은 training/requirements-training.txt 를 사용한다.
 
 # Web Framework
 fastapi==0.115.0
@@ -34,7 +42,6 @@ SQLAlchemy==2.0.35
 PyMySQL==1.1.1
 cryptography==43.0.1
 
-# Phase 2 (uncomment when needed)
+# Phase 2 (필요 시 주석 해제)
 # celery==5.4.0
 # redis==5.0.8
-

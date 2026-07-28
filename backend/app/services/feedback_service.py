@@ -1,4 +1,13 @@
-"""피드백 수집: DB(레포지토리) + 선택적 이미지/JSON 사이드카."""
+"""피드백 수집: DB(레포지토리) + 선택적 이미지/JSON 사이드카.
+
+역할:
+  - 사용자 like/dislike API
+  - 파이프라인 실패 시 자동 저장 (source=pipeline_failure)
+
+저장 위치:
+  1) SQL jobs/feedback 테이블 (MariaDB 또는 SQLite)
+  2) data/feedback/{case_id}.jpg + .json  (학습·디버그용 파일)
+"""
 
 from __future__ import annotations
 
@@ -21,6 +30,12 @@ from app.utils.image_utils import ensure_dir, save_image
 
 
 class FeedbackService:
+    """피드백 영속화 서비스.
+
+    db 세션을 주입받으면 요청 스코프 세션을 재사용하고,
+    없으면 내부에서 SessionLocal 을 열어 owned=True 로 close 한다.
+    """
+
     def __init__(
         self,
         db: Session | None = None,
@@ -52,7 +67,11 @@ class FeedbackService:
         """
         레포지토리를 통해 MariaDB/SQLite에 피드백 저장.
         학습용으로 data/feedback/ 에 이미지+JSON 사이드카도 선택 저장.
+
+        반환: (DB row 또는 None, JSON 사이드카 Path 또는 None)
+        DB 실패해도 파일 사이드카는 남겨 둔다.
         """
+        # case_id = job_id + 짧은 난수 (파일명·피드백 PK 후보)
         case_id = f"{job_id}_{uuid4().hex[:8]}"
         vote_str = str(vote.value if isinstance(vote, FeedbackVote) else vote)
         meta = meta or {}
@@ -63,10 +82,12 @@ class FeedbackService:
         base = self.settings.feedback_path / case_id
         ensure_dir(self.settings.feedback_path)
 
+        # --- 파일 사이드카 (이미지) ---
         if image is not None:
             image_path = Path(str(base) + ".jpg")
             save_image(image_path, image)
 
+        # --- 파일 사이드카 (JSON 메타) ---
         payload: Dict[str, Any] = {
             "case_id": case_id,
             "job_id": job_id,
@@ -85,6 +106,7 @@ class FeedbackService:
             encoding="utf-8",
         )
 
+        # --- DB 저장 ---
         db, owned = self._session()
         row: Optional[Feedback] = None
         try:
@@ -101,6 +123,7 @@ class FeedbackService:
                 meta=meta,
                 feedback_id=case_id,
             )
+            # job 행에 feedback_saved 플래그 표시
             job_repo.mark_feedback_saved(job_id)
             logger.info("Feedback saved db_id={} path={}", row.id, json_path)
         except Exception:
@@ -120,6 +143,7 @@ class FeedbackService:
         image: Optional[np.ndarray],
         meta: Dict[str, Any],
     ) -> Tuple[Optional[Feedback], Optional[Path]]:
+        """파이프라인 실패/fallback 소진 시 dislike 로 자동 기록."""
         return self.save_case(
             job_id=job_id,
             vote=FeedbackVote.DISLIKE,
