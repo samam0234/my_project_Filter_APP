@@ -6,11 +6,15 @@
 
 | 문서 | 설명 |
 |------|------|
-| [docs/plan/LOGIC_STRUCTURE.md](docs/plan/LOGIC_STRUCTURE.md) | **통합 로직 구조 (구현 1순위)** |
+| [docs/plan/CURRENT_STACK.md](docs/plan/CURRENT_STACK.md) | **현재 포트·DB·Docker 스냅샷** |
+| [docs/plan/LOGIC_STRUCTURE.md](docs/plan/LOGIC_STRUCTURE.md) | 통합 로직 구조 |
 | [docs/plan/AI_MODEL_STRATEGY.md](docs/plan/AI_MODEL_STRATEGY.md) | **yolo26s-seg · Ollama E4B · OpenAI/Gemini** |
 | [docs/plan/PROJECT_STRUCTURE.md](docs/plan/PROJECT_STRUCTURE.md) | 폴더·모듈 구조 |
+| [docs/plan/DATABASE.md](docs/plan/DATABASE.md) | SQLite / MariaDB |
 | [docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md](docs/plan/LOGIC_AND_GIT_BRANCH_STRATEGY.md) | 실행 규칙 + Git |
 | [docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md](docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md) | 환경·실행·배포 |
+| [training/README.md](training/README.md) | YOLO 학습 · 실행 전 설정 |
+| [RUN.md](./RUN.md) | 로컬 3터미널 + Docker 실행 |
 
 ## 빠른 시작 (Phase 1)
 
@@ -69,8 +73,10 @@ npm run dev
 | [models/](./models/README.md) | ✅ | 추론용 가중치 (git ignore) |
 | [logs/](./logs/README.md) | ✅ | 런타임 로그 |
 | [docs/](./docs/README.md) | ✅ | 문서 허브 |
-| [docker/](./docker/README.md) | ✅ | Compose 메모 |
+| [docker/](./docker/README.md) | ✅ | Compose · MariaDB(password) · Adminer |
 | [Scribble/](./Scribble/README.md) | ✅ | 개인 메모 (내용 ignore) |
+
+**GitHub 홈 README = 이 파일.** `.github/Read_for_we.md` 는 내부 안내용이며 홈 소개가 아니다.
 
 ## 아키텍처 요약
 

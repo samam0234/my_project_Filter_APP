@@ -22,6 +22,7 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | Python 의존성 | 루트 `requirements.txt` / `requirements.docker.txt` |
 | 학습 구역 | `training/` (YOLO detect/seg, LoRA) — 추론과 분리 |
 | 테스트 | `tests/` + `pytest` — 실행 전 `docs/plan/TESTING.md` |
+| 현재 스택 스냅샷 | `docs/plan/CURRENT_STACK.md` (포트·DB·Docker·제외 항목) |
 
 ## 커밋 제목 예시
 

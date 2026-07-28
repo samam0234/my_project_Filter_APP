@@ -56,17 +56,28 @@ SQLite (local)  |  MariaDB (prod / docker)
 DB_DIALECT=sqlite          # 또는 mariadb
 SQLITE_PATH=data/cutnkeep.db
 
+# --- 호스트 도구(DBeaver) / 로컬 클라이언트 기준 ---
 MARIADB_HOST=localhost
-MARIADB_PORT=3306
-MARIADB_USER=cutnkeep
-MARIADB_PASSWORD=cutnkeep
+MARIADB_PORT=3309          # 호스트 발행 포트 (.env). 컨테이너 내부는 항상 3306
+MARIADB_USER=admin         # compose MYSQL_USER 와 동일 계열
+MARIADB_PASSWORD=...       # 배포 시 교체. 변경 후 기존 볼륨이면 down -v
 MARIADB_DATABASE=cutnkeep
+MYSQL_ROOT_PASSWORD=...    # 볼륨 최초 생성 시에만 적용
 
 # 선택: 전체 URL이 있으면 dialect 헬퍼보다 우선
-# DATABASE_URL=mysql+pymysql://cutnkeep:cutnkeep@mariadb:3306/cutnkeep?charset=utf8mb4
+# DATABASE_URL=mysql+pymysql://admin:...@127.0.0.1:3309/cutnkeep?charset=utf8mb4
 
 DB_ECHO=false
 ```
+
+| 실행 위치 | Host | Port | Dialect |
+|-----------|------|------|---------|
+| 로컬 uvicorn (기본) | — | — | **sqlite** |
+| 호스트 → Docker MariaDB | `127.0.0.1` | `MARIADB_PORT` | mariadb |
+| **backend 컨테이너** | **`mariadb`** | **`3306`** | compose 가 강제 |
+
+Docker MariaDB: 공식 `mariadb:11`, **비밀번호만**, `skip_ssl`. GSS 미사용.  
+→ `docker/mariadb/README.md`, `docs/plan/CURRENT_STACK.md`
 
 ### 2.2 SQLAlchemy URL 예시
 
@@ -74,8 +85,11 @@ DB_ECHO=false
 # SQLite (로컬)
 sqlite:///D:/my_project/CutNKeep/data/cutnkeep.db
 
-# MariaDB
-mysql+pymysql://cutnkeep:cutnkeep@localhost:3306/cutnkeep?charset=utf8mb4
+# MariaDB (호스트 → published port)
+mysql+pymysql://admin:...@127.0.0.1:3309/cutnkeep?charset=utf8mb4
+
+# MariaDB (backend 컨테이너 내부)
+mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 ```
 
 코드: `Settings.database_url` (`app/core/config.py`)
