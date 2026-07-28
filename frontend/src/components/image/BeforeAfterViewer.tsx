@@ -1,3 +1,9 @@
+/**
+ * 처리 결과 Before / After 비교 뷰.
+ *
+ * result 가 없으면 렌더하지 않음.
+ * after 는 투명 PNG 를 위해 체크보드 배경 스타일을 사용.
+ */
 import { useAppStore } from "../../store/useAppStore";
 import { formatScore } from "../../utils/formatters";
 
@@ -10,6 +16,7 @@ export function BeforeAfterViewer() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-100">결과</h3>
         <div className="flex gap-2 text-xs">
+          {/* 서버 status / quality_score 뱃지 */}
           <span className="rounded-full bg-slate-800 px-2 py-1 text-slate-300">
             status: {result.status}
           </span>
@@ -48,6 +55,7 @@ export function BeforeAfterViewer() {
           )}
         </figure>
       </div>
+      {/* 구조화 프롬프트 디버그 출력 */}
       {result.parsedPrompt && (
         <pre className="overflow-x-auto rounded-xl bg-slate-950 p-3 text-xs text-slate-400">
           {JSON.stringify(result.parsedPrompt, null, 2)}

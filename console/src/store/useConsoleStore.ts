@@ -1,3 +1,10 @@
+/**
+ * 운영 콘솔 전역 상태 (Zustand).
+ *
+ * page          : 현재 사이드바 메뉴
+ * health / jobs : API 에서 받은 스냅샷
+ * lastRefreshed : 마지막 성공 시각 (ISO 문자열)
+ */
 import { create } from "zustand";
 import type { ConsolePage, HealthResponse, JobResponse } from "../types";
 

@@ -1,19 +1,47 @@
+# 컷앤킵 Docker Compose
+#   docker compose -p cut_and_keep --env-file .env up -d --build
+#   docker compose -p cut_and_keep down          # 중지 (볼륨 유지)
+#   docker compose -p cut_and_keep down -v       # 중지 + DB 볼륨 삭제 (계정 초기화)
+#
+# 네트워크/프로젝트 이름: cut_and_keep 만 사용 (구 cutnkeep 스택과 중복 금지)
+#
+# ---------- 접속 요약 ----------
+# backend API     http://localhost:8000
+# frontend        http://localhost:80
+# Adminer         http://localhost:8081  (System=MySQL, Server=mariadb)
+# Redis (호스트)  localhost:6380
+# MariaDB (호스트/DBeaver)
+#   Host=127.0.0.1  Port=${MARIADB_PORT}  User/Pass=.env 의 MARIADB_*
+#   인증: 비밀번호만 (GSS-API / SSL 미사용)
+#   ※ 172.18.0.x 는 브리지 게이트웨이 — DBeaver 호스트로 쓰지 말 것
+#
+# ---------- .env 역할 분리 ----------
+# 호스트 도구: MARIADB_HOST=localhost, MARIADB_PORT=3309 등 .env 값 그대로
+# backend 컨테이너: 아래 environment 가 DB/Redis/LLM 주소를 덮어씀
+#   DB_DIALECT=mariadb, MARIADB_HOST=mariadb, MARIADB_PORT=3306
+#   REDIS_URL=redis://redis:6379/0
+#   LLM_BASE_URL=host.docker.internal (호스트 Ollama)
+
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
+      # 컨테이너 내부 DNS — .env 의 localhost/호스트 포트 무시
       DB_DIALECT: mariadb
       MARIADB_HOST: mariadb
-      MARIADB_PORT: 3306
-      MARIADB_USER: cutnkeep
-      MARIADB_PASSWORD: cutnkeep
-      MARIADB_DATABASE: cutnkeep
+      MARIADB_PORT: "3306"
+      MARIADB_USER: ${MARIADB_USER:-cutnkeep}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-cutnkeep}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-cutnkeep}
+      REDIS_URL: redis://redis:6379/0
+      # 호스트 PC Ollama (Docker Desktop Windows/Mac)
+      LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
     volumes:
       - ./data:/app/data
       - ./models:/app/models
@@ -24,6 +52,8 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
+    networks:
+      - cutnkeep_net
 
   frontend:
     build:
@@ -34,51 +64,65 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - cutnkeep_net
 
   mariadb:
+    # 공식 이미지 — GSS 커스텀 빌드 없음. 비밀번호 + skip_ssl 만 사용
     image: mariadb:11
     ports:
-      - "3306:3306"
+      # 호스트 포트(.env MARIADB_PORT, 예 3309) → 컨테이너 3306
+      - "${MARIADB_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: cutnkeep
-      MYSQL_USER: cutnkeep
-      MYSQL_PASSWORD: cutnkeep
+      # MYSQL_* 는 볼륨 최초 생성 시에만 계정/DB 생성에 사용됨
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MARIADB_DATABASE:-cutnkeep}
+      MYSQL_USER: ${MARIADB_USER:-cutnkeep}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD:-cutnkeep}
     volumes:
       - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/conf.d:/etc/mysql/conf.d:ro
+      - ./docker/mariadb/initdb.d:/docker-entrypoint-initdb.d:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+      - --skip-ssl
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 30s
     restart: unless-stopped
+    networks:
+      - cutnkeep_net
 
   redis:
     image: redis:7-alpine
-    # Host 6379 often taken by other stacks; map alternate or omit for internal-only.
     ports:
       - "6380:6379"
     restart: unless-stopped
+    networks:
+      - cutnkeep_net
 
-
-  # Phase 2 — uncomment when batch processing is ready
-  # celery_worker:
-  #   build:
-  #     context: ./backend
-  #   command: celery -A app.tasks.batch_tasks worker --loglevel=info
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     DB_DIALECT: mariadb
-  #     MARIADB_HOST: mariadb
-  #   volumes:
-  #     - ./data:/app/data
-  #     - ./models:/app/models
-  #   depends_on:
-  #     - redis
-  #     - backend
-  #     - mariadb
-  #   restart: unless-stopped
+  adminer:
+    image: adminer:4
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mariadb
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cutnkeep_net
 
 volumes:
   mariadb_data:
+
+networks:
+  cutnkeep_net:
+    name: cut_and_keep_net
+    driver: bridge

@@ -1,0 +1,11 @@
+# 로컬 Docker MariaDB — 비밀번호 로그인만 (GSS/SSL 사용 안 함)
+[mysqld]
+# 호스트명 reverse-DNS 생략 (Docker bridge 접속 안정)
+skip-name-resolve=1
+bind-address=0.0.0.0
+
+# SSL/TLS 비활성 (로컬 개발 전용)
+skip_ssl=1
+
+# GSSAPI / Kerberos 플러그인 로드 금지
+# (공식 이미지에 있어도 plugin-load-add 하지 않음)

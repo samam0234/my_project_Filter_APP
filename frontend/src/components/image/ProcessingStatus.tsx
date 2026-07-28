@@ -1,3 +1,7 @@
+/**
+ * 처리 중 스피너 / 에러 배너.
+ * isProcessing·error 둘 다 없으면 렌더하지 않음.
+ */
 import { Loader2 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 

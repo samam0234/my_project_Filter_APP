@@ -1,3 +1,7 @@
+/**
+ * 자주 쓰는 로컬 URL 바로가기.
+ * http 링크만 새 탭으로 열고, 상대 경로(docs)는 표시만.
+ */
 const links = [
   {
     title: "사용자 앱 (Frontend)",

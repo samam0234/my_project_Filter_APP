@@ -1,6 +1,8 @@
 /**
  * Phase 2 — multi-image batch upload UI scaffold.
  * Max 500 images via Celery + Redis when backend is ready.
+ *
+ * 현재는 안내 카드만 렌더 (실제 업로드 UI 미연결).
  */
 export function BatchUploader() {
   return (

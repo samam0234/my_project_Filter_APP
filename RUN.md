@@ -16,7 +16,7 @@ Docker(`cut_and_keep`) 스택 실행 방법을 정리한다.
 | Docker Desktop | 선택 (전체 스택) |
 | Git | 2.30+ |
 | **Ollama** (로컬 LLM) | `gemma4:e4b` — 프롬프트 분석 기본 |
-| **YOLO26n-seg** 가중치 | `models/yolo26n-seg.pt` 또는 `.onnx` |
+| **yolo26s-seg** 가중치 | `models/yolo26s-seg.pt` 또는 `.onnx` |
 
 AI 모델 전략: [`docs/plan/AI_MODEL_STRATEGY.md`](./docs/plan/AI_MODEL_STRATEGY.md)  
 LLM 실행: [`docs/guidance/llm-and-vision.md`](./docs/guidance/llm-and-vision.md)
@@ -63,13 +63,16 @@ copy .env.example .env
 
 ### 3.1 Backend
 
+Python 의존성 파일은 **저장소 루트**에 있다 (`requirements.txt`, `requirements.docker.txt`).
+
 ```powershell
-cd d:\my_project\CutNKeep\backend
+cd d:\my_project\CutNKeep
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
 # 가벼운 Docker와 비슷하게: pip install -r requirements.docker.txt
 
+cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -138,7 +141,7 @@ docker compose -p cut_and_keep down
 ### 참고
 
 - Docker 백엔드는 **MariaDB** 연결 (`DB_DIALECT=mariadb`).
-- 백엔드 이미지는 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능).
+- 백엔드 이미지는 루트 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능). 빌드 context 는 저장소 루트.
 - **Console 은 Compose에 없음** → 로컬 `npm run dev` (5174) 사용.
 - 호스트 **6379** 가 다른 스택에 점유되면 Redis 는 **6380** 사용 (이미 설정됨).
 
@@ -146,15 +149,29 @@ docker compose -p cut_and_keep down
 
 ---
 
-## 5. 기동 순서 권장
+## 5. 기동 전 테스트 (권장)
 
-1. Backend (또는 Docker 스택)  
-2. Frontend / Console  
-3. 브라우저에서 health → 업로드 또는 Job 목록 확인  
+```powershell
+cd d:\my_project\CutNKeep
+pip install -r tests/requirements-test.txt
+# backend 의존성 설치 후:
+pytest
+# 의존성 없을 때 골격만:
+pytest tests/structure -q
+```
+
+상세: `docs/plan/TESTING.md`, `tests/README.md`
+
+## 6. 기동 순서 권장
+
+1. (선택) `pytest`  
+2. Backend (또는 Docker 스택)  
+3. Frontend / Console  
+4. 브라우저에서 health → 업로드 또는 Job 목록 확인  
 
 ---
 
-## 6. 자주 막히는 것
+## 7. 자주 막히는 것
 
 | 증상 | 확인 |
 |------|------|
@@ -166,7 +183,7 @@ docker compose -p cut_and_keep down
 
 ---
 
-## 7. 관련 문서
+## 8. 관련 문서
 
 | 문서 | 내용 |
 |------|------|

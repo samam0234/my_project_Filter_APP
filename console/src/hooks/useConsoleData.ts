@@ -1,3 +1,9 @@
+/**
+ * 콘솔 데이터 새로고침 훅.
+ *
+ * health 와 jobs 를 병렬 요청 후 store 에 반영.
+ * jobs 실패는 빈 배열로 흡수하고, health 실패만 에러로 표시.
+ */
 import { useCallback } from "react";
 import { fetchHealth, fetchJobs } from "../api/client";
 import { useConsoleStore } from "../store/useConsoleStore";
@@ -14,6 +20,7 @@ export function useConsoleData() {
     setLoading(true);
     setError(null);
     try {
+      // health 필수, jobs 는 실패 시 [] 로 폴백
       const [health, jobs] = await Promise.all([
         fetchHealth(),
         fetchJobs(100).catch(() => [] as Awaited<ReturnType<typeof fetchJobs>>),

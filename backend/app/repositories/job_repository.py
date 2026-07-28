@@ -1,4 +1,8 @@
-"""jobs 테이블 영속화."""
+"""jobs 테이블 영속화.
+
+라우터·FeedbackService 가 공통으로 사용하는 Job CRUD.
+SQLAlchemy Session 을 생성자에서 주입받는다.
+"""
 
 from __future__ import annotations
 
@@ -13,14 +17,22 @@ from app.schemas.response import ProcessResult
 
 
 class JobRepository:
+    """Job ORM 행에 대한 데이터 접근 계층."""
+
     def __init__(self, db: Session, settings: Settings | None = None) -> None:
         self.db = db
         self.settings = settings or get_settings()
 
     def get(self, job_id: str) -> Optional[Job]:
+        """PK 로 단건 조회 (없으면 None)."""
         return self.db.get(Job, job_id)
 
     def create_pending(self, job_id: str, prompt: str) -> Job:
+        """처리 전 pending 행 생성.
+
+        피드백 FK 를 위해 job 이 없을 때 stub 으로도 사용한다.
+        expires_at 은 file_retention_hours 기준.
+        """
         hours = self.settings.file_retention_hours
         expires = datetime.now(timezone.utc) + timedelta(hours=hours)
         row = Job(
@@ -37,7 +49,10 @@ class JobRepository:
         return row
 
     def save_result(self, result: ProcessResult, prompt: str) -> Job:
-        """파이프라인 ProcessResult로 job을 삽입 또는 갱신."""
+        """파이프라인 ProcessResult로 job을 삽입 또는 갱신.
+
+        이미 행이 있으면 덮어쓰고, 없으면 새로 insert.
+        """
         row = self.get(result.job_id)
         hours = self.settings.file_retention_hours
         expires = datetime.now(timezone.utc) + timedelta(hours=hours)
@@ -45,6 +60,7 @@ class JobRepository:
         meta = result.meta or {}
 
         if row is None:
+            # 신규 삽입
             row = Job(
                 id=result.job_id,
                 prompt=prompt,
@@ -63,6 +79,7 @@ class JobRepository:
             )
             self.db.add(row)
         else:
+            # 기존 행 갱신
             row.prompt = prompt
             row.status = result.status
             row.parsed_prompt = parsed
@@ -82,6 +99,7 @@ class JobRepository:
         return row
 
     def mark_feedback_saved(self, job_id: str) -> Optional[Job]:
+        """피드백이 저장된 뒤 job.feedback_saved = 1."""
         row = self.get(job_id)
         if row is None:
             return None
@@ -91,6 +109,7 @@ class JobRepository:
         return row
 
     def list_recent(self, limit: int = 50) -> list[Job]:
+        """최신 생성 순 목록 (콘솔/운영 조회)."""
         return (
             self.db.query(Job)
             .order_by(Job.created_at.desc())

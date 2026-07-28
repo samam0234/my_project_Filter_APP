@@ -1,0 +1,19 @@
+# 학습 전용 (루트 requirements.txt 와 분리 — 추론 서버와 학습 venv 분리)
+# Python 3.11 권장
+
+ultralytics>=8.3.0
+# torch / torchvision 은 CUDA 환경에 맞게 별도 설치 권장
+# 예: https://pytorch.org 안내 명령
+
+opencv-python-headless>=4.10.0
+numpy>=1.26.0
+Pillow>=10.4.0
+PyYAML>=6.0
+tqdm>=4.66.0
+matplotlib>=3.8.0
+
+# LoRA / Phase 2 (필요 시 주석 해제)
+# peft>=0.12.0
+# transformers>=4.44.0
+# accelerate>=0.33.0
+# datasets>=2.20.0

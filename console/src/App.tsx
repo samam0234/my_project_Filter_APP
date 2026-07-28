@@ -1,3 +1,10 @@
+/**
+ * 운영 콘솔 루트 (Vite :5174).
+ *
+ * - 좌측 Sidebar 로 페이지 전환 (dashboard / jobs / system / links)
+ * - 마운트 시 + 30초 간격으로 health·jobs 새로고침
+ * - useConsoleStore.page 에 따라 해당 Page 컴포넌트 렌더
+ */
 import { useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
@@ -13,6 +20,7 @@ export default function App() {
   const error = useConsoleStore((s) => s.error);
   const { refresh, loading } = useConsoleData();
 
+  // 최초 로드 + 30초 폴링 (운영 모니터링용)
   useEffect(() => {
     void refresh();
     const t = window.setInterval(() => void refresh(), 30_000);
@@ -42,6 +50,7 @@ export default function App() {
         </header>
 
         <main className="flex-1 overflow-auto p-6">
+          {/* system 페이지는 자체 에러 표시가 있어 상단 배너 생략 */}
           {error && page !== "system" && (
             <div className="mb-4 rounded-xl border border-amber-800/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
               {error}

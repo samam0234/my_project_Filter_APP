@@ -1,4 +1,9 @@
-"""엔진/세션 팩토리. 로컬 SQLite 또는 배포 MariaDB."""
+"""엔진/세션 팩토리. 로컬 SQLite 또는 배포 MariaDB.
+
+- get_engine()  : 프로세스 전역 Engine 싱글톤
+- get_db()      : FastAPI Depends 용 세션 generator
+- init_db()     : create_all (Phase 1; 이후 Alembic 선택)
+"""
 
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ from app.core.config import get_settings
 from app.db.base import Base
 
 _engine: Optional[Engine] = None
+# bind 는 get_engine / init_db 시점에 주입
 SessionLocal: sessionmaker[Session] = sessionmaker(
     autoflush=False,
     autocommit=False,
@@ -41,15 +47,22 @@ def _normalize_sqlite_url(url: str) -> str:
     path = Path(raw)
     if not path.is_absolute():
         path = settings.resolve_path(raw)
+    # 파일이 없어도 상위 폴더는 미리 생성
     path.parent.mkdir(parents=True, exist_ok=True)
     return f"sqlite:///{path.as_posix()}"
 
 
 def _build_engine() -> Engine:
+    """Settings.database_url 로 Engine 생성.
+
+    SQLite: check_same_thread=False + FK PRAGMA ON
+    MariaDB: pool_pre_ping 으로 끊긴 연결 감지
+    """
     settings = get_settings()
     url = _normalize_sqlite_url(settings.database_url)
     connect_args: dict = {}
     if url.startswith("sqlite"):
+        # FastAPI 멀티 스레드에서 동일 연결 사용 허용
         connect_args["check_same_thread"] = False
 
     eng = create_engine(
@@ -63,6 +76,7 @@ def _build_engine() -> Engine:
 
         @event.listens_for(eng, "connect")
         def _sqlite_on_connect(dbapi_conn, _connection_record) -> None:  # type: ignore[no-untyped-def]
+            # SQLite 기본 FK 비활성 → 명시 ON
             cursor = dbapi_conn.cursor()
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
@@ -72,6 +86,7 @@ def _build_engine() -> Engine:
 
 
 def get_engine() -> Engine:
+    """지연 생성 Engine 싱글톤."""
     global _engine
     if _engine is None:
         _engine = _build_engine()
@@ -79,7 +94,7 @@ def get_engine() -> Engine:
 
 
 def get_db() -> Generator[Session, None, None]:
-    """FastAPI 의존성: DB 세션을 yield."""
+    """FastAPI 의존성: 요청마다 세션을 yield 하고 종료 시 close."""
     SessionLocal.configure(bind=get_engine())
     db = SessionLocal()
     try:

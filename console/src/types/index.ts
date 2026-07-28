@@ -1,3 +1,8 @@
+/**
+ * 운영 콘솔 공유 타입 (백엔드 HealthResponse / JobResponse 와 맞춤).
+ */
+
+/** GET /health */
 export interface HealthResponse {
   status: string;
   version: string;
@@ -5,6 +10,7 @@ export interface HealthResponse {
   db_dialect?: string | null;
 }
 
+/** GET /api/v1/jobs 항목 */
 export interface JobResponse {
   job_id: string;
   prompt: string;
@@ -19,4 +25,5 @@ export interface JobResponse {
   created_at?: string | null;
 }
 
+/** 사이드바 페이지 키 */
 export type ConsolePage = "dashboard" | "jobs" | "system" | "links";
