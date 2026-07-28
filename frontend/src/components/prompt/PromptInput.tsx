@@ -1,3 +1,7 @@
+/**
+ * 자연어 프롬프트 입력.
+ * 값은 useAppStore.prompt 에 양방향 바인딩.
+ */
 import { useAppStore } from "../../store/useAppStore";
 
 export function PromptInput() {

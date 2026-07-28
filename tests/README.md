@@ -29,7 +29,7 @@ tests/
 cd d:\my_project\CutNKeep
 
 # backend venv (Python 3.11 권장) 활성화 후
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 pip install -r tests/requirements-test.txt
 
 pytest

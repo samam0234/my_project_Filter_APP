@@ -18,14 +18,18 @@
 
 ## 실행
 
+Python 의존성은 **저장소 루트**에 둔다 (서버 전체가 Python 기준).
+
 ```powershell
-cd backend
+# 저장소 루트에서
+cd d:\my_project\CutNKeep
 # Python 3.11 권장 (3.14 비권장)
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
-# Docker 경량: pip install -r requirements.docker.txt
+# Docker 와 비슷한 경량: pip install -r requirements.docker.txt
 
+cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -35,18 +39,19 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 환경변수: 루트 `.env` / `.env.example`  
 모델·LLM 전략: `docs/plan/AI_MODEL_STRATEGY.md`
 
-## 의존성 파일
+## 의존성 파일 (루트)
 
 | 파일 | 용도 |
 |------|------|
-| `requirements.txt` | 로컬 개발 (YOLO/ultralytics 포함 가능) |
-| `requirements.docker.txt` | Docker 경량 런타임 |
-| `Dockerfile` | 컨테이너 이미지 |
+| `../requirements.txt` | 로컬 개발 (YOLO/ultralytics 포함 가능) |
+| `../requirements.docker.txt` | Docker 경량 런타임 |
+| `Dockerfile` | 컨테이너 이미지 (빌드 context = 저장소 루트) |
 
 ## 테스트
 
 ```powershell
 # 저장소 루트에서
+pip install -r requirements.txt
 pip install -r tests/requirements-test.txt
 pytest tests/unit tests/smoke
 ```

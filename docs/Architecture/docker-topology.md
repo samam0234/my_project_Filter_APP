@@ -11,7 +11,7 @@ cut_and_keep-redis-1      :6380→6379
 
 ## Images
 
-- `cut_and_keep-backend` (slim: requirements.docker.txt)
+- `cut_and_keep-backend` (slim: 루트 `requirements.docker.txt`, build context = 저장소 루트)
 - `cut_and_keep-frontend`
 - `mariadb:11`, `redis:7-alpine`
 

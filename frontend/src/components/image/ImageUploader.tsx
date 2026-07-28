@@ -1,3 +1,9 @@
+/**
+ * 드래그앤드롭 이미지 선택 컴포넌트.
+ *
+ * react-dropzone 으로 JPEG/PNG/WebP · 최대 20MB · 1파일만 허용.
+ * 선택 시 useAppStore.setFile → Object URL 미리보기.
+ */
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
@@ -11,6 +17,7 @@ export function ImageUploader() {
 
   const onDrop = useCallback(
     (accepted: File[]) => {
+      // 첫 번째 수락 파일만 사용
       if (accepted[0]) setFile(accepted[0]);
     },
     [setFile],
@@ -24,7 +31,7 @@ export function ImageUploader() {
       "image/webp": [".webp"],
     },
     maxFiles: 1,
-    maxSize: 20 * 1024 * 1024,
+    maxSize: 20 * 1024 * 1024, // 백엔드 MAX_UPLOAD_SIZE_MB 와 맞춤
   });
 
   return (

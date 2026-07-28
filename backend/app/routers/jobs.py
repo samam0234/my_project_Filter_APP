@@ -1,4 +1,9 @@
-"""Job 조회 라우터 — DB에 저장된 처리 이력 조회."""
+"""Job 조회 라우터 — DB에 저장된 처리 이력 조회.
+
+엔드포인트:
+  GET /api/v1/jobs/{job_id} — 단건
+  GET /api/v1/jobs?limit=   — 최근 목록 (콘솔 대시보드용)
+"""
 
 from __future__ import annotations
 
@@ -13,6 +18,10 @@ router = APIRouter(tags=["jobs"])
 
 
 def _to_response(row) -> JobResponse:
+    """ORM Job 행 → API JobResponse 매핑.
+
+    before/after 는 파일 다운로드 엔드포인트 URL 로 변환한다.
+    """
     return JobResponse(
         job_id=row.id,
         prompt=row.prompt,
@@ -30,6 +39,7 @@ def _to_response(row) -> JobResponse:
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse:
+    """단건 job 조회. 없으면 404."""
     row = JobRepository(db).get(job_id)
     if row is None:
         raise HTTPException(status_code=404, detail="job 없음")
@@ -41,5 +51,6 @@ async def list_jobs(
     limit: int = 50,
     db: Session = Depends(get_db),
 ) -> list[JobResponse]:
+    """최근 job 목록. limit 상한 200."""
     rows = JobRepository(db).list_recent(limit=min(limit, 200))
     return [_to_response(r) for r in rows]

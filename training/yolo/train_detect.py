@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""YOLO object detection 학습 진입점 (Ultralytics)."""
+"""YOLO object detection 학습 진입점 (Ultralytics).
+
+세그와 별도 탐지 전용. 컷앤킵 Phase 1 서빙은 seg 가 기본이며,
+탐지 학습은 데이터셋/실험용으로 유지한다.
+"""
 
 from __future__ import annotations
 

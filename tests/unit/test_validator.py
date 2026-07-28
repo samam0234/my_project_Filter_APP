@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""마스크 검증 로직 테스트."""
+"""마스크 검증 로직 테스트.
+
+면적 비율·빈 마스크·정상 마스크 status/quality 확인.
+"""
 
 from __future__ import annotations
 
@@ -12,16 +15,19 @@ from app.services.validator import mask_area_ratio, score_mask
 
 
 def test_mask_area_ratio_empty():
+    """전부 0 → 비율 0."""
     m = np.zeros((100, 100), dtype=np.uint8)
     assert mask_area_ratio(m) == 0.0
 
 
 def test_mask_area_ratio_full():
+    """전부 255 → 비율 1."""
     m = np.full((100, 100), 255, dtype=np.uint8)
     assert mask_area_ratio(m) == pytest.approx(1.0)
 
 
 def test_score_mask_empty_failed():
+    """빈 마스크는 failed(또는 fallback)."""
     m = np.zeros((64, 64), dtype=np.uint8)
     r = score_mask(m, confidences=[0.9])
     assert r.ok is False
@@ -29,6 +35,7 @@ def test_score_mask_empty_failed():
 
 
 def test_score_mask_reasonable_ok():
+    """약 25% 면적 + 높은 conf → ok."""
     m = np.zeros((100, 100), dtype=np.uint8)
     m[20:70, 20:70] = 255  # 25% area
     r = score_mask(m, confidences=[0.8, 0.9])

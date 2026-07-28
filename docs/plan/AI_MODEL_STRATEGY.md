@@ -44,8 +44,8 @@
 
 ### 2.3 주의
 
-- Docker 경량 이미지(`requirements.docker.txt`)에는 기본적으로 **torch/ultralytics 없음** →  
-  개발 머신에서 가중치·ONNX를 만들고 `models/`에 두거나, 풀 `requirements.txt` 환경에서 추론.
+- Docker 경량 이미지(루트 `requirements.docker.txt`)에는 기본적으로 **torch/ultralytics 없음** →  
+  개발 머신에서 가중치·ONNX를 만들고 `models/`에 두거나, 루트 풀 `requirements.txt` 환경에서 추론.
 - COCO 클래스 밖 대상은 Phase 1에서 약함 → 계획서대로 Phase 2 **Grounding DINO + SAM2** 또는 피드백 LoRA.
 
 ### 2.4 환경변수

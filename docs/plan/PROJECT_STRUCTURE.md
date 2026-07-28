@@ -23,6 +23,8 @@ cut-and-keep/
 ├── docker/                           # Docker 관련 설정
 ├── docs/                             # 문서 허브 (Architecture, branchs, guidance, …)
 ├── logs/                             # 런타임 로그
+├── requirements.txt                  # Python 로컬 개발 의존성 (루트)
+├── requirements.docker.txt           # Docker 경량 런타임 의존성 (루트)
 ├── .env
 ├── docker-compose.yml
 └── README.md
@@ -79,12 +81,10 @@ backend/
 │   │   └── batch_tasks.py
 │   ├── utils/
 │   └── exceptions.py
-├── models/                          # ONNX / LoRA 가중치
-├── data/
-├── logs/
-├── requirements.txt
-└── Dockerfile
+├── Dockerfile                       # 빌드 context = 저장소 루트
 ```
+
+**Python 의존성(루트)**: `requirements.txt` (로컬 풀스택), `requirements.docker.txt` (경량 이미지)
 
 **계층 규칙**: `routers` → `services`/`workflows` → `repositories` → `models`/`db`  
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""설정 모듈 기본 동작."""
+"""설정 모듈 기본 동작.
+
+Settings / database_url / get_settings 캐시 검증.
+"""
 
 from __future__ import annotations
 
@@ -11,10 +14,11 @@ from app.core.config import Settings, get_settings
 
 
 def test_settings_defaults():
+    """기본 필드 타입·경로 힌트가 합리적인지."""
     s = Settings(
         _env_file=None,  # type: ignore[call-arg]
     )
-    # pydantic-settings may still load env; check types/paths logic
+    # 환경변수가 있어도 타입·경로 힌트만 느슨히 검사
     assert s.max_upload_size_mb == 20 or s.max_upload_size_mb > 0
     assert "yolo" in s.yolo_model_path.lower() or s.yolo_model_path.endswith(
         (".pt", ".onnx")
@@ -25,8 +29,9 @@ def test_settings_defaults():
 
 
 def test_allowed_mime_list():
+    """쉼표 구분 MIME → 리스트 프로퍼티."""
     s = Settings(ALLOWED_MIME_TYPES="image/jpeg,image/png", _env_file=None)  # type: ignore[call-arg]
-    # Field alias may need model_validate
+    # alias 필드는 model_validate 로 넣는 편이 안정적
     s2 = Settings.model_validate(
         {
             "ALLOWED_MIME_TYPES": "image/jpeg, image/png",
@@ -38,6 +43,7 @@ def test_allowed_mime_list():
 
 
 def test_database_url_sqlite():
+    """DB_DIALECT=sqlite 시 sqlite:/// URL."""
     s = Settings.model_validate(
         {
             "DB_DIALECT": "sqlite",
@@ -50,6 +56,7 @@ def test_database_url_sqlite():
 
 
 def test_database_url_mariadb():
+    """DB_DIALECT=mariadb 시 mysql+pymysql URL."""
     s = Settings.model_validate(
         {
             "DB_DIALECT": "mariadb",
@@ -67,6 +74,7 @@ def test_database_url_mariadb():
 
 
 def test_get_settings_cached():
+    """lru_cache 로 동일 인스턴스 반환."""
     a = get_settings()
     b = get_settings()
     assert a is b

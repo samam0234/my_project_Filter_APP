@@ -4,7 +4,7 @@
 
 **코드 위치:** 저장소 루트 `tests/`  
 **실행 설정:** 루트 `pytest.ini`  
-**러너 의존성:** `tests/requirements-test.txt` (+ `backend/requirements.txt`)
+**러너 의존성:** `tests/requirements-test.txt` (+ 루트 `requirements.txt`)
 
 ---
 
@@ -62,7 +62,7 @@ pytest
 ```yaml
 # 예: GitHub Actions 스케치
 # - Python 3.11
-# - pip install -r backend/requirements.txt -r tests/requirements-test.txt
+# - pip install -r requirements.txt -r tests/requirements-test.txt
 # - pytest tests/structure tests/unit tests/smoke
 ```
 

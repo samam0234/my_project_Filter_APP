@@ -1,13 +1,25 @@
+# 컷앤킵 Docker Compose 스택
+# 프로젝트명 권장: docker compose -p cut_and_keep up -d
+#
+# 서비스:
+#   backend   — FastAPI (8000)
+#   frontend  — 사용자 앱 nginx (80)
+#   mariadb   — 배포용 DB (3306)
+#   redis     — Phase 2 배치 큐 (호스트 6380 → 컨테이너 6379)
+#   celery_worker — Phase 2 (주석 처리됨)
+
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      # 루트 context: 루트 requirements*.txt + backend/ 소스
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
+      # 컨테이너 안에서는 MariaDB 서비스 호스트명 사용
       DB_DIALECT: mariadb
       MARIADB_HOST: mariadb
       MARIADB_PORT: 3306
@@ -15,6 +27,7 @@ services:
       MARIADB_PASSWORD: cutnkeep
       MARIADB_DATABASE: cutnkeep
     volumes:
+      # 업로드·피드백·모델·로그를 호스트와 공유
       - ./data:/app/data
       - ./models:/app/models
       - ./logs:/app/logs
@@ -55,16 +68,18 @@ services:
 
   redis:
     image: redis:7-alpine
-    # Host 6379 often taken by other stacks; map alternate or omit for internal-only.
+    # 호스트 6379 는 다른 스택과 충돌하기 쉬워 6380 으로 매핑
+    # (컨테이너 내부는 그대로 6379)
     ports:
       - "6380:6379"
     restart: unless-stopped
 
 
-  # Phase 2 — uncomment when batch processing is ready
+  # Phase 2 — 배치 처리 준비되면 아래 주석 해제
   # celery_worker:
   #   build:
-  #     context: ./backend
+  #     context: .
+  #     dockerfile: backend/Dockerfile
   #   command: celery -A app.tasks.batch_tasks worker --loglevel=info
   #   env_file:
   #     - .env
@@ -81,4 +96,5 @@ services:
   #   restart: unless-stopped
 
 volumes:
+  # MariaDB 영속 볼륨
   mariadb_data:

@@ -190,6 +190,7 @@ Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 
 DB_DIALECT=sqlite
 SQLITE_PATH=data/cutnkeep.db
 
+# 루트에서 venv 활성화 후
 cd backend
 uvicorn app.main:app --reload
 # → data/cutnkeep.db 자동 생성 + 테이블 create

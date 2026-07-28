@@ -63,13 +63,16 @@ copy .env.example .env
 
 ### 3.1 Backend
 
+Python 의존성 파일은 **저장소 루트**에 있다 (`requirements.txt`, `requirements.docker.txt`).
+
 ```powershell
-cd d:\my_project\CutNKeep\backend
+cd d:\my_project\CutNKeep
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
 # 가벼운 Docker와 비슷하게: pip install -r requirements.docker.txt
 
+cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -138,7 +141,7 @@ docker compose -p cut_and_keep down
 ### 참고
 
 - Docker 백엔드는 **MariaDB** 연결 (`DB_DIALECT=mariadb`).
-- 백엔드 이미지는 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능).
+- 백엔드 이미지는 루트 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능). 빌드 context 는 저장소 루트.
 - **Console 은 Compose에 없음** → 로컬 `npm run dev` (5174) 사용.
 - 호스트 **6379** 가 다른 스택에 점유되면 Redis 는 **6380** 사용 (이미 설정됨).
 

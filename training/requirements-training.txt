@@ -1,4 +1,4 @@
-# 학습 전용 (backend/requirements.txt 와 분리)
+# 학습 전용 (루트 requirements.txt 와 분리 — 추론 서버와 학습 venv 분리)
 # Python 3.11 권장
 
 ultralytics>=8.3.0

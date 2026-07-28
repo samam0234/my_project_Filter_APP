@@ -143,14 +143,14 @@ pnpm install
 git clone <your-repo> cut-and-keep
 cd cut-and-keep
 
-# 2. Backend 세팅
-cd backend
+# 2. Backend 세팅 (의존성 파일은 저장소 루트)
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+# 경량 Docker 와 동일: pip install -r requirements.docker.txt
 
 # 3. Frontend 세팅
-cd ../frontend
+cd frontend
 npm install
 
 # 4. 환경변수 설정
@@ -162,7 +162,7 @@ cp .env.example .env
 
 ```bash
 # 저장소 루트
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 pip install -r tests/requirements-test.txt
 pytest
 # 또는 골격만: pytest tests/structure
@@ -344,21 +344,21 @@ services:
 
 ### 7.2 Backend Dockerfile 예시
 
+실제 파일: `backend/Dockerfile` (빌드 context = **저장소 루트**).
+
 ```dockerfile
 FROM python:3.11-slim
-
 WORKDIR /app
 
-# 시스템 의존성
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 루트 의존성 (경량 이미지 기본)
+COPY requirements.docker.txt requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.docker.txt
 
-COPY . .
+COPY backend/ ./
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

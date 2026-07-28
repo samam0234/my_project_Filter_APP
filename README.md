@@ -20,21 +20,21 @@
 # 환경변수
 cp .env.example .env
 
-# Backend
-cd backend
+# Backend (의존성은 저장소 루트 requirements.txt)
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
+cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Frontend (사용자 앱)
-cd frontend
+cd ../frontend
 npm install
 npm run dev
 
 # Console (운영 관리자)
-cd console
+cd ../console
 npm install
 npm run dev
 ```
@@ -48,7 +48,7 @@ npm run dev
 문서 허브: [docs/README.md](docs/README.md)  
 실행 가이드: [RUN.md](./RUN.md)  
 테스트: [tests/README.md](./tests/README.md) · [docs/plan/TESTING.md](./docs/plan/TESTING.md)  
-커밋 규칙: [docs/guidance/commit-message.md](docs/guidance/commit-message.md) (제목 영어 / 본문·바닥글 한국어)  
+커밋 규칙: [docs/guidance/commit-message.md](docs/guidance/commit-message.md) (type/scope 영어 · 제목 요약·본문·바닥글 한국어)  
 브랜치 규칙: [docs/guidance/branch-merge.md](docs/guidance/branch-merge.md) (작업=feature, 일자 병합=develop/main)  
 에이전트 스킬: [.agents/skills/cutnkeep/SKILL.md](.agents/skills/cutnkeep/SKILL.md) · [AGENTS.md](./AGENTS.md)  
 개인 메모: [Scribble/README.md](./Scribble/README.md) (내용물 git ignore)

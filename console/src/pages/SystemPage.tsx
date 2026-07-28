@@ -1,9 +1,14 @@
+/**
+ * 시스템 정보: /health 필드 + 포트·프록시 메모.
+ * 연결 실패 시 store.error 를 이 페이지에서 강조 표시.
+ */
 import { useConsoleStore } from "../store/useConsoleStore";
 
 export function SystemPage() {
   const health = useConsoleStore((s) => s.health);
   const error = useConsoleStore((s) => s.error);
 
+  // 키-값 목록 (테이블 대신 dl)
   const rows = [
     { k: "status", v: health?.status ?? "-" },
     { k: "version", v: health?.version ?? "-" },

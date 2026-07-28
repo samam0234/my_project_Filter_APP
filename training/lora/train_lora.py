@@ -8,6 +8,7 @@ LoRA fine-tuning 진입점 (Phase 2 스캐폴드).
   - 산출물은 training/outputs/lora/ 에 저장 후 서버에 어댑터만 교체
 
 아직 전체 학습 루프는 구현하지 않음. 데이터 경로·하이퍼파라미터 계약만 정의.
+실행하면 경로 존재 여부만 출력하고 종료(exit 0)한다.
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=1e-4)
     args = parser.parse_args()
 
+    # --- 스캐폴드: 계약만 출력 (실제 학습 없음) ---
     print("=== LoRA train (scaffold) ===")
     print(f"feedback_dir = {args.feedback_dir} exists={args.feedback_dir.exists()}")
     print(f"pseudo_dir   = {args.pseudo_dir} exists={args.pseudo_dir.exists()}")

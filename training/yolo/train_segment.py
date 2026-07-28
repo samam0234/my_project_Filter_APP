@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""YOLO 인스턴스 세그멘테이션 학습 진입점 (Ultralytics)."""
+"""YOLO 인스턴스 세그멘테이션 학습 진입점 (Ultralytics).
+
+추론(backend)과 분리된 학습 전용 스크립트.
+학습 산출 best.pt 를 models/ 로 복사한 뒤 YOLO_MODEL_PATH 로 서빙한다.
+
+사용 예:
+  python training/yolo/train_segment.py --data training/configs/dataset_seg.yaml
+"""
 
 from __future__ import annotations
 
@@ -34,6 +41,7 @@ def main() -> None:
     parser.add_argument("--device", default=None, help="cuda:0 또는 cpu (기본 자동)")
     args = parser.parse_args()
 
+    # 학습 전용 의존성 (backend requirements 와 분리)
     try:
         from ultralytics import YOLO
     except ImportError as exc:

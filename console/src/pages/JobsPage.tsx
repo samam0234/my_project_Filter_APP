@@ -1,3 +1,8 @@
+/**
+ * Job 전체 목록 테이블.
+ * store.jobs 를 그대로 표시 (서버 페이지네이션 없음 — Phase 1).
+ * after 링크는 resolveAssetUrl 로 절대 URL 화.
+ */
 import { resolveAssetUrl } from "../api/client";
 import { useConsoleStore } from "../store/useConsoleStore";
 
