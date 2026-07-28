@@ -1,3 +1,8 @@
+/**
+ * 좌측 네비게이션.
+ * useConsoleStore.page 를 바꿔 본문 페이지 전환.
+ * 하단: API online/offline · DB dialect 요약.
+ */
 import {
   Activity,
   ExternalLink,
@@ -54,6 +59,7 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* 연결 상태 요약 (health 스냅샷) */}
       <div className="border-t border-console-border p-4 text-xs text-console-muted">
         <div className="flex items-center justify-between">
           <span>API</span>

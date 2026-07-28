@@ -6,9 +6,10 @@
 
 ## 커밋 메시지
 
-- **제목:** 영어만 (Conventional Commits)  
-- **본문:** 한국어  
-- **바닥글:** 한국어  
+- **type / scope:** 영어 (`feat`, `fix`, `backend` …)  
+- **제목 요약:** **한국어** (`feat(tts): 음성 인식 추가`)  
+- **본문·바닥글:** 한국어  
+- 영어 요약 금지: `feat(llm): add to engine` ❌  
 
 → `docs/guidance/commit-message.md`
 
@@ -26,4 +27,5 @@
 ## 스택
 
 - `backend/` FastAPI · `frontend/` :5173 · `console/` :5174  
-- Docker: `-p cut_and_keep`
+- Python 의존성: 루트 `requirements.txt` / `requirements.docker.txt`  
+- Docker: `-p cut_and_keep`  

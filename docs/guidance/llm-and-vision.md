@@ -4,20 +4,22 @@
 
 ---
 
-## 비전: YOLO26n-seg
+## 비전: YOLO26s-seg (기본 스케일 s)
+
+> 이전 문서의 YOLO26n 기본은 **s 로 통일**했다. 상세: [`docs/plan/YOLO26S_DEFAULT.md`](../plan/YOLO26S_DEFAULT.md)
 
 ```bash
 # 가중치 위치 (예시)
-# models/yolo26n-seg.pt  또는  models/yolo26n-seg.onnx
+# models/yolo26s-seg.pt  또는  models/yolo26s-seg.onnx
 
 # ONNX export 예 (ultralytics 설치 환경)
-# yolo export model=yolo26n-seg.pt format=onnx
+# yolo export model=yolo26s-seg.pt format=onnx
 ```
 
 `.env`:
 
 ```env
-YOLO_MODEL_PATH=models/yolo26n-seg.pt
+YOLO_MODEL_PATH=models/yolo26s-seg.pt
 ```
 
 ---

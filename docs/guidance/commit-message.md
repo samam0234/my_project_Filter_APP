@@ -8,43 +8,56 @@ Cut & Keep 저장소의 **모든 커밋**은 아래 언어·형식을 따른다.
 
 | 구간 | 언어 | 설명 |
 |------|------|------|
-| **제목 (subject / title)** | **영어만** | Conventional Commits |
+| **type / scope** | **영어** | Conventional Commits (`feat`, `fix`, `backend` …) |
+| **제목 요약 (subject)** | **한국어** | 무엇을 했는지 한 줄 |
 | **본문 (body)** | **한국어** | 무엇을·왜 바꿨는지 |
 | **바닥글 (footer)** | **한국어** | 이슈 연결, Breaking, 후속 작업 등 |
 
-> 제목에 한글을 넣지 않는다.  
-> 본문·바닥글에 영어 코드 식별자(`feature/backend`, `JobRepository`)는 허용.
+> **제목 요약은 한글.** 영어 문장 요약(`add to engine` 등)은 쓰지 않는다.  
+> `type`·`scope` 식별자만 영어다.  
+> 본문·바닥글에 코드 식별자(`feature/backend`, `JobRepository`)는 허용.
 
 ---
 
 ## 2. 전체 형식
 
 ```text
-<type>(<scope>): <English summary>
+<type>(<scope>): <한국어 요약>
 
 <한국어 본문 — 여러 줄 가능>
 
 <한국어 바닥글 — 선택, 여러 줄 가능>
 ```
 
-### 2.1 제목 (영어)
+### 2.1 제목
 
 ```text
-feat(backend): add job repository and dual database support
-fix(docker): map redis host port to 6380
-docs(branchs): enforce YYMMDD_HHMM commit log filename
-chore(gitignore): ignore TypeScript build info files
+feat(backend): 잡 레포지토리와 이중 DB 지원 추가
+fix(docker): Redis 호스트 포트를 6380으로 매핑
+docs(branchs): 커밋 로그 파일명 YYMMDD_HHMM 규칙 적용
+chore(gitignore): TypeScript 빌드 정보 파일 무시
+feat(tts): 음성 인식 추가
 ```
 
 | 규칙 | 내용 |
 |------|------|
 | type | `feat` `fix` `docs` `chore` `refactor` `test` `perf` `ci` `style` `build` |
-| scope | `backend` `frontend` `console` `docker` `docs` `branchs` `db` 등 |
-| 길이 | 제목 한 줄, 권장 72자 이내 |
+| scope | `backend` `frontend` `console` `docker` `docs` `branchs` `db` `llm` `tts` 등 |
+| 요약 | **한국어**, 한 줄, 권장 50자 내외 |
 | 마침표 | 제목 끝 `.` 붙이지 않음 |
-| 시제 | 명령형/현재형 (`add`, `fix`, not `added`) |
+| 콜론 | `type(scope):` 뒤 **한 칸** 띄우고 요약 (`feat(tts): 음성 인식 추가`) |
 
-### 2.2 본문 (한국어)
+### 2.2 Good / Bad
+
+| | 예시 | |
+|--|------|--|
+| ✅ | `feat(tts): 음성 인식 추가` | type/scope 영어 + 요약 한글 |
+| ✅ | `docs(commit): 제목 요약을 한글로 통일` | |
+| ❌ | `feat(llm): add to engine` | 요약이 영어 → **금지** |
+| ❌ | `작업함` | type/scope 없음 |
+| ❌ | `음성 인식 추가` | type 없음 |
+
+### 2.3 본문 (한국어)
 
 - 변경 요약 bullet 또는 짧은 문단
 - **왜** 필요한지 포함
@@ -56,9 +69,7 @@ chore(gitignore): ignore TypeScript build info files
 job·feedback 메타데이터를 DB에 저장하도록 연결함.
 ```
 
-### 2.3 바닥글 (한국어, 선택)
-
-자주 쓰는 키:
+### 2.4 바닥글 (한국어, 선택)
 
 ```text
 관련: docs/plan/DATABASE.md
@@ -80,7 +91,7 @@ Breaking-Change: 업로드 응답 필드 before_path 를 before_url 로 변경�
 ### Good
 
 ```text
-feat(docs): add ops console app and documentation hub folders
+feat(docs): 운영 콘솔 앱과 문서 허브 폴더 추가
 
 운영 관리자 console(React/TS)을 루트에 추가하고
 Architecture, branchs, guidance 등 문서 허브 폴더를 구성함.
@@ -92,9 +103,10 @@ Architecture, branchs, guidance 등 문서 허브 폴더를 구성함.
 ### Bad
 
 ```text
-feat(docs): 콘솔이랑 문서 추가함          ← 제목 한글 금지
-작업함                                    ← type/scope/영어 제목 없음
-feat(backend): add DB                     ← 본문 없음(가능은 하나 비권장)
+feat(llm): add to engine              ← 제목 요약 영어 금지
+feat(docs): add ops console           ← 제목 요약 영어 금지
+작업함                                ← type/scope 없음
+feat(backend): DB 추가함.             ← 제목 끝 마침표 비권장
 ```
 
 ---

@@ -1,3 +1,7 @@
+/**
+ * 운영 콘솔 Tailwind 설정.
+ * console.* 색상 토큰 (다크 ops UI).
+ */
 import type { Config } from "tailwindcss";
 
 export default {

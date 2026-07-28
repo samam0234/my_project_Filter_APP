@@ -5,9 +5,11 @@
 
 ## Git 커밋 메시지 (필수)
 
-| 제목 | 본문 | 바닥글 |
-|------|------|--------|
-| **영어** | **한국어** | **한국어** |
+| type/scope | 제목 요약 | 본문 | 바닥글 |
+|------------|-----------|------|--------|
+| **영어** | **한국어** | **한국어** | **한국어** |
+
+예: `feat(tts): 음성 인식 추가` ✅ · `feat(llm): add to engine` ❌  
 
 → [`docs/guidance/commit-message.md`](../guidance/commit-message.md)
 
@@ -55,6 +57,8 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `2db7501` | YOLO26s 기본 비전 모델 통일 | [commits/260728_1013_2db7501_yolo26s-default-and-manual-comments_feature-backend.md](./commits/260728_1013_2db7501_yolo26s-default-and-manual-comments_feature-backend.md) |
+| `af3ed90` | 한글 주석 보강 및 requirements 루트 이전 | [commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md](./commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md) |
 | `4b1e6ad` | initial project scaffold | [commits/260727_1207_4b1e6ad_initial-scaffold_main.md](./commits/260727_1207_4b1e6ad_initial-scaffold_main.md) |
 | `1342117` | ignore TypeScript build info | [commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md](./commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md) |
 | `8914abe` | schema/router/repo + dual DB | [commits/260727_1220_8914abe_backend-layers-db_feature-backend.md](./commits/260727_1220_8914abe_backend-layers-db_feature-backend.md) |

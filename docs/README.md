@@ -27,7 +27,8 @@
 ## 빠른 링크
 
 - **실행 · 서버:** [../RUN.md](../RUN.md)
-- **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md)
+- **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md) · **YOLO n→s:** [plan/YOLO26S_DEFAULT.md](./plan/YOLO26S_DEFAULT.md)
+- **테스트 전략:** [plan/TESTING.md](./plan/TESTING.md) · [../tests/README.md](../tests/README.md)
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 - 배포: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)
