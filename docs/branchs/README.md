@@ -57,6 +57,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `af3ed90` | 한글 주석 보강 및 requirements 루트 이전 | [commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md](./commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md) |
 | `4b1e6ad` | initial project scaffold | [commits/260727_1207_4b1e6ad_initial-scaffold_main.md](./commits/260727_1207_4b1e6ad_initial-scaffold_main.md) |
 | `1342117` | ignore TypeScript build info | [commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md](./commits/260727_1207_1342117_ignore-tsbuildinfo_develop.md) |
 | `8914abe` | schema/router/repo + dual DB | [commits/260727_1220_8914abe_backend-layers-db_feature-backend.md](./commits/260727_1220_8914abe_backend-layers-db_feature-backend.md) |
