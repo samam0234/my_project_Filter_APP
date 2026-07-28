@@ -1,18 +1,31 @@
-# 학습 전용 (루트 requirements.txt 와 분리 — 추론 서버와 학습 venv 분리)
-# Python 3.11 권장
+# 학습 전용 (루트 requirements.txt 와 분리)
+# Python 3.11~3.12 권장
+#
+# ========== CUDA (이 PC) ==========
+# 시스템 설치본 사용 — 추가 CUDA Toolkit 다운로드 하지 말 것
+#   경로 예: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.3
+#   셸:  . .\env_cuda.ps1
+#   venv: .\setup_cuda_env.ps1   (torch 원격 자동 설치 없음)
+#
+# torch / torchvision:
+#   - requirements 에 넣지 않음 (pip 가 2GB+ 휠을 몰래 받지 않게)
+#   - 로컬 wheel 또는 사용자가 지정한 소스만 설치
+#   - 예: pip install D:\wheels\torch-xxx.whl
+# =================================
+#
+# 경량 패키지만 여기 나열. ultralytics 는 torch 설치 후 따로.
 
-ultralytics>=8.3.0
-# torch / torchvision 은 CUDA 환경에 맞게 별도 설치 권장
-# 예: https://pytorch.org 안내 명령
-
-opencv-python-headless>=4.10.0
-numpy>=1.26.0
+numpy>=1.26.0,<2.3
 Pillow>=10.4.0
 PyYAML>=6.0
 tqdm>=4.66.0
 matplotlib>=3.8.0
+opencv-python-headless>=4.10.0
 
-# LoRA / Phase 2 (필요 시 주석 해제)
+# torch 설치한 뒤:
+# ultralytics>=8.3.0
+
+# LoRA / Phase 2 (필요 시)
 # peft>=0.12.0
 # transformers>=4.44.0
 # accelerate>=0.33.0

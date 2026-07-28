@@ -1,49 +1,29 @@
-# training/yolo — 탐지 · 세그멘테이션 학습
+# training/yolo — 스크립트 요약
 
-Ultralytics YOLO 로 **object detection** / **instance segmentation** 을 학습한다.
+**전체 가이드(실행 전 설정 + 실행 순서): [`../README.md`](../README.md)**
 
-## 스크립트
+| 파일 | 용도 |
+|------|------|
+| `train_segment.py` | 세그 학습 (**서비스 본선**) |
+| `train_detect.py` | 박스 탐지 (실험) |
+| `export_onnx.py` | `.pt` → `.onnx` |
 
-| 파일               | 용도                         |
-| ------------------ | ---------------------------- |
-| `train_segment.py` | 세그 학습 (컷앤킵 메인 경로) |
-| `train_detect.py`  | 박스 탐지 학습 (보조/실험)   |
-| `export_onnx.py`   | `.pt` → `.onnx`              |
+## 실행 전 최소 체크
 
-## 데이터 레이아웃 예
+1. `configs/dataset_seg.yaml` — `path` / **`names`** (클래스 이름)
+2. `datasets/...` — seg **폴리곤** 라벨 (detect bbox 와 다름)
+3. `backend/.../nodes.py` keywords 의 label = yaml `names` (소문자)
+4. torch + ultralytics 가 training venv 에 설치됨
 
-```text
-training/datasets/my_seg/
-  images/train/*.jpg
-  images/val/*.jpg
-  labels/train/*.txt   # seg: class + polygon 정규화
-  labels/val/*.txt
-```
-
-config: `training/configs/dataset_seg.example.yaml` 복사 후 수정.
-
-## 실행 예
+## 빠른 실행
 
 ```powershell
 cd d:\my_project\CutNKeep\training
-.\.venv\Scripts\activate
+. .\env_cuda.ps1
+.\.venv\Scripts\Activate.ps1
 
-# 세그 (권장 시작: yolo26s-seg)
-python yolo/train_segment.py --model yolo26s-seg.pt --data configs/dataset_seg.example.yaml --epochs 100
-
-# 탐지
-python yolo/train_detect.py --model yolo26s.pt --data configs/dataset_detect.example.yaml --epochs 100
-
-# ONNX
-python yolo/export_onnx.py --weights outputs/segment/exp/weights/best.pt --out ../models/yolo26s-seg.onnx
+python yolo/train_segment.py --model yolo26s-seg.pt --data configs/dataset_seg.yaml --device 0
 ```
 
-산출물 기본 위치: `training/outputs/` (프로젝트 설정에 따라 ultralytics runs 경로 사용 가능).
-
-## 서비스 적용
-
-1. `best.pt` → `models/yolo26s-seg.pt`
-2. `.env`: `YOLO_MODEL_PATH=models/yolo26s-seg.pt`
-3. backend 재시작
-
-자세한 전략: `docs/plan/AI_MODEL_STRATEGY.md`
+산출: `outputs/segment/<name>/weights/best.pt`  
+→ `models/yolo26s-seg.pt` 복사 후 `.env` `YOLO_MODEL_PATH` → backend 재시작.
