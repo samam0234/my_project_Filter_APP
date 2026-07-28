@@ -262,7 +262,7 @@ nvcc --version    # 13.3 확인
 ### torch / ultralytics
 
 학습 실행에는 **torch + ultralytics** 가 필요하다.  
-스크립트는 **pytorch.org 2GB+ 휠을 勝手に 받지 않는다.**
+스크립트는 **pytorch.org 2GB+ 휠을 멋대로 받지 않는다.**
 
 ```powershell
 # 로컬 wheel 이 있을 때
@@ -349,7 +349,7 @@ detect `best.pt` 만 `YOLO_MODEL_PATH` 에 넣지 말 것.
 
 ---
 
-### 4.3 ONNX보내기 (선택)
+### 4.3 ONNX 내보내기 (선택)
 
 ```powershell
 python yolo/export_onnx.py `
