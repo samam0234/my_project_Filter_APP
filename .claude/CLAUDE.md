@@ -13,10 +13,14 @@
 
 → `docs/guidance/commit-message.md`
 
-## 커밋 후
+## 커밋 기록 (필수 · 예외 없음)
 
-`docs/branchs/commits/YYMMDD_HHMM_[id]_[이름]_[브랜치].md` 작성  
-(`docs/branchs/TEMPLATE.md` 준수, 예: `260727_1446_...`)
+- **경로:** `docs/branchs/commits/` **만** (`docs/commits/` 금지)  
+- **커밋 전 또는 직후 무조건** md 작성  
+- 파일명: `YYMMDD_HHMM_[id]_[이름]_[브랜치].md`  
+- 템플릿: `docs/branchs/TEMPLATE.md`  
+- 기록 파일도 같은 브랜치에 커밋·푸시  
+- 생략·나중에 하기 금지
 
 ## 브랜치
 

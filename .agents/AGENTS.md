@@ -23,7 +23,10 @@ type(scope): 한국어 요약
 
 - type/scope 만 영어  
 - 제목 요약은 **한글** (`feat(tts): 음성 인식 추가`)  
-- 영어 요약 금지 (`feat(llm): add to engine` ❌)
+- 영어 요약 금지 (`feat(llm): add to engine` ❌)  
+- **커밋 기록 필수:** `docs/branchs/commits/YYMMDD_HHMM_….md`  
+  - 커밋 전·후 **무조건** 작성 · `docs/commits/` 금지  
+  - 템플릿: `docs/branchs/TEMPLATE.md`
 
 ## 브랜치
 

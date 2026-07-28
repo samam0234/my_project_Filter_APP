@@ -1,6 +1,6 @@
 ---
 name: cutnkeep
-description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 제목 요약은 한국어(type/scope는 영어), 본문·바닥글 한국어, feature 브랜치, develop·main 은 --no-ff 병합, YOLO26s-seg·Ollama E4B, backend 계층. 코딩·커밋·문서·Docker 작업 시 사용. 트리거: commit, branchs, console, backend, cutnkeep, ollama, yolo."
+description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 시 docs/branchs/commits 에 md 기록 필수(docs/commits 금지), 제목 요약 한국어(type/scope 영어), feature 브랜치, develop·main --no-ff, YOLO26s-seg·Ollama E4B. 트리거: commit, branchs, commits, console, backend, cutnkeep, ollama, yolo."
 ---
 
 # 컷앤킵 프로젝트 스킬
@@ -53,10 +53,31 @@ feat(llm): add to engine           ❌ 요약 영어 금지
 형식: `type(scope): <한국어 한 줄 요약>`  
 상세: `docs/guidance/commit-message.md`
 
-## 커밋 후 기록
+## 커밋 기록 (필수 · 예외 없음)
 
-`docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md`  
-템플릿: `docs/branchs/TEMPLATE.md`
+**경로 (이것만 사용):** `docs/branchs/commits/`  
+**금지:** `docs/commits/` 등 다른 경로에 남기기 · 기록 생략 · “나중에” · 푸시만 하고 끝내기
+
+에이전트는 **커밋을 하거나 하기 전에 무조건** 아래 md 를 남긴다.
+
+```text
+docs/branchs/commits/YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
+```
+
+| 규칙 | 내용 |
+|------|------|
+| 시점 | **커밋 직전(초안)** 또는 **커밋 직후(SHA 확정)** — 둘 중 하나 이상, **무조건** |
+| 템플릿 | `docs/branchs/TEMPLATE.md` 준수 (한 줄 요약만 금지) |
+| 후속 | 기록 파일도 **같은 브랜치에 커밋** (`docs(branchs): …`) 후 push |
+| 대상 | 기능·docs·merge·chore 커밋 모두. “작다”고 생략 금지 |
+| 파일명 | `YYMMDD_HHMM` + short SHA + kebab name + 브랜치(`/`→`-`) |
+
+체크리스트 (커밋/푸시 전):
+
+- [ ] `docs/branchs/commits/*.md` 작성했는가  
+- [ ] 파일명 규칙 맞는가  
+- [ ] 템플릿 섹션 채웠는가  
+- [ ] 기록 파일도 git 에 올렸는가  
 
 ## 브랜치 (필수)
 
