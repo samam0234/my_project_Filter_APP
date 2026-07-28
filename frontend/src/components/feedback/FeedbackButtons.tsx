@@ -1,3 +1,7 @@
+/**
+ * 처리 결과 like / dislike 버튼.
+ * result 가 있을 때만 표시. useFeedback 훅이 API 호출.
+ */
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "../common/Button";
 import { useFeedback } from "../../hooks/useFeedback";
@@ -7,6 +11,7 @@ export function FeedbackButtons() {
   const result = useAppStore((s) => s.result);
   const { vote, message, loading } = useFeedback();
 
+  // 아직 처리 결과가 없으면 숨김
   if (!result) return null;
 
   return (

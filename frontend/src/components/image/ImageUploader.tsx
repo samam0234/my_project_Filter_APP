@@ -1,3 +1,9 @@
+/**
+ * 드래그앤드롭 이미지 선택 컴포넌트.
+ *
+ * react-dropzone 으로 JPEG/PNG/WebP · 최대 20MB · 1파일만 허용.
+ * 선택 시 useAppStore.setFile → Object URL 미리보기.
+ */
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
@@ -11,11 +17,20 @@ export function ImageUploader() {
 
   const onDrop = useCallback(
     (accepted: File[]) => {
+      // 첫 번째 수락 파일만 사용
       if (accepted[0]) setFile(accepted[0]);
     },
     [setFile],
   );
 
+  // -------------------------------------------------------------------------
+  // 【수동】 클라이언트 업로드 제한 — 백엔드와 반드시 동기화
+  // 조건:
+  //   accept  ↔ Settings.allowed_mime_types + ALLOWED_EXTENSIONS
+  //   maxSize ↔ MAX_UPLOAD_SIZE_MB (기본 20) * 1024^2
+  //   maxFiles: Phase1=1, 배치 UI 는 BatchUploader(Phase2)
+  // 기능: 잘못된 파일 조기 거부. 여기만 바꾸면 서버에서 또 400 날 수 있음
+  // -------------------------------------------------------------------------
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
