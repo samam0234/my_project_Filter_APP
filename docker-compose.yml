@@ -19,7 +19,11 @@ services:
     env_file:
       - .env
     environment:
-      # 컨테이너 안에서는 MariaDB 서비스 호스트명 사용
+      # -----------------------------------------------------------------
+      # 【수동·배포】 compose 가 덮어쓰는 DB 설정
+      # 조건: mariadb 서비스 계정과 일치. 비밀번호 배포 시 교체
+      # YOLO 가중치는 볼륨 ./models → 호스트 models/ 에 pt·onnx 배치
+      # -----------------------------------------------------------------
       DB_DIALECT: mariadb
       MARIADB_HOST: mariadb
       MARIADB_PORT: 3306

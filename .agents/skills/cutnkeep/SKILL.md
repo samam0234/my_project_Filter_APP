@@ -1,6 +1,6 @@
 ---
 name: cutnkeep
-description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 제목 요약은 한국어(type/scope는 영어), 본문·바닥글 한국어, feature 브랜치, develop·main 은 --no-ff 병합, YOLO26n-seg·Ollama E4B, backend 계층. 코딩·커밋·문서·Docker 작업 시 사용. 트리거: commit, branchs, console, backend, cutnkeep, ollama, yolo."
+description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 제목 요약은 한국어(type/scope는 영어), 본문·바닥글 한국어, feature 브랜치, develop·main 은 --no-ff 병합, YOLO26s-seg·Ollama E4B, backend 계층. 코딩·커밋·문서·Docker 작업 시 사용. 트리거: commit, branchs, console, backend, cutnkeep, ollama, yolo."
 ---
 
 # 컷앤킵 프로젝트 스킬
@@ -10,7 +10,8 @@ description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 제목 요약은 �
 - 이름: 컷앤킵 / Cut & Keep  
 - 루트: `backend/`, `frontend/`, `console/`, `docs/`, `docker-compose.yml`  
 - Phase 1: 단일 이미지 파이프라인, 계층형 백엔드, SQLite/MariaDB, 운영 콘솔  
-- 비전: **YOLO26n-seg** · LLM 기본: **Ollama gemma4:e4b** · 고도화: OpenAI/Gemini  
+- 비전: **YOLO26s-seg** (기본 s; n→s 안내 `docs/plan/YOLO26S_DEFAULT.md`)  
+- LLM 기본: **Ollama gemma4:e4b** · 고도화: OpenAI/Gemini  
   → `docs/plan/AI_MODEL_STRATEGY.md`
 - Python 의존성: **저장소 루트** `requirements.txt` / `requirements.docker.txt`
 

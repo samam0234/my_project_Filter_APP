@@ -21,7 +21,7 @@
 | 계층 | 설명 |
 |------|------|
 | **api** | TestClient 로 `/health`, `/upload` (가중치 없이도 stub 가능) |
-| **e2e** | 실제 YOLO26n-seg + Ollama 연동 (수동/CI 옵션) |
+| **e2e** | 실제 yolo26s-seg + Ollama 연동 (수동/CI 옵션) |
 
 ---
 

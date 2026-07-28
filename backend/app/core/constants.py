@@ -32,12 +32,17 @@ class FeedbackVote(str, Enum):
     DISLIKE = "dislike"
 
 
-# 허용 확장자 (MIME 검사와 함께 사용)
+# -----------------------------------------------------------------------------
+# 【수동】 허용 확장자 — security.validate_extension 과 동기
+# 조건: 새 포맷(예: .heic) 추가 시 MIME 목록(config) + 프론트 dropzone accept 도 수정
+# 기능: 업로드 파일 확장자 화이트리스트
+# -----------------------------------------------------------------------------
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
-# API 접두사
+# API 접두사 — 라우터 prefix. 변경 시 프론트 api/client 경로도 전부 수정
 API_V1_PREFIX = "/api/v1"
 
-# Phase 표시 (문서 / 기능 플래그)
+# 【수동】 Phase 표시 — /health 응답 phase 필드. 기능 게이트 문서용 숫자
 PHASE = 1
-MAX_BATCH_SIZE = 500  # Phase 2 배치 업로드 상한
+# 【수동·Phase2】 배치 업로드 장수 상한 — routers/batch 에서 검사
+MAX_BATCH_SIZE = 500

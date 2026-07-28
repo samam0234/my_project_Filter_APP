@@ -8,8 +8,8 @@ Ultralytics 로 export 한다. 학습 전용 경로와 동일한 역할은
 
 사용 예:
   python scripts/convert_to_onnx.py \\
-    --weights models/yolo26n-seg.pt \\
-    --out models/yolo26n-seg.onnx
+    --weights models/yolo26s-seg.pt \\
+    --out models/yolo26s-seg.onnx
 """
 
 from __future__ import annotations

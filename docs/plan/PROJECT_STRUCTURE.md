@@ -90,7 +90,7 @@ backend/
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
 
 **DB**: 로컬 `SQLite` (`data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
-**AI 모델**: YOLO26n-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
+**AI 모델**: yolo26s-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
 **테스트**: 루트 `tests/` + `pytest.ini` — `docs/plan/TESTING.md`
 
 

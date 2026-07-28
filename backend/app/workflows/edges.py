@@ -31,7 +31,12 @@ def after_validator(state: GraphState) -> str:
     if status == JobStatus.OK.value:
         return "effect_applier"
 
-    # Phase 1: 재시도는 1회만 (retries < 1)
+    # -------------------------------------------------------------------------
+    # 【수동·정책】 세그 재시도 횟수
+    # 조건: status==fallback 이고 retry_count < N 이면 segmentor 재실행
+    # 현재 N=1 (retries < 1). 더 돌리려면 숫자 변경 + 무한 루프 방지 확인
+    # 기능: 일시적 품질 미달 시 한 번 더 마스크 생성 후 다시 validator
+    # -------------------------------------------------------------------------
     if status == JobStatus.FALLBACK.value and retries < 1:
         return "retry_segmentor"
 

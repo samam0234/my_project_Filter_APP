@@ -16,7 +16,7 @@ Docker(`cut_and_keep`) 스택 실행 방법을 정리한다.
 | Docker Desktop | 선택 (전체 스택) |
 | Git | 2.30+ |
 | **Ollama** (로컬 LLM) | `gemma4:e4b` — 프롬프트 분석 기본 |
-| **YOLO26n-seg** 가중치 | `models/yolo26n-seg.pt` 또는 `.onnx` |
+| **yolo26s-seg** 가중치 | `models/yolo26s-seg.pt` 또는 `.onnx` |
 
 AI 모델 전략: [`docs/plan/AI_MODEL_STRATEGY.md`](./docs/plan/AI_MODEL_STRATEGY.md)  
 LLM 실행: [`docs/guidance/llm-and-vision.md`](./docs/guidance/llm-and-vision.md)

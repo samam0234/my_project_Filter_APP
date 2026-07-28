@@ -7,6 +7,13 @@
 import axios from "axios";
 import type { FeedbackRequest, FeedbackResponse, UploadResponse } from "../types";
 
+// ---------------------------------------------------------------------------
+// 【수동·.env】 VITE_API_BASE_URL
+// 조건:
+//   - 비움: Vite 프록시(/api,/health → 8000) 사용 (로컬 dev 권장)
+//   - 설정: "http://localhost:8000" 등 절대 주소 (배포·콘솔 분리 시)
+// 기능: axios baseURL. 타임아웃 120s 는 YOLO 동기 처리 여유
+// ---------------------------------------------------------------------------
 const baseURL = import.meta.env.VITE_API_BASE_URL || "";
 
 export const api = axios.create({

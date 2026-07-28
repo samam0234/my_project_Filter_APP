@@ -5,6 +5,10 @@
 import axios from "axios";
 import type { HealthResponse, JobResponse } from "../types";
 
+// ---------------------------------------------------------------------------
+// 【수동·.env】 VITE_API_BASE_URL — frontend 와 동일 규칙
+// 비움: vite proxy / 설정: http://localhost:8000 등
+// ---------------------------------------------------------------------------
 const baseURL = import.meta.env.VITE_API_BASE_URL || "";
 
 export const api = axios.create({

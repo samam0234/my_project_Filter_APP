@@ -16,10 +16,17 @@ from pathlib import Path
 
 
 def main() -> None:
+    # -------------------------------------------------------------------------
+    # 【수동·CLI】 학습 하이퍼·경로 — 실행 시 인자로 덮어씀
+    # 조건: --data yaml 의 path/names/폴리곤 라벨이 실제 존재
+    # 기능: YOLO.train → outputs/segment/<name>/weights/best.pt
+    # 이후: best.pt → 루트 models/ 복사 + YOLO_MODEL_PATH (자동 복사 없음·수동)
+    # 기본 --model 은 사전학습 체크포인트 이름 (n 쓰려면 yolo26s-seg.pt 로 변경)
+    # -------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description="Train YOLO segment model")
     parser.add_argument(
         "--model",
-        default="yolo26n-seg.pt",
+        default="yolo26s-seg.pt",
         help="사전학습 가중치 또는 체크포인트 경로",
     )
     parser.add_argument(
@@ -28,6 +35,7 @@ def main() -> None:
         default=Path(__file__).resolve().parents[1] / "configs" / "dataset_seg.example.yaml",
         help="데이터셋 yaml",
     )
+    # 【수동·튜닝】 epochs / imgsz / batch — VRAM·데이터 양에 맞게
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=8)

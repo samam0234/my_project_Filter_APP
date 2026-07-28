@@ -20,7 +20,7 @@ cd d:\my_project\CutNKeep
 # 백엔드 venv 활성화 권장
 .\backend\.venv\Scripts\activate
 
-python scripts/convert_to_onnx.py --weights models/yolo26n-seg.pt --out models/yolo26n-seg.onnx
+python scripts/convert_to_onnx.py --weights models/yolo26s-seg.pt --out models/yolo26s-seg.onnx
 python scripts/cleanup.py
 ```
 

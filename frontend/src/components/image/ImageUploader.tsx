@@ -23,6 +23,14 @@ export function ImageUploader() {
     [setFile],
   );
 
+  // -------------------------------------------------------------------------
+  // 【수동】 클라이언트 업로드 제한 — 백엔드와 반드시 동기화
+  // 조건:
+  //   accept  ↔ Settings.allowed_mime_types + ALLOWED_EXTENSIONS
+  //   maxSize ↔ MAX_UPLOAD_SIZE_MB (기본 20) * 1024^2
+  //   maxFiles: Phase1=1, 배치 UI 는 BatchUploader(Phase2)
+  // 기능: 잘못된 파일 조기 거부. 여기만 바꾸면 서버에서 또 400 날 수 있음
+  // -------------------------------------------------------------------------
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -31,7 +39,7 @@ export function ImageUploader() {
       "image/webp": [".webp"],
     },
     maxFiles: 1,
-    maxSize: 20 * 1024 * 1024, // 백엔드 MAX_UPLOAD_SIZE_MB 와 맞춤
+    maxSize: 20 * 1024 * 1024,
   });
 
   return (

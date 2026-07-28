@@ -28,9 +28,11 @@ def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray
     m = mask.copy()
     if m.ndim == 3:
         m = cv2.cvtColor(m, cv2.COLOR_BGR2GRAY)
+    # 【수동·튜닝】 이진화 임계 127 — soft mask 품질에 따라 조정
     _, m = cv2.threshold(m, 127, 255, cv2.THRESH_BINARY)
 
-    # 타원 커널로 작은 구멍을 메움
+    # 【수동·튜닝】 커널 (5,5) · iterations=2 — 구멍 메움 강도
+    # 조건: 마스크가 깨지거나 너무 두꺼우면 여기 조정
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, kernel, iterations=2)
 
@@ -116,6 +118,7 @@ def apply_crop(
 
     마스크가 비어 있으면 원본 전체를 그대로 반환한다.
     """
+    # 【수동·튜닝】 padding 기본 8px — 피사체 가장자리 여백
     img = image.copy()
     m = mask.copy()
     if m.ndim == 3:

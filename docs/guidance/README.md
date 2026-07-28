@@ -13,7 +13,7 @@
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
-| [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · YOLO26n-seg · OpenAI/Gemini |
+| [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · yolo26s-seg · OpenAI/Gemini |
 
 테스트 실행: [`../plan/TESTING.md`](../plan/TESTING.md), [`../../tests/README.md`](../../tests/README.md)
 

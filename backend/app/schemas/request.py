@@ -19,6 +19,11 @@ class ParsedPrompt(BaseModel):
       crop      : 주 효과 후 추가 크롭 여부
     """
 
+    # 【수동】 스키마 기본값 — 분석기가 비운 필드 채울 때 사용
+    # target: YOLO 클래스명 리스트 (학습 names 와 일치)
+    # effect: remove_bg | blur | crop | none  (effects.apply_effects 분기)
+    # intensity: 블러 등 강도 0~100
+    # crop: True 이면 주 효과 후 추가 크롭
     target: List[str] = Field(default_factory=lambda: ["person"])
     effect: str = Field(default="remove_bg")  # remove_bg | blur | crop | none
     intensity: int = Field(default=15, ge=0, le=100)

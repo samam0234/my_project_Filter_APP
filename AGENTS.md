@@ -16,7 +16,7 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | 통합 브랜치 | `develop` / `main` 만 |
 | 병합 | **`git merge --no-ff`** (FF 금지) |
 | 커밋 기록 파일 | `docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md` |
-| 비전 | YOLO26n-seg |
+| 비전 | **YOLO26s-seg** (기본 s; 전환 안내 `docs/plan/YOLO26S_DEFAULT.md`) |
 | LLM 기본 | Ollama `gemma4:e4b` |
 | OpenCV 위치 | `backend/app/services/image_processor.py`, `effects.py` |
 | Python 의존성 | 루트 `requirements.txt` / `requirements.docker.txt` |

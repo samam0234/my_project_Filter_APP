@@ -61,8 +61,12 @@ def score_mask(
     ratio = mask_area_ratio(mask)
     mean_conf = float(np.mean(confidences)) if confidences else 0.0
 
-    # 품질: 면적 적합도 + confidence 혼합
-    # 약 35% 면적을 이상적으로 보고 멀어질수록 감점
+    # -------------------------------------------------------------------------
+    # 【수동·튜닝】 품질 점수 공식 (하드코딩 상수)
+    # 조건: 0.35 = “이상적 피사체 면적 비율”, 0.5/0.5 = 면적·conf 가중치
+    # 기능: quality_score 0~1 산출 + ok/fallback/failed 판정 재료
+    # 임계 자체(min/max area, min_confidence)는 Settings 에 있음
+    # -------------------------------------------------------------------------
     area_score = 1.0 - abs(ratio - 0.35) / 0.65  # 중간 크기 피사체 선호
     area_score = max(0.0, min(1.0, area_score))
     quality = 0.5 * area_score + 0.5 * min(1.0, mean_conf / max(settings.min_confidence, 1e-6))

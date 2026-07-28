@@ -19,8 +19,8 @@ def main() -> None:
     parser.add_argument(
         "--out",
         type=Path,
-        default=None,
-        help="복사할 최종 onnx 경로 (예: ../models/yolo26n-seg.onnx)",
+        default=Path("yolo26s-seg.onnx"),
+        help="복사할 최종 onnx 경로 (예: ../models/yolo26s-seg.onnx)",
     )
     parser.add_argument("--imgsz", type=int, default=640)
     args = parser.parse_args()
