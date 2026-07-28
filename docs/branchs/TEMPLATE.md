@@ -10,12 +10,15 @@
 
 | 구간 | 언어 |
 |------|------|
-| **제목 (title/subject)** | **영어만** |
+| **type / scope** | **영어** (`feat`, `fix` …) |
+| **제목 요약** | **한국어** (`feat(tts): 음성 인식 추가`) |
 | **본문 (body)** | **한국어** |
 | **바닥글 (footer)** | **한국어** |
 
+영어 요약 금지 예: `feat(llm): add to engine` ❌
+
 ```text
-feat(scope): english summary only
+feat(scope): 한국어 한 줄 요약
 
 한국어 본문 — 변경 이유와 내용
 
@@ -79,7 +82,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 항목 | 내용 |
 |------|------|
-| **제목 (subject)** | `{conventional commit subject, English}` |
+| **제목 (subject)** | `{type(scope): 한국어 요약}` |
 | **커밋 번호 (SHA)** | `{full sha}` |
 | **짧은 SHA** | `{7-char}` |
 | **브랜치** | `{feature/xxx 또는 develop}` |

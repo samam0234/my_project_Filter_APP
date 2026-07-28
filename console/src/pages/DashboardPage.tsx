@@ -1,3 +1,7 @@
+/**
+ * 대시보드: health · job 집계 카드 + 최근 5건 테이블.
+ * 데이터는 useConsoleStore (useConsoleData.refresh 로 갱신).
+ */
 import { StatCard } from "../components/StatCard";
 import { useConsoleStore } from "../store/useConsoleStore";
 
@@ -6,6 +10,7 @@ export function DashboardPage() {
   const jobs = useConsoleStore((s) => s.jobs);
   const lastRefreshed = useConsoleStore((s) => s.lastRefreshed);
 
+  // 클라이언트 측 집계 (서버 집계 API 없음 — Phase 1)
   const ok = jobs.filter((j) => j.status === "ok").length;
   const failed = jobs.filter((j) => j.status === "failed").length;
   const fallback = jobs.filter((j) => j.status === "fallback").length;

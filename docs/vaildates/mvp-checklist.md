@@ -10,5 +10,8 @@
 | 6 | Console Job 조회 | ☐ | :5174 |
 | 7 | Docker cut_and_keep 스택 | ☑ | redis 6380 |
 | 8 | 문서 허브 구조 | ☑ | docs/* |
+| 9 | `pytest tests/structure` | ☐ | 폴더·plan md |
+| 10 | `pytest tests/unit` | ☐ | backend 의존성 필요 |
 
-상태 갱신 시 날짜를 이 파일 하단에 남긴다.
+상태 갱신 시 날짜를 이 파일 하단에 남긴다.  
+테스트 전략: `docs/plan/TESTING.md`

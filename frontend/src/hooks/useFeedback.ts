@@ -1,3 +1,9 @@
+/**
+ * 결과 like/dislike 전송 훅.
+ *
+ * 현재 jobId 가 있을 때만 POST /api/v1/feedback.
+ * 서버 응답 message 를 UI 에 표시한다.
+ */
 import { useCallback, useState } from "react";
 import { sendFeedback } from "../api/client";
 import { useAppStore } from "../store/useAppStore";

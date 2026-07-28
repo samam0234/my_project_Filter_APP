@@ -1,3 +1,7 @@
+/**
+ * 대시보드 요약 카드.
+ * tone 에 따라 값 텍스트 색을 바꾼다 (ok/warn/bad).
+ */
 import type { ReactNode } from "react";
 
 export function StatCard({
@@ -11,6 +15,7 @@ export function StatCard({
   hint?: string;
   tone?: "default" | "ok" | "warn" | "bad";
 }) {
+  // 상태에 따른 강조 색
   const toneClass =
     tone === "ok"
       ? "text-emerald-400"

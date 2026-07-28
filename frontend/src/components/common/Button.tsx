@@ -1,3 +1,7 @@
+/**
+ * 공통 버튼. variant: primary | secondary | ghost | danger
+ * type 기본 button (폼 submit 방지).
+ */
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";

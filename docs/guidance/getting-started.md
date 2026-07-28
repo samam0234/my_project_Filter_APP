@@ -10,12 +10,15 @@
 
 ## Backend
 
+Python 의존성은 **저장소 루트** (`requirements.txt` / `requirements.docker.txt`).
+
 ```bash
-cd backend
+# 저장소 루트에서
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 # 또는 경량: pip install -r requirements.docker.txt
+cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -39,5 +42,4 @@ npm run dev
 
 ## 환경변수
 
-루트 `.env.example` → `.env` 복사.  
-로컬 DB 기본: `DB_DIALECT=sqlite`.
+루트 `.env.example` 을 복사해 `.env` 를 만든다. 상세는 [RUN.md](../../RUN.md).

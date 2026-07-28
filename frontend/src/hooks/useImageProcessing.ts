@@ -1,3 +1,9 @@
+/**
+ * 단일 이미지 처리 훅.
+ *
+ * store 의 file + prompt 를 읽어 POST /api/v1/upload 를 호출하고
+ * 응답을 ProcessResultState 형태로 store 에 넣는다.
+ */
 import { useCallback } from "react";
 import { resolveAssetUrl, uploadImage } from "../api/client";
 import { useAppStore } from "../store/useAppStore";
@@ -11,6 +17,7 @@ export function useImageProcessing() {
   const setResult = useAppStore((s) => s.setResult);
 
   const process = useCallback(async () => {
+    // 클라이언트 측 사전 검증
     if (!file) {
       setError("이미지를 먼저 업로드하세요.");
       return;
@@ -23,10 +30,13 @@ export function useImageProcessing() {
     setProcessing(true);
     setError(null);
     try {
+      // multipart 업로드 → 백엔드 파이프라인 동기 실행
       const data = await uploadImage(file, prompt.trim());
+      // snake_case API → camelCase UI 상태 매핑
       setResult({
         jobId: data.job_id,
         status: data.status,
+        // 상대 URL 을 baseURL/프록시 기준으로 절대화
         beforeUrl: resolveAssetUrl(data.before_url),
         afterUrl: resolveAssetUrl(data.after_url),
         qualityScore: data.quality_score,
@@ -34,6 +44,7 @@ export function useImageProcessing() {
         message: data.message,
       });
     } catch (err: unknown) {
+      // FastAPI detail 또는 일반 Error.message
       const message =
         (err as { response?: { data?: { detail?: string } }; message?: string })
           ?.response?.data?.detail ||
