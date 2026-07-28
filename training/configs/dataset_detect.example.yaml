@@ -1,10 +1,23 @@
-# YOLO detect 데이터셋 예시
-# labels 는 bbox (class x_center y_center w h 정규화)
+# =============================================================================
+# 【수동·필수】 YOLO detect 데이터셋 설정 (복사 후 dataset_detect.yaml 로 사용)
+# 사용: python training/yolo/train_detect.py --data configs/dataset_detect.yaml
+#
+# 조건:
+#   1) labels 는 bbox: class x_center y_center w h (0~1 정규화)
+#   2) 서비스 본선 마스크는 seg — detect 는 실험/검수/보조 용도
+#   3) names 는 seg yaml 과 동일하게 유지하면 데이터 관리가 쉬움
+#
+# 해야 할 기능:
+#   - bbox 품질·클래스 분포 검증
+#   - (선택) best.pt 를 별도 탐지 파이프라인에 쓸 경우 로드 코드 추가 필요
+#     현재 backend Segmentor 는 **seg 마스크** 전제
+# =============================================================================
 
 path: ../datasets/my_detect
 train: images/train
 val: images/val
 
+# 【수동】 클래스 목록 — seg 와 id/이름 정렬 권장
 names:
   0: person
   1: dog

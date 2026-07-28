@@ -46,7 +46,7 @@ pip install -r requirements-training.txt
 1. datasets/ 에 YOLO 형식 데이터 준비
 2. yolo/train_segment.py (또는 detect) 실행
 3. outputs/.../weights/best.pt 생성
-4. models/yolo26n-seg.pt 로 복사 (또는 원하는 이름)
+4. models/yolo26s-seg.pt 로 복사 (또는 원하는 이름)
 5. .env 의 YOLO_MODEL_PATH 지정
 6. backend 재시작 → segmentation.py 가 로드
 ```
@@ -54,12 +54,20 @@ pip install -r requirements-training.txt
 ONNX 배포:
 
 ```powershell
-python yolo/export_onnx.py --weights ../models/yolo26n-seg.pt --out ../models/yolo26n-seg.onnx
+python yolo/export_onnx.py --weights ../models/yolo26s-seg.pt --out ../models/yolo26s-seg.onnx
+```
+
+## 학습 전 검증
+
+```powershell
+# 저장소 루트 — training 스크립트·config 존재 확인
+pytest tests/structure -q
 ```
 
 ## 관련 문서
 
 - `docs/plan/AI_MODEL_STRATEGY.md`
+- `docs/plan/TESTING.md`
 - `docs/guidance/llm-and-vision.md`
 - `models/README.md`
 - `scripts/README.md` (레거시 유틸 — 점진적으로 training/ 로 이전)

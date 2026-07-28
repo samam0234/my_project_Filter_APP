@@ -1,7 +1,8 @@
-# 컷앤킵 — AI 모델 전략 (YOLO26n-seg + Ollama E4B + 클라우드 LLM)
+# 컷앤킵 — AI 모델 전략 (YOLO26s-seg + Ollama E4B + 클라우드 LLM)
 
-**상태:** Phase 1 확정 방향 (2026-07 기준)  
-**관련:** `LOGIC_STRUCTURE.md`, `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md`, `.env.example`, `RUN.md`
+**상태:** Phase 1 확정 방향 (2026-07 기준, **비전 기본 스케일: s**)  
+**관련:** `LOGIC_STRUCTURE.md`, `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md`, `.env.example`, `RUN.md`  
+**변경 메모:** `docs/plan/YOLO26S_DEFAULT.md` (n → s 전환)
 
 ---
 
@@ -9,51 +10,55 @@
 
 | 선택 | 판정 | 한 줄 |
 |------|------|--------|
-| **YOLO26n-seg** (세그멘테이션) | **좋음** | 최신 nano 급으로 로컬·Docker 적합, 인스턴스 마스크 확보 |
+| **YOLO26s-seg** (세그멘테이션) | **좋음 (기본)** | small 급 — 마스크 품질·속도 균형, Phase 1 본선 |
+| **YOLO26s** (detection) | **좋음 (학습·실험)** | bbox 탐지 학습/검수. 서비스 마스크 본선은 아님 |
 | **Ollama `gemma4:e4b` (E4B)** 로컬 LLM | **좋음 (기본)** | 키 없이 프롬프트 구조화, 프라이버시·비용 0 |
 | **고도화: OpenAI API** | **좋음 (품질 축)** | 복잡한 한국어 프롬프트·안정 JSON에 유리 |
 | **고도화: Gemini API** | **좋음 (비용·쿼터 축)** | 무료/저비용 구간이 넓을 때 실사용 트래픽용 |
 
 **종합:**  
-「로컬은 가벼운 비전(YOLO26n-seg) + 가벼운 LLM(Ollama E4B), 고도화는 LLM만 클라우드로 갈아끼우기」는  
-컷앤킵 1인 개발·Phase 게이트와 **잘 맞는 판단**이다.  
-세그 품질이 부족할 때만 Phase 2에서 SAM2 등으로 비전 축을 올리면 된다.
+「로컬 비전은 **YOLO26s-seg** + 가벼운 LLM(Ollama E4B), 고도화는 LLM만 클라우드」가  
+컷앤킵 Phase 1 기본이다. (이전 문서의 n 스케일은 s 로 상향 통일.)  
+더 가벼우면 `yolo26n-seg`, 더 무거우면 `m` 등 **경로만 교체** 가능.
 
 ---
 
-## 2. 비전: YOLO26n-seg
+## 2. 비전: YOLO26s-seg
 
-### 2.1 왜 n(나노) + seg 인가
+### 2.1 왜 s(small) + seg 인가
 
 - **세그멘테이션(`-seg`)**: bbox만 있는 detect 모델이 아니라 **픽셀 마스크**가 나와 배경 제거/블러 전제와 맞음.
-- **YOLO26 계열**: Ultralytics 최신 라인. 인스턴스 세그에서 이전 세대 대비 마스크 품질·속도 개선 보고.
-- **n 스케일**: CPU/노트북·Docker slim 이미지에서 현실적인 추론 속도. Phase 1 MVP 검증에 적합.
-- 필요 시 같은 파이프라인으로 `yolo26s-seg` / `m` 등으로 **파일 경로만 교체** 가능.
+- **YOLO26 계열**: Ultralytics 최신 라인. 인스턴스 세그 마스크 품질·속도 개선.
+- **s 스케일 (기본)**: n 대비 표현력이 커 마스크 품질에 유리하면서도 1인 개발·로컬 GPU에서 현실적.
+- **detect (`yolo26s.pt`)**: 학습 구역·검수용. 서비스 `Segmentor` 는 **seg 가중치** 전제.
+- 필요 시 같은 파이프라인으로 `yolo26n-seg` / `m` 등으로 **파일 경로만 교체** 가능.
 
 ### 2.2 권장 산출물
 
 | 용도 | 파일 예 |
 |------|---------|
-| 학습/로컬 Ultralytics | `models/yolo26n-seg.pt` |
-| 배포·ONNX Runtime | `models/yolo26n-seg.onnx` |
+| 학습/로컬 Ultralytics (seg) | `models/yolo26s-seg.pt` |
+| 학습/로컬 Ultralytics (detect) | `models/yolo26s.pt` (실험용) |
+| 배포·ONNX Runtime | `models/yolo26s-seg.onnx` |
 
 ```bash
 # 예시 (ultralytics CLI / Python export)
-# yolo export model=yolo26n-seg.pt format=onnx
+# yolo export model=yolo26s-seg.pt format=onnx
 ```
 
 ### 2.3 주의
 
-- Docker 경량 이미지(`requirements.docker.txt`)에는 기본적으로 **torch/ultralytics 없음** →  
-  개발 머신에서 가중치·ONNX를 만들고 `models/`에 두거나, 풀 `requirements.txt` 환경에서 추론.
+- Docker 경량 이미지(루트 `requirements.docker.txt`)에는 기본적으로 **torch/ultralytics 없음** →  
+  개발 머신에서 가중치·ONNX를 만들고 `models/`에 두거나, 루트 풀 `requirements.txt` 환경에서 추론.
 - COCO 클래스 밖 대상은 Phase 1에서 약함 → 계획서대로 Phase 2 **Grounding DINO + SAM2** 또는 피드백 LoRA.
+- **detect 전용 `.pt` 를 YOLO_MODEL_PATH 에 넣지 말 것** — masks 없어 stub 로 떨어질 수 있음.
 
 ### 2.4 환경변수
 
 ```env
-YOLO_MODEL_PATH=models/yolo26n-seg.pt
+YOLO_MODEL_PATH=models/yolo26s-seg.pt
 # 또는
-# YOLO_MODEL_PATH=models/yolo26n-seg.onnx
+# YOLO_MODEL_PATH=models/yolo26s-seg.onnx
 ```
 
 ---
@@ -90,7 +95,7 @@ ollama run gemma4:e4b
 | 로컬 비전 LLM이 꼭 필요하면 | Ollama에서 비전 검증된 모델(예: `llava`, `llama3.2-vision` 등)을 **별 프로파일**로 두고 E4B와 분리 |
 
 즉, “이미지 이해까지 전부 E4B”에 올인하기보다  
-**세그=YOLO26n-seg, 프롬프트 파싱=E4B** 가 Phase 1에 더 안정적이다.  
+**세그=YOLO26s-seg, 프롬프트 파싱=E4B** 가 Phase 1에 더 안정적이다.  
 이미지 조건 프롬프트(“이 사진 속 빨간 가방만”)는 Phase 2 오픈보캐브/비전 LLM과 맞물리는 편이 안전.
 
 ### 3.4 환경변수 (로컬 기본)
@@ -136,7 +141,7 @@ Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)
 실패 시:      heuristic 파서 fallback (현재 nodes.parse_prompt_heuristic)
 ```
 
-**비전(세그)은 당분간 YOLO26n-seg 고정.** LLM 클라우드 전환과 분리할 것.
+**비전(세그)은 당분간 YOLO26s-seg 고정.** LLM 클라우드 전환과 분리할 것.
 
 ---
 
@@ -155,7 +160,7 @@ prompt_analyzer 노드
   ParsedPrompt JSON  (schemas.request.ParsedPrompt)
         │
         ▼
-  segmentor (YOLO26n-seg) → effects → validator
+  segmentor (YOLO26s-seg) → effects → validator
 ```
 
 - 설정은 `core/config.py` + `.env` 만 변경
@@ -167,7 +172,7 @@ prompt_analyzer 노드
 
 | Phase | 비전 | LLM |
 |-------|------|-----|
-| **P1** | YOLO26n-seg (ONNX 권장 배포) | Ollama E4B 기본 |
+| **P1** | YOLO26s-seg (ONNX 권장 배포) | Ollama E4B 기본 |
 | **P1 데모 강화** | 동일 | OpenAI 또는 Gemini 스위치 |
 | **P2** | + Grounding DINO / SAM2, 배치 | 클라우드 LLM + 로컬 fallback 유지 |
 | **P3** | 영상 + temporal | 동일 LLM 계층 재사용 |
@@ -179,7 +184,7 @@ prompt_analyzer 노드
 | 리스크 | 완화 |
 |--------|------|
 | E4B 비전 불안정 | Phase 1 LLM은 텍스트 JSON만; 비전은 YOLO |
-| YOLO n 정확도 한계 | s/m 모델 경로 교체, Phase 2 SAM2 |
+| YOLO s 정확도·속도 한계 | n(경량) 또는 m(품질) 경로 교체, Phase 2 SAM2 |
 | Ollama 미기동 | heuristic fallback + `/health` 에 llm 상태 표시(추후) |
 | API 비용 | 기본 ollama, 클라우드 키는 선택 env |
 | Docker 이미지 비대화 | 추론 이미지와 학습/export 환경 분리 (현 requirements.docker.txt 방향 유지) |
@@ -189,7 +194,7 @@ prompt_analyzer 노드
 ## 8. 체크리스트 (도입 시)
 
 - [ ] `ollama pull gemma4:e4b` 후 로컬 응답 확인  
-- [ ] `yolo26n-seg.pt` 다운로드 또는 학습 산출물 배치  
+- [ ] `yolo26s-seg.pt` 다운로드 또는 학습 산출물 배치  
 - [ ] (선택) ONNX export → `YOLO_MODEL_PATH`  
 - [ ] `.env` 에 `LLM_PROVIDER=ollama` 설정  
 - [ ] 프롬프트 1건 → ParsedPrompt JSON 단위 테스트  
@@ -203,17 +208,18 @@ prompt_analyzer 노드
 | 경로 | 내용 |
 |------|------|
 | **`training/`** | **학습 전용 구역** (yolo detect/seg, lora, datasets, outputs) |
-| `training/yolo/train_segment.py` | 세그 학습 진입점 |
-| `training/yolo/train_detect.py` | 탐지 학습 진입점 |
+| `training/yolo/train_segment.py` | 세그 학습 진입점 (기본 `yolo26s-seg.pt`) |
+| `training/yolo/train_detect.py` | 탐지 학습 진입점 (기본 `yolo26s.pt`) |
 | `training/lora/train_lora.py` | LoRA 스캐폴드 (Phase 2) |
 | `.env.example` | YOLO / LLM 환경변수 템플릿 |
-| `backend/app/core/config.py` | Settings |
+| `backend/app/core/config.py` | Settings (`YOLO_MODEL_PATH` 기본 s-seg) |
 | `backend/app/services/segmentation.py` | 추론 시 YOLO 로드 |
 | `docs/guidance/llm-and-vision.md` | 실행 가이드 (요약) |
+| `docs/plan/YOLO26S_DEFAULT.md` | n→s 전환 안내 |
 | `RUN.md` | Ollama·모델 기동 메모 |
 
 ---
 
 **결론:**  
-YOLO26n-seg + Ollama E4B 기본, OpenAI/Gemini를 고도화 스위치로 두는 구성은 **추천한다.**  
-문서·env 가이드를 이 전략에 맞춰 동기화한다.
+**YOLO26s-seg** + Ollama E4B 기본, OpenAI/Gemini를 고도화 스위치로 두는 구성은 **추천한다.**  
+문서·env·학습 스크립트 기본값을 s 스케일에 맞춰 둔다.
