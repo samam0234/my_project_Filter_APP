@@ -51,9 +51,12 @@ copy .env.example .env
 | Health | 8000 | http://localhost:8000/health |
 | Frontend (사용자) | **5173** | http://localhost:5173 |
 | Console (운영) | **5174** | http://localhost:5174 |
-| MariaDB (Docker) | 3306 | — |
-| Redis (Docker 호스트) | 6380 | — |
+| MariaDB (Docker **호스트**) | **`.env` `MARIADB_PORT`** (예 **3309**) | DBeaver: `127.0.0.1` |
+| Redis (Docker 호스트) | **6380** | — |
+| Adminer (Docker) | **8081** | http://localhost:8081 · Server=`mariadb` |
 | Frontend (Docker nginx) | 80 | http://localhost |
+
+현재 스택 한장 요약: [`docs/plan/CURRENT_STACK.md`](./docs/plan/CURRENT_STACK.md)
 
 ---
 
@@ -113,9 +116,8 @@ Job 목록·헬스 조회. **백엔드가 떠 있어야** 데이터가 채워진
 
 ```powershell
 cd d:\my_project\CutNKeep
-copy .env.example .env   # 최초 1회
-
-docker compose -p cut_and_keep up --build -d
+copy .env.example .env   # 최초 1회 — MARIADB_PORT·계정 확인
+docker compose -p cut_and_keep --env-file .env up -d --build
 docker compose -p cut_and_keep ps
 ```
 
@@ -123,8 +125,9 @@ docker compose -p cut_and_keep ps
 |----------|------|
 | backend | http://localhost:8000 |
 | frontend | http://localhost (80) |
-| mariadb | localhost:3306 |
+| mariadb | localhost:**MARIADB_PORT** (예 3309) → 3306 |
 | redis | localhost:6380 → 6379 |
+| adminer | http://localhost:8081 |
 
 로그:
 
@@ -135,17 +138,20 @@ docker compose -p cut_and_keep logs -f backend
 중지:
 
 ```powershell
-docker compose -p cut_and_keep down
+docker compose -p cut_and_keep down          # 볼륨 유지
+docker compose -p cut_and_keep down -v       # DB 계정/데이터 초기화
 ```
 
 ### 참고
 
-- Docker 백엔드는 **MariaDB** 연결 (`DB_DIALECT=mariadb`).
-- 백엔드 이미지는 루트 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능). 빌드 context 는 저장소 루트.
-- **Console 은 Compose에 없음** → 로컬 `npm run dev` (5174) 사용.
-- 호스트 **6379** 가 다른 스택에 점유되면 Redis 는 **6380** 사용 (이미 설정됨).
+- Docker 백엔드는 **MariaDB** (`DB_DIALECT=mariadb`, 호스트 DNS `mariadb:3306`).
+- MariaDB는 **비밀번호 로그인만** (GSS/SSL 미사용). 상세: `docker/mariadb/README.md`
+- 백엔드 이미지는 루트 `requirements.docker.txt` (경량, YOLO/torch 없음 → stub 세그 가능). 빌드 context = 저장소 루트.
+- **Console 은 Compose에 없음** → 로컬 `npm run dev` (5174).
+- Redis 호스트 포트 **6380** (6379 충돌 회피).
+- 구 스택 이름 `cutnkeep` 과 동시 기동 금지.
 
-상세 트러블슈팅: `docs/repeater/`, `docs/web_management/ports-inventory.md`
+상세: `docs/plan/CURRENT_STACK.md`, `docs/guidance/docker-run.md`, `docs/repeater/`
 
 ---
 
@@ -178,8 +184,9 @@ pytest tests/structure -q
 | Frontend API 실패 | backend 8000 기동 여부 |
 | Console offline | 동일 + CORS / 프록시 |
 | Docker Redis 기동 실패 | 6379 충돌 → 6380 사용 |
-| Docker backend Restarting | `docker compose -p cut_and_keep logs backend` |
-| pip / pydantic 빌드 실패 | Python 3.11 venv 사용 |
+| Docker backend Restarting | `docker compose -p cut_and_keep logs backend` · MariaDB healthy 여부 |
+| DBeaver GSS / Access denied | 비밀번호 로그인, Host=`127.0.0.1`, Port=`MARIADB_PORT`, SSL/GSS 끔 |
+| pip / pydantic 빌드 실패 | Python 3.11~3.12 venv 사용 (3.14 비권장) |
 
 ---
 

@@ -23,7 +23,7 @@ main                 ← 배포 통합 라인 (일자로 붙이는 곳 ②)
 | **feature 완료 시** | **`develop` 에 --no-ff merge** (feature끼리 장기 통합 금지) |
 | **배포** | `release/*` 검증 후 **`main`** |
 | **커밋 메시지** | type/scope 영어 · 제목 요약·본문·바닥글 한국어 |
-| **커밋 후 기록** | `docs/branchs/commits/YYMMDD_HHMM_[id]_[name]_[branch].md` |
+| **커밋 후 기록** | **`docs/branchs/commits/` 필수** (`docs/commits/` 금지) · 템플릿 `TEMPLATE.md` |
 
 ### 한 줄
 

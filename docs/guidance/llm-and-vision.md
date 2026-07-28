@@ -22,6 +22,12 @@
 YOLO_MODEL_PATH=models/yolo26s-seg.pt
 ```
 
+학습(세그 본선): [`training/README.md`](../../training/README.md)  
+· `train_segment.py` · 클래스 `names` 와 `nodes.py` keywords 소문자 일치 필수.
+
+Docker backend 의 Ollama 주소는 compose 가 `host.docker.internal:11434` 로 덮어쓸 수 있다  
+→ [`CURRENT_STACK.md`](../plan/CURRENT_STACK.md).
+
 ---
 
 ## 로컬 LLM: Ollama Gemma 4 E4B

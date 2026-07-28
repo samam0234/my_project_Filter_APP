@@ -200,25 +200,31 @@ OLLAMA_MODEL=gemma4:e4b
 # GEMINI_API_KEY=...
 # GEMINI_MODEL=gemini-2.0-flash
 
-# Redis (Phase 2)
-REDIS_URL=redis://localhost:6379/0
+# Redis — 호스트에서 Docker Redis 쓸 때 6380
+REDIS_URL=redis://localhost:6380/0
 
 # 파일 자동 삭제 (시간)
 FILE_RETENTION_HOURS=24
 
-# Database — 로컬 SQLite / 배포 MariaDB
+# CORS (console 5174 포함)
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
+
+# Database — 로컬 SQLite / Docker·배포 MariaDB
 DB_DIALECT=sqlite
 SQLITE_PATH=data/cutnkeep.db
-# DB_DIALECT=mariadb
+# 호스트 DBeaver: 127.0.0.1 + MARIADB_PORT (예 3309)
+# Docker backend: compose 가 HOST=mariadb PORT=3306 강제
 # MARIADB_HOST=localhost
-# MARIADB_PORT=3306
-# MARIADB_USER=cutnkeep
-# MARIADB_PASSWORD=cutnkeep
+# MARIADB_PORT=3309
+# MARIADB_USER=admin
+# MARIADB_PASSWORD=...
 # MARIADB_DATABASE=cutnkeep
+# MYSQL_ROOT_PASSWORD=...
 # DATABASE_URL=mysql+pymysql://...
 ```
 
-DB 설계·ERD·Repository 규칙은 `docs/plan/DATABASE.md` 참고.
+DB 설계·ERD: `docs/plan/DATABASE.md`  
+현재 스택(포트·Adminer·비밀번호 전용): `docs/plan/CURRENT_STACK.md`
 
 
 ---

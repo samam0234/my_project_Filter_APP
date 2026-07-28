@@ -26,15 +26,19 @@
 
 ## 빠른 링크
 
-- **실행 · 서버:** [../RUN.md](../RUN.md)
+- **현재 스택 스냅샷 (포트·DB·Docker):** [plan/CURRENT_STACK.md](./plan/CURRENT_STACK.md)
+- **실행 · 서버:** [../RUN.md](../RUN.md) · [guidance/docker-run.md](./guidance/docker-run.md)
 - **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md) · **YOLO n→s:** [plan/YOLO26S_DEFAULT.md](./plan/YOLO26S_DEFAULT.md)
-- **테스트 전략:** [plan/TESTING.md](./plan/TESTING.md) · [../tests/README.md](../tests/README.md)
+- **학습:** [../training/README.md](../training/README.md)
+- **테스트:** [plan/TESTING.md](./plan/TESTING.md) · [../tests/README.md](../tests/README.md)
+- **DB:** [plan/DATABASE.md](./plan/DATABASE.md) · [../docker/mariadb/README.md](../docker/mariadb/README.md)
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-- 배포: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- 배포: [DEPLOYMENT.md](./DEPLOYMENT.md) · [web_management/ports-inventory.md](./web_management/ports-inventory.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)
-- **커밋 메시지 규칙:** [guidance/commit-message.md](./guidance/commit-message.md)
-- **브랜치 병합 규칙:** [guidance/branch-merge.md](./guidance/branch-merge.md)
-- 커밋 기록 템플릿: [branchs/TEMPLATE.md](./branchs/TEMPLATE.md)
+- **커밋 메시지:** [guidance/commit-message.md](./guidance/commit-message.md)
+- **브랜치 병합:** [guidance/branch-merge.md](./guidance/branch-merge.md)
+- **커밋 기록 (필수 경로):** [branchs/commits/](./branchs/commits/) · 템플릿 [branchs/TEMPLATE.md](./branchs/TEMPLATE.md)  
+  → `docs/commits/` 사용 금지
 
 - 에이전트 스킬: [../.agents/skills/cutnkeep/SKILL.md](../.agents/skills/cutnkeep/SKILL.md) · [../AGENTS.md](../AGENTS.md)
 

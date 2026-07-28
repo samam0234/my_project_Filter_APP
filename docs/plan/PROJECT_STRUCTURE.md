@@ -11,24 +11,32 @@
 ## 1. 전체 디렉토리 구조
 
 ```bash
-cut-and-keep/
-├── backend/                          # FastAPI 백엔드 (Python)
-├── frontend/                         # React 사용자 앱 (:5173)
-├── console/                          # React 운영 관리자 콘솔 (:5174)
-├── scripts/                          # 운영 유틸 (cleanup 등)
-├── training/                         # YOLO detect/seg · LoRA 학습 구역
-├── tests/                            # pytest 실행 전 검증 (unit/structure/smoke)
-├── models/                           # 추론용 가중치 (ONNX, pt)
-├── data/                             # 데이터셋 & 피드백 데이터
-├── docker/                           # Docker 관련 설정
-├── docs/                             # 문서 허브 (Architecture, branchs, guidance, …)
-├── logs/                             # 런타임 로그
-├── requirements.txt                  # Python 로컬 개발 의존성 (루트)
-├── requirements.docker.txt           # Docker 경량 런타임 의존성 (루트)
-├── .env
-├── docker-compose.yml
-└── README.md
+cut-and-keep/                         # 저장소 루트 (로컬 예: CutNKeep)
+├── backend/                          # FastAPI (Dockerfile context 는 루트)
+├── frontend/                         # React 사용자 앱 (:5173 / Docker :80)
+├── console/                          # React 운영 콘솔 (:5174, Compose 미포함)
+├── scripts/                          # 운영 유틸 (cleanup, onnx 등)
+├── training/                         # YOLO detect/seg · LoRA · CUDA 스크립트
+├── tests/                            # pytest (unit/structure/smoke)
+├── models/                           # 추론 가중치 (gitignore · yolo26s-seg)
+├── data/                             # uploads · feedback · sqlite
+├── docker/                           # mariadb conf/init · README
+├── docs/                             # 문서 허브
+├── logs/
+├── requirements.txt                  # 로컬 Python (루트)
+├── requirements.docker.txt           # Docker 경량 (루트)
+├── pytest.ini
+├── .env / .env.example
+├── docker-compose.yml                # -p cut_and_keep · adminer · mariadb:11
+├── AGENTS.md                         # 에이전트 규칙 요약
+├── RUN.md                            # 실행 가이드
+└── README.md                         # 저장소 홈 소개 (홈 README)
 ```
+
+**참고 (홈과 혼동 금지)**  
+- 에이전트 도구 폴더: `.agents/`, `.grok/`, `.claude/`, `.github/` … (앱 런타임 아님)  
+- `.github/Read_for_we.md` — GitHub 폴더 내부 안내 (구 README.md)  
+- 현재 스택 스냅샷: `docs/plan/CURRENT_STACK.md`
 
 
 ---
@@ -143,21 +151,35 @@ scripts/
 
 docs/
 ├── plan/
-│   ├── LOGIC_STRUCTURE.md           # 통합 로직
+│   ├── CURRENT_STACK.md             # ★ 현재 포트·DB·Docker 스냅샷
+│   ├── LOGIC_STRUCTURE.md
 │   ├── PROJECT_STRUCTURE.md         # 본 문서
-│   ├── DATABASE.md                  # SQLite / MariaDB · ERD · Repository
+│   ├── DATABASE.md
+│   ├── AI_MODEL_STRATEGY.md
+│   ├── YOLO26S_DEFAULT.md
+│   ├── TESTING.md
 │   ├── LOGIC_AND_GIT_BRANCH_STRATEGY.md
 │   ├── DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md
 │   └── DEVELOPMENT_PLAN.docx
+├── branchs/commits/                 # 커밋 기록 (필수)
+├── Architecture/                    # docker-topology 등
+├── guidance/                        # commit-message, docker-run, …
 ├── API_DOCUMENTATION.md
 ├── WORKFLOW.md
 └── DEPLOYMENT.md
 
+training/
+├── README.md                        # 학습·실행 전 설정 가이드
+├── env_cuda.ps1 · setup_cuda_env.ps1
+├── yolo/train_segment.py            # 세그 본선
+├── configs/*.example.yaml
+└── requirements-training.txt
 
-models/                              # .onnx, .safetensors 등
-data/                                # 학습/피드백 데이터
-docker/                              # Docker Compose 관련
-logs/                                # 런타임 로그
+docker/
+├── README.md
+└── mariadb/                         # conf · init · README (password-only)
+
+models/ · data/ · logs/
 ```
 
 ---
