@@ -20,19 +20,19 @@ from __future__ import annotations
 def main() -> None:
     """운영 진입점 스캐폴드 — 본 구현은 training/lora/train_lora.py."""
 
-    # ---
-    # 제목 (하드코딩 파트 부분 : [LoRA 운영 진입점 래퍼])
-    # [관련 작업 임무 및 역할]
-    #   scripts 에서 train_lora 를 호출하거나 주간 배치 인자를 고정한다.
-    # [기능하고 연결된 변수 및 함수]
-    #   training/lora/train_lora.py main, data/feedback, data/pseudo_labels, models/lora
-    # [작성해야 하는 방식 및 규칙]
-    #   1) 학습 로직 중복 구현 금지 — train_lora 를 subprocess/import 로 호출 권장.
-    #   2) 경로·epochs 기본값만 운영 정책에 맞게 고정 가능.
-    # [코드 방식 힌트]
-    #   # from training.lora.train_lora 를 PATH 에 맞게 호출하거나
-    #   # subprocess.run([sys.executable, "training/lora/train_lora.py", ...])
-    # ---
+    # =============================================================================
+    # [하드코딩 파트] LoRA 운영 진입점 래퍼
+    # -----------------------------------------------------------------------------
+    # [임무] scripts 에서 train_lora 호출 / 주간 배치 인자 고정
+    # [연결] training/lora/train_lora.py (학습 로직 중복 금지)
+    # [힌트] subprocess.run([sys.executable, "training/lora/train_lora.py", ...])
+    # =============================================================================
+    # >>> 여기에 래퍼 작성 <<<
+    #
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] 스캐폴드 안내
+    # =============================================================================
     print(
         "fine_tune_lora.py: Phase 2 스캐폴드입니다.\n"
         "본 학습: training/lora/train_lora.py 하드코딩 구간을 먼저 채우세요."

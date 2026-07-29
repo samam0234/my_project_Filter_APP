@@ -18,25 +18,20 @@ from __future__ import annotations
 def main() -> None:
     """평가 스캐폴드 — 하드코딩 구간에 메트릭 루프 작성."""
 
-    # ---
-    # 제목 (하드코딩 파트 부분 : [세그 품질 평가 메트릭])
-    # [관련 작업 임무 및 역할]
-    #   holdout 라벨셋에서 IoU·precision/recall 을 재어 학습 가중치를 검증한다.
-    #   비전·학습 루프 완성도 부족분(검증 축).
-    # [기능하고 연결된 변수 및 함수]
-    #   - 입력: dataset yaml (training/configs), weights path (best.pt)
-    #   - 추론: ultralytics YOLO 또는 Segmentor
-    #   - 출력: 콘솔 요약 / (선택) JSON 리포트
-    # [작성해야 하는 방식 및 규칙]
-    #   1) val 이미지만 평가 (train 누수 금지).
-    #   2) 클래스별·전체 mIoU 를 구분해 출력하면 재학습 판단에 유리.
-    #   3) 가중치 없거나 데이터 없으면 exit code 와 메시지 명확히.
-    # [코드 방식 힌트]
-    #   # model = YOLO(weights)
-    #   # for img, gt_mask in val_loader:
-    #   #     pred = model(img); scores.append(iou(pred, gt_mask))
-    #   # print(mean(scores))
-    # ---
+    # =============================================================================
+    # [하드코딩 파트] 세그 품질 평가 메트릭
+    # -----------------------------------------------------------------------------
+    # [임무] holdout 에서 IoU / precision·recall 로 best.pt 검증
+    # [연결] training/configs yaml, weights, YOLO 또는 Segmentor
+    # [규칙] val only. 클래스별·전체 구분. 데이터/가중치 없으면 명확 exit.
+    # [힌트] for img, gt in val: scores.append(iou(pred, gt)); print(mean)
+    # =============================================================================
+    # >>> 여기에 평가 루프 작성 <<<
+    #
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] 스캐폴드 안내
+    # =============================================================================
     print(
         "evaluate_model.py: 스캐폴드입니다.\n"
         "예정 메트릭: 마스크 IoU, 대상 클래스 precision/recall\n"

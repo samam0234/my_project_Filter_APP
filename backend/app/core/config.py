@@ -77,25 +77,20 @@ class Settings(BaseSettings):
 
     # --- LLM: ollama(기본) | openai | gemini | heuristic ---
     # 참고: docs/plan/AI_MODEL_STRATEGY.md
-    # 필드 정의는 완료. 실제 호출 코드는 nodes.py
-    # 「하드코딩 파트 부분 : [LLM 프롬프트 분석 연결]」 에서 작성.
 
-    # ---
-    # 제목 (하드코딩 파트 부분 : [LLM Settings 사용 — 코드는 nodes.py])
-    # [관련 작업 임무 및 역할]
-    #   아래 환경변수를 prompt_analyzer 에서 읽어 LLM 을 호출하게 연결한다.
-    #   (이 파일에서는 값을 추가·기본값 조정만; HTTP 호출 본문은 nodes.py)
-    # [기능하고 연결된 변수 및 함수]
-    #   llm_provider, llm_base_url, ollama_model,
-    #   openai_api_key, openai_model, gemini_api_key, gemini_model
-    #   → workflows/nodes.py prompt_analyzer
-    # [작성해야 하는 방식 및 규칙]
-    #   1) .env 와 alias 이름 일치 유지.
-    #   2) 새 provider 추가 시 Field 한 줄 + nodes 분기 동시.
-    #   3) 시크릿(API 키) 기본값은 빈 문자열, 커밋 금지.
-    # [코드 방식 힌트]
-    #   # nodes 에서: settings = get_settings(); settings.llm_provider ...
-    # ---
+    # =============================================================================
+    # [하드코딩 파트] LLM 호출 본문 — 위치는 nodes.py (여기 아님)
+    # -----------------------------------------------------------------------------
+    # [임무] 아래 필드를 prompt_analyzer 에서 읽어 LLM 연결
+    # [연결] llm_* → workflows/nodes.py [하드코딩 파트] LLM 프롬프트 분석
+    # [규칙] .env alias 일치. 시크릿 커밋 금지. 새 provider 시 Field+nodes 동시.
+    # =============================================================================
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] LLM Settings 필드 정의
+    # -----------------------------------------------------------------------------
+    # 값/기본값 스키마만 완료. HTTP 호출 로직은 위 하드코딩(nodes) 쪽.
+    # =============================================================================
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     llm_base_url: str | None = Field(
         default="http://localhost:11434",

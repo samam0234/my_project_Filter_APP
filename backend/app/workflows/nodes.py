@@ -53,18 +53,17 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
 
     Ollama/OpenAI 연동 전에도 파이프라인이 돌아가게 하는 기본 구현.
     """
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] parse_prompt_heuristic 본문
+    # -----------------------------------------------------------------------------
+    # 스캐폴드/에이전트가 채운 Phase1 휴리스틱. 하드코딩 숙제 아님.
+    # (키워드·효과 동의어 확장만 필요하면 여기 수정 — LLM 자리는 prompt_analyzer)
+    # =============================================================================
     text = prompt.lower().strip()
-    # 【수동】 기본 effect / intensity
-    # 조건: 프롬프트에 효과 키워드가 없을 때 적용
-    # 기능: ParsedPrompt.effect → effects.apply_effects 분기 (remove_bg|blur|crop|none)
     effect = "remove_bg"
     crop = False
     intensity = 15
 
-    # 효과 키워드 (한/영)
-    # 【수동·하드코딩】 지원 효과 동의어 사전
-    # 조건: 사용자 자연어에 아래 문자열이 포함되면 해당 effect 로 덮어씀
-    # 기능: 새 효과(예: mosaic) 추가 시 여기 + EffectType + apply_effects 동시 수정
     if "blur" in text or "블러" in text:
         effect = "blur"
     if "crop" in text or "크롭" in text or "잘라" in text:
@@ -73,24 +72,15 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     if "크롭" in text or "crop" in text:
         crop = True
 
-    # 강도 예: "blur 20" / "강도 20"
     m = re.search(r"(?:intensity|강도|blur)\s*[:=]?\s*(\d{1,3})", text)
     if m:
         intensity = max(0, min(100, int(m.group(1))))
 
-    # 대상 추출: 따옴표 안 문구 우선, 없으면 클래스 키워드 매칭
     targets = []
     quoted = re.findall(r"[\"'“”](.+?)[\"'“”]", prompt)
     if quoted:
         targets = [q.strip() for q in quoted if q.strip()]
     else:
-        # 【수동·하드코딩·중요】 한국어/영어 키워드 → YOLO 클래스 이름 매핑
-        # 조건:
-        #   1) 오른쪽 리스트(keys) 중 하나가 프롬프트에 포함되면 left label 추가
-        #   2) label 문자열은 YOLO 모델 names 와 소문자로 일치해야 마스크 필터가 먹음
-        #      (학습 시 training/configs 의 names 와 동일하게 유지)
-        # 기능: 지원 대상 클래스 확장 (예: "bottle", "컵") 시 행 추가
-        # 한계: LLM 미연동 시 여기 사전에 없는 말은 인식 못 함 → person 기본
         keywords = [
             ("person", ["person", "사람", "인물"]),
             ("dog", ["dog", "강아지", "개"]),
@@ -101,7 +91,6 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
         for label, keys in keywords:
             if any(k in text for k in keys):
                 targets.append(label)
-    # 【수동】 기본 target — 매칭 실패 시 세그가 이 클래스만 남기려 시도
     if not targets:
         targets = ["person"]
 
@@ -111,43 +100,40 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
 def prompt_analyzer(state: GraphState) -> GraphState:
     """노드: 자연어 → 구조화 ParsedPrompt (휴리스틱 / 이후 LLM·Ollama)."""
     prompt = state.get("prompt") or ""
-    # job_id 없으면 새로 발급
     job_id = state.get("job_id") or uuid4().hex
 
-    # ---
-    # 제목 (하드코딩 파트 부분 : [LLM 프롬프트 분석 연결])
+    # =============================================================================
+    # [하드코딩 파트] LLM 프롬프트 분석 연결
+    # -----------------------------------------------------------------------------
     # [관련 작업 임무 및 역할]
-    #   Settings 의 LLM_* 설정을 읽어 자연어 prompt → ParsedPrompt JSON 으로 변환한다.
-    #   Phase1 완성도 부족분(~30% 중 핵심): 휴리스틱만 쓰는 한계를 LLM 으로 메운다.
+    #   Settings 의 LLM_* 설정을 읽어 자연어 prompt → ParsedPrompt JSON 으로 변환.
+    #   Phase1 부족분: 휴리스틱만 쓰는 한계를 LLM 으로 메움.
     # [기능하고 연결된 변수 및 함수]
-    #   - 입력: prompt (str), state
-    #   - 설정: get_settings().llm_provider / llm_base_url / ollama_model /
-    #           openai_api_key / openai_model / gemini_api_key / gemini_model
-    #   - 스키마: app.schemas.request.ParsedPrompt (target, effect, intensity, crop)
-    #   - 실패 시: parse_prompt_heuristic(prompt) 로 fallback (아래 한 줄 유지 가능)
-    #   - 출력: parsed → state["parsed_prompt"]
+    #   prompt, get_settings().llm_*, ParsedPrompt, parse_prompt_heuristic (fallback)
     # [작성해야 하는 방식 및 규칙]
-    #   1) llm_provider 가 heuristic 이거나 빈 값이면 LLM 호출 생략 → 휴리스틱만.
-    #   2) ollama | openai | gemini 일 때만 HTTP/SDK 호출.
-    #   3) 모델 응답은 JSON 만: {"target":[...],"effect":"...","intensity":0~100,"crop":bool}
-    #   4) effect 허용값: remove_bg | blur | crop | none (그 외면 heuristic 또는 remove_bg)
-    #   5) target 라벨은 소문자, YOLO names / keywords 라벨과 맞출 것.
-    #   6) 타임아웃·파싱 실패·네트워크 오류 시 예외 삼키고 heuristic fallback.
-    #   7) 이 함수 안에서 OpenCV/YOLO 호출 금지 (오케스트레이션만).
+    #   1) llm_provider 가 heuristic/빈 값 → LLM 생략.
+    #   2) ollama|openai|gemini 만 호출. JSON: target[], effect, intensity, crop.
+    #   3) effect: remove_bg|blur|crop|none. target 소문자=YOLO names.
+    #   4) 실패 시 parse_prompt_heuristic. OpenCV/YOLO 호출 금지.
     # [코드 방식 힌트]
     #   settings = get_settings()
     #   try:
     #       if settings.llm_provider == "ollama":
-    #           # requests.post(f"{base}/api/chat", json={model, messages, format:"json"})
-    #           # data = response.json() → content 파싱 → ParsedPrompt(**...)
-    #       elif settings.llm_provider == "openai":
+    #           # HTTP → JSON → ParsedPrompt(**...)
     #           ...
     #       else:
     #           parsed = parse_prompt_heuristic(prompt)
     #   except Exception:
     #       parsed = parse_prompt_heuristic(prompt)
-    # ---
-    # (위 규칙대로 LLM 분기 작성. 미구현 동안은 아래 heuristic 유지)
+    # =============================================================================
+    # >>> 여기에 LLM 분기 작성 (미구현이면 아래 바이브 fallback 유지) <<<
+    #
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] heuristic fallback + state 반환
+    # -----------------------------------------------------------------------------
+    # LLM 미연결 시에도 파이프라인이 돌아가게 하는 기존 동작.
+    # =============================================================================
     parsed = parse_prompt_heuristic(prompt)
     logger.info("prompt_analyzer job={} parsed={}", job_id, parsed.model_dump())
     return {

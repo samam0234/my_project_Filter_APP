@@ -41,27 +41,20 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=1e-4)
     args = parser.parse_args()
 
-    # ---
-    # 제목 (하드코딩 파트 부분 : [LoRA 학습 루프])
-    # [관련 작업 임무 및 역할]
-    #   피드백·의사라벨로 가벼운 어댑터를 학습해 outputs/lora 에 저장한다.
-    #   완성도 스케치 비전·학습 부족분 + Phase2 LoRA 축.
-    # [기능하고 연결된 변수 및 함수]
-    #   - CLI: --feedback-dir, --pseudo-dir, --output, --epochs, --lr
-    #   - 데이터: data/feedback, data/pseudo_labels
-    #   - 서빙 연동(추후): 어댑터 경로 Settings 확장
-    #   - 본선 세그 재학습은 training/yolo/train_segment.py (여기와 별개)
-    # [작성해야 하는 방식 및 규칙]
-    #   1) YOLO-seg 본선 fine-tune 이 우선. LoRA 는 Phase2.
-    #   2) 대용량 torch 의존은 training/requirements-training.txt 쪽.
-    #   3) 산출물은 전체 모델 복제보다 adapter 가중치만 저장 권장.
-    #   4) 경로 없으면 명확히 에러/안내 후 non-zero exit 가능.
-    # [코드 방식 힌트]
-    #   # dataset = build_dataset(args.feedback_dir, args.pseudo_dir)
-    #   # model = load_base(...); model = inject_lora(model)
-    #   # train(model, dataset, epochs=args.epochs, lr=args.lr)
-    #   # save_adapter(model, args.output)
-    # ---
+    # =============================================================================
+    # [하드코딩 파트] LoRA 학습 루프
+    # -----------------------------------------------------------------------------
+    # [임무] feedback/pseudo → adapter 학습 → outputs/lora
+    # [연결] CLI args, data/feedback, data/pseudo_labels (YOLO 본선은 training/yolo)
+    # [규칙] Phase2. peft/torch 는 training 의존성. adapter 만 저장 권장.
+    # [힌트] build_dataset → inject_lora → train → save_adapter
+    # =============================================================================
+    # >>> 여기에 학습 루프 작성 <<<
+    #
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] 스캐폴드 안내 출력 후 종료
+    # =============================================================================
     print("=== LoRA train (scaffold) ===")
     print(f"feedback_dir = {args.feedback_dir} exists={args.feedback_dir.exists()}")
     print(f"pseudo_dir   = {args.pseudo_dir} exists={args.pseudo_dir.exists()}")
