@@ -41,20 +41,34 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=1e-4)
     args = parser.parse_args()
 
-    # --- 스캐폴드: 계약만 출력 (실제 학습 없음) ---
+    # ---
+    # 제목 (하드코딩 파트 부분 : [LoRA 학습 루프])
+    # [관련 작업 임무 및 역할]
+    #   피드백·의사라벨로 가벼운 어댑터를 학습해 outputs/lora 에 저장한다.
+    #   완성도 스케치 비전·학습 부족분 + Phase2 LoRA 축.
+    # [기능하고 연결된 변수 및 함수]
+    #   - CLI: --feedback-dir, --pseudo-dir, --output, --epochs, --lr
+    #   - 데이터: data/feedback, data/pseudo_labels
+    #   - 서빙 연동(추후): 어댑터 경로 Settings 확장
+    #   - 본선 세그 재학습은 training/yolo/train_segment.py (여기와 별개)
+    # [작성해야 하는 방식 및 규칙]
+    #   1) YOLO-seg 본선 fine-tune 이 우선. LoRA 는 Phase2.
+    #   2) 대용량 torch 의존은 training/requirements-training.txt 쪽.
+    #   3) 산출물은 전체 모델 복제보다 adapter 가중치만 저장 권장.
+    #   4) 경로 없으면 명확히 에러/안내 후 non-zero exit 가능.
+    # [코드 방식 힌트]
+    #   # dataset = build_dataset(args.feedback_dir, args.pseudo_dir)
+    #   # model = load_base(...); model = inject_lora(model)
+    #   # train(model, dataset, epochs=args.epochs, lr=args.lr)
+    #   # save_adapter(model, args.output)
+    # ---
     print("=== LoRA train (scaffold) ===")
     print(f"feedback_dir = {args.feedback_dir} exists={args.feedback_dir.exists()}")
     print(f"pseudo_dir   = {args.pseudo_dir} exists={args.pseudo_dir.exists()}")
     print(f"output       = {args.output}")
     print(f"epochs={args.epochs} lr={args.lr}")
-    print()
-    print("TODO Phase 2:")
-    print("  1) 피드백/의사라벨을 학습용 텐서 데이터셋으로 변환")
-    print("  2) peft + 베이스 모델에 LoRA 주입")
-    print("  3) 학습 후 adapter 를 outputs/lora 에 저장")
-    print("  4) 서빙 경로에 어댑터 핫스왑")
-    print()
-    print("지금은 스캐폴드만 동작합니다. YOLO 학습은 training/yolo/ 를 사용하세요.")
+    print("지금은 스캐폴드만 동작합니다. 위 하드코딩 구간에 학습 루프를 작성하세요.")
+    print("YOLO 세그 학습은 training/yolo/ 를 사용하세요.")
     raise SystemExit(0)
 
 

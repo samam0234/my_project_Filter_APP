@@ -113,18 +113,41 @@ def prompt_analyzer(state: GraphState) -> GraphState:
     prompt = state.get("prompt") or ""
     # job_id 없으면 새로 발급
     job_id = state.get("job_id") or uuid4().hex
-    # -------------------------------------------------------------------------
-    # 【수동·구현 필요·우선순위 높음】 LLM 프롬프트 분석 연결
-    # 조건:
-    #   - get_settings().llm_provider 가 ollama | openai | gemini 일 때
-    #   - ollama: LLM_BASE_URL + OLLAMA_MODEL 로 JSON 스키마 응답 요청
-    #   - 실패/타임아웃 시 parse_prompt_heuristic 로 fallback (권장)
-    # 해야 할 기능:
-    #   1) 시스템 프롬프트: "다음 JSON 만 출력: target[], effect, intensity, crop"
-    #   2) 응답 파싱 → ParsedPrompt 검증 (effect 허용값, intensity 0~100)
-    #   3) 휴리스틱의 keywords 한계를 LLM 으로 보완 (고도화 목적)
-    # 현재: 항상 휴리스틱만 호출 (설정 LLM_* 미사용)
-    # -------------------------------------------------------------------------
+
+    # ---
+    # 제목 (하드코딩 파트 부분 : [LLM 프롬프트 분석 연결])
+    # [관련 작업 임무 및 역할]
+    #   Settings 의 LLM_* 설정을 읽어 자연어 prompt → ParsedPrompt JSON 으로 변환한다.
+    #   Phase1 완성도 부족분(~30% 중 핵심): 휴리스틱만 쓰는 한계를 LLM 으로 메운다.
+    # [기능하고 연결된 변수 및 함수]
+    #   - 입력: prompt (str), state
+    #   - 설정: get_settings().llm_provider / llm_base_url / ollama_model /
+    #           openai_api_key / openai_model / gemini_api_key / gemini_model
+    #   - 스키마: app.schemas.request.ParsedPrompt (target, effect, intensity, crop)
+    #   - 실패 시: parse_prompt_heuristic(prompt) 로 fallback (아래 한 줄 유지 가능)
+    #   - 출력: parsed → state["parsed_prompt"]
+    # [작성해야 하는 방식 및 규칙]
+    #   1) llm_provider 가 heuristic 이거나 빈 값이면 LLM 호출 생략 → 휴리스틱만.
+    #   2) ollama | openai | gemini 일 때만 HTTP/SDK 호출.
+    #   3) 모델 응답은 JSON 만: {"target":[...],"effect":"...","intensity":0~100,"crop":bool}
+    #   4) effect 허용값: remove_bg | blur | crop | none (그 외면 heuristic 또는 remove_bg)
+    #   5) target 라벨은 소문자, YOLO names / keywords 라벨과 맞출 것.
+    #   6) 타임아웃·파싱 실패·네트워크 오류 시 예외 삼키고 heuristic fallback.
+    #   7) 이 함수 안에서 OpenCV/YOLO 호출 금지 (오케스트레이션만).
+    # [코드 방식 힌트]
+    #   settings = get_settings()
+    #   try:
+    #       if settings.llm_provider == "ollama":
+    #           # requests.post(f"{base}/api/chat", json={model, messages, format:"json"})
+    #           # data = response.json() → content 파싱 → ParsedPrompt(**...)
+    #       elif settings.llm_provider == "openai":
+    #           ...
+    #       else:
+    #           parsed = parse_prompt_heuristic(prompt)
+    #   except Exception:
+    #       parsed = parse_prompt_heuristic(prompt)
+    # ---
+    # (위 규칙대로 LLM 분기 작성. 미구현 동안은 아래 heuristic 유지)
     parsed = parse_prompt_heuristic(prompt)
     logger.info("prompt_analyzer job={} parsed={}", job_id, parsed.model_dump())
     return {

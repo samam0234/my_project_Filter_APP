@@ -26,16 +26,38 @@ def process_batch_stub(job_id: str, items: List[Dict[str, Any]]) -> Dict[str, An
 
     반환 dict 는 BatchRepository.create 상태 필드에 매핑된다.
     """
-    # -------------------------------------------------------------------------
-    # 【수동·Phase2 구현】 배치 실처리
-    # 조건: Phase 1 단일 업로드가 안정된 뒤 + Redis/Celery 가동
-    # 해야 할 기능:
-    #   1) items 각 파일에 대해 run_pipeline (또는 ImageProcessor.run) 호출
-    #   2) BatchRepository.update_progress 로 completed/progress 갱신
-    #   3) 장당 실패는 item_results 에 기록, 전체 중단 정책 결정
-    #   4) docker-compose celery_worker 주석 해제
-    # 현재: not_implemented 만 반환 (상태 기록용)
-    # -------------------------------------------------------------------------
+
+    # ---
+    # 제목 (하드코딩 파트 부분 : [배치 실처리 워커])
+    # [관련 작업 임무 및 역할]
+    #   여러 장 이미지를 순회 처리하고 batch_jobs 진행률을 갱신한다.
+    #   완성도 스케치 Phase2 부족분(~80% 중 배치 축).
+    # [기능하고 연결된 변수 및 함수]
+    #   - 입력: job_id, items[{filename, prompt, path}, ...]
+    #   - 파이프: app.workflows.graph.run_pipeline 또는 ImageProcessor.run
+    #   - DB: BatchRepository.update_progress / create
+    #   - 라우터: app.routers.batch
+    #   - 설정: get_settings().redis_url, constants 배치 상한
+    # [작성해야 하는 방식 및 규칙]
+    #   1) Phase1 단일 /upload 가 안정된 뒤에 구현.
+    #   2) 한 번에 전부 장을 메모리에 올리지 말 것 — 장당 처리 후 해제.
+    #   3) 장 실패는 전체 중단 vs 스킵 정책을 정하고 item_results 에 기록.
+    #   4) status: pending → running → completed|failed 흐름 유지.
+    #   5) Celery 쓸 경우 broker=redis, compose celery_worker 활성화.
+    # [코드 방식 힌트]
+    #   completed = 0
+    #   results = []
+    #   for item in items:
+    #       try:
+    #           out = run_pipeline(image_bytes=..., prompt=item["prompt"])
+    #           results.append({"ok": True, **out})
+    #           completed += 1
+    #       except Exception as e:
+    #           results.append({"ok": False, "error": str(e)})
+    #       # BatchRepository.update_progress(job_id, completed, total)
+    #   return {"job_id": job_id, "status": "completed", "total": len(items),
+    #           "completed": completed, "item_results": results}
+    # ---
     logger.warning(
         "batch stub 호출 (Phase 2 미구현) job_id={} n={}",
         job_id,
@@ -48,9 +70,3 @@ def process_batch_stub(job_id: str, items: List[Dict[str, Any]]) -> Dict[str, An
         "completed": 0,
         "message": "배치는 Phase 2. 단일 이미지는 /api/v1/upload 사용.",
     }
-
-
-# Phase 2 실제 태스크 스케치:
-# @celery_app.task(bind=True, name="process_batch")
-# def process_batch(self, job_id: str, items: list[dict]) -> dict:
-#     ...

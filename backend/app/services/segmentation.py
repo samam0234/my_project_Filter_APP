@@ -64,8 +64,25 @@ class Segmentor:
             except Exception as exc:
                 logger.warning("Ultralytics 로드 실패: {}", exc)
 
-        # 【수동·확장】 ONNX 추론 루프 미완 — 세션만 생성, 실제 전후처리는 추후 구현
-        # 조건: .onnx 파일 + onnxruntime 설치, Ultralytics 실패/미사용 시
+        # ---
+        # 제목 (하드코딩 파트 부분 : [ONNX 세션 준비 후 추론 연결])
+        # [관련 작업 임무 및 역할]
+        #   Ultralytics .pt 로드 실패/미사용 시 .onnx 로 세그 추론 가능하게 한다.
+        #   비전 완성도 부족분: Docker 경량 이미지에서 torch 없이 마스크 품질 확보.
+        # [기능하고 연결된 변수 및 함수]
+        #   - create_session(model_path) → self._session
+        #   - predict() 가 self._yolo 없을 때 self._session 경로로 와야 함
+        #   - app.utils.onnx_utils.session_input_name
+        # [작성해야 하는 방식 및 규칙]
+        #   1) 세션 생성만 하고 predict 에서 안 쓰면 stub 로 떨어짐 → predict 분기도 작성.
+        #   2) 입력 텐서 크기·정규화는 export 한 YOLO-seg ONNX 규약에 맞출 것.
+        #   3) 출력에서 인스턴스 마스크 + class id + conf 를 꺼내 target 필터 후 합집합.
+        #   4) 실패 시 _stub_mask 로 안전하게 폴백 (파이프라인 죽이지 말 것).
+        # [코드 방식 힌트]
+        #   self._session = create_session(model_path)
+        #   # predict 쪽: if self._session: return self._predict_onnx(image, targets)
+        #   # _predict_onnx 내부: blob → session.run → mask postprocess → SegmentationResult
+        # ---
         self._session = create_session(model_path)
         self._ready = self._session is not None
         if not self._ready:
@@ -91,8 +108,23 @@ class Segmentor:
         targets = targets or ["person"]
         if self._yolo is not None:
             return self._predict_yolo(image, targets)
-        # 【수동 아님·동작 설명】 가중치 없을 때 stub — 중앙 타원 가짜 마스크
-        # 조건: 모델 파일 없음 / 로드 실패. 기능: e2e 파이프라인만 통과시킴
+
+        # ---
+        # 제목 (하드코딩 파트 부분 : [ONNX predict 분기])
+        # [관련 작업 임무 및 역할]
+        #   self._session 이 있을 때 YOLO-seg ONNX 추론 결과를 반환한다.
+        # [기능하고 연결된 변수 및 함수]
+        #   self._session, targets, _stub_mask, (작성할) _predict_onnx
+        # [작성해야 하는 방식 및 규칙]
+        #   1) session 있으면 ONNX 경로, 없으면 stub.
+        #   2) 반환 타입은 반드시 SegmentationResult (mask 0/255, confidences, labels, backend="onnx").
+        #   3) target 필터 규칙은 _predict_yolo 와 동일 정책 유지 권장.
+        # [코드 방식 힌트]
+        #   if self._session is not None:
+        #       return self._predict_onnx(image, targets)
+        # ---
+        # if self._session is not None:
+        #     return self._predict_onnx(image, targets)
         return self._stub_mask(image, targets)
 
     def _predict_yolo(
@@ -172,17 +204,30 @@ class Segmentor:
         )
 
 
-# -----------------------------------------------------------------------------
-# 【수동·Phase2 구현】 Grounding DINO + SAM2
-# 조건: Phase 1 YOLO 가 완전히 동작한 뒤에만 도입 (LOGIC_STRUCTURE 규칙)
-# 해야 할 기능:
-#   - 텍스트 오픈보캐브 대상 탐지(DINO) → SAM2 로 정밀 마스크
-#   - Segmentor.predict 백엔드 분기 또는 교체
-#   - 가중치 경로·의존성을 training/requirements 와 분리
-# -----------------------------------------------------------------------------
+# ---
+# 제목 (하드코딩 파트 부분 : [Grounding DINO + SAM2 백엔드])
+# [관련 작업 임무 및 역할]
+#   Phase2 오픈보캐브 세그: 텍스트 프롬프트로 임의 물체 탐지 후 정밀 마스크.
+#   완성도 스케치 "Phase2 ~20%" 부족분 중 비전 고도화 축.
+# [기능하고 연결된 변수 및 함수]
+#   - 호출 예정: Segmentor.predict 분기 또는 별도 서비스
+#   - 입력: image (BGR ndarray), prompt (str)
+#   - 출력: SegmentationResult
+#   - 의존: Phase1 YOLO 안정화 후, training 의존성과 서빙 분리
+# [작성해야 하는 방식 및 규칙]
+#   1) Phase1 YOLO e2e 가 안정되기 전에는 여기 구현 우선순위 낮음.
+#   2) DINO 박스 → SAM2 마스크 → 0/255 합집합.
+#   3) 미구현 시 NotImplementedError 또는 stub 유지 (서비스 크래시 방지 정책 선택).
+#   4) 가중치 경로는 Settings 확장 필드 권장 (하드코딩 절대경로 금지).
+# [코드 방식 힌트]
+#   # boxes = dino.predict(image, prompt)
+#   # masks = [sam2.segment(image, box) for box in boxes]
+#   # union = bitwise_or...
+#   # return SegmentationResult(mask=union, ..., backend="dino_sam2")
+# ---
 def predict_grounding_sam2(
     image: np.ndarray,
     prompt: str,
 ) -> SegmentationResult:
-    """Phase 2: Grounding DINO + SAM2. Phase 1 미구현."""
+    """Phase 2: Grounding DINO + SAM2. 하드코딩 구간 — 본문 직접 구현."""
     raise NotImplementedError("Grounding DINO + SAM2 is Phase 2.")
