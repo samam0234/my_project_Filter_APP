@@ -77,11 +77,20 @@ class Settings(BaseSettings):
 
     # --- LLM: ollama(기본) | openai | gemini | heuristic ---
     # 참고: docs/plan/AI_MODEL_STRATEGY.md
-    # 【수동·구현 연동】 아래 값들은 Settings 에만 있고,
-    #   실제 호출은 workflows/nodes.py prompt_analyzer 에 아직 미연결(휴리스틱 사용)
-    # 조건: Ollama 쓸 때 → 로컬 ollama serve + ollama pull gemma4:e4b
-    #       클라우드 → 해당 API 키를 .env 에 넣고 LLM_PROVIDER 전환
-    # 기능(구현 시): 자연어 프롬프트 → JSON {target, effect, intensity, crop}
+
+    # =============================================================================
+    # [하드코딩 파트] LLM 호출 본문 — 위치는 nodes.py (여기 아님)
+    # -----------------------------------------------------------------------------
+    # [임무] 아래 필드를 prompt_analyzer 에서 읽어 LLM 연결
+    # [연결] llm_* → workflows/nodes.py [하드코딩 파트] LLM 프롬프트 분석
+    # [규칙] .env alias 일치. 시크릿 커밋 금지. 새 provider 시 Field+nodes 동시.
+    # =============================================================================
+
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] LLM Settings 필드 정의
+    # -----------------------------------------------------------------------------
+    # 값/기본값 스키마만 완료. HTTP 호출 로직은 위 하드코딩(nodes) 쪽.
+    # =============================================================================
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     llm_base_url: str | None = Field(
         default="http://localhost:11434",

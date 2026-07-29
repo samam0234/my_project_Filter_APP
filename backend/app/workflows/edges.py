@@ -28,19 +28,17 @@ def after_validator(state: GraphState) -> str:
     status = state.get("status") or JobStatus.FAILED.value
     retries = int(state.get("retry_count") or 0)
 
+    # =============================================================================
+    # [이미 구현된 구간 · 바이브] validator 이후 라우팅
+    # -----------------------------------------------------------------------------
+    # 하드코딩 숙제 아님. 재시도 횟수(N)만 정책 튜닝 시 숫자 변경.
+    # =============================================================================
     if status == JobStatus.OK.value:
         return "effect_applier"
 
-    # -------------------------------------------------------------------------
-    # 【수동·정책】 세그 재시도 횟수
-    # 조건: status==fallback 이고 retry_count < N 이면 segmentor 재실행
-    # 현재 N=1 (retries < 1). 더 돌리려면 숫자 변경 + 무한 루프 방지 확인
-    # 기능: 일시적 품질 미달 시 한 번 더 마스크 생성 후 다시 validator
-    # -------------------------------------------------------------------------
     if status == JobStatus.FALLBACK.value and retries < 1:
         return "retry_segmentor"
 
-    # 재시도 소진 또는 하드 실패: 피드백 저장 후 best-effort 효과 적용
     return "feedback_then_effects"
 
 
