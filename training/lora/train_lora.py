@@ -51,6 +51,20 @@ def main() -> None:
     # =============================================================================
     # >>> 여기에 학습 루프 작성 <<<
     #
+    import json
+    from datetime import datetime
+
+    try :
+        import torch
+        from torch.utils.data import DataLoader
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+        from peft import LoraConfig, get_peft_model, PeftModel
+    except ImportError as e:
+        print("필수 의존성이 없습니다. training/requirements-training.txt 확인 후 설치하세요.")
+        print(f"import error: {e}")
+        raise SystemExit(1) from e
+
+    args.output.mkdir(parents=True, exist_ok=True)
 
     # =============================================================================
     # [이미 구현된 구간 · 바이브] 스캐폴드 안내 출력 후 종료
