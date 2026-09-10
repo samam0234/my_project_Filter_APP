@@ -76,6 +76,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `90a56e8` | feature/lora → develop 병합 (no-ff) | [commits/260910_1612_90a56e8_merge-lora_develop.md](./commits/260910_1612_90a56e8_merge-lora_develop.md) |
 | `db607ed` | LoRA 학습 루프 의존성 가드·출력 디렉터리 | [commits/260814_0155_db607ed_lora-deps-output-dir_feature-lora.md](./commits/260814_0155_db607ed_lora-deps-output-dir_feature-lora.md) |
 | `2db7501` | YOLO26s 기본 비전 모델 통일 | [commits/260728_1013_2db7501_yolo26s-default-and-manual-comments_feature-backend.md](./commits/260728_1013_2db7501_yolo26s-default-and-manual-comments_feature-backend.md) |
 | `af3ed90` | 한글 주석 보강 및 requirements 루트 이전 | [commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md](./commits/260728_0914_af3ed90_korean-comments-requirements-root_feature-backend.md) |
