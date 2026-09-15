@@ -76,6 +76,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `f7685c1` | COCO 5k 세그 데이터 준비 스크립트 | [commits/260916_0209_f7685c1_coco5k-seg-prepare_feature-lora.md](./commits/260916_0209_f7685c1_coco5k-seg-prepare_feature-lora.md) |
 | `313ceda` | 5클래스 세그 데이터 준비와 학습 적용 | [commits/260915_2354_313ceda_yolo-seg-prepare-apply_feature-lora.md](./commits/260915_2354_313ceda_yolo-seg-prepare-apply_feature-lora.md) |
 | `a77d73a` | 피드백 기반 LoRA 학습 본선과 dry-run | [commits/260915_2353_a77d73a_lora-train-dry-run_feature-lora.md](./commits/260915_2353_a77d73a_lora-train-dry-run_feature-lora.md) |
 | `90a56e8` | feature/lora → develop 병합 (no-ff) | [commits/260910_1612_90a56e8_merge-lora_develop.md](./commits/260910_1612_90a56e8_merge-lora_develop.md) |
