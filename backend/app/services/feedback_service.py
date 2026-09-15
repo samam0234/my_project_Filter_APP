@@ -87,32 +87,42 @@ class FeedbackService:
             image_path = Path(str(base) + ".jpg")
             save_image(image_path, image)
 
-        # --- 파일 사이드카 (JSON 메타) ---
-        payload: Dict[str, Any] = {
-            "case_id": case_id,
-            "job_id": job_id,
-            "vote": vote_str,
-            "comment": comment,
-            "source": source,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "meta": meta,
-        }
-        if image_path is not None:
-            payload["image"] = image_path.name
-
-        json_path = Path(str(base) + ".json")
-        json_path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-
-        # --- DB 저장 ---
+        # --- DB + 사이드카 메타 (한 세션) ---
         db, owned = self._session()
         row: Optional[Feedback] = None
         try:
-            # 부모 job 존재 확인 (FK) — 없으면 stub 생성
             job_repo = JobRepository(db, self.settings)
-            if job_repo.get(job_id) is None:
+            job_row = job_repo.get(job_id)
+            # =============================================================================
+            # [이미 구현된 구간 · 바이브] LoRA 학습용 프롬프트 정답을 사이드카에 붙임
+            # -----------------------------------------------------------------------------
+            # 사용자 피드백 API 는 prompt 를 안 보낸다. 같은 job 행에서 보강.
+            # parsed_prompt 가 있어야 training/lora 가 instruction 레코드를 만들 수 있다.
+            # =============================================================================
+            if job_row is not None:
+                if not meta.get("prompt") and job_row.prompt:
+                    meta["prompt"] = job_row.prompt
+                if not meta.get("parsed_prompt") and job_row.parsed_prompt:
+                    meta["parsed_prompt"] = job_row.parsed_prompt
+
+            payload: Dict[str, Any] = {
+                "case_id": case_id,
+                "job_id": job_id,
+                "vote": vote_str,
+                "comment": comment,
+                "source": source,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "meta": meta,
+            }
+            if image_path is not None:
+                payload["image"] = image_path.name
+            json_path = Path(str(base) + ".json")
+            json_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
+            if job_row is None:
                 job_repo.create_pending(job_id, prompt=str(meta.get("prompt") or ""))
             row = FeedbackRepository(db).create(
                 job_id=job_id,
@@ -123,13 +133,30 @@ class FeedbackService:
                 meta=meta,
                 feedback_id=case_id,
             )
-            # job 행에 feedback_saved 플래그 표시
             job_repo.mark_feedback_saved(job_id)
             logger.info("Feedback saved db_id={} path={}", row.id, json_path)
         except Exception:
             logger.exception("DB 피드백 저장 실패 (파일 사이드카는 유지)")
             if owned:
                 db.rollback()
+            # DB 가 깨져도 JSON 은 남겨 학습 입력을 지킨다
+            if json_path is None:
+                payload = {
+                    "case_id": case_id,
+                    "job_id": job_id,
+                    "vote": vote_str,
+                    "comment": comment,
+                    "source": source,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "meta": meta,
+                }
+                if image_path is not None:
+                    payload["image"] = image_path.name
+                json_path = Path(str(base) + ".json")
+                json_path.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
         finally:
             if owned:
                 db.close()

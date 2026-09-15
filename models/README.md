@@ -43,10 +43,16 @@ Compose 는 `./models` → `/app/models` 마운트.
 ## 학습은 어디서?
 
 **`training/`** 폴더에서 YOLO detect/seg · LoRA 학습을 돌린 뒤,  
-완성된 `best.pt` / `.onnx` 를 이 `models/` 로 복사해 서비스에 연결한다.
+완성된 `best.pt` / `.onnx` / LoRA `adapter/` 를 이 `models/` 로 복사해 서비스에 연결한다.
+
+| 학습 산출 | 복사 위치 |
+|-----------|-----------|
+| `training/outputs/segment/<name>/weights/best.pt` | `models/yolo26s-seg.pt` |
+| `training/outputs/lora/<run>/adapter/` | `models/lora/` (프롬프트 분석 어댑터, Phase 2) |
 
 - `training/README.md`
 - `training/yolo/README.md`
+- `training/lora/README.md`
 
 ## 관련 문서
 

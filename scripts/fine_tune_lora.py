@@ -1,43 +1,62 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Phase 2 — 오프라인 LoRA 파인튜닝 스캐폴드 (주간 배치 가정).
+"""Phase 2 — 오프라인 LoRA 파인튜닝 운영 진입점 (주간 배치 가정).
 
 의도:
   - 입력: data/feedback + data/pseudo_labels
-  - 출력: models/lora 어댑터 가중치 (서버 핫스왑)
-  - 실행 환경: 로컬 GPU 또는 Colab 등
-
-본 학습 루프는 `training/lora/train_lora.py` 로 이전·확장 중.
-이 파일은 scripts 쪽 단축/운영 진입점 자리 표시용이다.
+  - 출력: training/outputs/lora/<run>/adapter
+  - 학습 로직은 training/lora/train_lora.py 에만 둔다 (중복 금지)
 
 사용:
-  python scripts/fine_tune_lora.py
+  python scripts/fine_tune_lora.py --dry-run
+  python scripts/fine_tune_lora.py --base-model D:\\models\\gemma-2-2b-it
+  python scripts/fine_tune_lora.py --dry-run --epochs 5   # 추가 인자는 train_lora 로 전달
 """
 
 from __future__ import annotations
 
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+TRAIN_SCRIPT = REPO_ROOT / "training" / "lora" / "train_lora.py"
+
 
 def main() -> None:
-    """운영 진입점 스캐폴드 — 본 구현은 training/lora/train_lora.py."""
+    """운영 진입점 — 주간 기본 인자를 붙인 뒤 train_lora.py 를 호출한다."""
+
+    if not TRAIN_SCRIPT.is_file():
+        raise SystemExit(f"학습 스크립트 없음: {TRAIN_SCRIPT}")
 
     # =============================================================================
-    # [하드코딩 파트] LoRA 운영 진입점 래퍼
+    # [하드코딩 파트] 주간 배치 기본 인자
     # -----------------------------------------------------------------------------
-    # [임무] scripts 에서 train_lora 호출 / 주간 배치 인자 고정
-    # [연결] training/lora/train_lora.py (학습 로직 중복 금지)
-    # [힌트] subprocess.run([sys.executable, "training/lora/train_lora.py", ...])
+    # [임무] 매주 같은 하이퍼를 고정. 학습 루프는 여기 두지 말 것.
+    # [연결] training/lora/train_lora.py
+    # [규칙] 경로 하드코딩 금지 — REPO_ROOT 기준. 추가 CLI 가 마지막에 덮어씀.
+    # [힌트] weekly = ["--epochs", "3", "--lr", "1e-4", "--rank", "8"]
     # =============================================================================
-    # >>> 여기에 래퍼 작성 <<<
-    #
+    # >>> 여기에 주간 기본 인자만 수정 <<<
+    weekly = [
+        "--epochs",
+        "3",
+        "--lr",
+        "1e-4",
+        "--rank",
+        "8",
+        "--batch",
+        "1",
+    ]
 
     # =============================================================================
-    # [이미 구현된 구간 · 바이브] 스캐폴드 안내
+    # [이미 구현된 구간 · 바이브] subprocess 위임
+    # -----------------------------------------------------------------------------
+    # 학습 로직 중복 금지. 나머지 argv 는 train_lora 가 파싱한다.
     # =============================================================================
-    print(
-        "fine_tune_lora.py: Phase 2 스캐폴드입니다.\n"
-        "본 학습: training/lora/train_lora.py 하드코딩 구간을 먼저 채우세요."
-    )
-    raise SystemExit(0)
+    cmd = [sys.executable, str(TRAIN_SCRIPT), *weekly, *sys.argv[1:]]
+    print("fine_tune_lora.py →", " ".join(cmd[1:]), flush=True)
+    raise SystemExit(subprocess.call(cmd, cwd=str(REPO_ROOT)))
 
 
 if __name__ == "__main__":

@@ -55,7 +55,9 @@ def test_training_layout(repo_root: Path):
     assert (t / "yolo" / "train_detect.py").is_file()
     assert (t / "yolo" / "export_onnx.py").is_file()
     assert (t / "lora" / "train_lora.py").is_file()
+    assert (t / "lora" / "dataset.py").is_file()
     assert (t / "configs" / "dataset_seg.example.yaml").is_file()
+    assert (t / "configs" / "lora.example.yaml").is_file()
     assert (t / "requirements-training.txt").is_file()
 
 

@@ -14,7 +14,8 @@ tests/
 │   ├── test_prompt_heuristic.py
 │   ├── test_validator.py
 │   ├── test_security.py
-│   └── test_effects.py
+│   ├── test_effects.py
+│   └── test_lora_dataset.py  # training/lora 데이터 계약 (torch 불필요)
 ├── structure/               # 폴더·문서·스크립트 존재 검사
 │   └── test_project_layout.py
 └── smoke/                   # 가벼운 import 스모크

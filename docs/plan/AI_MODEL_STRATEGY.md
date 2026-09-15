@@ -210,7 +210,7 @@ prompt_analyzer 노드
 | **`training/`** | **학습 전용 구역** (yolo detect/seg, lora, datasets, outputs) |
 | `training/yolo/train_segment.py` | 세그 학습 진입점 (기본 `yolo26s-seg.pt`) |
 | `training/yolo/train_detect.py` | 탐지 학습 진입점 (기본 `yolo26s.pt`) |
-| `training/lora/train_lora.py` | LoRA 스캐폴드 (Phase 2) |
+| `training/lora/train_lora.py` | 피드백 → 프롬프트 분석 LoRA (dry-run + PEFT 본선) |
 | `.env.example` | YOLO / LLM 환경변수 템플릿 |
 | `backend/app/core/config.py` | Settings (`YOLO_MODEL_PATH` 기본 s-seg) |
 | `backend/app/services/segmentation.py` | 추론 시 YOLO 로드 |

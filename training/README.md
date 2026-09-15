@@ -374,6 +374,40 @@ pytest tests/structure -q
 
 ---
 
+### 4.5 LoRA (Phase 2 · 프롬프트 분석 어댑터)
+
+세그 마스크는 4.1 을 쓴다. 여기는 **피드백 JSON → Causal LM LoRA**.
+
+```powershell
+cd d:\my_project\CutNKeep\training
+.\.venv\Scripts\Activate.ps1
+
+# peft 없이 데이터 계약만
+python lora/train_lora.py --dry-run
+
+# 학습 (로컬 HF 체크포인트 필수. Ollama GGUF 불가)
+python lora/train_lora.py `
+  --base-model D:\models\gemma-2-2b-it `
+  --epochs 3 `
+  --rank 8 `
+  --device cuda
+```
+
+| 인자 | 의미 |
+|------|------|
+| `--dry-run` | 레코드 수·스키마만 검증, adapter 없음 |
+| `--base-model` | 로컬 HuggingFace 디렉터리 (`config.json` + 가중치) |
+| `--rank` | LoRA r |
+| `--target-modules` | 기본 `q_proj,v_proj` |
+
+**산출:** `training/outputs/lora/<run>/adapter/` + `run.json`  
+→ `models/lora/` 로 **수동 복사**. backend 핫스왑은 후속.
+
+상세: [`lora/README.md`](./lora/README.md) · 예시 하이퍼 [`configs/lora.example.yaml`](./configs/lora.example.yaml)
+
+
+---
+
 ## 5. 학습 후 서비스에 넣기
 
 자동 배포 없음. **수동**.
@@ -410,6 +444,10 @@ copy training\outputs\segment\exp\weights\best.pt models\yolo26s-seg.pt
 | 프롬프트와 다른 물체 | names ↔ keywords 불일치 | 소문자 label 통일 |
 | 아무것도 안 남음 | target 필터 + conf | min_confidence, keywords, 데이터 클래스 확인 |
 | OOM | batch/imgsz 과다 | `--batch 2` `--imgsz 512` |
+| LoRA `records=0` | 피드백 JSON 에 prompt/parsed_prompt 없음 | `--dry-run` 으로 확인. like 피드백은 job 메타 보강 후 다시 저장 |
+| LoRA `--base-model` 오류 | Ollama GGUF 를 넘김 / 경로 없음 | 로컬 HF 디렉터리(`config.json`)만. 허브 자동 다운 없음 |
+| LoRA `target_modules` 오류 | 모델 모듈 이름이 다름 | 로그의 named_modules 접미사로 `--target-modules` 수정 |
+| peft import 오류 | LoRA 패키지 미설치 | `pip install peft transformers accelerate` (dry-run 은 불필요) |
 
 ---
 
@@ -424,13 +462,16 @@ training/
 ├── datasets/                 ← 이미지·라벨 (gitignore)
 ├── configs/
 │   ├── dataset_seg.example.yaml
-│   └── dataset_detect.example.yaml
+│   ├── dataset_detect.example.yaml
+│   └── lora.example.yaml
 ├── yolo/
-│   ├── train_segment.py      ← 본선
+│   ├── train_segment.py      ← 세그 본선
 │   ├── train_detect.py
 │   └── export_onnx.py
-├── lora/                     ← Phase 2
-└── outputs/                  ← best.pt 등 (gitignore)
+├── lora/                     ← Phase 2 프롬프트 어댑터
+│   ├── train_lora.py
+│   └── dataset.py
+└── outputs/                  ← best.pt · adapter (gitignore)
 ```
 
 ### Git
@@ -440,7 +481,8 @@ training/
 
 ### 관련 문서
 
-- `training/yolo/README.md` — 스크립트 요약  
+- `training/yolo/README.md` — 세그/디텍트 스크립트 요약  
+- `training/lora/README.md` — 피드백 LoRA  
 - `models/README.md` — 가중치 배치  
 - `docs/plan/YOLO26S_DEFAULT.md` — s 기본 스케일  
 - `docs/plan/AI_MODEL_STRATEGY.md` — 비전·LLM 전략  
