@@ -22,7 +22,7 @@ numpy==1.26.4
 Pillow==10.4.0
 
 # YOLO & ONNX
-ultralytics==8.3.0
+ultralytics>=8.4.0
 onnxruntime==1.19.2
 # onnxruntime-gpu==1.19.2  # GPU 사용 시
 

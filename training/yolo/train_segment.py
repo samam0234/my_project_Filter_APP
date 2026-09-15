@@ -15,6 +15,32 @@ import argparse
 from pathlib import Path
 
 
+def resolve_dataset_yaml(src: Path) -> Path:
+    """yaml 의 path 가 상대면 yaml 파일 위치 기준으로 절대 경로화한다.
+
+    Ultralytics 는 path 를 datasets_dir(예: D:\\datasets) 기준으로 해석해서
+    `../datasets/cutnkeep_seg` 가 깨진다. 커밋용 yaml 은 상대 경로를 유지한다.
+    """
+    try:
+        import yaml
+    except ImportError:
+        return src.resolve()
+
+    loaded = yaml.safe_load(src.read_text(encoding="utf-8"))
+    if not isinstance(loaded, dict) or not loaded.get("path"):
+        return src.resolve()
+    root = Path(str(loaded["path"]))
+    if not root.is_absolute():
+        root = (src.parent / root).resolve()
+    loaded["path"] = root.as_posix()
+    out = src.parent / f"{src.stem}.resolved.yaml"
+    out.write_text(
+        yaml.safe_dump(loaded, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    return out
+
+
 def main() -> None:
     # -------------------------------------------------------------------------
     # 【수동·CLI】 학습 하이퍼·경로 — 실행 시 인자로 덮어씀
@@ -47,6 +73,12 @@ def main() -> None:
     )
     parser.add_argument("--name", default="exp", help="run 이름")
     parser.add_argument("--device", default=None, help="cuda:0 또는 cpu (기본 자동)")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=2,
+        help="DataLoader workers (Windows 는 0~2 권장)",
+    )
     args = parser.parse_args()
 
     # 학습 전용 의존성 (backend requirements 와 분리)
@@ -61,15 +93,17 @@ def main() -> None:
     if not args.data.exists():
         raise SystemExit(f"data yaml 없음: {args.data}\n예시 복사 후 path/names 를 수정하세요.")
 
+    data_yaml = resolve_dataset_yaml(args.data)
     model = YOLO(args.model)
     kwargs = dict(
-        data=str(args.data),
+        data=str(data_yaml),
         epochs=args.epochs,
         imgsz=args.imgsz,
         batch=args.batch,
         project=str(args.project),
         name=args.name,
         exist_ok=True,
+        workers=args.workers,
     )
     if args.device is not None:
         kwargs["device"] = args.device
