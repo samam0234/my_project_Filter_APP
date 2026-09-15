@@ -9,7 +9,7 @@
 | `convert_to_onnx.py` | YOLO 가중치 → ONNX 변환 |
 | `cleanup.py` | 오래된 업로드 임시 파일 삭제 (보관 시간) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
-| `fine_tune_lora.py` | Phase 2 LoRA 학습 스캐폴드 |
+| `fine_tune_lora.py` | Phase 2 LoRA 주간 배치 래퍼 (`training/lora/train_lora.py` 호출) |
 | `evaluate_model.py` | 모델 평가 스캐폴드 |
 
 ## 사용 예
@@ -28,7 +28,8 @@ python scripts/cleanup.py
 
 ## 주의
 
-- Phase 2 스크립트는 **스캐폴드**일 수 있다. 실행 전 파일 상단 docstring 확인.
+- `pseudo_labeling.py` / `evaluate_model.py` 는 아직 **스캐폴드**다. 실행 전 docstring 확인.
+- `fine_tune_lora.py` 는 `training/lora/train_lora.py` 래퍼. 먼저 `--dry-run`.
 - 모델 파일(`.pt`, `.onnx`)은 용량 때문에 gitignore 대상이다. `models/` 에 직접 배치.
 
 ## 학습 구역 이전 안내

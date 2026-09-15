@@ -74,6 +74,8 @@ training/datasets/**
 !training/datasets/.gitkeep
 training/outputs/**
 !training/outputs/.gitkeep
+training/configs/*.resolved.yaml
+training/models/
 training/**/runs/
 training/**/wandb/
 

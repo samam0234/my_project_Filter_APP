@@ -66,8 +66,8 @@
 | ONNX 전·후처리 루프 | `backend/app/utils/onnx_utils.py` | create_session 은 바이브 |
 | Grounding DINO + SAM2 | `backend/app/services/segmentation.py` | Phase2 |
 | 배치 실처리 워커 | `backend/app/tasks/batch_tasks.py` | stub return 은 바이브 |
-| LoRA 학습 루프 | `training/lora/train_lora.py` | |
-| LoRA 운영 래퍼 | `scripts/fine_tune_lora.py` | |
+| LoRA 샘플 정책·템플릿 | `training/lora/train_lora.py` | 데이터 적재·dry-run·PEFT 루프는 바이브. 남은 숙제: 템플릿·vote·target_modules |
+| LoRA 주간 배치 인자 | `scripts/fine_tune_lora.py` | subprocess 위임은 바이브. 남은 숙제: epochs/lr/rank 기본값 |
 | 의사 라벨 루프 | `scripts/pseudo_labeling.py` | |
 | 평가 메트릭 | `scripts/evaluate_model.py` | |
 
@@ -78,7 +78,8 @@
 - `parse_prompt_heuristic` 키워드·effect
 - `Segmentor._predict_yolo`, `_stub_mask`
 - `create_session` / Ultralytics 로드
-- batch·LoRA·scripts 의 “안내 print + exit” stub
+- batch·scripts 의 “안내 print + exit” stub (`evaluate_model` / `pseudo_labeling`)
+- LoRA dry-run·데이터 적재·PEFT 학습 본선 (`training/lora/`)
 - effects / LangGraph / upload e2e (파일 전체에 바이브 마커 없이 완료 본선)
 
 ---

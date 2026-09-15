@@ -1,0 +1,33 @@
+# =============================================================================
+# 【수동·필수】 LoRA 학습 설정 예시 (복사해 값을 CLI 로 넘긴다)
+# 사용: python training/lora/train_lora.py --base-model <로컬 HF 경로> ...
+#
+# 조건:
+#   1) --base-model 은 HuggingFace 형식 로컬 디렉터리 (config.json + safetensors/bin)
+#      Ollama GGUF (gemma4:e4b) 는 PEFT 학습에 바로 쓰지 못함
+#   2) data/feedback/*.json 에 prompt + parsed_prompt 가 있어야 레코드가 생김
+#   3) YOLO-seg 가중치는 이 yaml 로 학습하지 말 것 → training/yolo/
+#
+# 해야 할 기능:
+#   - 프롬프트 분석기 도메인 어댑터 학습
+#   - 산출 adapter/ → (수동) models/lora/ 복사
+# =============================================================================
+
+# 【수동】 로컬 베이스 모델 경로 (허브 자동 다운로드 없음)
+base_model: D:/models/gemma-2-2b-it
+
+# 【수동·튜닝】 하이퍼 — VRAM·샘플 수에 맞게
+epochs: 3
+lr: 1.0e-4
+batch: 1
+rank: 8
+max_seq_len: 512
+target_modules: q_proj,v_proj
+
+# 【수동】 데이터
+feedback_dir: ../data/feedback
+pseudo_dir: ../data/pseudo_labels
+output: ../training/outputs/lora
+
+# pipeline_failure 약한 정답 포함 여부 (CLI: --skip-pipeline-failure)
+include_pipeline_failure: true
