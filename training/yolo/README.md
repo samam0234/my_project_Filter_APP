@@ -6,15 +6,16 @@
 |------|------|
 | `train_segment.py` | 세그 학습 (**서비스 본선**) |
 | `train_detect.py` | 박스 탐지 (실험) |
-| `prepare_cutnkeep_seg.py` | coco128-seg → 5클래스 변환 |
+| `prepare_cutnkeep_seg.py` | coco128-seg → 5클래스 변환 (소량 스모크) |
+| `prepare_coco5k_seg.py` | COCO train2017 → ~5000장 5클래스 + LoRA JSON |
 | `apply_best.py` | best.pt → `models/yolo26s-seg.pt` + 샘플 추론 |
 | `export_onnx.py` | `.pt` → `.onnx` |
 
 ## 실행 전 최소 체크
 
-1. `python yolo/prepare_cutnkeep_seg.py` — coco128-seg 를 5클래스(person/dog/cat/car/bag)로 변환
-2. `configs/dataset_seg.yaml` — **절대 경로** `path` / **`names`**
-3. `datasets/cutnkeep_seg` — seg **폴리곤** 라벨
+1. `python yolo/prepare_coco5k_seg.py --limit 5000` — COCO 5클래스 ~5k + `data/pseudo_labels`
+2. `configs/dataset_seg.yaml` — yaml 기준 상대 `path` (`train_segment.py` 가 절대 경로로 해석)
+3. `datasets/cutnkeep_seg_5k` — seg **폴리곤** 라벨
 4. `backend/.../nodes.py` keywords 의 label = yaml `names` (소문자)
 5. torch + ultralytics 가 training venv 에 설치됨
 
