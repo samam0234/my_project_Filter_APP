@@ -8,7 +8,7 @@
 | 2 | 단일 업로드 파이프라인 | ☑ | `backend/models/yolo26s-seg.pt` 실모델로 확인 (없으면 stub) |
 | 3 | Job DB 저장 | ☑ | `/api/v1/jobs` · `backend/data/cutnkeep.db` |
 | 4 | Feedback 저장 | ☑ | DB + `data/feedback/` sidecar |
-| 5 | Frontend 업로드 UI | ☐ | :5173 |
+| 5 | Frontend 사용자 앱 | ☑ | :5173 · 홈·작업실·작업 기록·상세·가이드·배치 6페이지 |
 | 6 | Console Job 조회 | ☐ | :5174 · Compose 미포함 |
 | 7 | Docker `cut_and_keep` 스택 | ☑ | redis 6380 · Adminer 8081 · MariaDB `MARIADB_PORT` |
 | 8 | MariaDB 비밀번호 접속 | ☑ | GSS/SSL 없음 · DBeaver/Adminer |

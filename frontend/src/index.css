@@ -15,3 +15,18 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* 투명 PNG 확인용 체크무늬 (ResultImage checker).
+   Tailwind 임의값(bg-[url(...)])은 SVG 안 공백 때문에 클래스로 생성되지 않아 일반 CSS 로 둔다. */
+@layer components {
+  .bg-checker {
+    background-color: #0f172a;
+    background-image:
+      linear-gradient(45deg, #334155 25%, transparent 25%),
+      linear-gradient(-45deg, #334155 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #334155 75%),
+      linear-gradient(-45deg, transparent 75%, #334155 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+}

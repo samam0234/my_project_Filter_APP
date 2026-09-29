@@ -31,10 +31,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   file: null,
   previewUrl: null,
   // -------------------------------------------------------------------------
-  // 【수동】 앱 최초 로드 시 textarea 기본 프롬프트 문구
+  // 【수동】 앱 최초 로드 시 작업실 textarea 기본 프롬프트 문구
   // 조건: 사용자가 지우기 전까지 이 문자열이 POST /upload 의 prompt 로 감
-  // 기능: 데모용 예시. 서비스 톤에 맞게 문구만 바꿔도 됨
-  // 백엔드: nodes.parse_prompt_heuristic 이 "사람"→person, 배경제거→remove_bg
+  // 기능: 데모용 예시. 홈·가이드의 예시 칩을 누르면 setPrompt 로 덮어씀
+  // 백엔드: LLM(또는 키워드 파서)이 "사람"→person, 배경 제거→remove_bg 로 해석
   // -------------------------------------------------------------------------
   prompt: "사람만 남기고 배경 제거해줘",
   isProcessing: false,

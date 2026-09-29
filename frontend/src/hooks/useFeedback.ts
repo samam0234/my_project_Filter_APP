@@ -1,36 +1,38 @@
 /**
  * 결과 like/dislike 전송 훅.
  *
- * 현재 jobId 가 있을 때만 POST /api/v1/feedback.
- * 서버 응답 message 를 UI 에 표시한다.
+ * jobId 를 인자로 받아 작업실·작업 상세 어디서든 쓴다.
+ * dislike 에 comment(정답 ParsedPrompt JSON)를 실으면 LoRA 학습 정답으로 쓰인다.
  */
 import { useCallback, useState } from "react";
-import { sendFeedback } from "../api/client";
-import { useAppStore } from "../store/useAppStore";
+import { errorMessage, sendFeedback } from "../api/client";
 
-export function useFeedback() {
-  const result = useAppStore((s) => s.result);
+export function useFeedback(jobId?: string | null) {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState<"like" | "dislike" | null>(null);
 
   const vote = useCallback(
-    async (value: "like" | "dislike") => {
-      if (!result?.jobId) {
+    async (value: "like" | "dislike", comment?: string) => {
+      if (!jobId) {
         setMessage("결과가 없습니다.");
-        return;
+        return false;
       }
       setLoading(true);
       try {
-        const res = await sendFeedback({ job_id: result.jobId, vote: value });
+        const res = await sendFeedback({ job_id: jobId, vote: value, comment });
         setMessage(res.message);
-      } catch {
-        setMessage("피드백 전송에 실패했습니다.");
+        setSent(value);
+        return true;
+      } catch (err) {
+        setMessage(errorMessage(err, "피드백 전송에 실패했습니다."));
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [result?.jobId],
+    [jobId],
   );
 
-  return { vote, message, loading };
+  return { vote, message, loading, sent };
 }
