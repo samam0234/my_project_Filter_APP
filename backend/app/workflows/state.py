@@ -36,6 +36,7 @@ class GraphState(TypedDict, total=False):
     confidences: List[float]  # 인스턴스별 세그 confidence
     labels: List[str]  # 마스크에 포함된(요청 대상) 클래스 라벨
     detected: List[str]  # 필터 전 감지된 전체 라벨 (대상 못 찾음 안내용)
+    selection: Optional[Dict[str, Any]]  # instance_selector 결과 요약 (chosen/candidates/속성 점수)
     backend: str  # "yolo" | "stub" 등
 
     # --- 산출물 경로 (디스크) ---

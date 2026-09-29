@@ -191,3 +191,39 @@ def test_prompt_analyzer_falls_back_on_llm_error(monkeypatch):
     assert out["prompt_parser"] == "heuristic"
     assert out["parsed_prompt"]["target"] == ["dog"]
     assert out["parsed_prompt"]["effect"] == "blur"
+
+
+# --- selector · remove_object (인스턴스 선택 규격) ---
+
+
+def test_normalize_selector_and_remove_object():
+    p = normalize_parsed(
+        {
+            "target": ["person"],
+            "effect": "remove_object",
+            "selector": {"position": "Front", "count": "1", "attributes": ["Red Helmet", "red helmet"]},
+        }
+    )
+    assert p.effect == "remove_object"
+    assert p.selector.position == "front"
+    assert p.selector.count == 1
+    assert p.selector.attributes == ["red helmet"]
+
+
+def test_normalize_selector_drops_bad_parts_only():
+    """잘못된 position·count 는 버리고 target/effect 는 살린다."""
+    p = normalize_parsed(
+        {"target": ["dog"], "effect": "blur",
+         "selector": {"position": "upstairs", "count": 0, "attributes": []}}
+    )
+    assert p.target == ["dog"] and p.selector is None
+
+
+def test_normalize_null_selector():
+    assert normalize_parsed({"target": ["cat"], "effect": "blur", "selector": None}).selector is None
+
+
+def test_system_prompt_documents_keep_vs_remove():
+    from app.services.prompt_spec import SYSTEM_PROMPT
+
+    assert "remove_object" in SYSTEM_PROMPT and "selector" in SYSTEM_PROMPT

@@ -23,6 +23,7 @@ class EffectType(str, Enum):
     BLUR = "blur"
     CROP = "crop"
     NONE = "none"
+    REMOVE_OBJECT = "remove_object"  # 선택 대상 지우기 (inpaint)
 
 
 class FeedbackVote(str, Enum):

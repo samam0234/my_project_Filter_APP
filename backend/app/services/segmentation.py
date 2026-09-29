@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -13,6 +13,42 @@ from app.core.config import Settings, get_settings
 from app.utils.onnx_utils import create_session
 
 
+@dataclass(eq=False)  # 마스크 배열 비교 방지 — 동일성(is)으로만 비교
+class Instance:
+    """세그 인스턴스 1개 (요청 대상 필터 통과분).
+
+    mask: 0/255 단일 채널 (입력 이미지와 같은 크기)
+    bbox: (x0, y0, x1, y1) 픽셀, 마스크 기준
+    """
+
+    mask: np.ndarray
+    label: str
+    confidence: float
+    bbox: Tuple[int, int, int, int]
+
+    @property
+    def area(self) -> int:
+        return int(np.count_nonzero(self.mask))
+
+    @classmethod
+    def from_mask(cls, mask: np.ndarray, label: str, confidence: float) -> "Instance":
+        ys, xs = np.where(mask > 0)
+        bbox = (
+            (int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max()))
+            if len(xs)
+            else (0, 0, 0, 0)
+        )
+        return cls(mask=mask, label=label, confidence=confidence, bbox=bbox)
+
+
+def union_mask(instances: List[Instance], shape: Tuple[int, int]) -> np.ndarray:
+    """인스턴스 마스크 OR 합집합 (없으면 빈 마스크)."""
+    union = np.zeros(shape, dtype=np.uint8)
+    for inst in instances:
+        union = cv2.bitwise_or(union, inst.mask)
+    return union
+
+
 @dataclass
 class SegmentationResult:
     """세그 추론 결과.
@@ -20,6 +56,7 @@ class SegmentationResult:
     mask: 0/255 단일 채널 합집합 마스크
     confidences / labels: 마스크에 포함된(요청 대상) 인스턴스별 메타
     detected: 필터 전 모델이 감지한 전체 라벨 (대상 못 찾음 안내·피드백용)
+    instances: 대상 인스턴스별 마스크 — instance_selector 가 이 중 일부를 고른다
     backend: "yolo" | "stub" 등 어떤 경로로 만들었는지
     """
 
@@ -28,6 +65,7 @@ class SegmentationResult:
     labels: List[str] = field(default_factory=list)
     backend: str = "stub"
     detected: List[str] = field(default_factory=list)
+    instances: List[Instance] = field(default_factory=list)
 
 
 class Segmentor:
@@ -140,9 +178,7 @@ class Segmentor:
         img = image.copy()
         results = self._yolo.predict(img, verbose=False)
         h, w = img.shape[:2]
-        union = np.zeros((h, w), dtype=np.uint8)
-        confidences: List[float] = []
-        labels: List[str] = []
+        instances: List[Instance] = []
         detected: List[str] = []
 
         target_set = {t.lower() for t in targets}
@@ -164,19 +200,20 @@ class Segmentor:
                     continue
                 m_resized = cv2.resize(m, (w, h), interpolation=cv2.INTER_LINEAR)
                 binary = (m_resized > 0.5).astype(np.uint8) * 255
-                union = cv2.bitwise_or(union, binary)
-                confidences.append(conf)
-                labels.append(label)
+                if binary.any():
+                    instances.append(Instance.from_mask(binary, label, conf))
 
+        union = union_mask(instances, (h, w))
         if not union.any():
             logger.info("요청 대상 없음 targets={} detected={}", sorted(target_set), detected)
 
         return SegmentationResult(
             mask=union,
-            confidences=confidences,
-            labels=labels,
+            confidences=[i.confidence for i in instances],
+            labels=[i.label for i in instances],
             backend="yolo",
             detected=detected,
+            instances=instances,
         )
 
     def _stub_mask(

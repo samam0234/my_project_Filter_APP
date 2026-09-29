@@ -183,5 +183,6 @@ def run_pipeline(
             "confidences": final.get("confidences"),
             "prompt_parser": final.get("prompt_parser"),
             "detected": final.get("detected"),
+            "selection": final.get("selection"),
         },
     )
