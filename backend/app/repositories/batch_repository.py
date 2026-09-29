@@ -30,10 +30,12 @@ class BatchRepository:
         total: int,
         status: str = "not_implemented",
         message: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> BatchJob:
         """새 배치 행 생성. Phase 1 stub 은 status=not_implemented 가 기본."""
         row = BatchJob(
             id=batch_id,
+            user_id=user_id,
             prompt=prompt,
             total=total,
             completed=0,

@@ -51,6 +51,8 @@ class UploadResponse(BaseModel):
     quality_score: float = 0.0
     message: Optional[str] = None
     feedback_saved: bool = False
+    # False = 비로그인 처리: 기록·파일을 남기지 않음. after_url 은 data URL (바로 다운로드)
+    saved: bool = True
 
 
 class JobResponse(BaseModel):

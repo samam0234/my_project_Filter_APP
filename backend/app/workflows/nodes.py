@@ -400,7 +400,12 @@ def effect_applier(state: GraphState) -> GraphState:
 
 
 def feedback_collector(state: GraphState) -> GraphState:
-    """노드: 실패/fallback 케이스 영속화 (DB + 파일 사이드카)."""
+    """노드: 실패/fallback 케이스 영속화 (DB + 파일 사이드카).
+
+    비로그인 요청(persist=False)은 이미지를 남기지 않는다 — 저장 없이 다운로드만 제공.
+    """
+    if state.get("persist") is False:
+        return {**state, "feedback_saved": False}
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     original = cache.get("original")

@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import DateTime, Float, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -22,6 +22,10 @@ class BatchJob(Base):
     __tablename__ = "batch_jobs"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 등록한 사용자 (배치는 로그인 회원 전용)
+    user_id: Mapped[Optional[str]] = mapped_column(
+        String(32), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
     # 배치 전체에 공통 적용할 프롬프트 (항목별 override 는 item_results 에)
     prompt: Mapped[str] = mapped_column(Text, nullable=False, default="")

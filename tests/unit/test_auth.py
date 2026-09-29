@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """계정 API 테스트 — 회원가입 · 로그인/잠금 · 세션 · 아이디 찾기 · 비밀번호 재설정.
 
-실제 DB 대신 메모리 SQLite, 메일은 가로채서 본문(아이디·코드)을 확인한다.
-lifespan(init_db)을 돌리지 않도록 TestClient 를 with 없이 쓴다.
+앱·메모리 DB·메일 가로채기는 tests/unit/conftest.py 의 api_env fixture.
 """
 
 from __future__ import annotations
@@ -16,51 +15,16 @@ pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 pytest.importorskip("sqlalchemy")
 
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
-import app.models  # noqa: F401 — 테이블 메타데이터 등록
 from app.core import passwords as pw
 from app.core.config import get_settings
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import create_app
 from app.models.user import AuthCode, User
-from app.services import auth_service
 
 GOOD_PW = "cutkeep2026"
 
 
 @pytest.fixture()
-def env(monkeypatch):
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-
-    def _db():
-        db = Session()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    mails: list[dict] = []
-    monkeypatch.setattr(
-        auth_service,
-        "send_mail",
-        lambda to, subject, body, settings=None: mails.append(
-            {"to": to, "subject": subject, "body": body}
-        )
-        or True,
-    )
-    application = create_app()
-    application.dependency_overrides[get_db] = _db
-    client = TestClient(application)
-    yield {"client": client, "Session": Session, "mails": mails}
+def env(api_env):
+    return api_env
 
 
 def _signup(client, username="tester_01", email="tester@example.com", password=GOOD_PW, name="테스터"):

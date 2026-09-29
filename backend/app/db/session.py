@@ -107,6 +107,7 @@ def get_db() -> Generator[Session, None, None]:
 # (테이블, 컬럼, DDL 타입) — Alembic 도입 전까지의 최소 마이그레이션
 _ADDED_COLUMNS: list[tuple[str, str, str]] = [
     ("jobs", "user_id", "VARCHAR(32)"),
+    ("batch_jobs", "user_id", "VARCHAR(32)"),
 ]
 
 
