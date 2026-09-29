@@ -16,7 +16,7 @@ Docker(`cut_and_keep`) 스택 실행 방법을 정리한다.
 | Docker Desktop | 선택 (전체 스택) |
 | Git | 2.30+ |
 | **Ollama** (로컬 LLM) | `gemma4:e4b` — 프롬프트 분석 기본 |
-| **yolo26s-seg** 가중치 | `models/yolo26s-seg.pt` 또는 `.onnx` |
+| **yolo26s-seg** 가중치 | 서빙 `backend/models/yolo26s-seg.pt` 또는 `.onnx` (`training/yolo/apply_best.py`) |
 
 AI 모델 전략: [`docs/plan/AI_MODEL_STRATEGY.md`](./docs/plan/AI_MODEL_STRATEGY.md)  
 LLM 실행: [`docs/guidance/llm-and-vision.md`](./docs/guidance/llm-and-vision.md)
@@ -38,7 +38,8 @@ copy .env.example .env
 # 필요 시 .env 수정 (OPENAI_API_KEY, DB 등)
 ```
 
-로컬 기본 DB: `DB_DIALECT=sqlite` → `data/cutnkeep.db`
+로컬 기본 DB: `DB_DIALECT=sqlite` → `backend/data/cutnkeep.db`  
+백엔드 로그: `backend/logs/app_YYYY-MM-DD.log`
 
 ---
 

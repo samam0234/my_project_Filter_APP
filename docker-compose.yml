@@ -43,9 +43,13 @@ services:
       # 호스트 PC Ollama (Docker Desktop Windows/Mac)
       LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
     volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./logs:/app/logs
+      # 서비스 런타임 (backend/): 업로드·SQLite·서빙 모델·앱 로그
+      - ./backend/data:/app/data
+      - ./backend/models:/app/models
+      - ./backend/logs:/app/logs
+      # 학습 공유 (루트 data/): backend 가 기록 → training·scripts 가 읽음
+      - ./data/feedback:/app/data/feedback
+      - ./data/pseudo_labels:/app/data/pseudo_labels
     depends_on:
       mariadb:
         condition: service_healthy

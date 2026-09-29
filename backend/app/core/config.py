@@ -1,7 +1,10 @@
 """중앙 설정 (Pydantic Settings). 경로·모델명은 여기서만 관리.
 
 환경변수 / .env 로 덮어쓴다 (alias = 환경변수 이름).
-경로 프로퍼티(upload_path 등)는 항상 프로젝트 루트 기준 절대 경로로 해석.
+경로는 두 기준으로 나눠 절대 경로로 해석한다.
+  - 서비스 런타임 (backend/ 기준): uploads, SQLite DB, 앱 로그, 서빙 중인 모델
+  - 학습 공유 자산 (저장소 루트 기준): feedback, pseudo_labels
+Docker 에서는 둘 다 /app 이며, compose 마운트로 같은 역할 분리를 유지한다.
 """
 
 from functools import lru_cache
@@ -12,15 +15,19 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _backend_root() -> Path:
+    """서비스 런타임 루트: 로컬 …/backend, Docker /app."""
+    return Path(__file__).resolve().parents[2]
+
+
 def _project_root() -> Path:
     """
-    data/models 루트 경로 해석.
+    학습 공유 자산 루트 해석.
     - 로컬 모노레포: 저장소 루트 (…/CutNKeep)
     - Docker (backend 전용 이미지): 작업 디렉터리 (/app)
     """
-    here = Path(__file__).resolve()
-    backend_root = here.parents[2]  # …/backend or /app
-    repo_candidate = here.parents[3]
+    backend_root = _backend_root()
+    repo_candidate = backend_root.parent
     # 모노레포 신호: frontend 또는 docs 폴더가 있으면 저장소 루트로 간주
     if (repo_candidate / "frontend").is_dir() or (repo_candidate / "docs").is_dir():
         return repo_candidate
@@ -55,20 +62,26 @@ class Settings(BaseSettings):
         alias="ALLOWED_MIME_TYPES",
     )
 
-    # --- 모델·데이터 경로 (상대 경로는 프로젝트 루트 기준) ---
-    # 【수동·필수】 YOLO_MODEL_PATH
+    # --- 서비스 런타임 경로 (상대 경로는 backend/ 기준) ---
+    # 【수동·필수】 YOLO_MODEL_PATH — 지금 서빙 중인 활성 모델 (backend/models/)
     # 조건:
-    #   1) 파일을 저장소 루트 기준 경로에 직접 배치 (git 에 안 올라감)
-    #   2) 서비스 본선은 **세그** 가중치 (yolo26s-seg.pt 또는 .onnx)
-    #   3) 없으면 segmentation 이 stub 타원 마스크로 동작 (데모용)
+    #   1) 서비스 본선은 **세그** 가중치 (yolo26s-seg.pt 또는 .onnx), git 에 안 올라감
+    #   2) 없으면 segmentation 이 stub 타원 마스크로 동작 (데모용)
     # 기능: Segmentor 가 Ultralytics/ONNX 로 로드하는 유일한 경로 설정
-    # 학습 후: training/outputs/.../best.pt → models/ 로 복사 후 이 값 갱신
+    # 배포: 루트 models/(원본·후보 보관소) 또는 학습 best.pt
+    #       → training/yolo/apply_best.py 가 backend/models/ 로 복사
     yolo_model_path: str = Field(
         default="models/yolo26s-seg.pt",
         alias="YOLO_MODEL_PATH",
     )
-    # 【수동】 디스크 경로 — 용량·백업 정책에 맞게 변경 가능
+    # 【수동】 업로드 before/after — FILE_RETENTION_HOURS 뒤 scripts/cleanup.py 가 정리
     upload_dir: str = Field(default="data/uploads", alias="UPLOAD_DIR")
+    # 【수동】 백엔드 파일 로그 (일자별 회전)
+    log_dir: str = Field(default="logs", alias="LOG_DIR")
+    log_retention_days: int = Field(default=14, alias="LOG_RETENTION_DAYS")
+
+    # --- 학습 공유 경로 (상대 경로는 저장소 루트 기준) ---
+    # backend 가 기록하고 training/·scripts/ 가 읽는 학습 재료
     feedback_dir: str = Field(default="data/feedback", alias="FEEDBACK_DIR")
     pseudo_label_dir: str = Field(
         default="data/pseudo_labels",
@@ -161,36 +174,49 @@ class Settings(BaseSettings):
         """업로드 상한 바이트."""
         return self.max_upload_size_mb * 1024 * 1024
 
-    def resolve_path(self, relative: str) -> Path:
-        """상대 경로면 프로젝트 루트 기준 절대 경로."""
+    @staticmethod
+    def _resolve(relative: str, root: Path) -> Path:
         path = Path(relative)
         if path.is_absolute():
             return path
-        root = _project_root()
         return (root / path).resolve()
 
+    def resolve_runtime_path(self, relative: str) -> Path:
+        """서비스 런타임 경로: 상대 경로면 backend/ 기준 절대 경로."""
+        return self._resolve(relative, _backend_root())
+
+    def resolve_shared_path(self, relative: str) -> Path:
+        """학습 공유 경로: 상대 경로면 저장소 루트 기준 절대 경로."""
+        return self._resolve(relative, _project_root())
+
+    # --- 서비스 런타임 (backend/) ---
     @property
     def upload_path(self) -> Path:
-        return self.resolve_path(self.upload_dir)
+        return self.resolve_runtime_path(self.upload_dir)
 
     @property
-    def feedback_path(self) -> Path:
-        return self.resolve_path(self.feedback_dir)
-
-    @property
-    def pseudo_label_path(self) -> Path:
-        return self.resolve_path(self.pseudo_label_dir)
+    def log_path(self) -> Path:
+        return self.resolve_runtime_path(self.log_dir)
 
     @property
     def yolo_model_file(self) -> Path:
-        return self.resolve_path(self.yolo_model_path)
+        return self.resolve_runtime_path(self.yolo_model_path)
+
+    # --- 학습 공유 (저장소 루트) ---
+    @property
+    def feedback_path(self) -> Path:
+        return self.resolve_shared_path(self.feedback_dir)
+
+    @property
+    def pseudo_label_path(self) -> Path:
+        return self.resolve_shared_path(self.pseudo_label_dir)
 
     @property
     def database_url(self) -> str:
         """
         SQLAlchemy URL 해석.
         - DATABASE_URL 환경변수가 있으면 최우선
-        - 아니면 sqlite → 프로젝트 루트 하위 파일 (로컬 기본)
+        - 아니면 sqlite → backend/ 하위 파일 (서비스 런타임, 로컬 기본)
         - 아니면 mariadb → mysql+pymysql://...
         """
         if self.database_url_override:
@@ -198,7 +224,7 @@ class Settings(BaseSettings):
 
         dialect = (self.db_dialect or "sqlite").strip().lower()
         if dialect in {"sqlite", "local"}:
-            path = self.resolve_path(self.sqlite_path)
+            path = self.resolve_runtime_path(self.sqlite_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             return f"sqlite:///{path.as_posix()}"
 

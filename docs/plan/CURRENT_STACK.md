@@ -26,7 +26,7 @@
 
 | 항목 | 현재 |
 |------|------|
-| 로컬 기본 | `DB_DIALECT=sqlite` → `data/cutnkeep.db` |
+| 로컬 기본 | `DB_DIALECT=sqlite` → `backend/data/cutnkeep.db` |
 | Docker backend | compose 가 **`DB_DIALECT=mariadb`**, `MARIADB_HOST=mariadb`, `PORT=3306` 강제 |
 | 이미지 | 공식 **`mariadb:11`** (GSS 커스텀 이미지 **제거됨**) |
 | 인증 | **비밀번호만** (`mysql_native_password`). GSS-API **미사용** |
@@ -66,7 +66,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 
 | 항목 | 현재 기본 |
 |------|-----------|
-| 세그 | **YOLO26s-seg** (`models/yolo26s-seg.pt` / `.onnx`) |
+| 세그 | **YOLO26s-seg** — 서빙 `backend/models/yolo26s-seg.pt` / `.onnx`, 원본·후보 루트 `models/` |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
 | LLM 설정 | Ollama `gemma4:e4b` (Settings). **프롬프트 노드는 휴리스틱 기본**, LLM 연동은 수동 구현 지점 |
 | 학습 | `training/` — `train_segment.py` 본선, `env_cuda.ps1` / `setup_cuda_env.ps1` |
@@ -127,7 +127,24 @@ Backend 컨테이너 오버라이드 예:
 
 ---
 
-## 9. 문서 갱신 시 체크
+## 9. 런타임 · 학습 폴더 분리
+
+| 역할 | 경로 | 내용 | 기준 |
+|------|------|------|------|
+| 서비스 런타임 | `backend/data/` | `uploads/`, `cutnkeep.db` | `backend/` 상대 |
+| 서비스 런타임 | `backend/models/` | 지금 서빙 중인 활성 가중치 | `backend/` 상대 |
+| 서비스 런타임 | `backend/logs/` | `app_YYYY-MM-DD.log` (자정 회전, 14일) | `backend/` 상대 |
+| 학습 공유 | `data/` | `feedback/`, `pseudo_labels/` | 루트 상대 |
+| 학습 공유 | `models/` | 모델 원본·후보·LoRA 어댑터 보관소 | 루트 상대 |
+| 학습 공유 | `logs/` | 학습·스크립트 로그 | 루트 상대 |
+
+- 코드: `Settings.resolve_runtime_path` / `resolve_shared_path` (`backend/app/core/config.py`)
+- 배포: `training/yolo/apply_best.py` → `backend/models/`
+- Docker: `./backend/{data,models,logs}` → `/app/{data,models,logs}`, `./data/{feedback,pseudo_labels}` → `/app/data/{feedback,pseudo_labels}`
+
+---
+
+## 10. 문서 갱신 시 체크
 
 - [ ] 포트 표에 **Adminer 8081**, **MariaDB 호스트 포트 env**, **Redis 6380**
 - [ ] MariaDB **비밀번호 전용 · GSS/SSL 없음**
@@ -135,5 +152,6 @@ Backend 컨테이너 오버라이드 예:
 - [ ] YOLO **s-seg** 기본
 - [ ] 커밋 기록 경로 **branchs/commits**
 - [ ] Console Compose 미포함
+- [ ] 런타임(`backend/`) · 학습 공유(루트) 폴더 분리
 
 이 스냅샷과 충돌하는 문구가 있으면 **이 파일을 우선**하고 해당 문서를 고친다.

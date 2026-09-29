@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     - 종료: 종료 로그만 남김 (추가 정리 로직은 이후 확장)
     """
     settings = get_settings()
-    setup_logging(settings.debug)
+    setup_logging(settings.debug, settings.log_path, settings.log_retention_days)
     # 런타임에 쓸 디렉터리가 없으면 만든다
     for path in (
         settings.upload_path,
@@ -37,11 +37,14 @@ async def lifespan(app: FastAPI):
     # SQLite/MariaDB 테이블 create_all (없으면 생성)
     init_db()
     logger.info(
-        "컷앤킵 시작 env={} phase={} db={} upload={}",
+        "컷앤킵 시작 env={} phase={} db={} upload={} model={} feedback={} logs={}",
         settings.app_env,
         PHASE,
         get_engine().dialect.name,
         settings.upload_path,
+        settings.yolo_model_file,
+        settings.feedback_path,
+        settings.log_path,
     )
     yield
     logger.info("컷앤킵 종료")

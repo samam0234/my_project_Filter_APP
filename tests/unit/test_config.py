@@ -78,3 +78,40 @@ def test_get_settings_cached():
     a = get_settings()
     b = get_settings()
     assert a is b
+
+
+def test_runtime_paths_resolve_under_backend(backend_root):
+    """uploads·SQLite·모델·로그는 backend/ 기준 (서비스 런타임)."""
+    s = Settings.model_validate(
+        {
+            "UPLOAD_DIR": "data/uploads",
+            "SQLITE_PATH": "data/test_cutnkeep.db",
+            "YOLO_MODEL_PATH": "models/yolo26s-seg.pt",
+            "LOG_DIR": "logs",
+            "DB_DIALECT": "sqlite",
+        }
+    )
+    root = backend_root.resolve()
+    assert s.upload_path == root / "data" / "uploads"
+    assert s.yolo_model_file == root / "models" / "yolo26s-seg.pt"
+    assert s.log_path == root / "logs"
+    assert (root / "data" / "test_cutnkeep.db").as_posix() in s.database_url
+
+
+def test_shared_paths_resolve_under_repo_root(repo_root):
+    """feedback·pseudo_labels 는 저장소 루트 기준 (학습 공유)."""
+    s = Settings.model_validate(
+        {"FEEDBACK_DIR": "data/feedback", "PSEUDO_LABEL_DIR": "data/pseudo_labels"}
+    )
+    root = repo_root.resolve()
+    assert s.feedback_path == root / "data" / "feedback"
+    assert s.pseudo_label_path == root / "data" / "pseudo_labels"
+
+
+def test_absolute_paths_kept(tmp_path):
+    """절대 경로는 기준과 무관하게 그대로."""
+    s = Settings.model_validate(
+        {"UPLOAD_DIR": str(tmp_path / "up"), "FEEDBACK_DIR": str(tmp_path / "fb")}
+    )
+    assert s.upload_path == tmp_path / "up"
+    assert s.feedback_path == tmp_path / "fb"

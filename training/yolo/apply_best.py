@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""학습 best.pt 를 서비스 경로로 복사하고 샘플 1장 추론한다.
+"""학습 best.pt 를 서비스 경로(backend/models/)로 배포하고 샘플 1장 추론한다.
+
+루트 models/ 는 원본·후보 보관소, backend/models/ 는 지금 서빙 중인 활성 모델이다.
 
 사용:
   python training/yolo/apply_best.py
@@ -17,12 +19,12 @@ REPO = Path(__file__).resolve().parents[2]
 DEFAULT_BEST = (
     Path(__file__).resolve().parents[1] / "outputs" / "segment" / "cutnkeep_seg" / "weights" / "best.pt"
 )
-DEFAULT_DEST = REPO / "models" / "yolo26s-seg.pt"
+DEFAULT_DEST = REPO / "backend" / "models" / "yolo26s-seg.pt"
 VAL_DIR = Path(__file__).resolve().parents[1] / "datasets" / "cutnkeep_seg" / "images" / "val"
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Copy best.pt to models/ and smoke-predict")
+    parser = argparse.ArgumentParser(description="Deploy best.pt to backend/models/ and smoke-predict")
     parser.add_argument("--weights", type=Path, default=DEFAULT_BEST)
     parser.add_argument("--dest", type=Path, default=DEFAULT_DEST)
     parser.add_argument("--image", type=Path, default=None)
@@ -35,7 +37,7 @@ def main() -> None:
     args.dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(args.weights, args.dest)
     print(f"copied {args.weights} -> {args.dest} ({args.dest.stat().st_size} bytes)")
-    print("YOLO_MODEL_PATH=models/yolo26s-seg.pt  (backend 재시작)")
+    print("YOLO_MODEL_PATH=models/yolo26s-seg.pt  (backend/ 기준, backend 재시작)")
 
     if args.skip_predict:
         return
