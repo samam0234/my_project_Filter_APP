@@ -15,6 +15,25 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 
 ---
 
+## Auth — 계정
+
+세션은 **HttpOnly · SameSite=Lax 쿠키**(`SESSION_COOKIE_NAME`, 기본 `cnk_session`)로만 주고받는다.
+상세 규칙·보안: [`guidance/auth.md`](guidance/auth.md)
+
+| 엔드포인트 | 요청 JSON | 응답 |
+|------------|-----------|------|
+| `POST /api/v1/auth/signup` | `username`, `email`, `password`, `display_name?` | 201 사용자 + 세션 쿠키 · 400 규칙 위반 · 409 중복 |
+| `POST /api/v1/auth/login` | `username`, `password` | 200 사용자 + 쿠키 · 401 불일치 · 429 잠금 |
+| `POST /api/v1/auth/logout` | — | 200, 서버 세션 폐기 + 쿠키 삭제 |
+| `GET /api/v1/auth/me` | — | 200 사용자 · 401 비로그인 |
+| `POST /api/v1/auth/find-id` | `email` | 200 **항상 같은 안내** (아이디는 메일로만) |
+| `POST /api/v1/auth/password/request` | `username`, `email` | 200 **항상 같은 안내** (일치하면 6자리 코드 메일) |
+| `POST /api/v1/auth/password/reset` | `username`, `code`, `new_password` | 200 성공(모든 세션 로그아웃) · 400 코드 오류/만료/규칙 위반 |
+
+사용자 응답: `{ "id", "username", "email", "display_name", "created_at" }`
+
+---
+
 ## Upload — 단일 이미지 처리
 
 `POST /api/v1/upload` · `multipart/form-data`
@@ -24,7 +43,7 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 | `file` | JPEG / PNG / WebP, 최대 20 MB (`MAX_UPLOAD_SIZE_MB`) |
 | `prompt` | 자연어 요청 1~1000자 |
 
-파이프라인을 **동기**로 실행한 뒤 `jobs` 테이블에 저장한다.
+파이프라인을 **동기**로 실행한 뒤 `jobs` 테이블에 저장한다. 로그인 상태면 작업을 사용자와 연결한다(`jobs.user_id`).
 LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 더 김).
 
 응답:
@@ -81,6 +100,7 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
 | 엔드포인트 | 설명 |
 |------------|------|
 | `GET /api/v1/jobs?limit=50` | 최근 목록 (상한 200, 최신순) |
+| `GET /api/v1/jobs?mine=true` | 로그인 사용자의 작업만 (비로그인 401) |
 | `GET /api/v1/jobs/{job_id}` | 단건. 없으면 404 |
 
 ```json

@@ -96,16 +96,30 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 
 ### 2.3 기동 시 테이블 생성
 
-`lifespan` → `init_db()` → `Base.metadata.create_all()`  
-Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 권장.
+`lifespan` → `init_db()` → `Base.metadata.create_all()` → `_ensure_columns()`
+`create_all` 은 **없는 테이블만** 만들고 기존 테이블에 컬럼을 추가하지 않는다.
+그래서 `db/session.py` 의 `_ADDED_COLUMNS` 목록에 있는 컬럼만 `ALTER TABLE … ADD COLUMN … NULL` 로 보강한다
+(현재 `jobs.user_id`). 스키마 변경이 잦아지면 Alembic 도입 권장.
 
 ---
 
 ## 3. ERD (논리)
 
 ```
+┌──────────────── users ───────────────┐
+│ id (PK), username (UQ), email (UQ)   │
+│ display_name, password_hash (scrypt) │
+│ failed_logins, locked_until          │
+│ last_login_at, created_at, updated_at│
+└──────┬───────────────┬───────────────┘
+       │ 1:N CASCADE   │ 1:N CASCADE          (jobs.user_id → SET NULL)
+       ▼               ▼
+ auth_sessions      auth_codes
+ id=sha256(token)   purpose, code_hash(HMAC)
+ expires_at         attempts, expires_at, used_at
+
 ┌──────────────── jobs ────────────────┐
-│ id (PK)                              │
+│ id (PK), user_id (FK, NULL 허용)     │
 │ prompt, status, parsed_prompt(JSON)  │
 │ quality_score, before_path, after_path│
 │ backend, labels, confidences, message│
@@ -132,10 +146,20 @@ Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 
 
 ### 3.1 테이블 상세
 
+#### `users` · `auth_sessions` · `auth_codes`
+계정 기능 — 상세 규칙·보안은 [`docs/guidance/auth.md`](../guidance/auth.md)
+
+| 테이블 | 핵심 컬럼 | 비고 |
+|--------|-----------|------|
+| `users` | username · email (소문자, 유일) · password_hash · failed_logins · locked_until | 비밀번호 원문 저장 없음 |
+| `auth_sessions` | id = 세션 토큰 SHA-256 · user_id · expires_at | 토큰 원문은 쿠키에만 |
+| `auth_codes` | user_id · purpose · code_hash · attempts · expires_at · used_at | 재설정 코드, 1회용 |
+
 #### `jobs`
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | str(64) PK | job UUID |
+| user_id | str(32) NULL | 로그인 상태로 처리한 작업의 소유자 (비로그인 NULL) |
 | prompt | text | 사용자 프롬프트 |
 | status | str | pending / ok / fallback / failed |
 | parsed_prompt | JSON | 구조화 프롬프트 |
@@ -183,10 +207,11 @@ Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 
 | `JobRepository` | `get`, `create_pending`, `save_result`, `mark_feedback_saved`, `list_recent` |
 | `FeedbackRepository` | `create`, `list_by_job`, `get` |
 | `BatchRepository` | `create`, `get`, `update_progress` |
+| `UserRepository` | `by_username`, `by_email`, `create`, 세션 `add/get/delete`, 코드 `replace/active/latest` |
 
 업로드 라우터 흐름:
 1. `run_pipeline(...)`  
-2. `JobRepository.save_result(result, prompt)`  
+2. `JobRepository.save_result(result, prompt, user_id)` — 로그인 상태면 소유자 연결    
 
 피드백 라우터 흐름:
 1. (옵션) 파일 사이드카 저장  
