@@ -140,3 +140,27 @@ def test_validator_node_explains_missing_target():
         nodes.clear_job_cache("t1")
     assert out["status"] == "failed"
     assert "bus" in out["message"] and "car, person" in out["message"]
+
+
+def test_coco_bag_alias_matches_custom_model_label():
+    """LLM 이 handbag 이라고 해도 커스텀 모델의 bag 을 잡는다 (양방향 별칭)."""
+    from app.services.segmentation import expand_targets
+
+    assert "bag" in expand_targets({"handbag"})
+    assert "backpack" in expand_targets({"bag"})
+    seg = _segmentor([(3, 0.8, (10, 20))])
+    seg._yolo = _FakeYolo(_Result([(3, 0.8, (10, 20))], {3: "bag"}))
+    r = seg.predict(np.zeros((H, W, 3), np.uint8), targets=["handbag"])
+    assert r.labels == ["bag"]
+
+
+def test_create_session_skips_non_onnx(tmp_path):
+    """.pt 를 ONNX 로 열지 않는다 (Ultralytics 로드 실패 시 파이프라인이 멈추던 문제)."""
+    from app.utils.onnx_utils import create_session
+
+    fake_pt = tmp_path / "yolo.pt"
+    fake_pt.write_bytes(b"not onnx")
+    assert create_session(fake_pt) is None
+    broken = tmp_path / "broken.onnx"
+    broken.write_bytes(b"not a protobuf")
+    assert create_session(broken) is None

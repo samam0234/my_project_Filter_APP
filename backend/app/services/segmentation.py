@@ -13,6 +13,26 @@ from app.core.config import Settings, get_settings
 from app.utils.onnx_utils import create_session
 
 
+# 【수동】 라벨 별칭 — 프롬프트 어휘(COCO)와 서빙 모델 names 가 다를 때 양방향으로 맞춘다.
+# 예: 5클래스 커스텀 모델은 "bag", LLM/LoRA 는 COCO "handbag"/"backpack"
+LABEL_ALIASES: dict[str, set[str]] = {
+    "bag": {"handbag", "backpack", "suitcase"},
+    "cell phone": {"phone", "mobile phone"},
+    "person": {"people", "human"},
+}
+
+
+def expand_targets(targets: set[str]) -> set[str]:
+    """요청 라벨에 별칭을 더한다 (canonical ↔ 별칭 양방향)."""
+    out = set(targets)
+    for canon, alts in LABEL_ALIASES.items():
+        if canon in targets:
+            out |= alts
+        if targets & alts:
+            out.add(canon)
+    return out
+
+
 @dataclass(eq=False)  # 마스크 배열 비교 방지 — 동일성(is)으로만 비교
 class Instance:
     """세그 인스턴스 1개 (요청 대상 필터 통과분).
@@ -181,7 +201,7 @@ class Segmentor:
         instances: List[Instance] = []
         detected: List[str] = []
 
-        target_set = {t.lower() for t in targets}
+        target_set = expand_targets({t.lower() for t in targets})
         keep_all = not target_set or "all" in target_set
         for r in results:
             names = r.names or {}
