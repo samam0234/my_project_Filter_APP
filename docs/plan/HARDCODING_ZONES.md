@@ -50,7 +50,7 @@
 | 골격·인프라·문서 | ~80% | ~20% | 코드 아님 (.env, 모델 파일) |
 | Phase1 단일 이미지 | ~85% | ~15% | ~~LLM 연결~~ (완료), (선택) ONNX |
 | 비전 품질·학습 루프 | ~30% | ~70% | 데이터, **평가**, **pseudo**, YOLO fine-tune |
-| Phase2 | ~20% | ~80% | **배치**, **LoRA**, **DINO+SAM2** |
+| Phase2 | ~35% | ~65% | **배치**, ~~LoRA~~ (정책·시드·평가·서빙 완료), **DINO+SAM2** |
 
 **권장 순서:** ~~LLM~~ → 모델 배치 → ONNX(선택) → 학습·평가 → batch → pseudo → LoRA → SAM2
 
@@ -65,8 +65,8 @@
 | ONNX 전·후처리 루프 | `backend/app/utils/onnx_utils.py` | create_session 은 바이브 |
 | Grounding DINO + SAM2 | `backend/app/services/segmentation.py` | Phase2 |
 | 배치 실처리 워커 | `backend/app/tasks/batch_tasks.py` | stub return 은 바이브 |
-| LoRA 샘플 정책·템플릿 | `training/lora/train_lora.py` | 데이터 적재·dry-run·PEFT 루프는 바이브. 남은 숙제: 템플릿·vote·target_modules |
-| LoRA 주간 배치 인자 | `scripts/fine_tune_lora.py` | subprocess 위임은 바이브. 남은 숙제: epochs/lr/rank 기본값 |
+| ~~LoRA 샘플 정책·템플릿~~ | `training/lora/train_lora.py` | **완료** — 템플릿 `prompt_spec.LORA_TEMPLATE`, 시드 반복·pseudo 샘플링, 응답 전용 loss, q/k/v/o |
+| ~~LoRA 주간 배치 인자~~ | `scripts/fine_tune_lora.py` | **완료** — train_lora 기본값과 동일 |
 | 의사 라벨 루프 | `scripts/pseudo_labeling.py` | |
 | 평가 메트릭 | `scripts/evaluate_model.py` | |
 

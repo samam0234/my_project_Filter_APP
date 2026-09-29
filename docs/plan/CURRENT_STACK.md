@@ -68,7 +68,9 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 |------|-----------|
 | 세그 | **YOLO26s-seg** — 서빙 `backend/models/yolo26s-seg.pt` / `.onnx`, 원본·후보 루트 `models/` |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
-| LLM 설정 | Ollama `gemma4:e4b` (Settings). **프롬프트 노드는 휴리스틱 기본**, LLM 연동은 수동 구현 지점 |
+| LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
+| 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
+| 인스턴스 선택 | `services/instance_selector.py` — 같은 클래스 중 특정 인스턴스 (학습 아닌 규칙) |
 | 학습 | `training/` — `train_segment.py` 본선, `env_cuda.ps1` / `setup_cuda_env.ps1` |
 
 문서: `docs/plan/AI_MODEL_STRATEGY.md`, `YOLO26S_DEFAULT.md`, `training/README.md`

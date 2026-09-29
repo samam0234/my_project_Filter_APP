@@ -227,3 +227,17 @@ def test_system_prompt_documents_keep_vs_remove():
     from app.services.prompt_spec import SYSTEM_PROMPT
 
     assert "remove_object" in SYSTEM_PROMPT and "selector" in SYSTEM_PROMPT
+
+
+def test_lora_provider_without_base_model_raises():
+    """LLM_PROVIDER=lora 인데 베이스 경로가 없으면 LLMError → 노드가 휴리스틱으로 fallback."""
+    with pytest.raises(LLMError):
+        parse_prompt_llm("강아지만 남겨", _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL=""))
+
+
+def test_lora_provider_missing_dir_raises(tmp_path):
+    with pytest.raises(LLMError):
+        parse_prompt_llm(
+            "강아지만 남겨",
+            _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL=str(tmp_path / "nope")),
+        )

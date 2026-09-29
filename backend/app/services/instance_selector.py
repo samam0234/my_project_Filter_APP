@@ -59,10 +59,19 @@ PART_REGIONS: Dict[str, Tuple[float, float]] = {
     "jacket": (0.15, 0.65),
     "coat": (0.15, 0.75),
     "top": (0.18, 0.6),
+    "hoodie": (0.1, 0.65),
+    "sweater": (0.18, 0.62),
+    "raincoat": (0.1, 0.8),
+    "dress": (0.18, 0.9),
+    "skirt": (0.45, 0.8),
     "pants": (0.5, 0.92),
     "jeans": (0.5, 0.92),
     "shoes": (0.85, 1.0),
 }
+
+# 같은 영역을 보는 부위 이름은 하나로 (비교·로그 일관성)
+PART_ALIASES = {"t-shirt": "shirt", "tee": "shirt", "blouse": "shirt", "sweatshirt": "sweater",
+                "trousers": "pants", "sneakers": "shoes", "cap": "hat"}
 
 # 【수동·튜닝】 속성 일치 기준: 절대 비율 이상 **그리고** 최고 점수 대비 상대 비율 이상
 # 상대 기준은 여러 인스턴스가 약하게 걸릴 때(피부·배경 색) 확실한 것만 남기기 위함
@@ -98,7 +107,11 @@ def parse_attribute(phrase: str) -> Tuple[Optional[str], Optional[str]]:
         (c for c in sorted(COLOR_RANGES, key=len, reverse=True) if f" {c} " in padded),
         None,
     )
-    part = next((p for p in PART_REGIONS if f" {p}" in f" {text}"), None)
+    words = f" {text} "
+    for alias in sorted(PART_ALIASES, key=len, reverse=True):
+        if f" {alias} " in words:
+            words = words.replace(f" {alias} ", f" {PART_ALIASES[alias]} ")
+    part = next((p for p in PART_REGIONS if f" {p} " in words), None)
     return color, part
 
 

@@ -55,10 +55,13 @@ selector — which instances of the target class, when the request points at spe
             "center" (가운데/중앙), "largest" (가장 큰), "smallest" (가장 작은), or null.
   rank:     1-based order along that position. "오른쪽에서 두 번째" -> position "right", rank 2.
             null for the first one.
-  count:    number of instances. A singular description ("그 남자", "the man", "한 명") -> 1,
-            "두 사람" -> 2. null when the request means every instance of the class.
+  count:    only when the request states a number: "한 명"/"one" -> 1, "두 사람"/"two" -> 2.
+            With a position word, count is 1. Otherwise null (a noun alone like "남자"
+            or "the woman" does not set count — Korean nouns do not mark singular/plural).
   attributes: short lowercase English "color part" phrases describing the instance,
             e.g. "red helmet", "neon yellow vest", "blue shirt", "white car". [] if none.
+            For people use part words helmet, hat, vest, shirt, jacket, pants, shoes.
+            For objects use "color class", e.g. "black car", "red bus".
   Use null for selector when the request means ALL instances of the target class.
 
 Examples:
@@ -181,3 +184,41 @@ def normalize_parsed(raw: Dict[str, Any]) -> ParsedPrompt:
         crop=crop,
         selector=normalize_selector(raw.get("selector")),
     )
+
+
+# =============================================================================
+# LoRA 어댑터 규격 (training/lora 학습 · services/prompt_lora 서빙 공용)
+# -----------------------------------------------------------------------------
+# 작은 모델(Qwen2.5-1.5B)은 긴 SYSTEM_PROMPT 대신 짧은 지시 + 학습으로 규격을 익힌다.
+# 이 템플릿이나 parsed_to_json 형식을 바꾸면 어댑터를 다시 학습해야 한다.
+# =============================================================================
+LORA_TEMPLATE = """### 지시
+컷앤킵 이미지 편집 요청을 JSON 한 줄로 변환하세요.
+스키마: {{"target":[COCO 클래스 소문자],"effect":"remove_bg|blur|crop|none|remove_object","intensity":0-100,"crop":bool,"selector":null|{{"position":"front|back|left|right|center|largest|smallest"|null,"rank":int|null,"count":int|null,"attributes":["색 부위"]}}}}
+remove_object 는 대상을 지우고, 나머지 effect 는 대상을 남긴다.
+
+### 프롬프트
+{prompt}
+
+### 응답
+{response}"""
+
+
+def parsed_to_json(parsed: ParsedPrompt) -> str:
+    """정답 JSON 한 줄 (키 순서 고정). LoRA 학습 레이블과 평가 비교에 사용."""
+    selector = None
+    if parsed.selector is not None and not parsed.selector.is_empty():
+        selector = {
+            "position": parsed.selector.position,
+            "rank": parsed.selector.rank,
+            "count": parsed.selector.count,
+            "attributes": list(parsed.selector.attributes),
+        }
+    payload = {
+        "target": list(parsed.target),
+        "effect": parsed.effect,
+        "intensity": parsed.intensity,
+        "crop": parsed.crop,
+        "selector": selector,
+    }
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))

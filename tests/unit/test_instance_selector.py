@@ -105,3 +105,12 @@ def test_rank_along_position():
 
 def test_rank_beyond_candidates_picks_last():
     assert _pick(InstanceSelector(position="left", rank=9)) == [2]
+
+
+@pytest.mark.parametrize(
+    "phrase,expected",
+    [("blue t-shirt", ("blue", "shirt")), ("black cap", ("black", "hat")),
+     ("gray hoodie", ("gray", "hoodie")), ("yellow raincoat", ("yellow", "raincoat"))],
+)
+def test_part_aliases(phrase, expected):
+    assert parse_attribute(phrase) == expected

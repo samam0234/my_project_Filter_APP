@@ -4,6 +4,7 @@ prompt_analyzer 노드가 호출한다. provider 는 Settings.llm_provider:
   - ollama  : 로컬 Ollama native /api/chat (기본, gemma4:e4b)
   - openai  : Chat Completions (json_object 모드)
   - gemini  : generateContent (application/json 응답)
+  - lora    : training/lora 어댑터를 프로세스 안에서 추론 (services/prompt_lora)
   - heuristic / 빈 값 : LLM 생략 → None 반환 (호출측이 휴리스틱 사용)
 
 원칙:
@@ -32,7 +33,7 @@ from app.services.prompt_spec import (  # noqa: F401  (테스트·호출측 재�
     normalize_parsed,
 )
 
-LLM_PROVIDERS = {"ollama", "openai", "gemini"}
+LLM_PROVIDERS = {"ollama", "openai", "gemini", "lora"}
 
 OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 GEMINI_URL_TEMPLATE = (
@@ -165,6 +166,11 @@ def parse_prompt_llm(
     provider = (settings.llm_provider or "").strip().lower()
     if provider in {"", "heuristic", "none"}:
         return None
+    if provider == "lora":
+        # 로컬 어댑터 — HTTP 가 아니라 프로세스 내 추론 (services/prompt_lora)
+        from app.services.prompt_lora import parse_prompt_lora
+
+        return parse_prompt_lora(prompt, settings)
     caller = _CALLERS.get(provider)
     if caller is None:
         logger.warning("알 수 없는 LLM_PROVIDER={} — 휴리스틱 사용", provider)
