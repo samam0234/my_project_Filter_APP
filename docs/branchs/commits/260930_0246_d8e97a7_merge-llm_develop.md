@@ -33,7 +33,7 @@
 ### 3.3 기술 포인트
 
 - `git merge --no-ff` (FF 금지 규칙 준수), 병합 순서 backend → llm → yolo
-d8e97a70
+- config.py·.env.example 는 backend 와 다른 구간이라 자동 병합
 
 ### 3.4 의도적으로 하지 않은 것
 

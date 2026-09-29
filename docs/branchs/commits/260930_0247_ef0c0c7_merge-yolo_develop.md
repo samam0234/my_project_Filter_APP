@@ -33,7 +33,7 @@
 ### 3.3 기술 포인트
 
 - `git merge --no-ff` (FF 금지 규칙 준수), 병합 순서 backend → llm → yolo
-ef0c0c70
+- 충돌: `graph.py` 결과 meta 에 llm 의 `prompt_parser` 와 yolo 의 `detected` 가 같은 줄에 추가됨 → 둘 다 유지
 
 ### 3.4 의도적으로 하지 않은 것
 
