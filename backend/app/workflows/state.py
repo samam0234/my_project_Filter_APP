@@ -26,6 +26,7 @@ class GraphState(TypedDict, total=False):
     # --- 프롬프트 분석 결과 ---
     # ParsedPrompt.model_dump() 형태: target, effect, intensity, crop
     parsed_prompt: Dict[str, Any]
+    prompt_parser: str  # "ollama" | "openai" | "gemini" | "heuristic" (실제 사용된 파서)
 
     # --- 처리 상태 / 품질 ---
     # JSON 안전을 위해 TypedDict에 ndarray 미저장 — runner가 보관

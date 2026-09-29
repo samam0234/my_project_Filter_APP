@@ -16,10 +16,12 @@ from uuid import uuid4
 
 from loguru import logger
 
+from app.core.config import get_settings
 from app.core.constants import JobStatus
 from app.schemas.request import ParsedPrompt
 from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
+from app.services.prompt_llm import parse_prompt_llm
 from app.workflows.state import GraphState
 
 # 모듈 수준 싱글톤 (첫 사용 시 생성 — lazy)
@@ -103,43 +105,42 @@ def prompt_analyzer(state: GraphState) -> GraphState:
     job_id = state.get("job_id") or uuid4().hex
 
     # =============================================================================
-    # [하드코딩 파트] LLM 프롬프트 분석 연결
+    # [이미 구현된 구간 · 바이브] LLM 프롬프트 분석 연결
     # -----------------------------------------------------------------------------
-    # [관련 작업 임무 및 역할]
-    #   Settings 의 LLM_* 설정을 읽어 자연어 prompt → ParsedPrompt JSON 으로 변환.
-    #   Phase1 부족분: 휴리스틱만 쓰는 한계를 LLM 으로 메움.
-    # [기능하고 연결된 변수 및 함수]
-    #   prompt, get_settings().llm_*, ParsedPrompt, parse_prompt_heuristic (fallback)
-    # [작성해야 하는 방식 및 규칙]
-    #   1) llm_provider 가 heuristic/빈 값 → LLM 생략.
-    #   2) ollama|openai|gemini 만 호출. JSON: target[], effect, intensity, crop.
-    #   3) effect: remove_bg|blur|crop|none. target 소문자=YOLO names.
-    #   4) 실패 시 parse_prompt_heuristic. OpenCV/YOLO 호출 금지.
-    # [코드 방식 힌트]
-    #   settings = get_settings()
-    #   try:
-    #       if settings.llm_provider == "ollama":
-    #           # HTTP → JSON → ParsedPrompt(**...)
-    #           ...
-    #       else:
-    #           parsed = parse_prompt_heuristic(prompt)
-    #   except Exception:
-    #       parsed = parse_prompt_heuristic(prompt)
+    # Settings.llm_provider 에 따라 services/prompt_llm 이 Ollama/OpenAI/Gemini 호출.
+    #   - heuristic/빈 값/미지원 provider → None → 휴리스틱
+    #   - 호출·파싱 실패(LLMError 등)      → 경고 로그 후 휴리스틱
+    # prompt_parser 에 실제 사용된 파서를 남겨 meta/콘솔에서 확인 가능.
     # =============================================================================
-    # >>> 여기에 LLM 분기 작성 (미구현이면 아래 바이브 fallback 유지) <<<
-    #
+    parsed: ParsedPrompt | None = None
+    parser_used = "heuristic"
+    settings = get_settings()
+    try:
+        parsed = parse_prompt_llm(prompt, settings)
+        if parsed is not None:
+            parser_used = settings.llm_provider.strip().lower()
+    except Exception as exc:
+        logger.warning("LLM 프롬프트 분석 실패 job={} — 휴리스틱 사용: {}", job_id, exc)
+        parsed = None
 
     # =============================================================================
     # [이미 구현된 구간 · 바이브] heuristic fallback + state 반환
     # -----------------------------------------------------------------------------
-    # LLM 미연결 시에도 파이프라인이 돌아가게 하는 기존 동작.
+    # LLM 미연결·실패 시에도 파이프라인이 돌아가게 하는 기존 동작.
     # =============================================================================
-    parsed = parse_prompt_heuristic(prompt)
-    logger.info("prompt_analyzer job={} parsed={}", job_id, parsed.model_dump())
+    if parsed is None:
+        parsed = parse_prompt_heuristic(prompt)
+    logger.info(
+        "prompt_analyzer job={} parser={} parsed={}",
+        job_id,
+        parser_used,
+        parsed.model_dump(),
+    )
     return {
         **state,
         "job_id": job_id,
         "parsed_prompt": parsed.model_dump(),
+        "prompt_parser": parser_used,
         "status": JobStatus.PENDING.value,
         "retry_count": state.get("retry_count") or 0,
     }

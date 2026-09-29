@@ -92,17 +92,10 @@ class Settings(BaseSettings):
     # 참고: docs/plan/AI_MODEL_STRATEGY.md
 
     # =============================================================================
-    # [하드코딩 파트] LLM 호출 본문 — 위치는 nodes.py (여기 아님)
-    # -----------------------------------------------------------------------------
-    # [임무] 아래 필드를 prompt_analyzer 에서 읽어 LLM 연결
-    # [연결] llm_* → workflows/nodes.py [하드코딩 파트] LLM 프롬프트 분석
-    # [규칙] .env alias 일치. 시크릿 커밋 금지. 새 provider 시 Field+nodes 동시.
-    # =============================================================================
-
-    # =============================================================================
     # [이미 구현된 구간 · 바이브] LLM Settings 필드 정의
     # -----------------------------------------------------------------------------
-    # 값/기본값 스키마만 완료. HTTP 호출 로직은 위 하드코딩(nodes) 쪽.
+    # HTTP 호출은 services/prompt_llm.py, 분기는 workflows/nodes.prompt_analyzer.
+    # [규칙] .env alias 일치. 시크릿 커밋 금지. 새 provider 시 Field+prompt_llm 동시.
     # =============================================================================
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     llm_base_url: str | None = Field(
@@ -114,6 +107,9 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL")
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     gemini_model: str = Field(default="gemini-2.0-flash", alias="GEMINI_MODEL")
+    # 【수동·튜닝】 LLM_TIMEOUT_SECONDS — Ollama 첫 호출은 모델 로드로 느릴 수 있음
+    # 초과 시 휴리스틱 fallback 이므로 너무 길면 업로드 응답이 늦어진다
+    llm_timeout_seconds: float = Field(default=30.0, alias="LLM_TIMEOUT_SECONDS")
 
 
     # --- 큐 / 파일 수명 (Phase 2 배치에서 사용) ---

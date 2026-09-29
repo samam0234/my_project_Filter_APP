@@ -48,11 +48,11 @@
 | 영역 | 대략 현재 | 부족 | 채울 하드코딩 (우선) |
 |------|-----------|------|----------------------|
 | 골격·인프라·문서 | ~80% | ~20% | 코드 아님 (.env, 모델 파일) |
-| Phase1 단일 이미지 | ~70% | ~30% | **LLM 연결**, (선택) ONNX |
+| Phase1 단일 이미지 | ~85% | ~15% | ~~LLM 연결~~ (완료), (선택) ONNX |
 | 비전 품질·학습 루프 | ~30% | ~70% | 데이터, **평가**, **pseudo**, YOLO fine-tune |
 | Phase2 | ~20% | ~80% | **배치**, **LoRA**, **DINO+SAM2** |
 
-**권장 순서:** LLM → 모델 배치 → ONNX(선택) → 학습·평가 → batch → pseudo → LoRA → SAM2
+**권장 순서:** ~~LLM~~ → 모델 배치 → ONNX(선택) → 학습·평가 → batch → pseudo → LoRA → SAM2
 
 ---
 
@@ -60,8 +60,7 @@
 
 | 작업 이름 | 파일 | 비고 |
 |-----------|------|------|
-| LLM 프롬프트 분석 연결 | `backend/app/workflows/nodes.py` | 바로 아래 바이브=heuristic fallback |
-| LLM Settings (안내) | `backend/app/core/config.py` | 필드 정의는 바이브, 호출은 nodes |
+| ~~LLM 프롬프트 분석 연결~~ | `backend/app/services/prompt_llm.py`, `workflows/nodes.py` | **완료** — Ollama/OpenAI/Gemini, 실패 시 heuristic fallback |
 | ONNX 세션·predict 분기 | `backend/app/services/segmentation.py` | YOLO .pt / stub 는 바이브 |
 | ONNX 전·후처리 루프 | `backend/app/utils/onnx_utils.py` | create_session 은 바이브 |
 | Grounding DINO + SAM2 | `backend/app/services/segmentation.py` | Phase2 |
