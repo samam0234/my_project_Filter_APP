@@ -2,15 +2,19 @@
 
 엔드포인트:
   GET /api/v1/jobs/{job_id} — 단건
-  GET /api/v1/jobs?limit=   — 최근 목록 (콘솔 대시보드용)
+  GET /api/v1/jobs?limit=&mine= — 최근 목록 (mine=true 는 로그인 사용자 작업만)
 """
 
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.deps import current_user_optional
 from app.db.session import get_db
+from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.schemas.response import JobResponse
 
@@ -49,8 +53,14 @@ async def get_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse:
 @router.get("/jobs", response_model=list[JobResponse])
 async def list_jobs(
     limit: int = 50,
+    mine: bool = False,
     db: Session = Depends(get_db),
+    user: Optional[User] = Depends(current_user_optional),
 ) -> list[JobResponse]:
-    """최근 job 목록. limit 상한 200."""
-    rows = JobRepository(db).list_recent(limit=min(limit, 200))
+    """최근 job 목록. limit 상한 200. mine=true 는 로그인 필요."""
+    if mine and user is None:
+        raise HTTPException(status_code=401, detail="로그인이 필요합니다.")
+    rows = JobRepository(db).list_recent(
+        limit=min(limit, 200), user_id=user.id if mine and user else None
+    )
     return [_to_response(r) for r in rows]

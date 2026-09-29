@@ -115,6 +115,28 @@ class Settings(BaseSettings):
     lora_base_model: str = Field(default="", alias="LORA_BASE_MODEL")
     lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
 
+    # --- 계정 (로그인 · 회원가입 · 아이디/비밀번호 찾기) ---
+    # 【수동·배포】 SESSION_COOKIE_SECURE — HTTPS 배포 시 true (로컬 http 는 false 여야 쿠키 저장)
+    session_cookie_name: str = Field(default="cnk_session", alias="SESSION_COOKIE_NAME")
+    session_ttl_hours: int = Field(default=168, alias="SESSION_TTL_HOURS")  # 7일
+    session_cookie_secure: bool = Field(default=False, alias="SESSION_COOKIE_SECURE")
+    # 【수동·튜닝】 로그인 잠금 · 비밀번호 재설정 코드
+    login_max_failures: int = Field(default=5, alias="LOGIN_MAX_FAILURES")
+    login_lock_minutes: int = Field(default=10, alias="LOGIN_LOCK_MINUTES")
+    auth_code_ttl_minutes: int = Field(default=10, alias="AUTH_CODE_TTL_MINUTES")
+    auth_code_max_attempts: int = Field(default=5, alias="AUTH_CODE_MAX_ATTEMPTS")
+    auth_code_resend_seconds: int = Field(default=60, alias="AUTH_CODE_RESEND_SECONDS")
+
+    # --- 메일 (아이디 찾기 · 비밀번호 재설정 코드 발송) ---
+    # 【수동·배포 필수】 SMTP_HOST 가 비어 있으면 메일을 보내지 않고 서버 로그에만 남긴다 (개발용).
+    # 코드는 절대 API 응답으로 돌려주지 않는다.
+    smtp_host: str = Field(default="", alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_user: str = Field(default="", alias="SMTP_USER")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from: str = Field(default="Cut & Keep <no-reply@cutnkeep.local>", alias="SMTP_FROM")
+    smtp_starttls: bool = Field(default=True, alias="SMTP_STARTTLS")
+
 
     # --- 큐 / 파일 수명 (Phase 2 배치에서 사용) ---
     # 【수동·Phase2】 REDIS_URL — compose 호스트 포트는 6380 매핑 주의

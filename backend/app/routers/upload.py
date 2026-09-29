@@ -8,14 +8,18 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import FileResponse
 from loguru import logger
 from sqlalchemy.orm import Session
 
+from app.core.deps import current_user_optional
 from app.core.security import validate_upload_file
 from app.db.session import get_db
 from app.exceptions import CutAndKeepError, FileValidationError, to_http_exception
+from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.schemas.response import UploadResponse
 from app.workflows.graph import run_pipeline
@@ -28,6 +32,7 @@ async def upload_and_process(
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
     db: Session = Depends(get_db),
+    user: Optional[User] = Depends(current_user_optional),
 ) -> UploadResponse:
     """파일 수신·검증 후 파이프라인 실행, job을 DB에 저장.
 
@@ -44,7 +49,8 @@ async def upload_and_process(
     try:
         # 동기 파이프라인 (CPU/YOLO) — 요청 스레드에서 실행
         result = run_pipeline(image_bytes=data, prompt=prompt)
-        JobRepository(db).save_result(result, prompt=prompt)
+        # 로그인 상태면 작업을 사용자와 연결 (비로그인은 user_id NULL)
+        JobRepository(db).save_result(result, prompt=prompt, user_id=user.id if user else None)
     except CutAndKeepError as exc:
         raise to_http_exception(exc) from exc
     except Exception as exc:
