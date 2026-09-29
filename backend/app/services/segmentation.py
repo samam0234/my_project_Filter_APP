@@ -18,7 +18,8 @@ class SegmentationResult:
     """세그 추론 결과.
 
     mask: 0/255 단일 채널 합집합 마스크
-    confidences / labels: 인스턴스별 메타
+    confidences / labels: 마스크에 포함된(요청 대상) 인스턴스별 메타
+    detected: 필터 전 모델이 감지한 전체 라벨 (대상 못 찾음 안내·피드백용)
     backend: "yolo" | "stub" 등 어떤 경로로 만들었는지
     """
 
@@ -26,6 +27,7 @@ class SegmentationResult:
     confidences: List[float] = field(default_factory=list)
     labels: List[str] = field(default_factory=list)
     backend: str = "stub"
+    detected: List[str] = field(default_factory=list)
 
 
 class Segmentor:
@@ -123,7 +125,13 @@ class Segmentor:
         image: np.ndarray,
         targets: List[str],
     ) -> SegmentationResult:
-        """Ultralytics predict → 클래스 필터 → 마스크 bitwise OR 합치기."""
+        """Ultralytics predict → 클래스 필터 → 마스크 bitwise OR 합치기.
+
+        - targets 에 있는 라벨만 합친다 ("all" 이면 전부)
+        - confidence 가 min_confidence 미만인 인스턴스는 대상이어도 제외
+        - 대상이 하나도 없으면 빈 마스크 반환 (stub 아님)
+          → validator 가 failed 로 판정, 피드백으로 저장되어 학습 재료가 됨
+        """
         # =============================================================================
         # [이미 구현된 구간 · 바이브] _predict_yolo 본문
         # -----------------------------------------------------------------------------
@@ -135,8 +143,10 @@ class Segmentor:
         union = np.zeros((h, w), dtype=np.uint8)
         confidences: List[float] = []
         labels: List[str] = []
+        detected: List[str] = []
 
         target_set = {t.lower() for t in targets}
+        keep_all = not target_set or "all" in target_set
         for r in results:
             names = r.names or {}
             if r.masks is None:
@@ -147,9 +157,11 @@ class Segmentor:
                 cls_id = int(boxes.cls[i].item()) if boxes is not None else -1
                 conf = float(boxes.conf[i].item()) if boxes is not None else 0.0
                 label = str(names.get(cls_id, cls_id)).lower()
-                if target_set and label not in target_set and "all" not in target_set:
-                    if conf < self.settings.min_confidence:
-                        continue
+                if conf < self.settings.min_confidence:
+                    continue
+                detected.append(label)
+                if not keep_all and label not in target_set:
+                    continue
                 m_resized = cv2.resize(m, (w, h), interpolation=cv2.INTER_LINEAR)
                 binary = (m_resized > 0.5).astype(np.uint8) * 255
                 union = cv2.bitwise_or(union, binary)
@@ -157,13 +169,14 @@ class Segmentor:
                 labels.append(label)
 
         if not union.any():
-            return self._stub_mask(image, targets)
+            logger.info("요청 대상 없음 targets={} detected={}", sorted(target_set), detected)
 
         return SegmentationResult(
             mask=union,
             confidences=confidences,
             labels=labels,
             backend="yolo",
+            detected=detected,
         )
 
     def _stub_mask(

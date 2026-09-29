@@ -190,6 +190,7 @@ def segmentor(state: GraphState) -> GraphState:
         **state,
         "confidences": seg.confidences,
         "labels": seg.labels,
+        "detected": seg.detected,
         "backend": seg.backend,
         "message": "segmented",
     }
@@ -207,12 +208,20 @@ def validator_node(state: GraphState) -> GraphState:
 
     confidences = state.get("confidences") or []
     result = score_mask(mask, confidences)
+    message = result.message
+    if not mask.any():
+        # 빈 마스크 = 요청 대상을 못 찾음 → 사용자가 이해할 수 있는 안내로 교체
+        targets = (state.get("parsed_prompt") or {}).get("target") or []
+        detected = sorted(set(state.get("detected") or []))
+        message = f"요청한 대상({', '.join(targets)})을 이미지에서 찾지 못했습니다."
+        if detected:
+            message += f" 감지된 대상: {', '.join(detected)}"
     return {
         **state,
         "status": result.status,
         "quality_score": result.quality_score,
-        "message": result.message,
-        "error": None if result.ok else result.message,
+        "message": message,
+        "error": None if result.ok else message,
     }
 
 
@@ -230,8 +239,12 @@ def effect_applier(state: GraphState) -> GraphState:
         return {**state, "status": JobStatus.FAILED.value, "error": "이미지/마스크 없음"}
 
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
-    refined = refine_mask(mask, original)
-    result_img = apply_effects(original, refined, parsed)
+    if mask.any():
+        refined = refine_mask(mask, original)
+        result_img = apply_effects(original, refined, parsed)
+    else:
+        # 대상 없음: 전부 투명/전부 블러 대신 원본 유지 (status 는 failed 그대로)
+        result_img = original.copy()
     cache["result"] = result_img
     _IMAGE_CACHE[job_id] = cache
 
@@ -278,6 +291,8 @@ def feedback_collector(state: GraphState) -> GraphState:
             "quality_score": state.get("quality_score"),
             "error": state.get("error"),
             "backend": state.get("backend"),
+            "labels": state.get("labels"),
+            "detected": state.get("detected"),
         },
     )
     return {

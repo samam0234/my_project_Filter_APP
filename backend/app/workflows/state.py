@@ -34,7 +34,8 @@ class GraphState(TypedDict, total=False):
     error: Optional[str]  # 실패 메시지 (UI/로그용)
     quality_score: float  # 0.0~1.0 마스크 품질
     confidences: List[float]  # 인스턴스별 세그 confidence
-    labels: List[str]  # 탐지된 클래스 라벨
+    labels: List[str]  # 마스크에 포함된(요청 대상) 클래스 라벨
+    detected: List[str]  # 필터 전 감지된 전체 라벨 (대상 못 찾음 안내용)
     backend: str  # "yolo" | "stub" 등
 
     # --- 산출물 경로 (디스크) ---

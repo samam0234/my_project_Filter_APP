@@ -182,5 +182,6 @@ def run_pipeline(
             "labels": final.get("labels"),
             "confidences": final.get("confidences"),
             "prompt_parser": final.get("prompt_parser"),
+            "detected": final.get("detected"),
         },
     )
