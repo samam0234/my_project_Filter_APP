@@ -45,3 +45,48 @@ def test_intensity():
     p = parse_prompt_heuristic("배경 블러 강도 30")
     assert p.effect == "blur"
     assert p.intensity == 30
+
+
+def test_keep_specific_instance_with_selector():
+    """사용자 실제 사례: 맨 앞 + 색 속성 + '제외하고 전부 제거' = 남기기."""
+    p = parse_prompt_heuristic(
+        "맨 앞에 빨간색 안전모와 형광색 조끼를 입은 남성을 제외하고 전부 제거 부탁해"
+    )
+    assert p.target == ["person"]
+    assert p.effect == "remove_bg"
+    assert p.selector.position == "front"
+    assert set(p.selector.attributes) == {"red helmet", "neon yellow vest"}
+
+
+@pytest.mark.parametrize(
+    "prompt,target",
+    [("왼쪽에 있는 사람 지워줘", "person"), ("강아지 없애줘", "dog"), ("remove the car", "car")],
+)
+def test_remove_object(prompt, target):
+    p = parse_prompt_heuristic(prompt)
+    assert p.effect == "remove_object"
+    assert p.target == [target]
+
+
+@pytest.mark.parametrize("prompt", ["배경 제거해줘", "사람 빼고 다 지워줘", "강아지만 남기고 나머지 삭제"])
+def test_background_or_except_is_keep(prompt):
+    assert parse_prompt_heuristic(prompt).effect == "remove_bg"
+
+
+def test_count_selector():
+    p = parse_prompt_heuristic("사람 2명만 남기고 배경 블러")
+    assert p.effect == "blur" and p.selector.count == 2
+
+
+def test_plain_prompt_has_no_selector():
+    assert parse_prompt_heuristic("강아지만 남기고 배경 블러").selector is None
+
+
+@pytest.mark.parametrize(
+    "prompt,position,rank",
+    [("오른쪽에서 두 번째 사람 지워줘", "right", 2), ("왼쪽에서 3번째 사람만 남겨", "left", 3),
+     ("remove the second person from the left", "left", 2)],
+)
+def test_rank_selector(prompt, position, rank):
+    s = parse_prompt_heuristic(prompt).selector
+    assert s.position == position and s.rank == rank

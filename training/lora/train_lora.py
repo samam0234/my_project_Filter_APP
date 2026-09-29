@@ -10,12 +10,19 @@ LoRA fine-tuning 진입점 (Phase 2).
 
 실행:
   python training/lora/train_lora.py --dry-run
-  python training/lora/train_lora.py --base-model D:\\models\\gemma-2-2b-it --epochs 3
+  python training/lora/train_lora.py --base-model training/models/qwen2.5-1.5b-instruct --name instance_v1
+  python training/lora/eval_parser.py --adapter training/outputs/lora/instance_v1/adapter  # 평가
+
+데이터:
+  - seed/train.jsonl : 인스턴스 선택·물체 지우기 시드 (seed/build_seed.py 로 생성)
+  - data/feedback    : 사용자 피드백 (like / dislike+정답 JSON 코멘트)
+  - data/pseudo_labels : 단순 "X만 크롭" 계열 — --max-pseudo 로 샘플링 (selector 학습 희석 방지)
 """
 
 from __future__ import annotations
 
 import argparse
+import random
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -30,6 +37,7 @@ from dataset import (  # noqa: E402
     args_to_jsonable,
     discover_feedback_cases,
     discover_pseudo_cases,
+    discover_seed_cases,
     summarize_cases,
     to_instruction_records,
     write_run_manifest,
@@ -51,6 +59,24 @@ def parse_args() -> argparse.Namespace:
         help="의사 라벨 디렉터리",
     )
     parser.add_argument(
+        "--seed-file",
+        type=Path,
+        default=_LORA_DIR / "seed" / "train.jsonl",
+        help="인스턴스 선택 시드 JSONL (없으면 건너뜀)",
+    )
+    parser.add_argument(
+        "--seed-repeat",
+        type=int,
+        default=2,
+        help="시드 데이터 반복 횟수 (selector 예제 비중 확보)",
+    )
+    parser.add_argument(
+        "--max-pseudo",
+        type=int,
+        default=600,
+        help="의사 라벨 최대 사용 수 (-1 = 전부, 0 = 사용 안 함)",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=_LORA_DIR.parent / "outputs" / "lora",
@@ -58,10 +84,21 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--name", default="", help="run 이름 (기본: 시각 스탬프)")
     parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--batch", type=int, default=1)
-    parser.add_argument("--rank", type=int, default=8, help="LoRA rank r")
-    parser.add_argument("--max-seq-len", type=int, default=512)
+    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--batch", type=int, default=4)
+    parser.add_argument(
+        "--grad-accum",
+        type=int,
+        default=2,
+        help="gradient accumulation 단계 (실효 배치 = batch × grad-accum)",
+    )
+    parser.add_argument(
+        "--no-grad-checkpoint",
+        action="store_true",
+        help="gradient checkpointing 끄기 (VRAM 여유 있을 때 속도↑)",
+    )
+    parser.add_argument("--rank", type=int, default=16, help="LoRA rank r")
+    parser.add_argument("--max-seq-len", type=int, default=320)
     parser.add_argument(
         "--base-model",
         default="",
@@ -69,7 +106,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--target-modules",
-        default="q_proj,v_proj",
+        default="q_proj,k_proj,v_proj,o_proj",
         help="LoRA 를 붙일 모듈 이름 (쉼표 구분)",
     )
     parser.add_argument(
@@ -138,8 +175,16 @@ def _resolve_target_modules(model, requested: list[str]) -> list[str]:
     )
 
 
-def train_adapter(args: argparse.Namespace, texts: list[str], run_dir: Path) -> Path:
-    """PEFT LoRA 학습 후 adapter 디렉터리 경로를 반환한다."""
+def train_adapter(
+    args: argparse.Namespace,
+    samples: list[tuple[str, str]],
+    run_dir: Path,
+) -> Path:
+    """PEFT LoRA 학습 후 adapter 디렉터리 경로를 반환한다.
+
+    samples: (prefix, full_text) — prefix(지시+프롬프트) 토큰은 loss 에서 제외하고
+    응답 JSON 토큰에만 학습한다. 지시문을 외우는 대신 변환만 배우게 하기 위함.
+    """
     try:
         import torch
         from torch.utils.data import DataLoader, Dataset
@@ -163,18 +208,34 @@ def train_adapter(args: argparse.Namespace, texts: list[str], run_dir: Path) -> 
     local_only = bool(args.local_files_only)
     print(f"base-model = {base}")
     print(f"device     = {device}")
-    print(f"epochs={args.epochs} lr={args.lr} batch={args.batch} rank={args.rank}")
+    print(
+        f"epochs={args.epochs} lr={args.lr} batch={args.batch}x{args.grad_accum} "
+        f"rank={args.rank} grad_checkpoint={not args.no_grad_checkpoint}"
+    )
 
     tokenizer = AutoTokenizer.from_pretrained(str(base), local_files_only=local_only)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    dtype = torch.float16 if device.type == "cuda" else torch.float32
+    # bf16 이 되면 bf16 (fp16 은 LoRA 학습이 불안정), 아니면 fp32
+    if device.type == "cuda" and torch.cuda.is_bf16_supported():
+        dtype = torch.bfloat16
+    elif device.type == "cuda":
+        dtype = torch.float16
+    else:
+        dtype = torch.float32
     model = AutoModelForCausalLM.from_pretrained(
         str(base),
         local_files_only=local_only,
         torch_dtype=dtype,
     )
+
+    # 【수동·튜닝】 VRAM 절약: 활성값을 저장하지 않고 역전파 때 다시 계산
+    # (Ollama·백엔드가 같은 GPU 를 쓰는 로컬 환경에서 OOM 방지)
+    if not args.no_grad_checkpoint:
+        model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()  # PEFT + checkpointing 에서 입력 grad 필요
+        model.config.use_cache = False
 
     requested = [m.strip() for m in str(args.target_modules).split(",") if m.strip()]
     target_modules = _resolve_target_modules(model, requested)
@@ -187,23 +248,31 @@ def train_adapter(args: argparse.Namespace, texts: list[str], run_dir: Path) -> 
         target_modules=target_modules,
     )
     model = get_peft_model(model, lora_config)
+    # 학습 파라미터(LoRA)만 fp32 로 — 저정밀 옵티마이저 업데이트 손실 방지
+    for param in model.parameters():
+        if param.requires_grad:
+            param.data = param.data.float()
     model.print_trainable_parameters()
     model.to(device)
     model.train()
 
     class _TextDataset(Dataset):
-        def __init__(self, corpus: list[str]):
+        def __init__(self, corpus: list[tuple[str, str]]):
             self.corpus = corpus
 
         def __len__(self) -> int:
             return len(self.corpus)
 
-        def __getitem__(self, idx: int) -> str:
+        def __getitem__(self, idx: int) -> tuple[str, str]:
             return self.corpus[idx]
 
-    def collate(batch: list[str]):
+    eos = tokenizer.eos_token or ""
+    tokenizer.padding_side = "right"
+
+    def collate(batch: list[tuple[str, str]]):
+        # 응답 끝에 EOS 를 붙여 "JSON 한 줄 후 멈춤"까지 학습
         enc = tokenizer(
-            batch,
+            [full + eos for _, full in batch],
             truncation=True,
             max_length=int(args.max_seq_len),
             padding=True,
@@ -211,30 +280,38 @@ def train_adapter(args: argparse.Namespace, texts: list[str], run_dir: Path) -> 
         )
         labels = enc["input_ids"].clone()
         labels[enc["attention_mask"] == 0] = -100
+        for row, (prefix, _) in enumerate(batch):
+            n_prefix = len(tokenizer(prefix, add_special_tokens=True)["input_ids"])
+            labels[row, :n_prefix] = -100
         enc["labels"] = labels
         return enc
 
     loader = DataLoader(
-        _TextDataset(texts),
+        _TextDataset(samples),
         batch_size=max(1, int(args.batch)),
         shuffle=True,
         collate_fn=collate,
     )
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=float(args.lr))
 
+    accum = max(1, int(args.grad_accum))
     for epoch in range(1, int(args.epochs) + 1):
         running = 0.0
         steps = 0
-        for batch in loader:
+        optimizer.zero_grad(set_to_none=True)
+        for i, batch in enumerate(loader, start=1):
             batch = {k: v.to(device) for k, v in batch.items()}
-            optimizer.zero_grad(set_to_none=True)
             loss = model(**batch).loss
-            loss.backward()
-            optimizer.step()
+            (loss / accum).backward()
+            if i % accum == 0 or i == len(loader):
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
             running += float(loss.detach().cpu())
             steps += 1
+            if steps % 50 == 0:
+                print(f"  epoch {epoch} step {steps}/{len(loader)} loss={running / steps:.4f}", flush=True)
         mean_loss = running / max(1, steps)
-        print(f"epoch {epoch}/{args.epochs} loss={mean_loss:.4f} steps={steps}")
+        print(f"epoch {epoch}/{args.epochs} loss={mean_loss:.4f} steps={steps}", flush=True)
 
     adapter_dir = run_dir / "adapter"
     adapter_dir.mkdir(parents=True, exist_ok=True)
@@ -248,17 +325,15 @@ def main() -> None:
     args = parse_args()
 
     # =============================================================================
-    # [하드코딩 파트] LoRA 샘플 정책 · 프롬프트 템플릿 · target_modules
+    # [이미 구현된 구간 · 바이브] LoRA 샘플 정책 · 프롬프트 템플릿 · target_modules
     # -----------------------------------------------------------------------------
-    # [임무] 어떤 피드백을 학습에 넣을지, instruction 문자열, LoRA 부착 모듈
-    # [연결] dataset.to_instruction_records, CLI --target-modules/--skip-pipeline-failure
-    # [규칙] dislike 의 시스템 parsed_prompt 는 오답. 코멘트가 JSON 일 때만 정답.
-    #        YOLO 세그 가중치는 여기서 학습하지 말 것 (training/yolo).
-    # [힌트] TEMPLATE = """...{prompt}...{response}..."""
-    #        include_pipeline_failure = False  로 약한 정답 제외
+    # - 템플릿: prompt_spec.LORA_TEMPLATE (서빙 services/prompt_lora 와 동일)
+    # - vote: like → 시스템 출력 정답 / dislike → 코멘트가 JSON 일 때만 / pipeline_failure → 약한 정답
+    # - seed: 인스턴스 선택·물체 지우기 시드를 --seed-repeat 배 반복
+    # - pseudo: 단순 예제가 selector 학습을 희석하지 않게 --max-pseudo 로 샘플링
+    # - target_modules 기본 q/k/v/o_proj (Qwen2·Llama 계열 어텐션 전체)
+    # YOLO 세그 가중치는 여기서 학습하지 말 것 (training/yolo).
     # =============================================================================
-    # >>> 여기에 정책만 덮어쓰기 (비우면 아래 바이브 기본값) <<<
-    #
     instruction_template = DEFAULT_INSTRUCTION_TEMPLATE
     include_pipeline_failure = not bool(args.skip_pipeline_failure)
 
@@ -269,6 +344,9 @@ def main() -> None:
     # =============================================================================
     feedback_cases = discover_feedback_cases(args.feedback_dir)
     pseudo_cases = discover_pseudo_cases(args.pseudo_dir)
+    if args.max_pseudo >= 0 and len(pseudo_cases) > args.max_pseudo:
+        pseudo_cases = random.Random(0).sample(pseudo_cases, args.max_pseudo)
+    seed_cases = discover_seed_cases(args.seed_file)
     records = to_instruction_records(
         feedback_cases,
         template=instruction_template,
@@ -283,9 +361,17 @@ def main() -> None:
             origin="pseudo",
         )
     )
-    all_cases = feedback_cases + pseudo_cases
+    seed_records = to_instruction_records(
+        seed_cases,
+        template=instruction_template,
+        origin="seed",
+    )
+    records.extend(seed_records * max(1, int(args.seed_repeat)))
+    all_cases = feedback_cases + pseudo_cases + seed_cases
     summary = summarize_cases(all_cases, records)
+    summary["seed_cases"] = len(seed_cases)
     _print_summary("LoRA train", len(feedback_cases), len(pseudo_cases), summary)
+    print(f"seed_cases     = {len(seed_cases)} x{args.seed_repeat}  ({args.seed_file})")
     print(f"feedback_dir = {args.feedback_dir} exists={args.feedback_dir.exists()}")
     print(f"pseudo_dir   = {args.pseudo_dir} exists={args.pseudo_dir.exists()}")
     print(f"output       = {args.output}")
@@ -319,7 +405,10 @@ def main() -> None:
             "먼저 --dry-run 으로 확인하세요."
         )
 
-    adapter_dir = train_adapter(args, [r.text for r in records], run_dir)
+    samples = [
+        (instruction_template.format(prompt=r.prompt, response=""), r.text) for r in records
+    ]
+    adapter_dir = train_adapter(args, samples, run_dir)
     extra["adapter"] = str(adapter_dir)
     write_run_manifest(
         run_dir / "run.json",
@@ -328,8 +417,8 @@ def main() -> None:
         records=records,
         extra=extra,
     )
-    print("적용: adapter 폴더를 models/lora/ 로 복사한 뒤 프롬프트 분석기에 로드 (Phase 2).")
-    print("지금은 학습 산출만 합니다. backend 핫스왑은 후속입니다.")
+    print("평가: python training/lora/eval_parser.py --adapter", adapter_dir)
+    print("서빙: adapter 를 backend/models/lora/ 로 복사 후 .env LLM_PROVIDER=lora (backend 재시작)")
 
 
 if __name__ == "__main__":

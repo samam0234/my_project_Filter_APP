@@ -110,6 +110,10 @@ class Settings(BaseSettings):
     # 【수동·튜닝】 LLM_TIMEOUT_SECONDS — Ollama 첫 호출은 모델 로드로 느릴 수 있음
     # 초과 시 휴리스틱 fallback 이므로 너무 길면 업로드 응답이 늦어진다
     llm_timeout_seconds: float = Field(default=30.0, alias="LLM_TIMEOUT_SECONDS")
+    # 【수동·선택】 LLM_PROVIDER=lora — training/lora 로 학습한 어댑터를 transformers 로 서빙
+    # 경로는 backend/ 기준. 베이스는 HF 형식 폴더(config.json + safetensors), 어댑터는 서빙용 복사본
+    lora_base_model: str = Field(default="", alias="LORA_BASE_MODEL")
+    lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
 
 
     # --- 큐 / 파일 수명 (Phase 2 배치에서 사용) ---

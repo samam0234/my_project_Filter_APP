@@ -14,14 +14,17 @@ import re
 from typing import Any, Dict
 from uuid import uuid4
 
+import cv2
 from loguru import logger
 
 from app.core.config import get_settings
 from app.core.constants import JobStatus
-from app.schemas.request import ParsedPrompt
+from app.schemas.request import InstanceSelector, ParsedPrompt
 from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
+from app.services.instance_selector import select_instances
 from app.services.prompt_llm import parse_prompt_llm
+from app.services.segmentation import union_mask
 from app.workflows.state import GraphState
 
 # 모듈 수준 싱글톤 (첫 사용 시 생성 — lazy)
@@ -46,6 +49,90 @@ def _get_feedback() -> FeedbackService:
     if _feedback is None:
         _feedback = FeedbackService()
     return _feedback
+
+
+# 휴리스틱 키워드 표 — LLM 실패 시 fallback. 규격은 services/prompt_spec.SYSTEM_PROMPT 와 맞춘다.
+_REMOVE_VERBS = ("지워", "지우", "삭제", "없애", "제거", "remove", "erase", "delete")
+# 이 표현이 있으면 "대상을 남기는" 요청 (배경 제거·제외하고 지우기)
+_KEEP_HINTS = ("배경", "background", "제외", "빼고", "말고", "남기", "남겨", "만 남", "keep", "except", "only")
+_POSITION_WORDS = [
+    ("front", ("맨 앞", "제일 앞", "가장 앞", "앞에 있는", "앞쪽", "front", "closest")),
+    ("back", ("맨 뒤", "제일 뒤", "가장 뒤", "뒤에 있는", "뒤쪽", "back", "farthest")),
+    ("left", ("왼쪽", "좌측", "left")),
+    ("right", ("오른쪽", "우측", "right")),
+    ("center", ("가운데", "중앙", "center", "middle")),
+    ("largest", ("가장 큰", "제일 큰", "biggest", "largest")),
+    ("smallest", ("가장 작은", "제일 작은", "smallest")),
+]
+_COLOR_WORDS = [
+    ("neon yellow", ("형광", "neon", "fluorescent")),
+    ("red", ("빨간", "빨강", "붉은", "red")),
+    ("orange", ("주황", "orange")),
+    ("yellow", ("노란", "노랑", "yellow")),
+    ("green", ("초록", "녹색", "green")),
+    ("blue", ("파란", "파랑", "blue")),
+    ("purple", ("보라", "purple")),
+    ("pink", ("분홍", "핑크", "pink")),
+    ("white", ("흰", "하얀", "white")),
+    ("black", ("검은", "검정", "까만", "black")),
+    ("gray", ("회색", "gray", "grey")),
+    ("brown", ("갈색", "brown")),
+]
+_PART_WORDS = [
+    ("helmet", ("안전모", "헬멧", "helmet")),
+    ("hat", ("모자", "hat", "cap")),
+    ("vest", ("조끼", "vest")),
+    ("shirt", ("셔츠", "티셔츠", "상의", "shirt", "t-shirt")),
+    ("jacket", ("자켓", "재킷", "점퍼", "jacket", "coat")),
+    ("pants", ("바지", "하의", "pants", "jeans")),
+    ("shoes", ("신발", "운동화", "shoes")),
+]
+
+
+def _heuristic_selector(text: str) -> InstanceSelector | None:
+    """위치·개수·색 속성 키워드 → InstanceSelector (없으면 None)."""
+    position = next(
+        (pos for pos, keys in _POSITION_WORDS if any(k in text for k in keys)), None
+    )
+
+    rank = None
+    ordinal = {"첫": 1, "두": 2, "세": 3, "네": 4, "다섯": 5}
+    m_rank = re.search(r"(첫|두|세|네|다섯|\d)\s*(?:번째|째)", text)
+    if m_rank:
+        token = m_rank.group(1)
+        rank = int(token) if token.isdigit() else ordinal[token]
+    else:
+        m_en = re.search(r"\b(second|third|fourth|fifth)\b", text)
+        if m_en:
+            rank = {"second": 2, "third": 3, "fourth": 4, "fifth": 5}[m_en.group(1)]
+    if rank == 1:
+        rank = None
+
+    count = None
+    m = re.search(r"(\d{1,2})\s*(?:명|마리|개|대)", text)
+    if m:
+        count = max(1, int(m.group(1)))
+    elif re.search(r"한\s*(?:명|마리|개|대)|하나", text):
+        count = 1
+
+    # 색 단어 뒤 12자 이내 부위 단어가 있으면 "red helmet", 없으면 "red"
+    attributes: list[str] = []
+    for color, keys in _COLOR_WORDS:
+        for k in keys:
+            idx = text.find(k)
+            if idx < 0:
+                continue
+            tail = text[idx + len(k) : idx + len(k) + 12]
+            part = next(
+                (name for name, pkeys in _PART_WORDS if any(pk in tail for pk in pkeys)), None
+            )
+            phrase = f"{color} {part}" if part else color
+            if phrase not in attributes:
+                attributes.append(phrase)
+            break
+
+    selector = InstanceSelector(position=position, rank=rank, count=count, attributes=attributes)
+    return None if selector.is_empty() else selector
 
 
 def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
@@ -73,6 +160,9 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
         crop = True
     if "크롭" in text or "crop" in text:
         crop = True
+    # "X 지워줘" = 대상 지우기. 단 "배경 제거"·"X 빼고 지워" 는 대상을 남기는 요청
+    if any(v in text for v in _REMOVE_VERBS) and not any(h in text for h in _KEEP_HINTS):
+        effect = "remove_object"
 
     m = re.search(r"(?:intensity|강도|blur)\s*[:=]?\s*(\d{1,3})", text)
     if m:
@@ -84,7 +174,8 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
         targets = [q.strip() for q in quoted if q.strip()]
     else:
         keywords = [
-            ("person", ["person", "사람", "인물"]),
+            ("person", ["person", "사람", "인물", "남자", "여자", "남성", "여성", "아이",
+                        "man", "woman"]),
             ("dog", ["dog", "강아지", "개"]),
             ("cat", ["cat", "고양이"]),
             ("car", ["car", "차", "자동차"]),
@@ -96,7 +187,13 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     if not targets:
         targets = ["person"]
 
-    return ParsedPrompt(target=targets, effect=effect, intensity=intensity, crop=crop)
+    return ParsedPrompt(
+        target=targets,
+        effect=effect,
+        intensity=intensity,
+        crop=crop,
+        selector=_heuristic_selector(text),
+    )
 
 
 def prompt_analyzer(state: GraphState) -> GraphState:
@@ -182,15 +279,36 @@ def segmentor(state: GraphState) -> GraphState:
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
     processor = _get_processor()
     seg = processor.segmentor.predict(pre, targets=parsed.target)
+
+    # selector 가 있으면 같은 클래스 인스턴스 중 일부만 고른다 (위치·개수·색)
+    mask, labels, confidences = seg.mask, seg.labels, seg.confidences
+    selection = None
+    if parsed.selector is not None and seg.instances:
+        picked = select_instances(seg.instances, parsed.selector, pre)
+        mask = union_mask(picked.chosen, pre.shape[:2])
+        labels = [i.label for i in picked.chosen]
+        confidences = [i.confidence for i in picked.chosen]
+        selection = {
+            "chosen": len(picked.chosen),
+            "candidates": len(seg.instances),
+            "attribute_matched": picked.attribute_matched,
+            "attribute_scores": [
+                None if s is None else round(s, 3) for s in picked.attribute_scores
+            ],
+            "note": picked.note,
+        }
+        logger.info("instance_selector job={} {}", job_id, selection)
+
     # 마스크·세그 메타를 캐시에 저장
-    cache["mask"] = seg.mask
+    cache["mask"] = mask
     cache["seg"] = seg
     _IMAGE_CACHE[job_id] = cache
     return {
         **state,
-        "confidences": seg.confidences,
-        "labels": seg.labels,
+        "confidences": confidences,
+        "labels": labels,
         "detected": seg.detected,
+        "selection": selection,
         "backend": seg.backend,
         "message": "segmented",
     }
@@ -239,8 +357,13 @@ def effect_applier(state: GraphState) -> GraphState:
         return {**state, "status": JobStatus.FAILED.value, "error": "이미지/마스크 없음"}
 
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
+    if mask.shape[:2] != original.shape[:2]:
+        # 세그는 리사이즈된 전처리 이미지 기준 → 원본 크기로 맞춤 (큰 사진 크기 불일치 방지)
+        oh, ow = original.shape[:2]
+        mask = cv2.resize(mask, (ow, oh), interpolation=cv2.INTER_NEAREST)
     if mask.any():
-        refined = refine_mask(mask, original)
+        # remove_object 는 윤곽까지 지워야 해서 GrabCut 정제 없이 원 마스크 사용
+        refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original)
         result_img = apply_effects(original, refined, parsed)
     else:
         # 대상 없음: 전부 투명/전부 블러 대신 원본 유지 (status 는 failed 그대로)
@@ -293,6 +416,7 @@ def feedback_collector(state: GraphState) -> GraphState:
             "backend": state.get("backend"),
             "labels": state.get("labels"),
             "detected": state.get("detected"),
+            "selection": state.get("selection"),
         },
     )
     return {

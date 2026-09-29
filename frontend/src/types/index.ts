@@ -5,12 +5,23 @@
 /** 백엔드 JobStatus 와 동일 문자열 */
 export type JobStatus = "pending" | "ok" | "fallback" | "failed";
 
+/** 특정 인스턴스 선택 조건 (ParsedPrompt.selector) */
+export interface InstanceSelector {
+  position?: "front" | "back" | "left" | "right" | "center" | "largest" | "smallest" | null;
+  /** position 정렬에서 몇 번째부터 (1-based) */
+  rank?: number | null;
+  count?: number | null;
+  attributes?: string[];
+}
+
 /** 프롬프트 분석 결과 (ParsedPrompt) */
 export interface ParsedPrompt {
   target: string[];
+  /** remove_bg | blur | crop | none (대상 남김) · remove_object (대상 지움) */
   effect: string;
   intensity: number;
   crop: boolean;
+  selector?: InstanceSelector | null;
 }
 
 /** POST /api/v1/upload 응답 */

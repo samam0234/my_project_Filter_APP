@@ -28,6 +28,10 @@ def create_session(model_path: Path | str, providers: Optional[list[str]] = None
     if not path.exists():
         logger.warning("ONNX 모델 없음: {}", path)
         return None
+    if path.suffix.lower() != ".onnx":
+        # .pt 등은 ONNX 가 아님 — 열면 INVALID_PROTOBUF 예외로 파이프라인이 멈춘다
+        logger.warning("ONNX 파일 아님 (세션 생략): {}", path)
+        return None
 
     try:
         import onnxruntime as ort
@@ -38,7 +42,11 @@ def create_session(model_path: Path | str, providers: Optional[list[str]] = None
     if providers is None:
         providers = ["CPUExecutionProvider"]
 
-    session = ort.InferenceSession(str(path), providers=providers)
+    try:
+        session = ort.InferenceSession(str(path), providers=providers)
+    except Exception as exc:  # 손상·버전 불일치 → stub 으로 폴백
+        logger.error("ONNX 모델 로드 실패: {} ({})", path, exc)
+        return None
     logger.info("ONNX 모델 로드: {} providers={}", path, session.get_providers())
     return session
 

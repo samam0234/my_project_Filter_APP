@@ -64,3 +64,31 @@ def test_apply_effects_dispatch(sample_bgr, sample_mask):
     parsed = ParsedPrompt(effect="blur", intensity=10)
     out = apply_effects(sample_bgr, sample_mask, parsed)
     assert out is not None
+
+
+def test_remove_object_fills_masked_region():
+    """지운 영역이 주변 배경색으로 채워지고 크기는 유지."""
+    from app.services.effects import apply_remove_object
+
+    img = np.full((80, 120, 3), (40, 160, 40), np.uint8)
+    img[20:60, 40:80] = (0, 0, 255)  # 지울 빨간 물체
+    mask = np.zeros((80, 120), np.uint8)
+    mask[20:60, 40:80] = 255
+    out = apply_remove_object(img, mask)
+    assert out.shape == img.shape
+    center = out[35:45, 55:65].reshape(-1, 3).mean(axis=0)
+    assert center[2] < 120 and center[1] > 100  # 빨강이 사라지고 초록 배경에 가까움
+    assert (out[0:10, 0:10] == img[0:10, 0:10]).all()  # 마스크 밖은 그대로
+
+
+def test_refine_mask_does_not_grab_far_regions():
+    """GrabCut 이 비슷한 색의 떨어진 영역을 전경으로 붙이지 않는다."""
+    from app.services.effects import refine_mask
+
+    img = np.full((100, 160, 3), 90, np.uint8)
+    img[30:70, 20:60] = (255, 255, 255)   # 선택한 흰 물체
+    img[30:70, 110:150] = (255, 255, 255)  # 멀리 떨어진 같은 색 물체
+    mask = np.zeros((100, 160), np.uint8)
+    mask[30:70, 20:60] = 255
+    refined = refine_mask(mask, img)
+    assert not refined[:, 100:].any()

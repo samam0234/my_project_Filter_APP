@@ -218,6 +218,8 @@ def test_dry_run_exits_zero_without_peft(tmp_path: Path):
             str(tmp_path),
             "--pseudo-dir",
             str(tmp_path / "pseudo"),
+            "--seed-file",
+            str(tmp_path / "no_seed.jsonl"),  # 저장소 시드 제외 → 피드백 1건만
             "--output",
             str(out),
             "--name",
@@ -236,3 +238,35 @@ def test_dry_run_exits_zero_without_peft(tmp_path: Path):
     data = json.loads(manifest.read_text(encoding="utf-8"))
     assert data["summary"]["records"] == 1
     assert data["dry_run"] is True
+
+
+def test_seed_cases_and_selector_label(tmp_path: Path):
+    """시드 JSONL → selector 포함 정답 레코드 (서빙 규격과 동일 형식)."""
+    from dataset import discover_seed_cases
+
+    seed = tmp_path / "seed.jsonl"
+    seed.write_text(
+        json.dumps({"prompt": "왼쪽에서 두 번째 사람 지워줘",
+                    "parsed_prompt": {"target": ["person"], "effect": "remove_object",
+                                      "selector": {"position": "left", "rank": 2, "count": 1}}},
+                   ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    records = to_instruction_records(discover_seed_cases(seed), origin="seed")
+    assert len(records) == 1
+    assert '"effect":"remove_object"' in records[0].response_json
+    assert '"selector":{"position":"left","rank":2,"count":1,"attributes":[]}' in records[0].response_json
+
+
+def test_intensity_defaults_when_prompt_has_no_number(tmp_path: Path):
+    """숫자 없는 블러 문장의 강도 20 라벨은 기본 15 로 맞춘다 (의사 라벨 노이즈)."""
+    _write_case(tmp_path, "p1", {"vote": "like", "source": "pseudo",
+                           "meta": {"prompt": "강아지만 남기고 배경 블러",
+                                    "parsed_prompt": {"target": ["dog"], "effect": "blur", "intensity": 20}}})
+    _write_case(tmp_path, "p2", {"vote": "like", "source": "pseudo",
+                           "meta": {"prompt": "강아지만 남기고 배경 블러 강도 20",
+                                    "parsed_prompt": {"target": ["dog"], "effect": "blur", "intensity": 20}}})
+    records = to_instruction_records(discover_feedback_cases(tmp_path), origin="pseudo")
+    by_prompt = {r.prompt: r.response_json for r in records}
+    assert '"intensity":15' in by_prompt["강아지만 남기고 배경 블러"]
+    assert '"intensity":20' in by_prompt["강아지만 남기고 배경 블러 강도 20"]

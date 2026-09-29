@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""피드백·의사라벨 JSON 을 LoRA instruction 레코드로 변환 (torch 불필요).
+"""피드백·의사라벨·시드 JSON 을 LoRA instruction 레코드로 변환 (torch 불필요).
 
 의도:
   - data/feedback/*.json (+ 짝 이미지)
   - data/pseudo_labels/*.json (있으면)
+  - training/lora/seed/train.jsonl (인스턴스 선택·물체 지우기 시드)
   → prompt + ParsedPrompt JSON 쌍만 학습에 사용
+
+정답 형식·템플릿은 backend/app/services/prompt_spec.py 를 그대로 쓴다 (서빙과 동일 규격).
 
 비전 마스크 학습은 training/yolo/ 본선. 여기 레코드는
 프롬프트 분석기(Causal LM) 도메인 어댑터용이다.
@@ -14,10 +17,25 @@
 from __future__ import annotations
 
 import json
+import re
+import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
+
+# 서빙 규격 공유: backend/ 를 import 경로에 추가 (pydantic 만 필요, torch 불필요)
+_BACKEND = Path(__file__).resolve().parents[2] / "backend"
+if str(_BACKEND) not in sys.path:
+    sys.path.insert(0, str(_BACKEND))
+
+from app.services.prompt_spec import (  # noqa: E402
+    ALLOWED_EFFECTS,
+    LORA_TEMPLATE,
+    LLMError,
+    normalize_parsed,
+    parsed_to_json,
+)
 
 
 # =============================================================================
@@ -27,19 +45,10 @@ from typing import Any, Iterable, Optional
 #   vote, comment, source, image, meta.prompt, meta.parsed_prompt
 # =============================================================================
 
-VALID_EFFECTS = frozenset({"remove_bg", "blur", "crop", "none"})
+VALID_EFFECTS = frozenset(ALLOWED_EFFECTS)
 
-DEFAULT_INSTRUCTION_TEMPLATE = """### 지시
-컷앤킵 이미지 필터 프롬프트를 ParsedPrompt JSON 한 줄로 변환하세요.
-스키마: {{"target":["class"],"effect":"remove_bg|blur|crop|none","intensity":0-100,"crop":true|false}}
-target 은 YOLO 클래스 소문자와 같아야 합니다.
-
-### 프롬프트
-{prompt}
-
-### 응답
-{response}
-"""
+# 학습·서빙 공용 템플릿 (prompt_spec.LORA_TEMPLATE)
+DEFAULT_INSTRUCTION_TEMPLATE = LORA_TEMPLATE
 
 
 @dataclass
@@ -67,7 +76,7 @@ class InstructionRecord:
     response_json: str
     vote: str
     source: str
-    origin: str  # feedback | pseudo
+    origin: str  # feedback | pseudo | seed
 
 
 def _read_json(path: Path) -> Optional[dict[str, Any]]:
@@ -79,7 +88,11 @@ def _read_json(path: Path) -> Optional[dict[str, Any]]:
 
 
 def _as_parsed(value: Any) -> Optional[dict[str, Any]]:
-    """ParsedPrompt 형태인지 느슨히 확인 후 dict 로 정규화."""
+    """ParsedPrompt 형태인지 확인 후 정답 dict 로 정규화 (selector 포함).
+
+    서빙과 같은 prompt_spec.normalize_parsed 를 거쳐, 학습 레이블이
+    서비스가 실제로 받아들이는 형식과 항상 같게 한다.
+    """
     if isinstance(value, str):
         try:
             value = json.loads(value)
@@ -87,27 +100,10 @@ def _as_parsed(value: Any) -> Optional[dict[str, Any]]:
             return None
     if not isinstance(value, dict):
         return None
-    target = value.get("target")
-    effect = value.get("effect")
-    if not isinstance(target, list) or not target:
-        return None
-    if not all(isinstance(t, str) and t.strip() for t in target):
-        return None
-    if effect is not None and str(effect) not in VALID_EFFECTS:
-        return None
-    intensity = value.get("intensity", 15)
     try:
-        intensity_i = int(intensity)
-    except (TypeError, ValueError):
-        intensity_i = 15
-    intensity_i = max(0, min(100, intensity_i))
-    crop = bool(value.get("crop", False))
-    return {
-        "target": [str(t).strip().lower() for t in target],
-        "effect": str(effect or "remove_bg"),
-        "intensity": intensity_i,
-        "crop": crop,
-    }
+        return json.loads(parsed_to_json(normalize_parsed(value)))
+    except (LLMError, ValueError):
+        return None
 
 
 def _prompt_from_payload(payload: dict[str, Any]) -> Optional[str]:
@@ -180,6 +176,38 @@ def discover_pseudo_cases(pseudo_dir: Path) -> list[FeedbackCase]:
     return cases
 
 
+def discover_seed_cases(seed_file: Path) -> list[FeedbackCase]:
+    """시드 JSONL ({"prompt", "parsed_prompt"} 한 줄씩) → 케이스. 정답이 확실하므로 like 취급."""
+    if not seed_file.is_file():
+        return []
+    cases: list[FeedbackCase] = []
+    for n, line in enumerate(seed_file.read_text(encoding="utf-8").splitlines(), start=1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        prompt = payload.get("prompt")
+        cases.append(
+            FeedbackCase(
+                case_id=f"{seed_file.stem}_{n:04d}",
+                json_path=seed_file,
+                image_path=None,
+                vote="like",
+                comment=None,
+                source="seed",
+                prompt=prompt.strip() if isinstance(prompt, str) and prompt.strip() else None,
+                parsed_prompt=_as_parsed(payload.get("parsed_prompt")),
+                payload=payload,
+            )
+        )
+    return cases
+
+
 def comment_as_parsed(comment: Optional[str]) -> Optional[dict[str, Any]]:
     """dislike 코멘트가 ParsedPrompt JSON 이면 정답으로 쓴다."""
     if not comment or not comment.strip():
@@ -193,6 +221,20 @@ def comment_as_parsed(comment: Optional[str]) -> Optional[dict[str, Any]]:
             return None
         text = text[start : end + 1]
     return _as_parsed(text)
+
+
+DEFAULT_INTENSITY = 15
+
+
+def _canonical_intensity(prompt: str, response: dict[str, Any]) -> dict[str, Any]:
+    """문장에 숫자가 없으면 intensity 는 기본값 15 (서빙·휴리스틱과 같은 규칙).
+
+    의사 라벨은 숫자 없는 블러 문장에 20 이 붙어 있어, 그대로 학습하면
+    "블러 기본 20" 을 배운다. 강도는 프롬프트에서만 오도록 레이블을 맞춘다.
+    """
+    if re.search(r"\d", prompt) or response.get("intensity") == DEFAULT_INTENSITY:
+        return response
+    return {**response, "intensity": DEFAULT_INTENSITY}
 
 
 def to_instruction_records(
@@ -223,7 +265,7 @@ def to_instruction_records(
         if source == "pipeline_failure":
             if include_pipeline_failure:
                 response = case.parsed_prompt
-        elif origin == "pseudo" or source == "pseudo":
+        elif origin in {"pseudo", "seed"} or source in {"pseudo", "seed"}:
             response = case.parsed_prompt
         elif vote == "dislike":
             response = comment_as_parsed(case.comment)
@@ -234,6 +276,7 @@ def to_instruction_records(
 
         if response is None:
             continue
+        response = _canonical_intensity(prompt, response)
         response_json = json.dumps(response, ensure_ascii=False, separators=(",", ":"))
         text = template.format(prompt=prompt, response=response_json)
         records.append(
