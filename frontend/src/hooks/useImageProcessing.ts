@@ -37,11 +37,13 @@ export function useImageProcessing() {
         jobId: data.job_id,
         status: data.status,
         // 상대 URL 을 baseURL/프록시 기준으로 절대화
-        beforeUrl: resolveAssetUrl(data.before_url),
+        // 비로그인 결과는 서버에 원본을 남기지 않으므로 로컬 미리보기를 쓴다
+        beforeUrl: data.saved ? resolveAssetUrl(data.before_url) : useAppStore.getState().previewUrl,
         afterUrl: resolveAssetUrl(data.after_url),
         qualityScore: data.quality_score,
         parsedPrompt: data.parsed_prompt ?? null,
         message: data.message,
+        saved: data.saved !== false,
       });
     } catch (err: unknown) {
       // FastAPI detail 또는 일반 Error.message

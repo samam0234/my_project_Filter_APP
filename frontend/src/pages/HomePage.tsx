@@ -5,6 +5,7 @@ import { ArrowRight, Crosshair, Eraser, Focus, ScanSearch, Sparkles, Wand2 } fro
 import { Link, navigate } from "../router";
 import { useJobs } from "../hooks/useApi";
 import { useAppStore } from "../store/useAppStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { ExamplePrompts } from "../components/prompt/ExamplePrompts";
 import { JobCard } from "../components/jobs/JobCard";
 import { EmptyBlock } from "../components/common/States";
@@ -35,7 +36,8 @@ const STEPS = [
 
 export function HomePage() {
   const setPrompt = useAppStore((s) => s.setPrompt);
-  const { data: jobs } = useJobs(4);
+  const loggedIn = useAuthStore((s) => s.status === "user");
+  const { data: jobs } = useJobs(4, loggedIn);
 
   const tryPrompt = (text: string) => {
     setPrompt(text);
@@ -109,12 +111,28 @@ export function HomePage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">최근 작업</h2>
-          <Link to="/history" className="text-sm text-brand-500 hover:text-brand-100">
-            전체 보기 →
-          </Link>
+          <h2 className="text-lg font-semibold text-white">내 최근 작업</h2>
+          {loggedIn && (
+            <Link to="/history" className="text-sm text-brand-500 hover:text-brand-100">
+              전체 보기 →
+            </Link>
+          )}
         </div>
-        {jobs && jobs.length > 0 ? (
+        {!loggedIn ? (
+          <EmptyBlock title="로그인하면 작업이 저장돼요">
+            <p className="max-w-sm text-xs text-slate-500">
+              로그인하지 않아도 배경 제거 후 바로 다운로드할 수 있어요. 작업 기록 · 피드백 · 배치는 회원 전용입니다.
+            </p>
+            <span className="flex gap-3">
+              <Link to="/login" className="text-brand-500 hover:text-brand-100">
+                로그인
+              </Link>
+              <Link to="/signup" className="text-slate-300 hover:text-white">
+                회원가입
+              </Link>
+            </span>
+          </EmptyBlock>
+        ) : jobs && jobs.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {jobs.map((job) => (
               <JobCard key={job.job_id} job={job} />

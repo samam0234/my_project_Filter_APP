@@ -1,7 +1,7 @@
 /**
- * 작업 기록 (/history) — 최근 작업 그리드 · 상태 필터 · 검색.
+ * 작업 기록 (/history) — 로그인 회원 전용, 본인 작업만. 상태 필터 · 검색.
  *
- * 필터는 URL 쿼리(?status=failed&q=사람)에 남겨 새로고침·공유해도 유지한다.
+ * 필터는 URL 쿼리(?status=failed&q=사람)에 남겨 새로고침해도 유지한다.
  */
 import { useMemo } from "react";
 import { RefreshCw, Search } from "lucide-react";
@@ -10,8 +10,8 @@ import { PageHeader } from "../components/common/PageHeader";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "../components/common/States";
 import { JobCard } from "../components/jobs/JobCard";
 import { useJobs } from "../hooks/useApi";
+import { RequireLogin } from "../components/auth/RequireLogin";
 import { Link, navigate, useSearch } from "../router";
-import { useAuthStore } from "../store/useAuthStore";
 import { statusLabel } from "../utils/formatters";
 
 const FILTERS = ["all", "ok", "fallback", "failed"] as const;
@@ -20,14 +20,19 @@ const FILTERS = ["all", "ok", "fallback", "failed"] as const;
 const LIMIT = 120;
 
 export function HistoryPage() {
+  return (
+    <RequireLogin title="작업 기록은 로그인 회원 전용이에요" reason="로그인하면 내가 처리한 작업을 모아 보고 다시 내려받을 수 있어요.">
+      <History />
+    </RequireLogin>
+  );
+}
+
+function History() {
   const search = useSearch();
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const status = params.get("status") ?? "all";
   const q = params.get("q") ?? "";
-  const loggedIn = useAuthStore((s) => s.status === "user");
-  // 내 작업만: 로그인 상태에서만 서버 필터(mine=true)
-  const mine = loggedIn && params.get("mine") === "1";
-  const { data, error, loading, reload } = useJobs(LIMIT, mine);
+  const { data, error, loading, reload } = useJobs(LIMIT);
 
   const setQuery = (key: string, value: string) => {
     const next = new URLSearchParams(search);
@@ -59,8 +64,8 @@ export function HistoryPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="작업 기록"
-        title="지금까지의 작업"
-        description={`최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
+        title="내 작업 기록"
+        description={`내가 로그인해서 처리한 작업을 최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
         actions={
           <Button variant="secondary" onClick={reload} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
@@ -83,21 +88,6 @@ export function HistoryPage() {
             </button>
           ))}
         </div>
-        {loggedIn ? (
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs text-slate-300">
-            <input
-              type="checkbox"
-              checked={mine}
-              onChange={(e) => setQuery("mine", e.target.checked ? "1" : "")}
-              className="accent-brand-500"
-            />
-            내 작업만
-          </label>
-        ) : (
-          <Link to="/login?next=%2Fhistory%3Fmine%3D1" className="text-xs text-slate-500 hover:text-slate-200">
-            로그인하면 내 작업만 볼 수 있어요
-          </Link>
-        )}
         <label className="relative min-w-[200px] flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input

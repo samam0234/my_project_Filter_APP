@@ -53,7 +53,7 @@ export function StudioPage() {
               <Link to="/login?next=%2Fstudio" className="text-brand-500 hover:text-brand-100">
                 로그인
               </Link>
-              하면 처리한 작업이 &lsquo;내 작업&rsquo;에 모입니다. 로그인하지 않아도 사용할 수 있어요.
+              하면 처리한 작업이 작업 기록에 저장됩니다. 로그인하지 않으면 결과를 저장하지 않고 다운로드만 할 수 있어요.
             </p>
           )}
         </div>
@@ -70,13 +70,29 @@ export function StudioPage() {
                 parsedPrompt={result.parsedPrompt}
                 message={result.message}
               />
-              <FeedbackPanel key={result.jobId} jobId={result.jobId} parsed={result.parsedPrompt} />
-              <Link
-                to={`/jobs/${result.jobId}`}
-                className="inline-flex items-center gap-1.5 text-sm text-brand-500 hover:text-brand-100"
-              >
-                작업 상세 보기 <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+              {result.saved ? (
+                <>
+                  <FeedbackPanel key={result.jobId} jobId={result.jobId} parsed={result.parsedPrompt} />
+                  <Link
+                    to={`/jobs/${result.jobId}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-brand-500 hover:text-brand-100"
+                  >
+                    작업 상세 보기 <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </>
+              ) : (
+                <div className="space-y-1 rounded-2xl border border-amber-800/40 bg-amber-950/20 p-4 text-sm text-amber-100/90">
+                  <p className="font-medium">이 결과는 저장되지 않아요</p>
+                  <p className="text-xs text-amber-100/70">
+                    로그인하지 않은 작업은 서버에 남기지 않습니다. 필요하면 지금 <b>결과 저장</b>으로 내려받으세요 —
+                    페이지를 새로고침하면 사라집니다.{" "}
+                    <Link to="/login?next=%2Fstudio" className="text-brand-500 hover:text-brand-100">
+                      로그인
+                    </Link>
+                    하면 작업 기록 · 피드백 · 배치를 쓸 수 있어요.
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">

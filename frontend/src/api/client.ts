@@ -44,11 +44,9 @@ export async function uploadImage(file: File, prompt: string): Promise<UploadRes
   return data;
 }
 
-/** 최근 작업 목록 (최신순, 상한 200). mine=true 는 로그인 사용자 작업만 */
-export async function listJobs(limit = 50, mine = false): Promise<JobResponse[]> {
-  const { data } = await api.get<JobResponse[]>("/api/v1/jobs", {
-    params: mine ? { limit, mine: true } : { limit },
-  });
+/** 로그인 사용자 본인 작업 목록 (최신순, 상한 200). 비로그인 401 */
+export async function listJobs(limit = 50): Promise<JobResponse[]> {
+  const { data } = await api.get<JobResponse[]>("/api/v1/jobs", { params: { limit } });
   return data;
 }
 
@@ -172,5 +170,10 @@ export function errorMessage(err: unknown, fallback = "요청 중 오류가 발�
   const detail = e?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) return "입력값을 확인하세요.";
+  // 백엔드가 꺼져 있으면 Vite 프록시(개발)·nginx(배포)가 본문 없는 500/502/503/504 를 돌려준다
+  const status = e?.response?.status ?? 0;
+  if (status >= 500) {
+    return "서버에 연결할 수 없거나 서버 오류가 발생했습니다. 백엔드(:8000)가 실행 중인지 확인해 주세요.";
+  }
   return e?.message || fallback;
 }

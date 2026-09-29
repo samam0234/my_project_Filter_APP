@@ -52,8 +52,12 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]): AsyncState<T
   return { data, error, loading, reload };
 }
 
-export function useJobs(limit = 50, mine = false) {
-  return useAsync<JobResponse[]>(() => listJobs(limit, mine), [limit, mine]);
+/** 로그인 사용자 본인 작업. enabled=false 면 요청하지 않음 (비로그인) */
+export function useJobs(limit = 50, enabled = true) {
+  return useAsync<JobResponse[] | null>(
+    () => (enabled ? listJobs(limit) : Promise.resolve(null)),
+    [limit, enabled],
+  );
 }
 
 export function useJob(jobId: string) {

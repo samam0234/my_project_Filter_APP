@@ -1,6 +1,7 @@
 /**
  * 배치 (/batch) — 여러 장을 한 문장으로 등록 · 상태 조회.
  *
+ * 로그인 회원 전용 (백엔드도 로그인 필수 · 본인 배치만 조회).
  * 백엔드 배치 워커는 Phase 2 (backend/app/tasks/batch_tasks.py 하드코딩 구간).
  * 지금은 등록(batch_jobs 기록)과 상태 조회만 동작하며, 화면에 그 사실을 분명히 표시한다.
  */
@@ -8,6 +9,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Info, Layers, Search, X } from "lucide-react";
 import { createBatch, errorMessage, getBatch } from "../api/client";
+import { RequireLogin } from "../components/auth/RequireLogin";
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
 import type { BatchStatus } from "../types";
@@ -37,6 +39,14 @@ function StatusCard({ status }: { status: BatchStatus }) {
 }
 
 export function BatchPage() {
+  return (
+    <RequireLogin title="배치는 로그인 회원 전용이에요" reason="여러 장을 한 번에 등록하고 진행 상태를 확인하려면 로그인해 주세요.">
+      <Batch />
+    </RequireLogin>
+  );
+}
+
+function Batch() {
   const [files, setFiles] = useState<File[]>([]);
   const [prompt, setPrompt] = useState("사람만 남기고 배경 제거");
   const [submitting, setSubmitting] = useState(false);
