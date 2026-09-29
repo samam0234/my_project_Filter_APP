@@ -22,17 +22,20 @@ export async function fetchHealth(): Promise<HealthResponse> {
   return data;
 }
 
-/** GET /api/v1/jobs?limit= */
+// 사용자 앱의 /api/v1/jobs 는 로그인 사용자 본인 작업만 돌려준다.
+// 콘솔은 전체 작업을 보는 콘솔 전용 API 를 쓴다 — 서버 PC(loopback)에서만 허용 (CONSOLE_ALLOW_REMOTE).
+
+/** GET /api/v1/console/jobs?limit= — 전체 작업 (소유자 무관) */
 export async function fetchJobs(limit = 50): Promise<JobResponse[]> {
-  const { data } = await api.get<JobResponse[]>("/api/v1/jobs", {
+  const { data } = await api.get<JobResponse[]>("/api/v1/console/jobs", {
     params: { limit },
   });
   return data;
 }
 
-/** GET /api/v1/jobs/{id} */
+/** GET /api/v1/console/jobs/{id} */
 export async function fetchJob(jobId: string): Promise<JobResponse> {
-  const { data } = await api.get<JobResponse>(`/api/v1/jobs/${jobId}`);
+  const { data } = await api.get<JobResponse>(`/api/v1/console/jobs/${jobId}`);
   return data;
 }
 
