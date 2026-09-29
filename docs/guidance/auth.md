@@ -17,8 +17,25 @@
 | 비밀번호 찾기 ① | `/find-password` | `POST /api/v1/auth/password/request` | 아이디+이메일 일치 시 6자리 코드 메일 |
 | 비밀번호 찾기 ② | 같은 화면 | `POST /api/v1/auth/password/reset` | 새 비밀번호 저장 + **모든 기기 로그아웃** |
 
-로그인은 **선택**이다. 로그인하지 않아도 작업실은 그대로 쓴다.
-로그인 상태로 처리한 작업은 `jobs.user_id` 로 연결되어 작업 기록의 **내 작업만**(`?mine=1`)에서 모아 본다.
+로그인은 **선택**이다. 로그인하지 않아도 작업실에서 처리하고 결과를 내려받을 수 있다.
+다만 저장·기록·피드백·배치는 **로그인 회원 전용**이다 (아래 1.1).
+
+### 1.1 접근 정책
+
+| 기능 | 비로그인 | 로그인 회원 |
+|------|----------|-------------|
+| 작업실 처리 (배경 제거·블러·크롭·지우기) | ✅ 결과를 응답에 담아 **다운로드만** — 서버에 기록·파일·실패 케이스를 남기지 않음 | ✅ 저장 (작업 기록 · 결과 파일 보관) |
+| 작업 기록 · 작업 상세 | 🔒 로그인 안내 | ✅ **본인 작업만** |
+| 결과 파일 `/files/*` | 🔒 404 | 본인 작업만 |
+| 피드백 · 정답 알려주기 | ✖ (저장된 작업이 없음) | ✅ 본인 작업만 |
+| 배치 | 🔒 로그인 안내 | ✅ 본인 배치만 조회 |
+
+- 비로그인 업로드: `run_pipeline(persist=False)` → 실패 케이스를 `data/feedback` 에 남기지 않고,
+  결과 이미지는 data URL 로 응답한 뒤 `backend/data/uploads/{job_id}` 를 즉시 삭제
+- 로그인 업로드: `jobs.user_id` 로 소유자 연결 → 작업 기록(`/history`)에서 모아 본다
+- 남의 작업·파일은 `core/access.owned_job` 이 **404** 로 막는다 (존재 여부 비노출)
+- 소유자 없는(로그인 기능 이전) 작업은 사용자 앱에서 보이지 않고 **운영 콘솔**에서만 조회
+- 운영 콘솔 전체 조회 API(`/api/v1/console/*`)는 서버 PC(loopback) 요청만 허용 (`CONSOLE_ALLOW_REMOTE`)
 
 ---
 
@@ -87,6 +104,7 @@ Select-String -Path backend\logs\app_*.log -Pattern "DEV MAIL" -Context 0,4 | Se
 | `LOGIN_MAX_FAILURES` · `LOGIN_LOCK_MINUTES` | 5 · 10 | 로그인 잠금 |
 | `AUTH_CODE_TTL_MINUTES` · `AUTH_CODE_MAX_ATTEMPTS` · `AUTH_CODE_RESEND_SECONDS` | 10 · 5 · 60 | 재설정 코드 |
 | `SMTP_*` | (비움) | 위 4절 |
+| `CONSOLE_ALLOW_REMOTE` | false | 운영 콘솔 API 원격 허용 (앞단 접근 제어가 있을 때만 true) |
 
 ---
 
@@ -99,7 +117,8 @@ Select-String -Path backend\logs\app_*.log -Pattern "DEV MAIL" -Context 0,4 | Se
 | `users` | id · username · email · display_name · password_hash · failed_logins · locked_until · last_login_at |
 | `auth_sessions` | id(=토큰 SHA-256) · user_id · expires_at · user_agent |
 | `auth_codes` | user_id · purpose(`password_reset`) · code_hash · attempts · expires_at · used_at |
-| `jobs.user_id` | 기존 테이블에 **ALTER 로 추가** (NULL 허용). 비로그인 작업은 NULL |
+| `jobs.user_id` | 기존 테이블에 **ALTER 로 추가** (NULL 허용). 비로그인 작업은 저장하지 않으므로, NULL 은 로그인 기능 이전 작업뿐 |
+| `batch_jobs.user_id` | 기존 테이블에 ALTER 로 추가. 배치를 등록한 회원 |
 
 사용자를 지우면 세션·코드는 함께 삭제된다. 기존 DB 에 ALTER 로 추가된 `jobs.user_id` 는
 외래키 제약 없이 들어가므로, 사용자 삭제 시 작업의 `user_id` 가 남을 수 있다 (새 DB 는 `SET NULL`).
@@ -109,6 +128,6 @@ Select-String -Path backend\logs\app_*.log -Pattern "DEV MAIL" -Context 0,4 | Se
 ## 7. 하지 않은 것 (후속)
 
 - 이메일 소유 확인(가입 시 인증 메일) · 소셜 로그인 · 회원 탈퇴 · 비밀번호 변경(로그인 상태)
-- 작업 상세·파일 접근 제한 — 지금은 작업 ID 를 알면 누구나 볼 수 있다 (기존 동작 유지)
-- 콘솔(:5174) 관리자 인증
+- 콘솔(:5174) 관리자 로그인 — 지금은 서버 PC(loopback) 제한으로 대체
+- 소유자 없는 옛 작업을 특정 계정에 귀속하는 도구
 - 요청 IP 단위 속도 제한 (계정 단위 잠금만 있음)

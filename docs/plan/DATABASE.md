@@ -99,7 +99,7 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 `lifespan` → `init_db()` → `Base.metadata.create_all()` → `_ensure_columns()`
 `create_all` 은 **없는 테이블만** 만들고 기존 테이블에 컬럼을 추가하지 않는다.
 그래서 `db/session.py` 의 `_ADDED_COLUMNS` 목록에 있는 컬럼만 `ALTER TABLE … ADD COLUMN … NULL` 로 보강한다
-(현재 `jobs.user_id`). 스키마 변경이 잦아지면 Alembic 도입 권장.
+(현재 `jobs.user_id`, `batch_jobs.user_id`). 스키마 변경이 잦아지면 Alembic 도입 권장.
 
 ---
 
@@ -181,11 +181,14 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 | meta | JSON | prompt, scores 등 |
 
 #### `batch_jobs` (Phase 2)
-배치 작업 진행률·상태 저장. 현재 API는 stub + DB row 생성.
+배치 작업 진행률·상태 저장. 현재 API는 stub + DB row 생성. `user_id` = 등록한 회원 (배치는 회원 전용).
 
 ---
 
 ## 4. 저장 정책
+
+비로그인 업로드는 **아무것도 저장하지 않는다** (jobs 행·업로드 파일·실패 사이드카 모두 없음 — 결과는 응답의 data URL 로만).
+아래는 로그인 회원 작업 기준.
 
 | 데이터 | DB | 디스크 |
 |--------|----|--------|
@@ -267,5 +270,5 @@ SQLite는 Python 표준 라이브러리 드라이버 사용 (추가 패키지 �
 ---
 
 **다음 액션**  
-1. 로컬에서 SQLite로 `/api/v1/upload` 후 `/api/v1/jobs/{id}` 조회 확인  
+1. 로컬에서 SQLite로 **로그인 후** `/api/v1/upload` → `/api/v1/jobs/{id}` 조회 확인 (비로그인 업로드는 저장되지 않음)  
 2. Docker Compose로 MariaDB 연동 스모크 테스트  

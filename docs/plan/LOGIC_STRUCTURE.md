@@ -243,13 +243,15 @@ P2: text prompt → Grounding DINO boxes → SAM2 masks
 
 | Method | Path | Phase | 설명 |
 |--------|------|-------|------|
-| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 (**DB jobs 저장**) |
-| GET | `/api/v1/jobs/{job_id}` | P1 | DB에서 job 조회 |
-| GET | `/api/v1/jobs` | P1 | 최근 job 목록 |
-| POST | `/api/v1/feedback` | P1 | like/dislike → **DB feedbacks** + 파일 사이드카 |
+| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 (**로그인: DB jobs 저장** · 비로그인: 저장 없이 data URL) |
+| GET | `/api/v1/jobs/{job_id}` | P1 | 본인 job 조회 (로그인) |
+| GET | `/api/v1/jobs` | P1 | 본인 최근 job 목록 (로그인) |
+| POST | `/api/v1/feedback` | P1 | like/dislike → **DB feedbacks** + 파일 사이드카 (로그인 · 본인 작업) |
+| * | `/api/v1/auth/*` | P1 | 로그인 · 회원가입 · 아이디/비밀번호 찾기 |
+| GET | `/api/v1/console/*` | P1 | 운영 콘솔 전체 조회 (서버 PC 에서만) |
 | GET | `/health` | P1 | 헬스체크 (+ `db_dialect`) |
-| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id (**batch_jobs**) |
-| GET | `/api/v1/batch/{job_id}` | P2 | 진행률·결과 |
+| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id (**batch_jobs**, 로그인 회원) |
+| GET | `/api/v1/batch/{job_id}` | P2 | 본인 배치 진행률·결과 |
 | WS/SSE | `/api/v1/batch/{job_id}/stream` | P2 | 실시간 진행률 |
 
 

@@ -18,7 +18,9 @@ tests/
 │   ├── test_prompt_llm.py         # LLM provider 요청·파싱·selector 정규화 (네트워크 없음)
 │   ├── test_segmentation_filter.py # 대상 라벨 필터 · 별칭 · ONNX 가드 (가짜 YOLO)
 │   ├── test_instance_selector.py  # 위치·순서·개수·색 속성 선택 (합성 이미지)
-│   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정 (메모리 SQLite, 메일 가로채기)
+│   ├── conftest.py                # api_env fixture — 메모리 SQLite 앱 + 메일 가로채기
+│   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정
+│   ├── test_access.py             # 비로그인 다운로드만 · 회원 본인 작업만 · 배치 · 콘솔 loopback (가짜 파이프라인)
 │   └── test_lora_dataset.py       # training/lora 데이터 계약·시드 (torch 불필요)
 ├── structure/               # 폴더·문서·스크립트 존재 검사
 │   └── test_project_layout.py

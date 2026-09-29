@@ -2,6 +2,21 @@
 
 Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 프론트(5173)·콘솔(5174) dev 서버는 Vite 프록시로 `/api`, `/health` 를 이 주소로 넘긴다.
+백엔드가 꺼져 있으면 프록시가 **본문 없는 500** 을 돌려준다 (화면에는 "서버에 연결할 수 없음" 안내).
+
+## 접근 정책 한눈에
+
+| 기능 | 비로그인 | 로그인 회원 |
+|------|----------|-------------|
+| 작업실 처리 (배경 제거·블러·크롭·지우기) | ✅ 결과를 응답에 담아 **다운로드만** — 서버에 기록·파일·실패 케이스를 남기지 않음 | ✅ 저장 (작업 기록 · 결과 파일 보관) |
+| 작업 기록 · 작업 상세 | 🔒 로그인 안내 | ✅ **본인 작업만** |
+| 결과 파일 `/files/*` | 🔒 404 | 본인 작업만 |
+| 피드백 · 정답 알려주기 | ✖ (저장된 작업이 없음) | ✅ 본인 작업만 |
+| 배치 | 🔒 로그인 안내 | ✅ 본인 배치만 조회 |
+
+- 🔒 = 401 (로그인 필요). 남의 작업·파일·배치는 존재를 알리지 않도록 **404**
+- 소유자 없는(로그인 기능 이전) 작업은 사용자 API 로 보이지 않고 **운영 콘솔 API** 로만 조회
+- 세션은 HttpOnly 쿠키 — 상세 [`guidance/auth.md`](guidance/auth.md)
 
 ---
 
@@ -43,7 +58,11 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 | `file` | JPEG / PNG / WebP, 최대 20 MB (`MAX_UPLOAD_SIZE_MB`) |
 | `prompt` | 자연어 요청 1~1000자 |
 
-파이프라인을 **동기**로 실행한 뒤 `jobs` 테이블에 저장한다. 로그인 상태면 작업을 사용자와 연결한다(`jobs.user_id`).
+파이프라인을 **동기**로 실행한다.
+
+- **로그인:** `jobs` 테이블에 저장(`user_id` 연결), 결과 파일 보관, `before_url`/`after_url` 은 파일 경로, `saved: true`
+- **비로그인:** 저장하지 않음 — DB 기록·결과 파일·실패 케이스(학습 재료)를 남기지 않는다.
+  `after_url` 은 결과 이미지 **data URL**(`data:image/png;base64,…`), `before_url` 은 `null`, `saved: false`
 LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 더 김).
 
 응답:
@@ -64,7 +83,8 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
   "after_url": "/api/v1/files/8a901e7b…/after",
   "quality_score": 0.92,
   "message": "ok",
-  "feedback_saved": false
+  "feedback_saved": false,
+  "saved": true
 }
 ```
 
@@ -88,8 +108,8 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
 
 | 엔드포인트 | 내용 |
 |------------|------|
-| `GET /api/v1/files/{job_id}/before` | 원본 JPEG |
-| `GET /api/v1/files/{job_id}/after` | 결과 — `remove_bg` 는 투명 PNG, 나머지는 JPEG |
+| `GET /api/v1/files/{job_id}/before` | 원본 JPEG — **작업 소유자만** (그 외 404) |
+| `GET /api/v1/files/{job_id}/after` | 결과 — `remove_bg` 는 투명 PNG, 나머지는 JPEG — **작업 소유자만** |
 
 파일은 `backend/data/uploads/{job_id}/` 에 있으며 `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 지운다.
 
@@ -99,9 +119,8 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `GET /api/v1/jobs?limit=50` | 최근 목록 (상한 200, 최신순) |
-| `GET /api/v1/jobs?mine=true` | 로그인 사용자의 작업만 (비로그인 401) |
-| `GET /api/v1/jobs/{job_id}` | 단건. 없으면 404 |
+| `GET /api/v1/jobs?limit=50` | **로그인 사용자 본인** 작업 최근 목록 (상한 200, 최신순) · 비로그인 401 |
+| `GET /api/v1/jobs/{job_id}` | 본인 작업 단건 · 없거나 남의 작업이면 404 · 비로그인 401 |
 
 ```json
 {
@@ -119,7 +138,7 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
 
 ## Feedback
 
-`POST /api/v1/feedback` · JSON
+`POST /api/v1/feedback` · JSON · **로그인 필요, 본인 작업만** (남의 작업 404)
 
 ```json
 { "job_id": "…", "vote": "like" | "dislike", "comment": "선택, 최대 2000자" }
@@ -140,10 +159,23 @@ LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/batch` | `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 배치 등록만 (실제 처리 미구현) |
-| `GET /api/v1/batch/{job_id}` | 상태·진행률. 없으면 `status: "not_found"` |
+| `POST /api/v1/batch` | **로그인 필요** · `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 배치 등록만 (실제 처리 미구현) |
+| `GET /api/v1/batch/{job_id}` | **로그인 필요** · 본인 배치 상태·진행률. 없거나 남의 배치면 `status: "not_found"` |
 
 → DB `batch_jobs`. 워커 구현은 `backend/app/tasks/batch_tasks.py` 하드코딩 구간.
+
+---
+
+## Console — 운영 콘솔 전용
+
+콘솔(:5174)이 전체 작업을 보는 API. 인증이 없으므로 **서버 PC(loopback) 요청만 허용**,
+다른 곳에서 오면 403 (`CONSOLE_ALLOW_REMOTE=true` 로 해제 — 앞단 접근 제어가 있을 때만).
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
+| `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
+| `GET /api/v1/console/files/{job_id}/{before\|after}` | 작업 파일 (소유자 무관) |
 
 ---
 

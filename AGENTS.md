@@ -20,6 +20,7 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | LLM 기본 | Ollama `gemma4:e4b` (선택: `LLM_PROVIDER=lora` Qwen2.5-1.5B 어댑터) |
 | 프롬프트 규격 | `backend/app/services/prompt_spec.py` — 서빙·LoRA 학습 공용. 바꾸면 LoRA 재학습 |
 | 인스턴스 선택 | `backend/app/services/instance_selector.py` (위치·순서·개수·색 규칙) |
+| 계정 · 접근 | `/api/v1/auth/*` · `core/access.py` — 비로그인 처리·다운로드만(저장 없음), 기록·피드백·배치는 회원 본인 것만, 콘솔 API loopback |
 | OpenCV 위치 | `backend/app/services/image_processor.py`, `effects.py` |
 | Python 의존성 | 루트 `requirements.txt` / `requirements.docker.txt` |
 | 학습 구역 | `training/` (YOLO detect/seg, LoRA) — 추론과 분리 |

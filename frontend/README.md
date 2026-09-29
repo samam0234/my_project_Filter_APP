@@ -9,19 +9,31 @@
 |------|--------|------|----------|
 | `/` | 홈 | 소개 · 할 수 있는 것 · 동작 방식 · 예시 칩 · 최근 작업 4건 | `GET /jobs?limit=4` |
 | `/studio` | **작업실** | 업로드 · 프롬프트(예시 칩, Ctrl+Enter) · 처리 진행(경과 시간·단계) · 해석 칩 · Before/After · 결과 저장 · 평가 | `POST /upload`, `POST /feedback` |
-| `/history` | 작업 기록 | 최근 120건 그리드 · 상태 필터(완료/부분/실패) · 프롬프트 검색 (URL 쿼리 유지) | `GET /jobs?limit=120` |
-| `/jobs/:id` | 작업 상세 | 결과 · 해석 JSON 복사 · 메타 · 평가/정답 알려주기 · 같은 문장으로 다시 작업 | `GET /jobs/{id}`, `POST /feedback` |
+| `/history` | 작업 기록 🔒 | **본인 작업** 최근 120건 · 상태 필터(완료/부분/실패) · 프롬프트 검색 (URL 쿼리 유지) | `GET /jobs?limit=120` |
+| `/jobs/:id` | 작업 상세 🔒 | 결과 · 해석 JSON 복사 · 메타 · 평가/정답 알려주기 · 같은 문장으로 다시 작업 | `GET /jobs/{id}`, `POST /feedback` |
 | `/guide` | 프롬프트 가이드 | 남기기 vs 지우기 · 위치/크기/순서/개수/색 고르기 · 예시(누르면 작업실로) · 한계 | — |
-| `/batch` | 배치 (Phase 2) | 여러 장 등록 · 상태 조회. **처리 워커는 미구현**이라 화면에 명시 | `POST /batch`, `GET /batch/{id}` |
+| `/batch` | 배치 🔒 (Phase 2) | 여러 장 등록 · 상태 조회. **처리 워커는 미구현**이라 화면에 명시 | `POST /batch`, `GET /batch/{id}` |
 | `/login` | 로그인 | 아이디·비밀번호, `?next=` 로 돌아갈 곳, 아이디/비밀번호 찾기 링크 | `POST /auth/login` |
 | `/signup` | 회원가입 | 입력 즉시 규칙 안내, 가입 후 바로 로그인 | `POST /auth/signup` |
 | `/find-id` | 아이디 찾기 | 가입 이메일로 아이디 발송 (항상 같은 안내) | `POST /auth/find-id` |
 | `/find-password` | 비밀번호 찾기 | ① 아이디+이메일 → 코드 ② 코드+새 비밀번호 | `POST /auth/password/request`, `/reset` |
 | 그 외 | 404 | | |
 
+🔒 = 로그인 회원 전용. 비로그인이 들어오면 `RequireLogin` 게이트가 로그인·회원가입 안내를 보여주고
+(로그인 후 `next` 로 복귀), 메뉴에도 자물쇠가 붙는다.
+
 상단 내비게이션 우측 점은 백엔드 상태(`GET /health`, 30초마다), 그 옆은 계정 메뉴다
-(비로그인: 로그인·회원가입 / 로그인: 이름 → 내 작업, 로그아웃). 로그인은 선택이며,
-로그인 상태로 처리한 작업은 작업 기록의 **내 작업만**에서 모아 본다. 계정 상세: `docs/guidance/auth.md`
+(비로그인: 로그인·회원가입 / 로그인: 이름 → 작업 기록, 로그아웃).
+
+### 비로그인 vs 회원
+
+| | 비로그인 | 회원 |
+|--|---------|------|
+| 작업실 | 처리 후 **결과 저장(다운로드)만** — 서버에 남지 않고 새로고침하면 사라짐. 원본은 브라우저 미리보기 | 저장 · 작업 상세 링크 · 평가/정답 알려주기 |
+| 홈 "최근 작업" | 로그인 안내 | 내 최근 작업 4건 |
+| 작업 기록 · 상세 · 배치 | 게이트 | 본인 것만 |
+
+계정 상세: `docs/guidance/auth.md`
 
 ## "정답 알려주기" → LoRA 학습
 
@@ -46,6 +58,7 @@
 | 상태 | `src/store/useAppStore.ts` | 작업실 입력·결과 (페이지를 옮겨도 유지) |
 | 계정 상태 | `src/store/useAuthStore.ts` | `/auth/me` 결과 (세션 토큰은 HttpOnly 쿠키라 JS 에 없음) |
 | 계정 화면 | `src/pages/auth/`, `src/components/auth/AuthForm.tsx` | 로그인·가입·찾기, 입력 규칙(백엔드와 동일), `safeNext` |
+| 회원 게이트 | `src/components/auth/RequireLogin.tsx` | 회원 전용 화면 감싸기 (loading · 안내 · children) |
 | API | `src/api/client.ts` | axios → backend `/api/v1` (업로드 타임아웃 180s) |
 | 훅 | `src/hooks/` | `useImageProcessing`, `useFeedback(jobId)`, `useApi`(jobs·job·health) |
 | 데이터 | `src/data/examples.ts` | 홈·작업실·가이드 공용 예시 프롬프트 |

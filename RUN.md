@@ -35,6 +35,11 @@ ollama serve
 실행 중 생기는 파일: 업로드·SQLite `backend/data/`, 앱 로그 `backend/logs/app_YYYY-MM-DD.log`,
 피드백(학습 재료) 루트 `data/feedback/`.
 
+로그인 여부: 비로그인은 작업실 처리 결과를 **다운로드만** 할 수 있고(서버에 저장 안 함),
+작업 기록 · 피드백 · 배치는 회원 전용이다 → [`docs/guidance/auth.md`](./docs/guidance/auth.md).
+운영 콘솔(:5174)은 백엔드와 **같은 PC** 에서 실행한다 (콘솔 API 는 loopback 만 허용).
+로컬에서 비밀번호 찾기 코드는 `backend/logs/app_YYYY-MM-DD.log` 의 `[DEV MAIL` 에서 확인 (SMTP 미설정 시).
+
 ### 환경변수
 
 ```powershell

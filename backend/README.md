@@ -35,6 +35,9 @@
 계정 보조: `core/passwords.py`(scrypt·토큰·코드), `core/deps.py`(`current_user`),
 `repositories/user_repository.py`, `routers/auth.py` → [`docs/guidance/auth.md`](../docs/guidance/auth.md)
 
+접근 정책: `core/access.py` — `owned_job`(본인 작업만, 아니면 404) · `require_local_console`(콘솔 API loopback).
+비로그인 업로드는 `routers/upload.py` 가 저장 없이 data URL 로 응답, 운영 콘솔 전체 조회는 `routers/console.py`.
+
 ### 런타임 폴더 (backend/ 기준)
 
 | 폴더 | 내용 |
