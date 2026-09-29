@@ -29,6 +29,21 @@ export interface ParsedPrompt {
   selector?: InstanceSelector | null;
 }
 
+/** 로그인 사용자 (GET /api/v1/auth/me) */
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  display_name?: string | null;
+  created_at?: string | null;
+}
+
+/** 계정 API 공통 안내 응답 */
+export interface MessageResponse {
+  ok: boolean;
+  message: string;
+}
+
 /** GET /health */
 export interface HealthResponse {
   status: string;
@@ -47,6 +62,8 @@ export interface UploadResponse {
   quality_score: number;
   message?: string | null;
   feedback_saved: boolean;
+  /** false = 비로그인 처리: 서버에 남기지 않음. after_url 은 data URL (다운로드만) */
+  saved: boolean;
 }
 
 /** GET /api/v1/jobs · /jobs/{id} */
@@ -104,4 +121,6 @@ export interface ProcessResultState {
   qualityScore: number;
   parsedPrompt?: ParsedPrompt | null;
   message?: string | null;
+  /** false = 비로그인 결과 (기록·피드백 없음, 다운로드만) */
+  saved: boolean;
 }

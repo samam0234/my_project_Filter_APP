@@ -29,6 +29,7 @@
 - **현재 스택 스냅샷 (포트·DB·Docker):** [plan/CURRENT_STACK.md](./plan/CURRENT_STACK.md)
 - **실행 · 서버:** [../RUN.md](../RUN.md) · [guidance/docker-run.md](./guidance/docker-run.md)
 - **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md) · **YOLO n→s:** [plan/YOLO26S_DEFAULT.md](./plan/YOLO26S_DEFAULT.md)
+- **계정 (로그인 · 회원가입 · 찾기):** [guidance/auth.md](./guidance/auth.md)
 - **LLM · 비전 · 프롬프트 규격:** [guidance/llm-and-vision.md](./guidance/llm-and-vision.md)
 - **학습:** [../training/README.md](../training/README.md) · LoRA 평가 [../training/lora/README.md](../training/lora/README.md)
 - **테스트:** [plan/TESTING.md](./plan/TESTING.md) · [../tests/README.md](../tests/README.md)

@@ -12,6 +12,7 @@
 | [api-usage.md](./api-usage.md) | 주요 API 사용 |
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
+| [auth.md](./auth.md) | 로그인 · 회원가입 · 아이디/비밀번호 찾기 · 보안 · SMTP |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
 | [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · yolo26s-seg · OpenAI/Gemini |
 

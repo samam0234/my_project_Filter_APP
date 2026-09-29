@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import DateTime, Float, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -21,6 +21,10 @@ class Job(Base):
 
     # PK = 파이프라인 job_id
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 로그인 상태로 처리한 작업의 소유자 (비로그인 작업은 NULL, 탈퇴 시 NULL 로)
+    user_id: Mapped[Optional[str]] = mapped_column(
+        String(32), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     # pending | ok | fallback | failed
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)

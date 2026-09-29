@@ -9,12 +9,21 @@ import { PageHeader } from "../components/common/PageHeader";
 import { ErrorBlock, LoadingBlock } from "../components/common/States";
 import { FeedbackPanel } from "../components/feedback/FeedbackPanel";
 import { BeforeAfterViewer } from "../components/image/BeforeAfterViewer";
+import { RequireLogin } from "../components/auth/RequireLogin";
 import { useJob } from "../hooks/useApi";
 import { Link, navigate } from "../router";
 import { useAppStore } from "../store/useAppStore";
 import { formatDateTime } from "../utils/formatters";
 
 export function JobDetailPage({ jobId }: { jobId: string }) {
+  return (
+    <RequireLogin title="작업 상세는 로그인 회원 전용이에요" reason="내 계정으로 처리한 작업만 볼 수 있어요.">
+      <JobDetail jobId={jobId} />
+    </RequireLogin>
+  );
+}
+
+function JobDetail({ jobId }: { jobId: string }) {
   const { data: job, error, loading, reload } = useJob(jobId);
   const setPrompt = useAppStore((s) => s.setPrompt);
   const [copied, setCopied] = useState(false);
@@ -25,7 +34,11 @@ export function JobDetailPage({ jobId }: { jobId: string }) {
       <div className="space-y-4">
         <BackLink />
         <ErrorBlock
-          message={error?.includes("없음") ? "작업을 찾을 수 없어요." : error ?? "작업을 불러오지 못했어요."}
+          message={
+            error?.includes("찾을 수 없") || error?.includes("없음")
+              ? "작업을 찾을 수 없어요. 삭제되었거나 다른 계정의 작업입니다."
+              : error ?? "작업을 불러오지 못했어요."
+          }
           onRetry={reload}
         />
       </div>

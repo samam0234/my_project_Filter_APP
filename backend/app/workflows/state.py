@@ -47,4 +47,5 @@ class GraphState(TypedDict, total=False):
 
     # --- 제어 ---
     retry_count: int  # 세그 재시도 횟수 (현재 최대 1)
+    persist: bool  # False = 비로그인 요청 → 피드백(학습 재료) 저장 안 함
     message: str  # 단계별 짧은 상태 메시지

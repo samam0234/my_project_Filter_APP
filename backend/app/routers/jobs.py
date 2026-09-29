@@ -1,16 +1,20 @@
 """Job 조회 라우터 — DB에 저장된 처리 이력 조회.
 
 엔드포인트:
-  GET /api/v1/jobs/{job_id} — 단건
-  GET /api/v1/jobs?limit=   — 최근 목록 (콘솔 대시보드용)
+  GET /api/v1/jobs/{job_id} — 단건 (로그인 · 본인 작업만, 아니면 404)
+  GET /api/v1/jobs?limit=     — 로그인 사용자 본인 작업 최근 목록 (비로그인 401)
+운영 콘솔의 전체 조회는 routers/console.py (이 PC 에서만).
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.access import owned_job
+from app.core.deps import current_user
 from app.db.session import get_db
+from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.schemas.response import JobResponse
 
@@ -38,19 +42,21 @@ def _to_response(row) -> JobResponse:
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
-async def get_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse:
-    """단건 job 조회. 없으면 404."""
-    row = JobRepository(db).get(job_id)
-    if row is None:
-        raise HTTPException(status_code=404, detail="job 없음")
-    return _to_response(row)
+async def get_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+) -> JobResponse:
+    """본인 작업 단건. 없거나 남의 작업이면 404."""
+    return _to_response(owned_job(db, job_id, user))
 
 
 @router.get("/jobs", response_model=list[JobResponse])
 async def list_jobs(
     limit: int = 50,
     db: Session = Depends(get_db),
+    user: User = Depends(current_user),
 ) -> list[JobResponse]:
-    """최근 job 목록. limit 상한 200."""
-    rows = JobRepository(db).list_recent(limit=min(limit, 200))
+    """로그인 사용자 본인 작업 최근 목록. limit 상한 200."""
+    rows = JobRepository(db).list_recent(limit=min(limit, 200), user_id=user.id)
     return [_to_response(r) for r in rows]

@@ -121,11 +121,13 @@ def run_pipeline(
     image_bytes: bytes,
     prompt: str,
     job_id: Optional[str] = None,
+    persist: bool = True,
 ) -> ProcessResult:
     """공개 진입점: 이미지 + 프롬프트 → ProcessResult.
 
     라우터(upload 등)가 호출하는 유일한 고수준 API.
     job_id 가 없으면 uuid4 hex 를 발급한다.
+    persist=False (비로그인): 실패 케이스를 피드백(학습 재료)으로 저장하지 않는다.
     """
     job_id = job_id or uuid4().hex
     # GraphState 초기값 — 노드들이 점진적으로 필드를 채움
@@ -137,6 +139,7 @@ def run_pipeline(
         "retry_count": 0,
         "feedback_saved": False,
         "quality_score": 0.0,
+        "persist": persist,
     }
 
     compiled = get_compiled_graph()

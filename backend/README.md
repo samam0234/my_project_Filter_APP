@@ -29,6 +29,11 @@
 | `effects.py` | GrabCut 정제, 배경 제거·블러·크롭, `remove_object` inpaint |
 | `image_processor.py` | 전처리 (리사이즈 + CLAHE) |
 | `feedback_service.py` | 피드백 DB + `data/feedback/` 사이드카 |
+| `auth_service.py` | 가입 · 로그인 잠금 · 세션 · 아이디 찾기 · 비밀번호 재설정 규칙 |
+| `mailer.py` | SMTP 발송 (미설정 시 로그에만 기록) |
+
+계정 보조: `core/passwords.py`(scrypt·토큰·코드), `core/deps.py`(`current_user`),
+`repositories/user_repository.py`, `routers/auth.py` → [`docs/guidance/auth.md`](../docs/guidance/auth.md)
 
 ### 런타임 폴더 (backend/ 기준)
 

@@ -3,5 +3,6 @@
 from app.models.batch_job import BatchJob
 from app.models.feedback import Feedback
 from app.models.job import Job
+from app.models.user import AuthCode, AuthSession, User
 
-__all__ = ["Job", "Feedback", "BatchJob"]
+__all__ = ["Job", "Feedback", "BatchJob", "User", "AuthSession", "AuthCode"]

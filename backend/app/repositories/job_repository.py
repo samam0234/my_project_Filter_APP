@@ -48,7 +48,7 @@ class JobRepository:
         self.db.refresh(row)
         return row
 
-    def save_result(self, result: ProcessResult, prompt: str) -> Job:
+    def save_result(self, result: ProcessResult, prompt: str, user_id: str | None = None) -> Job:
         """파이프라인 ProcessResult로 job을 삽입 또는 갱신.
 
         이미 행이 있으면 덮어쓰고, 없으면 새로 insert.
@@ -63,6 +63,7 @@ class JobRepository:
             # 신규 삽입
             row = Job(
                 id=result.job_id,
+                user_id=user_id,
                 prompt=prompt,
                 status=result.status,
                 parsed_prompt=parsed,
@@ -108,11 +109,9 @@ class JobRepository:
         self.db.refresh(row)
         return row
 
-    def list_recent(self, limit: int = 50) -> list[Job]:
-        """최신 생성 순 목록 (콘솔/운영 조회)."""
-        return (
-            self.db.query(Job)
-            .order_by(Job.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+    def list_recent(self, limit: int = 50, user_id: str | None = None) -> list[Job]:
+        """최신 생성 순 목록 (콘솔/운영 조회). user_id 가 있으면 그 사용자 작업만."""
+        query = self.db.query(Job)
+        if user_id is not None:
+            query = query.filter(Job.user_id == user_id)
+        return query.order_by(Job.created_at.desc()).limit(limit).all()

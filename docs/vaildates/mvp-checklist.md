@@ -23,5 +23,6 @@
 | 17 | 특정 인스턴스 선택 · 물체 지우기 | ☑ | "맨 앞 빨간 안전모 남자만", "왼쪽에서 두 번째 사람 지워" |
 | 18 | LoRA 프롬프트 어댑터 | ☑ | 평가 87.5% · `LLM_PROVIDER=lora` |
 | 19 | 런타임 · 학습 폴더 분리 | ☑ | `backend/{data,models,logs}` · 루트 `data/feedback` |
+| 20 | 로그인 · 회원가입 · 아이디/비밀번호 찾기 | ☑ | 배포 전 `SECRET_KEY` · `SMTP_*` · `SESSION_COOKIE_SECURE=true` 필수 |
 
 테스트 전략: `docs/plan/TESTING.md`

@@ -1,0 +1,49 @@
+"""계정 API 요청·응답 스키마.
+
+형식 검증은 길이 상한 정도만 두고, 사용자에게 보여줄 규칙 메시지(아이디·비밀번호 규칙)는
+services/auth_service.py 에서 한국어로 돌려준다 (Pydantic 기본 영문 오류 대신).
+"""
+
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+
+class SignupRequest(BaseModel):
+    username: str = Field(..., max_length=64)
+    email: str = Field(..., max_length=255)
+    password: str = Field(..., max_length=128)
+    display_name: Optional[str] = Field(default=None, max_length=100)
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(..., max_length=64)
+    password: str = Field(..., max_length=128)
+
+
+class FindIdRequest(BaseModel):
+    email: str = Field(..., max_length=255)
+
+
+class PasswordResetRequest(BaseModel):
+    username: str = Field(..., max_length=64)
+    email: str = Field(..., max_length=255)
+
+
+class PasswordResetConfirm(BaseModel):
+    username: str = Field(..., max_length=64)
+    code: str = Field(..., max_length=12)
+    new_password: str = Field(..., max_length=128)
+
+
+class UserResponse(BaseModel):
+    id: str
+    username: str
+    email: str
+    display_name: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+class MessageResponse(BaseModel):
+    ok: bool = True
+    message: str

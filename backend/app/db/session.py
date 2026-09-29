@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from loguru import logger
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -103,11 +103,34 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+# create_all 은 기존 테이블에 컬럼을 추가하지 않는다 → 필요한 컬럼만 ALTER 로 보강.
+# (테이블, 컬럼, DDL 타입) — Alembic 도입 전까지의 최소 마이그레이션
+_ADDED_COLUMNS: list[tuple[str, str, str]] = [
+    ("jobs", "user_id", "VARCHAR(32)"),
+    ("batch_jobs", "user_id", "VARCHAR(32)"),
+]
+
+
+def _ensure_columns(eng: Engine) -> None:
+    """기존 DB 에 없는 컬럼을 NULL 허용으로 추가 (SQLite · MariaDB 공통 문법)."""
+    insp = inspect(eng)
+    for table, column, ddl in _ADDED_COLUMNS:
+        if not insp.has_table(table):
+            continue
+        existing = {c["name"] for c in insp.get_columns(table)}
+        if column in existing:
+            continue
+        with eng.begin() as conn:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl} NULL"))
+        logger.info("DB 컬럼 추가 {}.{}", table, column)
+
+
 def init_db() -> None:
-    """테이블이 없으면 생성 (Phase 1; 이후 Alembic 선택)."""
+    """테이블이 없으면 생성하고, 기존 테이블에 빠진 컬럼을 보강한다 (이후 Alembic 선택)."""
     import app.models  # noqa: F401 — 메타데이터 등록
 
     eng = get_engine()
     SessionLocal.configure(bind=eng)
     Base.metadata.create_all(bind=eng)
+    _ensure_columns(eng)
     logger.info("DB 테이블 확인/생성 완료 dialect={}", eng.dialect.name)

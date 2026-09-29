@@ -71,6 +71,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
 | 인스턴스 선택 | `services/instance_selector.py` — 같은 클래스 중 특정 인스턴스 (학습 아닌 규칙) |
+| 계정 | `/api/v1/auth/*` — scrypt 해시 · HttpOnly 세션 쿠키 · 이메일 코드 재설정. SMTP 미설정 시 메일은 로그에만 ([`auth.md`](../guidance/auth.md)) |
 | 학습 | `training/` — `train_segment.py` 본선, `env_cuda.ps1` / `setup_cuda_env.ps1` |
 
 문서: `docs/plan/AI_MODEL_STRATEGY.md`, `YOLO26S_DEFAULT.md`, `training/README.md`
