@@ -30,20 +30,26 @@ data/pseudo_labels/*
 data/*.db
 data/*.db-*
 !data/**/.gitkeep
+# backend/ = 서비스 런타임 (uploads·SQLite·서빙 모델·앱 로그)
 backend/data/uploads/*
-backend/data/feedback/*
-backend/data/pseudo_labels/*
+backend/data/feedback/
+backend/data/pseudo_labels/
+backend/data/*.db
+backend/data/*.db-*
 !backend/data/**/.gitkeep
+!backend/data/README.md
 models/*
 !models/.gitkeep
 !models/README.md
 backend/models/*
 !backend/models/.gitkeep
+!backend/models/README.md
 logs/*
 !logs/.gitkeep
 !logs/README.md
 backend/logs/*
 !backend/logs/.gitkeep
+!backend/logs/README.md
 
 # IDE / OS
 .idea/

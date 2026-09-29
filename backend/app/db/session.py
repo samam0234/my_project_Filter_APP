@@ -46,7 +46,7 @@ def _normalize_sqlite_url(url: str) -> str:
     settings = get_settings()
     path = Path(raw)
     if not path.is_absolute():
-        path = settings.resolve_path(raw)
+        path = settings.resolve_runtime_path(raw)
     # 파일이 없어도 상위 폴더는 미리 생성
     path.parent.mkdir(parents=True, exist_ok=True)
     return f"sqlite:///{path.as_posix()}"

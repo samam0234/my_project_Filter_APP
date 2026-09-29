@@ -18,11 +18,11 @@ cut-and-keep/                         # 저장소 루트 (로컬 예: CutNKeep)
 ├── scripts/                          # 운영 유틸 (cleanup, onnx 등)
 ├── training/                         # YOLO detect/seg · LoRA · CUDA 스크립트
 ├── tests/                            # pytest (unit/structure/smoke)
-├── models/                           # 추론 가중치 (gitignore · yolo26s-seg)
-├── data/                             # uploads · feedback · sqlite
+├── models/                           # 모델 원본·후보·LoRA 보관소 (gitignore)
+├── data/                             # 학습 공유: feedback · pseudo_labels
 ├── docker/                           # mariadb conf/init · README
 ├── docs/                             # 문서 허브
-├── logs/
+├── logs/                             # 학습·스크립트 로그
 ├── requirements.txt                  # 로컬 Python (루트)
 ├── requirements.docker.txt           # Docker 경량 (루트)
 ├── pytest.ini
@@ -89,6 +89,9 @@ backend/
 │   │   └── batch_tasks.py
 │   ├── utils/
 │   └── exceptions.py
+├── data/                            # 서비스 런타임: uploads/ · cutnkeep.db (gitignore)
+├── models/                          # 서빙 중인 활성 가중치 (gitignore)
+├── logs/                            # 앱 로그 app_YYYY-MM-DD.log (gitignore)
 ├── Dockerfile                       # 빌드 context = 저장소 루트
 ```
 
@@ -97,7 +100,7 @@ backend/
 **계층 규칙**: `routers` → `services`/`workflows` → `repositories` → `models`/`db`  
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
 
-**DB**: 로컬 `SQLite` (`data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
+**DB**: 로컬 `SQLite` (`backend/data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
 **AI 모델**: yolo26s-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
 **테스트**: 루트 `tests/` + `pytest.ini` — `docs/plan/TESTING.md`
 

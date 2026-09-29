@@ -16,6 +16,10 @@ scripts
 data
 logs
 models
+# 런타임 산출물은 이미지에 굽지 않음 (compose 가 마운트)
+backend/data
+backend/logs
+backend/models
 *.md
 .env
 .env.*

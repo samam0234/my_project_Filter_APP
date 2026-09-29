@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """오래된 업로드 산출물 정리 스크립트.
 
-`data/uploads/` 아래에서 수정 시각이 FILE_RETENTION_HOURS(기본 24시간)
+`backend/data/uploads/` (서비스 런타임) 아래에서 수정 시각이 FILE_RETENTION_HOURS(기본 24시간)
 보다 오래된 파일을 삭제하고, 비어 있는 디렉터리도 제거한다.
 
 사용:
@@ -58,11 +58,11 @@ def cleanup_dir(path: Path, max_age_hours: float) -> int:
 
 
 def main() -> None:
-    """환경변수로 보관 시간을 읽고 data/uploads 를 정리."""
+    """환경변수로 보관 시간을 읽고 backend/data/uploads 를 정리."""
     hours = float(os.getenv("FILE_RETENTION_HOURS", "24"))
     # scripts/ 의 상위 = 저장소 루트
     root = Path(__file__).resolve().parents[1]
-    upload = root / "data" / "uploads"
+    upload = root / "backend" / "data" / "uploads"
     n = cleanup_dir(upload, hours)
     print(f"{upload} 에서 {hours}시간보다 오래된 파일 {n}개 삭제")
 

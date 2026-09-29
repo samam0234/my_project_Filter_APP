@@ -1,12 +1,15 @@
-# logs — 런타임 로그
+# logs — 학습·스크립트 로그
 
-애플리케이션·스크립트가 남기는 **로그 파일**용 디렉터리이다.
+`training/`·`scripts/` 실행 결과 로그를 남기는 디렉터리이다.
+백엔드 앱 로그는 [`backend/logs/`](../backend/logs/README.md) 에 `app_YYYY-MM-DD.log` 로 쌓인다.
 
 ## 현재
 
-- 백엔드는 기본적으로 **stderr / loguru 콘솔** 출력.
-- 파일 로그를 쓰도록 확장할 때 이 경로를 사용하면 된다.
-- Docker Compose 는 `./logs` → `/app/logs` 마운트.
+- 학습·스크립트는 콘솔 출력이 기본. 남기고 싶으면 리다이렉트로 저장한다.
+
+```powershell
+python training/yolo/train_segment.py *> logs/train_segment_$(Get-Date -f yyMMdd_HHmm).log
+```
 
 ## Git
 
@@ -19,7 +22,8 @@
 # Docker 백엔드 로그
 docker compose -p cut_and_keep logs -f backend
 
-# 로컬 uvicorn 은 터미널 출력 확인
+# 로컬 백엔드 파일 로그
+Get-Content backend/logs/app_$(Get-Date -f yyyy-MM-dd).log -Wait -Encoding utf8
 ```
 
 장애 기록은 `docs/find_debug/`, `docs/repeater/` 에 정리하는 것을 권장한다.
