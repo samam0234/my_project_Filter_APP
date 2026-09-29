@@ -29,6 +29,6 @@ Console
 | 데이터 | 위치 |
 |--------|------|
 | Job 메타 | DB `jobs` |
-| 이미지 before/after | `data/uploads/{job_id}/` |
+| 이미지 before/after | `backend/data/uploads/{job_id}/` |
 | 피드백 메타 | DB `feedbacks` |
 | 학습용 사이드카 | `data/feedback/*.json|.jpg` |

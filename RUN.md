@@ -29,6 +29,12 @@ ollama serve
 # .env: LLM_PROVIDER=ollama , OLLAMA_MODEL=gemma4:e4b
 ```
 
+빠른 로컬 파서(선택): `LLM_PROVIDER=lora` + `LORA_BASE_MODEL=../training/models/qwen2.5-1.5b-instruct`
+(어댑터 `backend/models/lora/`, transformers·peft 필요) → [`training/lora/README.md`](./training/lora/README.md)
+
+실행 중 생기는 파일: 업로드·SQLite `backend/data/`, 앱 로그 `backend/logs/app_YYYY-MM-DD.log`,
+피드백(학습 재료) 루트 `data/feedback/`.
+
 ### 환경변수
 
 ```powershell

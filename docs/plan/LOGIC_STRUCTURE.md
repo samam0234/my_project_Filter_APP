@@ -66,7 +66,7 @@
                 │
 ┌───────────────▼───────────────────────────────────────────────┐
 │  ORM models + db/session                                      │
-│  Local: SQLite (data/cutnkeep.db)  |  Prod: MariaDB           │
+│  Local: SQLite (backend/data/cutnkeep.db) | Prod: MariaDB     │
 └───────────────────────────────────────────────────────────────┘
          P2: Celery+Redis  |  P3: Video + Optical Flow + LSTM
 ```
@@ -174,7 +174,7 @@ GraphState
 
 | 노드 | 입력 | 출력 | 기술 |
 |------|------|------|------|
-| `prompt_analyzer` | prompt | parsed_prompt | LangChain + LLM |
+| `prompt_analyzer` | prompt | parsed_prompt (target·effect·selector) | Ollama/LoRA/OpenAI/Gemini HTTP·로컬 추론, 실패 시 키워드 |
 | `preprocessor` | image | preprocessed_image | OpenCV |
 | `segmentor` | preprocessed + target | mask, confidence | YOLO / DINO+SAM2 |
 | `effect_applier` | image + mask + effect | effect_result | OpenCV |

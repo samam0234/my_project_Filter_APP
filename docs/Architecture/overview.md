@@ -17,7 +17,7 @@
          │
          ├─ LangGraph workflow + OpenCV/YOLO(or stub)
          ├─ Repository → SQLite | MariaDB
-         └─ Files: data/uploads, data/feedback
+         └─ Files: backend/data/uploads (런타임), data/feedback (학습 공유)
 ```
 
 ## Phase

@@ -13,6 +13,6 @@
 
 ## 실습 아이디어
 
-1. stub 마스크로 end-to-end 성공 확인
+1. stub 마스크로 end-to-end 성공 확인 (모델이 없을 때만 stub — 요청 대상이 없으면 failed)
 2. CLAHE clipLimit 변경 후 시각 비교
 3. quality threshold 조정 시 fallback 빈도 관찰

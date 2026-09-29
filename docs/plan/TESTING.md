@@ -13,7 +13,7 @@
 | 계층 | 경로 | 의존성 | 역할 |
 |------|------|--------|------|
 | **structure** | `tests/structure/` | 거의 없음 | 폴더·README·plan 문서·스킬 경로 존재 |
-| **unit** | `tests/unit/` | pydantic, numpy, opencv 등 | 스키마, config, 휴리스틱, 검증, 효과 |
+| **unit** | `tests/unit/` | pydantic, numpy, opencv 등 | 스키마, config, 휴리스틱, LLM 파싱, 대상 필터, 인스턴스 선택, 검증, 효과, LoRA 데이터 |
 | **smoke** | `tests/smoke/` | backend 패키지 | import · FastAPI 앱 생성 |
 
 향후 확장:
