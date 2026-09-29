@@ -52,8 +52,8 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]): AsyncState<T
   return { data, error, loading, reload };
 }
 
-export function useJobs(limit = 50) {
-  return useAsync<JobResponse[]>(() => listJobs(limit), [limit]);
+export function useJobs(limit = 50, mine = false) {
+  return useAsync<JobResponse[]>(() => listJobs(limit, mine), [limit, mine]);
 }
 
 export function useJob(jobId: string) {

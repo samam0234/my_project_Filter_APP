@@ -6,11 +6,13 @@
  */
 import axios from "axios";
 import type {
+  AuthUser,
   BatchStatus,
   FeedbackRequest,
   FeedbackResponse,
   HealthResponse,
   JobResponse,
+  MessageResponse,
   UploadResponse,
 } from "../types";
 
@@ -26,6 +28,8 @@ const baseURL = import.meta.env.VITE_API_BASE_URL || "";
 export const api = axios.create({
   baseURL,
   timeout: 30_000,
+  // 로그인 세션은 HttpOnly 쿠키 — 다른 오리진(baseURL 지정) 배포에서도 쿠키를 보내도록
+  withCredentials: true,
 });
 
 /** 단일 이미지 업로드 + 프롬프트 처리 (파이프라인 동기 실행) */
@@ -40,9 +44,70 @@ export async function uploadImage(file: File, prompt: string): Promise<UploadRes
   return data;
 }
 
-/** 최근 작업 목록 (최신순, 상한 200) */
-export async function listJobs(limit = 50): Promise<JobResponse[]> {
-  const { data } = await api.get<JobResponse[]>("/api/v1/jobs", { params: { limit } });
+/** 최근 작업 목록 (최신순, 상한 200). mine=true 는 로그인 사용자 작업만 */
+export async function listJobs(limit = 50, mine = false): Promise<JobResponse[]> {
+  const { data } = await api.get<JobResponse[]>("/api/v1/jobs", {
+    params: mine ? { limit, mine: true } : { limit },
+  });
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// 계정 (/api/v1/auth) — 세션은 서버가 HttpOnly 쿠키로 관리
+// ---------------------------------------------------------------------------
+
+export async function fetchMe(): Promise<AuthUser | null> {
+  try {
+    const { data } = await api.get<AuthUser>("/api/v1/auth/me", { timeout: 8_000 });
+    return data;
+  } catch (err) {
+    if ((err as { response?: { status?: number } })?.response?.status === 401) return null;
+    throw err;
+  }
+}
+
+export async function signupRequest(body: {
+  username: string;
+  email: string;
+  password: string;
+  display_name?: string;
+}): Promise<AuthUser> {
+  const { data } = await api.post<AuthUser>("/api/v1/auth/signup", body);
+  return data;
+}
+
+export async function loginRequest(username: string, password: string): Promise<AuthUser> {
+  const { data } = await api.post<AuthUser>("/api/v1/auth/login", { username, password });
+  return data;
+}
+
+export async function logoutRequest(): Promise<void> {
+  await api.post("/api/v1/auth/logout");
+}
+
+export async function findIdRequest(email: string): Promise<MessageResponse> {
+  const { data } = await api.post<MessageResponse>("/api/v1/auth/find-id", { email });
+  return data;
+}
+
+export async function passwordCodeRequest(username: string, email: string): Promise<MessageResponse> {
+  const { data } = await api.post<MessageResponse>("/api/v1/auth/password/request", {
+    username,
+    email,
+  });
+  return data;
+}
+
+export async function passwordResetRequest(
+  username: string,
+  code: string,
+  newPassword: string,
+): Promise<MessageResponse> {
+  const { data } = await api.post<MessageResponse>("/api/v1/auth/password/reset", {
+    username,
+    code,
+    new_password: newPassword,
+  });
   return data;
 }
 

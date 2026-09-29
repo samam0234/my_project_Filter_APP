@@ -16,6 +16,7 @@ import { PromptInput } from "../components/prompt/PromptInput";
 import { useImageProcessing } from "../hooks/useImageProcessing";
 import { Link } from "../router";
 import { useAppStore } from "../store/useAppStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 export function StudioPage() {
   const { process, isProcessing } = useImageProcessing();
@@ -23,6 +24,7 @@ export function StudioPage() {
   const file = useAppStore((s) => s.file);
   const prompt = useAppStore((s) => s.prompt);
   const result = useAppStore((s) => s.result);
+  const guest = useAuthStore((s) => s.status === "guest");
   const canRun = Boolean(file && prompt.trim()) && !isProcessing;
 
   return (
@@ -46,6 +48,14 @@ export function StudioPage() {
             </Button>
           </div>
           <ProcessingStatus />
+          {guest && (
+            <p className="text-xs text-slate-500">
+              <Link to="/login?next=%2Fstudio" className="text-brand-500 hover:text-brand-100">
+                로그인
+              </Link>
+              하면 처리한 작업이 &lsquo;내 작업&rsquo;에 모입니다. 로그인하지 않아도 사용할 수 있어요.
+            </p>
+          )}
         </div>
 
         <div className="space-y-4">

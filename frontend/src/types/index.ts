@@ -29,6 +29,21 @@ export interface ParsedPrompt {
   selector?: InstanceSelector | null;
 }
 
+/** 로그인 사용자 (GET /api/v1/auth/me) */
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  display_name?: string | null;
+  created_at?: string | null;
+}
+
+/** 계정 API 공통 안내 응답 */
+export interface MessageResponse {
+  ok: boolean;
+  message: string;
+}
+
 /** GET /health */
 export interface HealthResponse {
   status: string;

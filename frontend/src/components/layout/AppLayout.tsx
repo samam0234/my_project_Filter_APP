@@ -5,9 +5,11 @@
  * (작업 상세 /jobs/:id 는 작업 기록에서 들어가므로 메뉴에서는 "작업 기록" 을 활성으로 표시)
  */
 import type { ReactNode } from "react";
-import { BookOpen, History, Home, Layers, Scissors, Wand2 } from "lucide-react";
-import { Link, usePathname } from "../../router";
+import { useState } from "react";
+import { BookOpen, History, Home, Layers, LogIn, LogOut, Scissors, UserRound, Wand2 } from "lucide-react";
+import { Link, navigate, usePathname } from "../../router";
 import { useHealth } from "../../hooks/useApi";
+import { displayName, useAuthStore } from "../../store/useAuthStore";
 
 const NAV = [
   { to: "/", label: "홈", icon: Home, match: (p: string) => p === "/" },
@@ -34,6 +36,65 @@ function ServerStatus() {
       <span className={`h-2 w-2 rounded-full ${tone}`} />
       <span className="hidden sm:inline">{label}</span>
     </span>
+  );
+}
+
+/** 헤더 우측 계정 영역 — 비로그인: 로그인·회원가입 / 로그인: 이름(내 작업) · 로그아웃 */
+function AccountMenu() {
+  const pathname = usePathname();
+  const { user, status, logout } = useAuthStore();
+  const [busy, setBusy] = useState(false);
+
+  if (status === "loading") return <span className="h-8 w-16 animate-pulse rounded-lg bg-slate-900" />;
+
+  if (!user) {
+    const onAuthPage = ["/login", "/signup", "/find-id", "/find-password"].includes(pathname);
+    const next = onAuthPage ? "" : "?next=" + encodeURIComponent(pathname);
+    return (
+      <div className="flex shrink-0 items-center gap-1">
+        <Link
+          to={"/login" + next}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-900 hover:text-white"
+        >
+          <LogIn className="h-4 w-4" />
+          <span className="hidden sm:inline">로그인</span>
+        </Link>
+        <Link
+          to="/signup"
+          className="hidden rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500 sm:inline-flex"
+        >
+          회원가입
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      <Link
+        to="/history?mine=1"
+        title={user.username + " · " + user.email + " — 내 작업 보기"}
+        className="inline-flex max-w-[10rem] items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-slate-200 hover:bg-slate-900"
+      >
+        <UserRound className="h-4 w-4 shrink-0 text-brand-500" />
+        <span className="hidden truncate sm:inline">{displayName(user)}</span>
+      </Link>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          await logout();
+          setBusy(false);
+          navigate("/");
+        }}
+        aria-label="로그아웃"
+        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-slate-400 hover:bg-slate-900 hover:text-white"
+      >
+        <LogOut className="h-4 w-4" />
+        <span className="hidden md:inline">로그아웃</span>
+      </button>
+    </div>
   );
 }
 
@@ -70,6 +131,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             })}
           </nav>
           <ServerStatus />
+          <AccountMenu />
         </div>
       </header>
 

@@ -11,6 +11,7 @@ import { EmptyBlock, ErrorBlock, LoadingBlock } from "../components/common/State
 import { JobCard } from "../components/jobs/JobCard";
 import { useJobs } from "../hooks/useApi";
 import { Link, navigate, useSearch } from "../router";
+import { useAuthStore } from "../store/useAuthStore";
 import { statusLabel } from "../utils/formatters";
 
 const FILTERS = ["all", "ok", "fallback", "failed"] as const;
@@ -23,7 +24,10 @@ export function HistoryPage() {
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const status = params.get("status") ?? "all";
   const q = params.get("q") ?? "";
-  const { data, error, loading, reload } = useJobs(LIMIT);
+  const loggedIn = useAuthStore((s) => s.status === "user");
+  // 내 작업만: 로그인 상태에서만 서버 필터(mine=true)
+  const mine = loggedIn && params.get("mine") === "1";
+  const { data, error, loading, reload } = useJobs(LIMIT, mine);
 
   const setQuery = (key: string, value: string) => {
     const next = new URLSearchParams(search);
@@ -79,6 +83,21 @@ export function HistoryPage() {
             </button>
           ))}
         </div>
+        {loggedIn ? (
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={mine}
+              onChange={(e) => setQuery("mine", e.target.checked ? "1" : "")}
+              className="accent-brand-500"
+            />
+            내 작업만
+          </label>
+        ) : (
+          <Link to="/login?next=%2Fhistory%3Fmine%3D1" className="text-xs text-slate-500 hover:text-slate-200">
+            로그인하면 내 작업만 볼 수 있어요
+          </Link>
+        )}
         <label className="relative min-w-[200px] flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
