@@ -16,13 +16,14 @@ npm run dev
 - URL: http://localhost:5174  
 - Backend API: http://localhost:8000 (Vite proxy)  
 - API 데이터(Job/헬스)는 **backend :8000** 이 떠 있어야 채워진다. UI 자체는 backend 없이도 기동된다.
+- **백엔드와 같은 PC 에서 실행** — 콘솔 API(`/api/v1/console/*`)는 loopback 요청만 허용 (`CONSOLE_ALLOW_REMOTE`)
 
 ## 기능
 
 | 메뉴 | 설명 |
 |------|------|
 | 대시보드 | 헬스, Job 집계, 최근 목록 |
-| Job 목록 | `GET /api/v1/jobs` 테이블 |
+| Job 목록 | `GET /api/v1/console/jobs` 테이블 (전체 작업) |
 | 시스템 | dialect, version, 포트 정보 |
 | 바로가기 | 사용자 앱 / Swagger / Health |
 

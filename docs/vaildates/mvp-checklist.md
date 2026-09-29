@@ -24,5 +24,6 @@
 | 18 | LoRA 프롬프트 어댑터 | ☑ | 평가 87.5% · `LLM_PROVIDER=lora` |
 | 19 | 런타임 · 학습 폴더 분리 | ☑ | `backend/{data,models,logs}` · 루트 `data/feedback` |
 | 20 | 로그인 · 회원가입 · 아이디/비밀번호 찾기 | ☑ | 배포 전 `SECRET_KEY` · `SMTP_*` · `SESSION_COOKIE_SECURE=true` 필수 |
+| 21 | 접근 정책 (비로그인 다운로드만 · 회원 전용 기록/배치 · 콘솔 loopback) | ☑ | `tests/unit/test_access.py` |
 
 테스트 전략: `docs/plan/TESTING.md`
