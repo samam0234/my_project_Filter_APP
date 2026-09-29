@@ -37,9 +37,9 @@
 
 | 용도 | 파일 예 |
 |------|---------|
-| 학습/로컬 Ultralytics (seg) | `models/yolo26s-seg.pt` |
-| 학습/로컬 Ultralytics (detect) | `models/yolo26s.pt` (실험용) |
-| 배포·ONNX Runtime | `models/yolo26s-seg.onnx` |
+| **서빙 (백엔드가 로드)** | `backend/models/yolo26s-seg.pt` (`apply_best.py` 로 배포) |
+| 원본·후보 보관 | `models/yolo26s-seg.pt`, `models/yolo26s.pt` (detect 실험용) |
+| 배포·ONNX Runtime | `backend/models/yolo26s-seg.onnx` (ONNX predict 는 하드코딩 구간) |
 
 ```bash
 # 예시 (ultralytics CLI / Python export)
@@ -49,17 +49,20 @@
 ### 2.3 주의
 
 - Docker 경량 이미지(루트 `requirements.docker.txt`)에는 기본적으로 **torch/ultralytics 없음** →  
-  개발 머신에서 가중치·ONNX를 만들고 `models/`에 두거나, 루트 풀 `requirements.txt` 환경에서 추론.
+  개발 머신에서 가중치·ONNX를 만들고 `backend/models/`에 두거나, 루트 풀 `requirements.txt` 환경에서 추론.
 - COCO 클래스 밖 대상은 Phase 1에서 약함 → 계획서대로 Phase 2 **Grounding DINO + SAM2** 또는 피드백 LoRA.
 - **detect 전용 `.pt` 를 YOLO_MODEL_PATH 에 넣지 말 것** — masks 없어 stub 로 떨어질 수 있음.
 
 ### 2.4 환경변수
 
 ```env
-YOLO_MODEL_PATH=models/yolo26s-seg.pt
+YOLO_MODEL_PATH=models/yolo26s-seg.pt      # backend/ 기준 → backend/models/
 # 또는
 # YOLO_MODEL_PATH=models/yolo26s-seg.onnx
 ```
+
+- 현재 서빙 가중치는 **5클래스 커스텀**(person·dog·cat·car·bag). COCO 이름(`handbag` 등)은
+  `segmentation.LABEL_ALIASES` 로 맞추지만, 버스·노트북 등 모르는 클래스는 "대상 없음"이 된다.
 
 ---
 
@@ -135,11 +138,14 @@ OLLAMA_MODEL=gemma4:e4b
 ### 4.3 권장 단계
 
 ```text
-Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)
+Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)          ← 기본, 평가 92.5%
+빠른 로컬:     LLM_PROVIDER=lora    (Qwen2.5-1.5B + LoRA) ← 평가 87.5%, 요청당 1~2 s
 데모 고품질:   LLM_PROVIDER=openai  (OPENAI_API_KEY)
 비용 실험:    LLM_PROVIDER=gemini  (GEMINI_API_KEY)
-실패 시:      heuristic 파서 fallback (현재 nodes.parse_prompt_heuristic)
+실패 시:      heuristic 파서 fallback (nodes.parse_prompt_heuristic, 평가 35%)
 ```
+
+평가: `training/lora/eval_parser.py` · 손으로 쓴 40문항 (`training/lora/seed/eval.jsonl`) 완전 일치 기준.
 
 **비전(세그)은 당분간 YOLO26s-seg 고정.** LLM 클라우드 전환과 분리할 것.
 
@@ -148,23 +154,25 @@ Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)
 ## 5. 아키텍처 권장 (프로바이더 추상화)
 
 ```
-prompt_analyzer 노드
+prompt_analyzer 노드 (workflows/nodes.py)
         │
         ▼
-  LLMClient 인터페이스
-   ├─ OllamaClient   (기본, OpenAI-compat or native)
-   ├─ OpenAIClient
-   └─ GeminiClient
+  services/prompt_llm.parse_prompt_llm  ← LLM_PROVIDER 분기
+   ├─ ollama  : /api/chat (urllib, format=json)
+   ├─ openai  : chat/completions (json_object)
+   ├─ gemini  : generateContent (application/json)
+   └─ lora    : services/prompt_lora (transformers + peft, 프로세스 내)
+        │  지시문·정규화: services/prompt_spec (SYSTEM_PROMPT · LORA_TEMPLATE · normalize_parsed)
+        ▼
+  ParsedPrompt JSON  (target · effect · intensity · crop · selector)
         │
         ▼
-  ParsedPrompt JSON  (schemas.request.ParsedPrompt)
-        │
-        ▼
-  segmentor (YOLO26s-seg) → effects → validator
+  segmentor (YOLO26s-seg) → instance_selector (위치·순서·개수·색) → validator → effects
 ```
 
 - 설정은 `core/config.py` + `.env` 만 변경
-- 키가 없거나 Ollama down 이면 **휴리스틱 파서로 fallback** (이미 skeleton 존재)
+- 키가 없거나 Ollama down·타임아웃(`LLM_TIMEOUT_SECONDS`)이면 **휴리스틱 파서로 fallback**
+- "특정 인스턴스"를 고르는 것은 LLM 이 아니라 규칙(`instance_selector`) — LLM 은 조건만 뽑는다
 
 ---
 
@@ -172,7 +180,7 @@ prompt_analyzer 노드
 
 | Phase | 비전 | LLM |
 |-------|------|-----|
-| **P1** | YOLO26s-seg (ONNX 권장 배포) | Ollama E4B 기본 |
+| **P1** | YOLO26s-seg (ONNX 권장 배포) + 규칙 기반 인스턴스 선택 | Ollama E4B 기본 · LoRA 선택 |
 | **P1 데모 강화** | 동일 | OpenAI 또는 Gemini 스위치 |
 | **P2** | + Grounding DINO / SAM2, 배치 | 클라우드 LLM + 로컬 fallback 유지 |
 | **P3** | 영상 + temporal | 동일 LLM 계층 재사용 |
@@ -193,12 +201,13 @@ prompt_analyzer 노드
 
 ## 8. 체크리스트 (도입 시)
 
-- [ ] `ollama pull gemma4:e4b` 후 로컬 응답 확인  
-- [ ] `yolo26s-seg.pt` 다운로드 또는 학습 산출물 배치  
-- [ ] (선택) ONNX export → `YOLO_MODEL_PATH`  
-- [ ] `.env` 에 `LLM_PROVIDER=ollama` 설정  
-- [ ] 프롬프트 1건 → ParsedPrompt JSON 단위 테스트  
-- [ ] 업로드 1건 → 마스크·효과 e2e  
+- [x] `ollama pull gemma4:e4b` 후 로컬 응답 확인  
+- [x] `yolo26s-seg.pt` 학습 산출물 배치 (`backend/models/`)  
+- [ ] (선택) ONNX export → `YOLO_MODEL_PATH` (ONNX predict 구현 필요)  
+- [x] `.env` 에 `LLM_PROVIDER=ollama` 설정  
+- [x] 프롬프트 → ParsedPrompt 단위 테스트 + 평가 (`training/lora/eval_parser.py`)  
+- [x] 업로드 1건 → 마스크·효과 e2e (인스턴스 선택·지우기 포함)
+- [x] LoRA 어댑터 학습·서빙 (`LLM_PROVIDER=lora`)  
 - [ ] (고도화) OpenAI/Gemini 키로 provider 전환 스모크  
 
 ---
@@ -210,7 +219,10 @@ prompt_analyzer 노드
 | **`training/`** | **학습 전용 구역** (yolo detect/seg, lora, datasets, outputs) |
 | `training/yolo/train_segment.py` | 세그 학습 진입점 (기본 `yolo26s-seg.pt`) |
 | `training/yolo/train_detect.py` | 탐지 학습 진입점 (기본 `yolo26s.pt`) |
-| `training/lora/train_lora.py` | 피드백 → 프롬프트 분석 LoRA (dry-run + PEFT 본선) |
+| `training/lora/train_lora.py` | 시드·피드백·의사라벨 → 프롬프트 분석 LoRA |
+| `training/lora/eval_parser.py` | heuristic · ollama · base · lora 비교 평가 |
+| `backend/app/services/prompt_spec.py` | 프롬프트 규격 정본 (서빙·학습 공용) |
+| `backend/app/services/instance_selector.py` | 특정 인스턴스 선택 규칙 |
 | `.env.example` | YOLO / LLM 환경변수 템플릿 |
 | `backend/app/core/config.py` | Settings (`YOLO_MODEL_PATH` 기본 s-seg) |
 | `backend/app/services/segmentation.py` | 추론 시 YOLO 로드 |

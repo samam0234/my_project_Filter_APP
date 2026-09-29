@@ -5,26 +5,32 @@
 # 조건:
 #   1) --base-model 은 HuggingFace 형식 로컬 디렉터리 (config.json + safetensors/bin)
 #      Ollama GGUF (gemma4:e4b) 는 PEFT 학습에 바로 쓰지 못함
-#   2) data/feedback/*.json 에 prompt + parsed_prompt 가 있어야 레코드가 생김
+#   2) 시드(training/lora/seed/train.jsonl) + data/feedback + data/pseudo_labels 에서 레코드 생성
 #   3) YOLO-seg 가중치는 이 yaml 로 학습하지 말 것 → training/yolo/
 #
 # 해야 할 기능:
 #   - 프롬프트 분석기 도메인 어댑터 학습
-#   - 산출 adapter/ → (수동) models/lora/ 복사
+#   - 산출 adapter/ → backend/models/lora/ 복사 후 LLM_PROVIDER=lora
+#   - 평가: python training/lora/eval_parser.py --adapter <adapter>
 # =============================================================================
 
 # 【수동】 로컬 베이스 모델 경로 (허브 자동 다운로드 없음)
-base_model: D:/models/gemma-2-2b-it
+base_model: training/models/qwen2.5-1.5b-instruct
 
-# 【수동·튜닝】 하이퍼 — VRAM·샘플 수에 맞게
+# 【수동·튜닝】 하이퍼 — train_lora.py 기본값 (instance_v2 평가 87.5% 기준)
 epochs: 3
-lr: 1.0e-4
-batch: 1
-rank: 8
-max_seq_len: 512
-target_modules: q_proj,v_proj
+lr: 2.0e-4
+batch: 4
+grad_accum: 2          # 실효 배치 8
+rank: 16
+max_seq_len: 320
+target_modules: q_proj,k_proj,v_proj,o_proj
+# gradient checkpointing 기본 켬 (--no-grad-checkpoint 로 끔)
 
 # 【수동】 데이터
+seed_file: training/lora/seed/train.jsonl
+seed_repeat: 2
+max_pseudo: 600
 feedback_dir: ../data/feedback
 pseudo_dir: ../data/pseudo_labels
 output: ../training/outputs/lora

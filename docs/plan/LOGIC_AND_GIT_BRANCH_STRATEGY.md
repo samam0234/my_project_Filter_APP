@@ -53,7 +53,7 @@ AI 학습 데이터 준비 시 bounding box를 수작업으로 그리는 번거�
 
 | 노드                  | 역할                              | 주요 기술                     |
 |-----------------------|-----------------------------------|-------------------------------|
-| prompt_analyzer       | 프롬프트 → JSON 구조화            | LangChain + LLM               |
+| prompt_analyzer       | 프롬프트 → JSON 구조화 (selector 포함) | Ollama · LoRA · OpenAI · Gemini |
 | preprocessor          | CLAHE, resize, 색공간 변환        | OpenCV                        |
 | segmentor             | 객체 마스크 생성                  | YOLO / GroundingDINO + SAM2   |
 | effect_applier        | 블러 / 크롭 / 마스크 합성         | OpenCV                        |

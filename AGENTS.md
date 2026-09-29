@@ -17,7 +17,9 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | 병합 | **`git merge --no-ff`** (FF 금지) |
 | 커밋 기록 파일 | **`docs/branchs/commits/` 에 무조건** (`YYMMDD_HHMM_[id]_[name]_[branch].md`) — 커밋 전·후 생략 금지. `docs/commits/` 사용 금지 |
 | 비전 | **YOLO26s-seg** (기본 s; 전환 안내 `docs/plan/YOLO26S_DEFAULT.md`) |
-| LLM 기본 | Ollama `gemma4:e4b` |
+| LLM 기본 | Ollama `gemma4:e4b` (선택: `LLM_PROVIDER=lora` Qwen2.5-1.5B 어댑터) |
+| 프롬프트 규격 | `backend/app/services/prompt_spec.py` — 서빙·LoRA 학습 공용. 바꾸면 LoRA 재학습 |
+| 인스턴스 선택 | `backend/app/services/instance_selector.py` (위치·순서·개수·색 규칙) |
 | OpenCV 위치 | `backend/app/services/image_processor.py`, `effects.py` |
 | Python 의존성 | 루트 `requirements.txt` / `requirements.docker.txt` |
 | 학습 구역 | `training/` (YOLO detect/seg, LoRA) — 추론과 분리 |

@@ -31,14 +31,16 @@
   데이터 + yaml names
        ↓ train_segment.py
   outputs/.../best.pt
-       ↓ 수동 복사
-[서빙] models/yolo26s-seg.pt + .env YOLO_MODEL_PATH
+       ↓ yolo/apply_best.py (복사 + 샘플 추론)
+[서빙] backend/models/yolo26s-seg.pt + .env YOLO_MODEL_PATH (backend/ 기준)
        ↓ backend 재시작
   사용자 프롬프트
-       ↓ nodes.py 키워드 → target 리스트 (예: dog, person)
+       ↓ LLM(ollama·lora) 또는 키워드 → target + selector (예: person, 맨 앞 1명)
   segmentation.py
-       ↓ YOLO 예측 후 names 라벨로 필터
-  남긴 마스크만 effects 적용
+       ↓ YOLO 예측 후 names 라벨로 필터 (별칭 bag↔handbag)
+  instance_selector.py
+       ↓ 위치·순서·개수·색 속성으로 인스턴스 선택
+  고른 마스크만 effects 적용 (남기기 / remove_object 지우기)
 ```
 
 **핵심:** 학습 yaml의 **클래스 이름(`names`)** 과  
@@ -219,9 +221,9 @@ targets = targets or ["person"]   # 【수동】 여기도 동일 정책으로 �
 
 | 항목 | 파일 | 할 일 |
 |------|------|--------|
-| 가중치 경로 | 저장소 루트 `.env` | `YOLO_MODEL_PATH=models/yolo26s-seg.pt` |
-| 가중치 배치 | `models/` | 학습 `best.pt` 를 **수동 복사** (자동 배포 없음) |
-| Docker | `docker-compose.yml` | `./models` 마운트 — 호스트 `models/` 에 두면 컨테이너에서도 로드 |
+| 가중치 경로 | 저장소 루트 `.env` | `YOLO_MODEL_PATH=models/yolo26s-seg.pt` (**backend/ 기준**) |
+| 가중치 배치 | `backend/models/` | `python training/yolo/apply_best.py` (복사 + 샘플 추론). 원본·후보는 루트 `models/` |
+| Docker | `docker-compose.yml` | `./backend/models` → `/app/models` 마운트 |
 
 사전학습 체크포인트를 쓸 때도 `models/` 또는 Ultralytics 캐시에 **seg** 가중치가 있어야 한다.  
 파일 없으면 학습 스크립트/ultralytics 가 다운로드를 시도할 수 있음 (네트워크·용량 주의).
@@ -376,32 +378,28 @@ pytest tests/structure -q
 
 ### 4.5 LoRA (Phase 2 · 프롬프트 분석 어댑터)
 
-세그 마스크는 4.1 을 쓴다. 여기는 **피드백 JSON → Causal LM LoRA**.
+세그 마스크는 4.1 을 쓴다. 여기는 **문장 → ParsedPrompt(selector 포함) Causal LM LoRA**.
 
 ```powershell
-cd d:\my_project\CutNKeep\training
-.\.venv\Scripts\Activate.ps1
+# 저장소 루트
+training\.venv\Scripts\Activate.ps1
 
-# peft 없이 데이터 계약만
-python lora/train_lora.py --dry-run
-
-# 학습 (로컬 HF 체크포인트 필수. Ollama GGUF 불가)
-python lora/train_lora.py `
-  --base-model D:\models\gemma-2-2b-it `
-  --epochs 3 `
-  --rank 8 `
-  --device cuda
+python training/lora/train_lora.py --dry-run          # 레코드 수 확인 (peft 불필요)
+python training/lora/train_lora.py --base-model training/models/qwen2.5-1.5b-instruct --name instance_v2
+python training/lora/eval_parser.py --adapter training/outputs/lora/instance_v2/adapter
 ```
 
-| 인자 | 의미 |
-|------|------|
-| `--dry-run` | 레코드 수·스키마만 검증, adapter 없음 |
-| `--base-model` | 로컬 HuggingFace 디렉터리 (`config.json` + 가중치) |
-| `--rank` | LoRA r |
-| `--target-modules` | 기본 `q_proj,v_proj` |
+| 인자 | 기본 | 의미 |
+|------|------|------|
+| `--seed-file` | `lora/seed/train.jsonl` | 인스턴스 선택·지우기 시드 (`seed/build_seed.py`) |
+| `--seed-repeat` | 2 | 시드 반복 |
+| `--max-pseudo` | 600 | 의사 라벨 샘플 수 |
+| `--rank` · `--lr` | 16 · 2e-4 | LoRA r · 학습률 |
+| `--batch` × `--grad-accum` | 4 × 2 | 실효 배치 8 |
+| `--target-modules` | `q_proj,k_proj,v_proj,o_proj` | |
 
-**산출:** `training/outputs/lora/<run>/adapter/` + `run.json`  
-→ `models/lora/` 로 **수동 복사**. backend 핫스왑은 후속.
+**산출:** `training/outputs/lora/<run>/adapter/` + `run.json`
+→ 서빙: `backend/models/lora/` 로 복사 후 `.env` `LLM_PROVIDER=lora` (backend 재시작)
 
 상세: [`lora/README.md`](./lora/README.md) · 예시 하이퍼 [`configs/lora.example.yaml`](./configs/lora.example.yaml)
 
@@ -413,10 +411,10 @@ python lora/train_lora.py `
 자동 배포 없음. **수동**.
 
 ```powershell
-# 1) 가중치 복사 (PowerShell 예)
-copy training\outputs\segment\exp\weights\best.pt models\yolo26s-seg.pt
+# 1) 가중치 배포 (backend/models/ 로 복사 + 샘플 추론)
+python training/yolo/apply_best.py --weights training/outputs/segment/exp/weights/best.pt
 
-# 2) .env
+# 2) .env (backend/ 기준 경로)
 # YOLO_MODEL_PATH=models/yolo26s-seg.pt
 
 # 3) backend 재시작

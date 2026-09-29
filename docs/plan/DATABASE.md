@@ -46,7 +46,7 @@ SQLite (local)  |  MariaDB (prod / docker)
 
 | 환경 | Dialect | 설정 |
 |------|---------|------|
-| **로컬 개발 (기본)** | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.db` |
+| **로컬 개발 (기본)** | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.db` (backend/ 기준 → `backend/data/cutnkeep.db`) |
 | **Docker / 스테이징 / 운영** | MariaDB | `DB_DIALECT=mariadb` + `MARIADB_*` |
 | **직접 URL** | 아무거나 | `DATABASE_URL=...` (최우선) |
 
@@ -54,7 +54,7 @@ SQLite (local)  |  MariaDB (prod / docker)
 
 ```env
 DB_DIALECT=sqlite          # 또는 mariadb
-SQLITE_PATH=data/cutnkeep.db
+SQLITE_PATH=data/cutnkeep.db   # backend/ 기준 → backend/data/cutnkeep.db
 
 # --- 호스트 도구(DBeaver) / 로컬 클라이언트 기준 ---
 MARIADB_HOST=localhost
@@ -83,7 +83,7 @@ Docker MariaDB: 공식 `mariadb:11`, **비밀번호만**, `skip_ssl`. GSS 미사
 
 ```text
 # SQLite (로컬)
-sqlite:///D:/my_project/CutNKeep/data/cutnkeep.db
+sqlite:///D:/…/my_project_Filter_APP/backend/data/cutnkeep.db
 
 # MariaDB (호스트 → published port)
 mysql+pymysql://admin:...@127.0.0.1:3309/cutnkeep?charset=utf8mb4
@@ -166,7 +166,7 @@ Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 
 | 데이터 | DB | 디스크 |
 |--------|----|--------|
 | Job 메타 (status, prompt, paths) | ✅ `jobs` | — |
-| Before/After 이미지 | 경로만 DB | `data/uploads/{job_id}/` |
+| Before/After 이미지 | 경로만 DB | `backend/data/uploads/{job_id}/` |
 | 피드백 메타 | ✅ `feedbacks` | 학습용 JSON 사이드카 `data/feedback/` |
 | 실패 이미지 | 경로 가능 | `data/feedback/*.jpg` |
 | 배치 진행률 | ✅ `batch_jobs` | — |
@@ -202,12 +202,12 @@ Phase 1 스캐폴드용. 이후 스키마 변경이 잦아지면 Alembic 도입 
 ```bash
 # .env
 DB_DIALECT=sqlite
-SQLITE_PATH=data/cutnkeep.db
+SQLITE_PATH=data/cutnkeep.db   # backend/ 기준
 
 # 루트에서 venv 활성화 후
 cd backend
 uvicorn app.main:app --reload
-# → data/cutnkeep.db 자동 생성 + 테이블 create
+# → backend/data/cutnkeep.db 자동 생성 + 테이블 create
 ```
 
 ### Docker (MariaDB)

@@ -14,8 +14,11 @@ tests/
 │   ├── test_prompt_heuristic.py
 │   ├── test_validator.py
 │   ├── test_security.py
-│   ├── test_effects.py
-│   └── test_lora_dataset.py  # training/lora 데이터 계약 (torch 불필요)
+│   ├── test_effects.py            # 효과 · GrabCut 제한 · remove_object inpaint
+│   ├── test_prompt_llm.py         # LLM provider 요청·파싱·selector 정규화 (네트워크 없음)
+│   ├── test_segmentation_filter.py # 대상 라벨 필터 · 별칭 · ONNX 가드 (가짜 YOLO)
+│   ├── test_instance_selector.py  # 위치·순서·개수·색 속성 선택 (합성 이미지)
+│   └── test_lora_dataset.py       # training/lora 데이터 계약·시드 (torch 불필요)
 ├── structure/               # 폴더·문서·스크립트 존재 검사
 │   └── test_project_layout.py
 └── smoke/                   # 가벼운 import 스모크

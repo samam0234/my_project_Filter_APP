@@ -58,8 +58,8 @@ detection (`yolo26s.pt`) 은 학습·검수·실험용.
 ## 4. 개발자 할 일
 
 ```text
-1) models/yolo26s-seg.pt 배치 (또는 학습 best.pt 복사·이름 변경)
-2) .env YOLO_MODEL_PATH=models/yolo26s-seg.pt
+1) backend/models/yolo26s-seg.pt 배치 (training/yolo/apply_best.py 또는 수동 복사)
+2) .env YOLO_MODEL_PATH=models/yolo26s-seg.pt   (backend/ 기준)
 3) backend 재시작 → 로그 "YOLO 세그멘터 준비" / meta.backend=yolo
 4) (학습) training venv 에서 train_segment.py --model yolo26s-seg.pt
 5) (탐지 실험) train_detect.py --model yolo26s.pt

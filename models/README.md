@@ -42,7 +42,7 @@ Compose 는 이 폴더가 아니라 `./backend/models` → `/app/models` 를 마
 | 학습 산출 | 위치 |
 |-----------|-----------|
 | `training/outputs/segment/<name>/weights/best.pt` | `apply_best.py` → `backend/models/yolo26s-seg.pt` (보관 시 `models/` 에도 복사) |
-| `training/outputs/lora/<run>/adapter/` | `models/lora/` (프롬프트 분석 어댑터, Phase 2) |
+| `training/outputs/lora/<run>/adapter/` | 보관은 여기, 서빙은 `backend/models/lora/` 로 복사 (`LLM_PROVIDER=lora`) |
 
 - `training/README.md`
 - `training/yolo/README.md`

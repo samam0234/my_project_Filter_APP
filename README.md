@@ -83,7 +83,7 @@ npm run dev
 ```
 frontend(:5173) ─┐
 console(:5174)  ─┼→ backend(:8000) → Repositories → SQLite | MariaDB
-                 └→ files: data/uploads, data/feedback
+                 └→ files: backend/data/uploads (런타임) · data/feedback (학습 공유)
 ```
 
 처리 파이프라인: **보안 검증 → 프롬프트 분석 → 전처리 → 세그멘테이션 → 효과 → 검증 → DB 저장 / 피드백**
@@ -98,8 +98,8 @@ DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)
 
 | Phase | 범위 |
 |-------|------|
-| **1 (현재)** | 단일 이미지, YOLO-seg ONNX, LangGraph 기본, 피드백 UI |
-| **2** | Grounding DINO + SAM2, 배치 500장, LoRA |
+| **1 (현재)** | 단일 이미지, YOLO-seg, LangGraph, LLM 프롬프트 분석(Ollama · LoRA), **특정 인스턴스 선택 · 물체 지우기**, 피드백 UI |
+| **2** | Grounding DINO + SAM2, 배치 500장, 학습형 inpaint(LaMa), LoRA 고도화(사용자 정답 피드백 루프) |
 | **3** | 영상 + Temporal Smoothing, Docker 배포 고도화 |
 
 ## 라이선스
