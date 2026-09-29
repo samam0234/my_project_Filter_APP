@@ -181,5 +181,6 @@ def run_pipeline(
             "backend": final.get("backend"),
             "labels": final.get("labels"),
             "confidences": final.get("confidences"),
+            "prompt_parser": final.get("prompt_parser"),
         },
     )
