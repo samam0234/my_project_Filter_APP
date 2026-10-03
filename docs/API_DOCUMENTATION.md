@@ -63,7 +63,7 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 - **로그인:** `jobs` 테이블에 저장(`user_id` 연결), 결과 파일 보관, `before_url`/`after_url` 은 파일 경로, `saved: true`
 - **비로그인:** 저장하지 않음 — DB 기록·결과 파일·실패 케이스(학습 재료)를 남기지 않는다.
   `after_url` 은 결과 이미지 **data URL**(`data:image/png;base64,…`), `before_url` 은 `null`, `saved: false`
-LLM 이 Ollama 일 때 요청당 약 15~30 초 (첫 요청은 모델 로드로 더 김).
+LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 다른 API 는 바로 응답한다 (스레드풀 실행).
 
 응답:
 

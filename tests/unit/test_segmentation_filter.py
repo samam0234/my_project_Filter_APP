@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import threading
+
 import pytest
 
 np = pytest.importorskip("numpy")
@@ -83,6 +85,7 @@ def _segmentor(instances=SCENE) -> Segmentor:
     seg._session = None
     seg._yolo = _FakeYolo(_Result(instances, NAMES))
     seg._ready = True
+    seg._lock = threading.Lock()
     return seg
 
 
@@ -164,3 +167,11 @@ def test_create_session_skips_non_onnx(tmp_path):
     broken = tmp_path / "broken.onnx"
     broken.write_bytes(b"not a protobuf")
     assert create_session(broken) is None
+
+
+def test_min_confidence_override_includes_low_confidence_target():
+    """재시도용 신뢰도 기준 완화 — 기본 기준에서 빠지던 낮은 신뢰도 대상이 포함된다."""
+    img = np.zeros((H, W, 3), np.uint8)
+    default = _segmentor().predict(img, targets=["person"])
+    relaxed = _segmentor().predict(img, targets=["person"], min_confidence=0.05)
+    assert len(relaxed.labels) == len(default.labels) + 1

@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import re
+import threading
 from typing import Any, Dict
 from uuid import uuid4
 
@@ -35,11 +36,19 @@ _feedback: FeedbackService | None = None
 _IMAGE_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
+_processor_lock = threading.Lock()
+
+
 def _get_processor() -> ImageProcessor:
-    """ImageProcessor 싱글톤 (세그멘터 포함)."""
+    """ImageProcessor 싱글톤 (세그멘터 포함).
+
+    기동 시 미리 로드 스레드와 요청 스레드가 동시에 부를 수 있어 잠금으로 한 번만 만든다.
+    """
     global _processor
     if _processor is None:
-        _processor = ImageProcessor()
+        with _processor_lock:
+            if _processor is None:
+                _processor = ImageProcessor()
     return _processor
 
 
@@ -256,29 +265,48 @@ def preprocessor(state: GraphState) -> GraphState:
     processor = _get_processor()
     from app.utils.image_utils import decode_image_bytes
 
+    from app.utils.image_utils import resize_keep_aspect
+
     original = decode_image_bytes(image_bytes)
     preprocessed = processor.preprocess(original)
+    # CLAHE 없이 크기만 맞춘 사본 — 재시도에서 대비 보정이 오히려 해가 된 경우를 위해
+    resized, _ = resize_keep_aspect(original, processor.settings.max_image_side)
     # 이후 노드(segmentor, effect)가 참조할 캐시
     _IMAGE_CACHE[job_id] = {
         "original": original,
         "preprocessed": preprocessed,
+        "resized": resized,
         "image_bytes": image_bytes,
+        "attempts": [],
     }
     return {**state, "message": "preprocessed"}
 
 
+# 【수동·튜닝】 재시도 전략 — 같은 입력으로 다시 돌리면 결과가 같으므로 조건을 바꾼다
+#   1차: CLAHE 전처리 이미지 + 기본 신뢰도 기준
+#   2차: CLAHE 없는 원본 축소 이미지 + 신뢰도 기준 × RETRY_CONFIDENCE_SCALE
+RETRY_CONFIDENCE_SCALE = 0.6
+
+
 def segmentor(state: GraphState) -> GraphState:
-    """노드: 전처리 이미지에 세그멘테이션 실행."""
+    """노드: 세그멘테이션 실행. 재시도면 입력 이미지와 신뢰도 기준을 바꿔서 다시 찾는다."""
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
-    pre = cache.get("preprocessed")
+    retry = int(state.get("retry_count") or 0) > 0
+    pre = cache.get("resized" if retry else "preprocessed")
+    if pre is None:
+        pre = cache.get("preprocessed")
     if pre is None:
         return {**state, "status": JobStatus.FAILED.value, "error": "전처리 이미지 없음"}
 
     # state 의 dict 를 다시 ParsedPrompt 로
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
     processor = _get_processor()
-    seg = processor.segmentor.predict(pre, targets=parsed.target)
+    min_conf = processor.settings.min_confidence * RETRY_CONFIDENCE_SCALE if retry else None
+    strategy = "retry_no_clahe_lowconf" if retry else "default"
+    seg = processor.segmentor.predict(pre, targets=parsed.target, min_confidence=min_conf)
+    if retry:
+        logger.info("segmentor 재시도 job={} strategy={} min_conf={}", job_id, strategy, min_conf)
 
     # selector 가 있으면 같은 클래스 인스턴스 중 일부만 고른다 (위치·개수·색)
     mask, labels, confidences = seg.mask, seg.labels, seg.confidences
@@ -310,6 +338,7 @@ def segmentor(state: GraphState) -> GraphState:
         "detected": seg.detected,
         "selection": selection,
         "backend": seg.backend,
+        "segment_strategy": strategy,
         "message": "segmented",
     }
 
@@ -334,12 +363,48 @@ def validator_node(state: GraphState) -> GraphState:
         message = f"요청한 대상({', '.join(targets)})을 이미지에서 찾지 못했습니다."
         if detected:
             message += f" 감지된 대상: {', '.join(detected)}"
-    return {
+    scored = {
         **state,
         "status": result.status,
         "quality_score": result.quality_score,
         "message": message,
         "error": None if result.ok else message,
+    }
+    return _keep_best_attempt(scored, cache, mask)
+
+
+_STATUS_RANK = {JobStatus.OK.value: 2, JobStatus.FALLBACK.value: 1, JobStatus.FAILED.value: 0}
+_ATTEMPT_KEYS = ("status", "quality_score", "message", "error", "labels", "confidences",
+                 "detected", "selection", "segment_strategy")
+
+
+def _keep_best_attempt(scored: GraphState, cache: Dict[str, Any], mask: Any) -> GraphState:
+    """시도마다 결과를 기록하고, 재시도 뒤에는 (상태, 품질 점수)가 더 나은 시도를 채택한다.
+
+    완화한 조건이 오히려 엉뚱한 마스크를 만들 수 있으므로 무조건 마지막 시도를 쓰지 않는다.
+    """
+    attempts = cache.setdefault("attempts", [])
+    attempts.append({"mask": mask, **{k: scored.get(k) for k in _ATTEMPT_KEYS}})
+    if len(attempts) < 2:
+        return {**scored, "attempts": len(attempts)}
+    # 인덱스로 고른다 (dict 안의 numpy 마스크끼리 == 비교를 피하기 위해 list.index 를 쓰지 않음)
+    best_i = max(
+        range(len(attempts)),
+        key=lambda i: (
+            _STATUS_RANK.get(attempts[i]["status"] or "", 0),
+            float(attempts[i]["quality_score"] or 0.0),
+        ),
+    )
+    best = attempts[best_i]
+    cache["mask"] = best["mask"]
+    chosen = best_i + 1
+    if chosen != len(attempts):
+        logger.info("재시도 결과가 더 나빠 {}번째 시도를 채택", chosen)
+    return {
+        **scored,
+        **{k: best[k] for k in _ATTEMPT_KEYS},
+        "attempts": len(attempts),
+        "chosen_attempt": chosen,
     }
 
 

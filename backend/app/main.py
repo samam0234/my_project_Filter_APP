@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -46,8 +48,27 @@ async def lifespan(app: FastAPI):
         settings.feedback_path,
         settings.log_path,
     )
+    if settings.preload_models:
+        # 세그 모델(YOLO) 로드 + 첫 추론 초기화는 첫 요청에서 30초 이상 걸린다 → 기동 직후 백그라운드에서 미리.
+        # 서버는 바로 요청을 받고, 로드가 끝나기 전 요청은 같은 싱글톤 생성을 기다린다.
+        threading.Thread(target=_preload_models, name="preload-models", daemon=True).start()
     yield
     logger.info("컷앤킵 종료")
+
+
+def _preload_models() -> None:
+    try:
+        from app.workflows import nodes
+
+        started = time.perf_counter()
+        processor = nodes._get_processor()
+        # 모델 로드와 별개로 첫 추론에서 GPU/런타임 초기화가 10초 이상 걸린다 → 빈 이미지로 한 번 추론
+        import numpy as np
+
+        processor.segmentor.predict(np.zeros((640, 640, 3), np.uint8), targets=["person"])
+        logger.info("모델 미리 로드·워밍업 완료 {:.1f}s", time.perf_counter() - started)
+    except Exception as exc:  # 실패해도 첫 요청에서 다시 시도
+        logger.warning("모델 미리 로드 실패 (첫 요청에서 다시 시도): {}", exc)
 
 
 def create_app() -> FastAPI:

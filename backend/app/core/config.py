@@ -115,6 +115,9 @@ class Settings(BaseSettings):
     lora_base_model: str = Field(default="", alias="LORA_BASE_MODEL")
     lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
 
+    # 【수동】 PRELOAD_MODELS — 기동 직후 세그 모델을 백그라운드로 미리 로드 (첫 요청 20초+ 지연 제거)
+    preload_models: bool = Field(default=True, alias="PRELOAD_MODELS")
+
     # --- 계정 (로그인 · 회원가입 · 아이디/비밀번호 찾기) ---
     # 【수동·배포】 SESSION_COOKIE_SECURE — HTTPS 배포 시 true (로컬 http 는 false 여야 쿠키 저장)
     session_cookie_name: str = Field(default="cnk_session", alias="SESSION_COOKIE_NAME")

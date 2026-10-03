@@ -13,7 +13,8 @@ langgraph 패키지가 없으면 _run_linear 로 동일한 경로를 순차 실�
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+import time
+from typing import Any, Callable, Dict, Optional
 from uuid import uuid4
 
 from loguru import logger
@@ -23,6 +24,31 @@ from app.schemas.request import ParsedPrompt
 from app.schemas.response import ProcessResult
 from app.workflows import edges, nodes
 from app.workflows.state import GraphState
+
+
+def _timed(name: str, fn: Callable[[GraphState], GraphState]) -> Callable[[GraphState], GraphState]:
+    """노드 실행 시간을 state["timings"][name] 에 누적(ms)한다 — 어느 단계가 느린지 meta·로그로 확인."""
+
+    def wrapper(state: GraphState) -> GraphState:
+        started = time.perf_counter()
+        out = fn(state)
+        timings = dict(out.get("timings") or state.get("timings") or {})
+        timings[name] = round(timings.get(name, 0.0) + (time.perf_counter() - started) * 1000, 1)
+        return {**out, "timings": timings}
+
+    wrapper.__name__ = getattr(fn, "__name__", name)
+    return wrapper
+
+
+# 그래프·선형 실행이 공유하는 노드 표 (이름 → 시간 측정 래핑 함수)
+NODES: Dict[str, Callable[[GraphState], GraphState]] = {
+    "prompt_analyzer": _timed("prompt_analyzer", nodes.prompt_analyzer),
+    "preprocessor": _timed("preprocessor", nodes.preprocessor),
+    "segmentor": _timed("segmentor", nodes.segmentor),
+    "validator": _timed("validator", nodes.validator_node),
+    "effect_applier": _timed("effect_applier", nodes.effect_applier),
+    "feedback_collector": _timed("feedback_collector", nodes.feedback_collector),
+}
 
 
 def build_graph():
@@ -44,12 +70,8 @@ def build_graph():
     graph = StateGraph(GraphState)
 
     # --- 노드 등록 (실제 로직은 nodes / edges 모듈) ---
-    graph.add_node("prompt_analyzer", nodes.prompt_analyzer)
-    graph.add_node("preprocessor", nodes.preprocessor)
-    graph.add_node("segmentor", nodes.segmentor)
-    graph.add_node("validator", nodes.validator_node)
-    graph.add_node("effect_applier", nodes.effect_applier)
-    graph.add_node("feedback_collector", nodes.feedback_collector)
+    for name, fn in NODES.items():
+        graph.add_node(name, fn)
     # 재시도 카운트만 올리는 경량 노드
     graph.add_node("increment_retry", edges.increment_retry)
 
@@ -96,24 +118,24 @@ def _run_linear(state: GraphState) -> GraphState:
     그래프의 조건부 분기 로직을 순차 if 로 재현한다.
     개발·CI·langgraph 미설치 환경에서 e2e 를 보장하기 위함.
     """
-    state = nodes.prompt_analyzer(state)
-    state = nodes.preprocessor(state)
+    state = NODES["prompt_analyzer"](state)
+    state = NODES["preprocessor"](state)
     # 전처리 단계에서 이미 실패하면 피드백만 남기고 종료
     if state.get("status") == JobStatus.FAILED.value:
-        state = nodes.feedback_collector(state)
+        state = NODES["feedback_collector"](state)
         return state
-    state = nodes.segmentor(state)
-    state = nodes.validator_node(state)
+    state = NODES["segmentor"](state)
+    state = NODES["validator"](state)
     route = edges.after_validator(state)
-    # 1회 재시도: 카운트 올린 뒤 세그·검증 한 번 더
+    # 1회 재시도: 카운트 올린 뒤 조건을 바꿔 세그·검증 한 번 더
     if route == "retry_segmentor":
         state = edges.increment_retry(state)
-        state = nodes.segmentor(state)
-        state = nodes.validator_node(state)
+        state = NODES["segmentor"](state)
+        state = NODES["validator"](state)
         route = edges.after_validator(state)
     if route == "feedback_then_effects":
-        state = nodes.feedback_collector(state)
-    state = nodes.effect_applier(state)
+        state = NODES["feedback_collector"](state)
+    state = NODES["effect_applier"](state)
     return state
 
 
@@ -167,6 +189,14 @@ def run_pipeline(
         # (인메모리 _IMAGE_CACHE 정리)
         nodes.clear_job_cache(job_id)
 
+    logger.info(
+        "pipeline job={} status={} attempts={} timings(ms)={}",
+        job_id,
+        final.get("status"),
+        final.get("attempts"),
+        final.get("timings"),
+    )
+
     # state 의 dict → Pydantic ParsedPrompt (응답 스키마용)
     parsed_raw = final.get("parsed_prompt") or {}
     parsed = ParsedPrompt(**parsed_raw) if parsed_raw else None
@@ -186,6 +216,10 @@ def run_pipeline(
             "confidences": final.get("confidences"),
             "prompt_parser": final.get("prompt_parser"),
             "detected": final.get("detected"),
+            "segment_strategy": final.get("segment_strategy"),
+            "attempts": final.get("attempts"),
+            "chosen_attempt": final.get("chosen_attempt"),
+            "timings": final.get("timings"),
             "selection": final.get("selection"),
         },
     )

@@ -15,6 +15,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import FileResponse
+from starlette.concurrency import run_in_threadpool
 from loguru import logger
 from sqlalchemy.orm import Session
 
@@ -51,8 +52,11 @@ async def upload_and_process(
         raise to_http_exception(exc) from exc
 
     try:
-        # 동기 파이프라인 (CPU/YOLO) — 요청 스레드에서 실행
-        result = run_pipeline(image_bytes=data, prompt=prompt, persist=user is not None)
+        # 파이프라인(LLM·YOLO·OpenCV)은 수십 초 걸리는 동기 작업 — 스레드풀에서 돌려
+        # 처리 중에도 다른 요청(로그인·작업 기록·헬스)이 바로 응답하게 한다
+        result = await run_in_threadpool(
+            run_pipeline, image_bytes=data, prompt=prompt, persist=user is not None
+        )
         if user is None:
             return _guest_response(result)
         JobRepository(db).save_result(result, prompt=prompt, user_id=user.id)
