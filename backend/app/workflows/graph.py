@@ -215,6 +215,7 @@ def run_pipeline(
             "labels": final.get("labels"),
             "confidences": final.get("confidences"),
             "prompt_parser": final.get("prompt_parser"),
+            "prompt_rag": final.get("prompt_rag"),
             "detected": final.get("detected"),
             "segment_strategy": final.get("segment_strategy"),
             "attempts": final.get("attempts"),

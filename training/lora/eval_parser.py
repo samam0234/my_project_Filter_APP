@@ -5,6 +5,7 @@
 파서:
   heuristic : backend 키워드 파서 (LLM 실패 시 fallback)
   ollama    : 서비스 LLM (SYSTEM_PROMPT few-shot, 기본 gemma4:e4b)
+  ollama_rag: ollama + RAG 예시 (services/prompt_rag, 평가 문장은 지식 베이스에서 제외)
   base      : LoRA 없이 베이스 모델 + LORA_TEMPLATE (어댑터 효과 비교용)
   lora      : 베이스 + 학습한 어댑터 (서빙 services/prompt_lora 와 같은 코드)
 
@@ -89,6 +90,26 @@ def make_parsers(names: list[str], args: argparse.Namespace) -> dict[str, Callab
 
             s = Settings.model_validate({"LLM_PROVIDER": "ollama", "LLM_TIMEOUT_SECONDS": 120})
             parsers[name] = lambda t, s=s: json.loads(parsed_to_json(parse_prompt_llm(t, s)))
+        elif name == "ollama_rag":
+            # 서비스와 같은 RAG(PROMPT_RAG_SOURCES — 기본 사용자 교정·좋아요)로 예시를 붙여 Ollama 호출.
+            # 평가 문장과 같은 예시는 지식 베이스에서 빼서 정답 누수를 막는다.
+            from app.core.config import Settings
+            from app.services.prompt_llm import parse_prompt_llm
+            from app.services.prompt_rag import ExampleIndex, PromptRAG, format_examples
+
+            s = Settings.model_validate({"LLM_PROVIDER": "ollama", "LLM_TIMEOUT_SECONDS": 120})
+            held_out = {" ".join(r["prompt"].lower().split()) for r in args.eval_rows}
+            base = PromptRAG(s).index()
+            index = ExampleIndex(
+                [e for e in base.examples if " ".join(e.prompt.lower().split()) not in held_out]
+            )
+            print(f"(ollama_rag 지식 베이스 {len(index.examples)}건, 평가 문장 {len(base.examples) - len(index.examples)}건 제외)")
+
+            def _rag(t, s=s, index=index):
+                hits = index.search(t, k=s.prompt_rag_top_k, min_score=s.prompt_rag_min_score)
+                return json.loads(parsed_to_json(parse_prompt_llm(t, s, examples=format_examples(hits))))
+
+            parsers[name] = _rag
         elif name in {"base", "lora"}:
             from app.services.prompt_lora import LoraPromptParser
 
@@ -135,6 +156,7 @@ def main() -> None:
     args = ap.parse_args()
 
     rows = load_eval(args.eval_file)
+    args.eval_rows = rows
     names = [n.strip() for n in args.parsers.split(",") if n.strip()]
     if "lora" in names and args.adapter is None:
         names.remove("lora")

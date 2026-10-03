@@ -94,6 +94,9 @@ bf16 (LoRA 가중치만 fp32) · gradient checkpointing (Ollama·백엔드와 GP
   "가방 들고 있는 사람 말고 **가방**만" → person), "크롭까지" 해석
 - 기본은 품질 우선으로 **Ollama 유지**, 속도가 필요하면 `LLM_PROVIDER=lora`
 - 평가셋 문장은 학습 시드에 들어가지 않는다 (생성 후 누수 검사)
+- `--parsers ollama_rag` : 서비스와 같은 RAG 예시를 붙인 Ollama. 2026-10-04 기준 RAG 없음 95.0% (재측정),
+  시드를 예시로 쓰면 90.0~92.5% 로 오히려 낮아 서비스 기본은 사용자 교정·좋아요만 사용
+  → [`docs/guidance/llm-and-vision.md`](../../docs/guidance/llm-and-vision.md#프롬프트-해석-rag-사용자-교정-즉시-반영)
 
 ## 서빙
 
