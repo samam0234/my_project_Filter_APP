@@ -1,7 +1,8 @@
 # 컷앤킵 Docker Compose
 #   docker compose -p cut_and_keep --env-file .env up -d --build
-#   docker compose -p cut_and_keep down          # 중지 (볼륨 유지)
-#   docker compose -p cut_and_keep down -v       # 중지 + DB 볼륨 삭제 (계정 초기화)
+#   docker compose -p cut_and_keep down          # 중지 (DB 데이터 유지)
+#   DB 초기화(계정 변경 등): down 후 ./data/mariaDB_datas 폴더를 삭제하고 다시 up
+#     (DB 가 bind mount 라 `down -v` 로는 지워지지 않는다)
 #
 # 네트워크/프로젝트 이름: cut_and_keep 만 사용 (구 cutnkeep 스택과 중복 금지)
 #
@@ -84,7 +85,9 @@ services:
       MYSQL_USER: ${MARIADB_USER:-cutnkeep}
       MYSQL_PASSWORD: ${MARIADB_PASSWORD:-cutnkeep}
     volumes:
-      - mariadb_data:/var/lib/mysql
+      # DB 파일을 호스트 ./data/mariaDB_datas 에 직접 저장 (탐색기에서 보임 · 백업/이전 쉬움)
+      # 폴더는 처음엔 비어 있어야 하며(.gitkeep 금지) 없으면 Docker 가 만든다. git 제외.
+      - ./data/mariaDB_datas:/var/lib/mysql
       - ./docker/mariadb/conf.d:/etc/mysql/conf.d:ro
       - ./docker/mariadb/initdb.d:/docker-entrypoint-initdb.d:ro
     command:
@@ -122,9 +125,6 @@ services:
     restart: unless-stopped
     networks:
       - cutnkeep_net
-
-volumes:
-  mariadb_data:
 
 networks:
   cutnkeep_net:

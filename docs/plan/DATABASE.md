@@ -60,7 +60,7 @@ SQLITE_PATH=data/cutnkeep.db   # backend/ 기준 → backend/data/cutnkeep.db
 MARIADB_HOST=localhost
 MARIADB_PORT=3309          # 호스트 발행 포트 (.env). 컨테이너 내부는 항상 3306
 MARIADB_USER=admin         # compose MYSQL_USER 와 동일 계열
-MARIADB_PASSWORD=...       # 배포 시 교체. 변경 후 기존 볼륨이면 down -v
+MARIADB_PASSWORD=...       # 배포 시 교체. 변경 후 기존 데이터면 data/mariaDB_datas 삭제 후 재생성
 MARIADB_DATABASE=cutnkeep
 MYSQL_ROOT_PASSWORD=...    # 볼륨 최초 생성 시에만 적용
 

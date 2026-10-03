@@ -29,6 +29,8 @@ data/feedback/*
 data/pseudo_labels/*
 data/*.db
 data/*.db-*
+# MariaDB(Docker) 데이터 파일 — bind mount (docker-compose.yml)
+data/mariaDB_datas/
 !data/**/.gitkeep
 # backend/ = 서비스 런타임 (uploads·SQLite·서빙 모델·앱 로그)
 backend/data/uploads/*

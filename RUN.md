@@ -150,9 +150,11 @@ docker compose -p cut_and_keep logs -f backend
 중지:
 
 ```powershell
-docker compose -p cut_and_keep down          # 볼륨 유지
-docker compose -p cut_and_keep down -v       # DB 계정/데이터 초기화
+docker compose -p cut_and_keep down          # DB 데이터 유지
 ```
+
+MariaDB 데이터는 호스트 `data/mariaDB_datas/` 에 저장된다 (git 제외). 계정 변경·초기화는
+`down` 후 그 폴더를 삭제하고 다시 `up` — bind mount 라 `down -v` 로는 지워지지 않는다.
 
 ### 참고
 

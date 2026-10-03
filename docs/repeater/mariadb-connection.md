@@ -23,7 +23,7 @@ DB 테이블 확인/생성 완료 dialect=mysql
 ## 실패 시 체크
 
 1. `docker compose -p cut_and_keep ps` — mariadb **healthy**
-2. `.env` 의 USER/PASSWORD/DATABASE 와 볼륨 최초 생성 시 값 일치 (불일치 시 `down -v`)
+2. `.env` 의 USER/PASSWORD/DATABASE 와 데이터 폴더(`data/mariaDB_datas`) 최초 생성 시 값 일치 (불일치 시 `down` 후 폴더 삭제)
 3. 호스트 접속 시 Host 는 **`127.0.0.1`**, Port 는 **`MARIADB_PORT`** (컨테이너 3306 아님)
 4. GSS-API exception → 클라이언트 설정 문제. 서버 장애 아님
 5. `172.18.0.x` 를 Host 로 쓰지 말 것

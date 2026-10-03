@@ -27,9 +27,11 @@ docker compose -p cut_and_keep ps
 ## 중지
 
 ```powershell
-docker compose -p cut_and_keep down          # 볼륨 유지
-docker compose -p cut_and_keep down -v       # DB 초기화
+docker compose -p cut_and_keep down          # DB 데이터 유지 (data/mariaDB_datas)
 ```
+
+DB 초기화: `down` 후 `data/mariaDB_datas` 폴더를 삭제하고 다시 `up`
+(bind mount 라 `down -v` 로는 지워지지 않는다).
 
 ## 참고
 
