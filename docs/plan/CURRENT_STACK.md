@@ -32,7 +32,7 @@
 | 인증 | **비밀번호만** (`mysql_native_password`). GSS-API **미사용** |
 | SSL | 서버 **`skip_ssl`** (로컬 Docker) |
 | 계정 | `.env` 의 `MARIADB_USER` / `PASSWORD` / `DATABASE` + `MYSQL_ROOT_PASSWORD` |
-| 볼륨 | `cut_and_keep_mariadb_data` — 계정 변경 시 `down -v` 후 재생성 |
+| 데이터 | 호스트 **`data/mariaDB_datas/`** (bind mount → `/var/lib/mysql`, git 제외). 계정 변경·초기화는 `down` 후 폴더 삭제 (`down -v` 로는 안 지워짐) |
 | 설정 파일 | `docker/mariadb/conf.d/99-local.cnf`, `initdb.d/01-password-only.sh` |
 
 ### 접속 요약

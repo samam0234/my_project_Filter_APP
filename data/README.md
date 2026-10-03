@@ -9,6 +9,7 @@
 |------|---------|---------|-----|
 | `feedback/` | backend (`FeedbackService`: 👍/👎·파이프라인 실패) | `training/lora`, `scripts/pseudo_labeling.py` | 내용 ignore |
 | `pseudo_labels/` | `scripts/pseudo_labeling.py` | `training/lora`, YOLO 재학습 | 내용 ignore |
+| `mariaDB_datas/` | Docker MariaDB (`docker-compose.yml` bind mount) | MariaDB 컨테이너만 | **전체 ignore** — 비어 있는 채로 시작, `.gitkeep` 금지 |
 
 ## 설정 (저장소 루트 기준 상대 경로)
 

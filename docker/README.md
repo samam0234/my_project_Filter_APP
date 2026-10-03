@@ -31,12 +31,14 @@ docker compose -p cut_and_keep --env-file .env up -d --build
 docker compose -p cut_and_keep ps
 ```
 
-중지(데이터 유지) / 볼륨 포함 삭제:
+중지(데이터 유지):
 
 ```powershell
 docker compose -p cut_and_keep down
-docker compose -p cut_and_keep down -v
 ```
+
+DB 데이터는 호스트 `data/mariaDB_datas/` 에 저장된다 (bind mount). 초기화는 `down` 후 그 폴더를 삭제한다
+(`down -v` 로는 지워지지 않음) → [`mariadb/README.md`](./mariadb/README.md)
 
 ## 제외
 
