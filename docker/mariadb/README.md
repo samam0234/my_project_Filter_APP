@@ -46,7 +46,7 @@ DB 파일은 호스트 **`data/mariaDB_datas/`** 에 저장됩니다 (compose bi
 - 백업은 `down` 으로 멈춘 뒤 폴더를 복사하거나, 켜 둔 채 `mariadb-dump` (아래)
 
 ```powershell
-docker exec cut_and_keep-mariadb-1 mariadb-dump -uroot -p<MYSQL_ROOT_PASSWORD> cutnkeep > backup.sql
+docker exec cut_and_keep-mariadb-1 mariadb-dump --skip-ssl -uroot -p<MYSQL_ROOT_PASSWORD> cutnkeep > backup.sql
 ```
 
 ## 계정 변경 후 · 초기화
@@ -68,18 +68,21 @@ docker compose -p cut_and_keep --env-file .env up -d --build
 
 ```powershell
 # 1) 옛 설정(볼륨)이 아직 떠 있을 때 덤프
-docker exec cut_and_keep-mariadb-1 mariadb-dump -uroot -p<MYSQL_ROOT_PASSWORD> --all-databases > old.sql
+docker exec cut_and_keep-mariadb-1 mariadb-dump --skip-ssl -uroot -p<MYSQL_ROOT_PASSWORD> --all-databases > old.sql
 # 2) 새 설정으로 교체 후 기동 (data/mariaDB_datas 가 비어 있어야 함)
 docker compose -p cut_and_keep down
 docker compose -p cut_and_keep --env-file .env up -d mariadb
 # 3) 복원
-Get-Content old.sql | docker exec -i cut_and_keep-mariadb-1 mariadb -uroot -p<MYSQL_ROOT_PASSWORD>
+Get-Content old.sql | docker exec -i cut_and_keep-mariadb-1 mariadb --skip-ssl -uroot -p<MYSQL_ROOT_PASSWORD>
 # 4) 옛 볼륨 정리 (확인 후)
 docker volume rm cut_and_keep_mariadb_data
 ```
 
+> 서버가 `--skip-ssl` 이라 컨테이너 안의 `mariadb`·`mariadb-dump` 클라이언트에도 **`--skip-ssl`** 을 붙여야 합니다.
+> 빼면 `ERROR 2026 (HY000): TLS/SSL error: SSL is required, but the server does not support it`.
+
 ## 컨테이너 내부 확인
 
 ```powershell
-docker exec cut_and_keep-mariadb-1 mariadb -uadmin -pYOUR_PASSWORD cutnkeep -e "SELECT 1"
+docker exec cut_and_keep-mariadb-1 mariadb --skip-ssl -uadmin -pYOUR_PASSWORD cutnkeep -e "SELECT 1"
 ```

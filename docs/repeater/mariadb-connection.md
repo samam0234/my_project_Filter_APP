@@ -27,6 +27,7 @@ DB 테이블 확인/생성 완료 dialect=mysql
 3. 호스트 접속 시 Host 는 **`127.0.0.1`**, Port 는 **`MARIADB_PORT`** (컨테이너 3306 아님)
 4. GSS-API exception → 클라이언트 설정 문제. 서버 장애 아님
 5. `172.18.0.x` 를 Host 로 쓰지 말 것
+6. 컨테이너 안에서 `mariadb`/`mariadb-dump` 실행 시 `ERROR 2026 … SSL is required` → 명령에 `--skip-ssl` 추가 (서버가 `--skip-ssl`)
 
 ## 검증
 
