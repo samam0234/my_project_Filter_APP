@@ -78,6 +78,11 @@ PART_ALIASES = {"t-shirt": "shirt", "tee": "shirt", "blouse": "shirt", "sweatshi
 ATTRIBUTE_MIN_RATIO = 0.06
 ATTRIBUTE_RELATIVE_MIN = 0.5
 # 【수동·튜닝】 front 점수 = 아래쪽 끝(카메라에 가까움) 가중 + 면적 가중
+# 【수동·튜닝】 위치로 고를 때 "눈에 띄는" 인스턴스만 후보로 — 멀리 찍힌 점 같은 사람이 "맨 왼쪽"이 되지 않게.
+# 가장 큰 후보 대비 SALIENT_MIN_RATIO 미만이고 이미지 대비 SALIENT_MAX_IMAGE_RATIO 미만이면 제외.
+# 실험(scripts/experiments/selection_e2e.py, 600장): 명확한 문항 64.0% → 71.6% (0.05~0.3 비교 중 최고)
+SALIENT_MIN_RATIO = 0.2
+SALIENT_MAX_IMAGE_RATIO = 0.01
 FRONT_WEIGHT_BOTTOM = 0.6
 FRONT_WEIGHT_AREA = 0.4
 
@@ -188,6 +193,19 @@ def _sort_by_position(items: List[Instance], position: str, shape: Tuple[int, in
     return items
 
 
+def _salient(items: List[Instance], shape: Tuple[int, int]) -> List[Instance]:
+    """가장 큰 후보에 비해 아주 작은(배경 속 점 같은) 인스턴스를 뺀다. 전부 빠지면 원래 목록."""
+    if SALIENT_MIN_RATIO <= 0:
+        return items
+    largest = max(i.area for i in items) or 1
+    image_area = shape[0] * shape[1]
+    kept = [
+        i for i in items
+        if i.area >= SALIENT_MIN_RATIO * largest or i.area >= SALIENT_MAX_IMAGE_RATIO * image_area
+    ]
+    return kept or items
+
+
 def select_instances(
     instances: List[Instance],
     selector: Optional[InstanceSelector],
@@ -225,6 +243,11 @@ def select_instances(
 
     # 2) 위치 (rank 만 있고 위치가 없으면 왼쪽부터 센다)
     position = selector.position or ("left" if selector.rank else None)
+    if position and len(candidates) > 1:
+        salient = _salient(candidates, image_bgr.shape[:2])
+        if len(salient) < len(candidates):
+            notes.append(f"작은 인스턴스 {len(candidates) - len(salient)}개는 위치 비교에서 제외")
+            candidates = salient
     if position:
         candidates = _sort_by_position(candidates, position, image_bgr.shape[:2])
         count = count or 1

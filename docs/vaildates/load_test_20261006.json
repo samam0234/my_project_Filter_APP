@@ -1,0 +1,65 @@
+{
+  "image": "000000001237.jpg",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 8,
+      "wall_s": 65.9,
+      "throughput_per_min": 7.3,
+      "latency_p50_s": 7.38,
+      "latency_p95_s": 14.05,
+      "latency_max_s": 14.05,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.6,
+      "health_max_ms": 3.5,
+      "health_failures": 0
+    },
+    {
+      "concurrency": 2,
+      "requests": 8,
+      "wall_s": 27.9,
+      "throughput_per_min": 17.2,
+      "latency_p50_s": 6.68,
+      "latency_p95_s": 10.03,
+      "latency_max_s": 10.03,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.6,
+      "health_max_ms": 5.9,
+      "health_failures": 0
+    },
+    {
+      "concurrency": 4,
+      "requests": 8,
+      "wall_s": 21.0,
+      "throughput_per_min": 22.8,
+      "latency_p50_s": 8.68,
+      "latency_p95_s": 13.98,
+      "latency_max_s": 13.98,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.6,
+      "health_max_ms": 6.1,
+      "health_failures": 0
+    },
+    {
+      "concurrency": 8,
+      "requests": 8,
+      "wall_s": 23.1,
+      "throughput_per_min": 20.8,
+      "latency_p50_s": 15.59,
+      "latency_p95_s": 23.11,
+      "latency_max_s": 23.11,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.7,
+      "health_max_ms": 12.3,
+      "health_failures": 0
+    }
+  ]
+}

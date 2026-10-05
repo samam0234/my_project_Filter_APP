@@ -114,3 +114,23 @@ def test_rank_beyond_candidates_picks_last():
 )
 def test_part_aliases(phrase, expected):
     assert parse_attribute(phrase) == expected
+
+
+def test_tiny_background_instance_is_not_the_leftmost():
+    """멀리 찍힌 점 같은 사람(가장 큰 후보의 20% 미만 · 이미지 1% 미만)은 위치 비교에서 빠진다."""
+    import numpy as np
+
+    def box(x0, y0, x1, y1):
+        m = np.zeros((400, 400), np.uint8)
+        m[y0:y1, x0:x1] = 255
+        return Instance.from_mask(m, "person", 0.9)
+
+    tiny = box(2, 10, 10, 20)  # 맨 왼쪽이지만 80px² (0.05%)
+    a, b = box(60, 100, 160, 380), box(220, 100, 320, 380)
+    image = np.zeros((400, 400, 3), np.uint8)
+    res = select_instances([tiny, a, b], InstanceSelector(position="left"), image)
+    assert res.chosen == [a]
+    assert "작은 인스턴스 1개" in res.note
+    # 모두 작으면 그대로 비교 (군중 사진)
+    small = [box(5, 5, 15, 15), box(100, 5, 112, 17)]
+    assert select_instances(small, InstanceSelector(position="left"), image).chosen == [small[0]]
