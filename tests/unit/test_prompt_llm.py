@@ -172,7 +172,7 @@ def test_prompt_analyzer_uses_llm_result(monkeypatch):
     monkeypatch.setattr(
         nodes,
         "parse_prompt_llm",
-        lambda prompt, settings: ParsedPrompt(target=["cup"], effect="blur"),
+        lambda prompt, settings, **kw: ParsedPrompt(target=["cup"], effect="blur"),
     )
     out = nodes.prompt_analyzer({"job_id": "j1", "prompt": "머그컵만 남겨"})
     assert out["parsed_prompt"]["target"] == ["cup"]
@@ -182,7 +182,7 @@ def test_prompt_analyzer_uses_llm_result(monkeypatch):
 def test_prompt_analyzer_falls_back_on_llm_error(monkeypatch):
     nodes = pytest.importorskip("app.workflows.nodes")
 
-    def fail(prompt, settings):
+    def fail(prompt, settings, **kw):
         raise LLMError("ollama down")
 
     monkeypatch.setattr(nodes, "get_settings", lambda: _settings(LLM_PROVIDER="ollama"))

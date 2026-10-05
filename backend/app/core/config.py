@@ -114,6 +114,17 @@ class Settings(BaseSettings):
     # 경로는 backend/ 기준. 베이스는 HF 형식 폴더(config.json + safetensors), 어댑터는 서빙용 복사본
     lora_base_model: str = Field(default="", alias="LORA_BASE_MODEL")
     lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
+    # 【수동·튜닝】 프롬프트 해석 RAG — 비슷한 정답 예시(사용자 교정·좋아요·시드)를 LLM 지시문에 붙임
+    # (ollama · openai · gemini 에만 적용. lora 는 학습 템플릿이 고정이라 제외)
+    prompt_rag_enabled: bool = Field(default=True, alias="PROMPT_RAG_ENABLED")
+    # 기본은 사용자 교정·좋아요만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 오히려 정확도를 낮춤
+    # (eval 40건: 없음 95.0% → 시드 포함 90.0~92.5%, docs/guidance/llm-and-vision.md)
+    prompt_rag_sources: str = Field(default="correction,like", alias="PROMPT_RAG_SOURCES")
+    prompt_rag_top_k: int = Field(default=3, alias="PROMPT_RAG_TOP_K")
+    prompt_rag_min_score: float = Field(default=0.6, alias="PROMPT_RAG_MIN_SCORE")
+    prompt_rag_refresh_seconds: float = Field(default=30.0, alias="PROMPT_RAG_REFRESH_SECONDS")
+    # 저장소 루트 기준 (Docker 이미지에는 training/ 이 없어 피드백만 사용)
+    prompt_rag_seed_file: str = Field(default="training/lora/seed/train.jsonl", alias="PROMPT_RAG_SEED_FILE")
 
     # 【수동】 PRELOAD_MODELS — 기동 직후 세그 모델을 백그라운드로 미리 로드 (첫 요청 20초+ 지연 제거)
     preload_models: bool = Field(default=True, alias="PRELOAD_MODELS")

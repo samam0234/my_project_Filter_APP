@@ -11,7 +11,7 @@ prompt_analyzer → preprocessor → segmentor → validator
 
 | 노드 | 하는 일 | 주요 코드 |
 |------|---------|-----------|
-| `prompt_analyzer` | 문장 → `ParsedPrompt` (target·effect·selector). LLM 실패 시 키워드 파서 | `services/prompt_llm.py`, `prompt_lora.py`, `prompt_spec.py` |
+| `prompt_analyzer` | 문장 → `ParsedPrompt` (target·effect·selector). **RAG** 로 비슷한 문장의 사용자 교정을 예시로 붙임. LLM 실패 시 키워드 파서 | `services/prompt_llm.py`, `prompt_rag.py`, `prompt_lora.py`, `prompt_spec.py` |
 | `preprocessor` | 긴 변 1280 리사이즈 + CLAHE | `services/image_processor.py` |
 | `segmentor` | YOLO-seg 인스턴스 → 요청 라벨만 → **selector 로 인스턴스 선택**. 재시도면 조건을 바꿈 (아래) | `services/segmentation.py`, `instance_selector.py` |
 | `validator` | 마스크 면적·confidence 로 ok / fallback / failed. 빈 마스크면 "요청 대상을 찾지 못함" 안내. 재시도 뒤에는 **더 나은 시도 채택** | `services/validator.py`, `nodes._keep_best_attempt` |
@@ -42,6 +42,7 @@ prompt_analyzer → preprocessor → segmentor → validator
 | 키 | 내용 |
 |----|------|
 | `prompt_parser` | 실제로 쓰인 파서 (ollama · lora · heuristic …) |
+| `prompt_rag` | 지시문에 붙인 RAG 예시의 출처·점수 `[{source, score}]` (원문 없음) |
 | `labels` · `detected` | 선택된 라벨 · 필터 전 감지 라벨 |
 | `selection` | 인스턴스 선택 요약 (후보 수 · 선택 수 · 색 점수) |
 | `segment_strategy` · `attempts` · `chosen_attempt` | 채택된 시도의 전략 · 시도 횟수 · 채택 번호 |

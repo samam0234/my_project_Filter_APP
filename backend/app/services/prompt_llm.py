@@ -67,7 +67,7 @@ def _post_json(
         raise LLMError(f"응답 JSON 디코드 실패: {exc}") from exc
 
 
-def _call_ollama(prompt: str, settings: Settings) -> str:
+def _call_ollama(prompt: str, settings: Settings, system: str = SYSTEM_PROMPT) -> str:
     """Ollama native /api/chat (format=json, 비스트리밍)."""
     base = (settings.llm_base_url or "http://localhost:11434").rstrip("/")
     data = _post_json(
@@ -75,7 +75,7 @@ def _call_ollama(prompt: str, settings: Settings) -> str:
         {
             "model": settings.ollama_model,
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
             ],
             "format": "json",
@@ -90,7 +90,7 @@ def _call_ollama(prompt: str, settings: Settings) -> str:
         raise LLMError(f"Ollama 응답 형식 오류: {data!r:.300}") from exc
 
 
-def _call_openai(prompt: str, settings: Settings) -> str:
+def _call_openai(prompt: str, settings: Settings, system: str = SYSTEM_PROMPT) -> str:
     """OpenAI Chat Completions (response_format=json_object)."""
     if not settings.openai_api_key:
         raise LLMError("OPENAI_API_KEY 미설정")
@@ -99,7 +99,7 @@ def _call_openai(prompt: str, settings: Settings) -> str:
         {
             "model": settings.openai_model,
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
             ],
             "response_format": {"type": "json_object"},
@@ -114,14 +114,14 @@ def _call_openai(prompt: str, settings: Settings) -> str:
         raise LLMError(f"OpenAI 응답 형식 오류: {data!r:.300}") from exc
 
 
-def _call_gemini(prompt: str, settings: Settings) -> str:
+def _call_gemini(prompt: str, settings: Settings, system: str = SYSTEM_PROMPT) -> str:
     """Gemini generateContent (responseMimeType=application/json)."""
     if not settings.gemini_api_key:
         raise LLMError("GEMINI_API_KEY 미설정")
     data = _post_json(
         GEMINI_URL_TEMPLATE.format(model=settings.gemini_model),
         {
-            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "systemInstruction": {"parts": [{"text": system}]},
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {
                 "responseMimeType": "application/json",
@@ -153,8 +153,12 @@ def llm_enabled(settings: Settings | None = None) -> bool:
 def parse_prompt_llm(
     prompt: str,
     settings: Settings | None = None,
+    examples: str = "",
 ) -> Optional[ParsedPrompt]:
     """LLM 으로 프롬프트 구조화.
+
+    examples: RAG 가 찾은 비슷한 정답 예시 블록 (services/prompt_rag.format_examples).
+              SYSTEM_PROMPT 뒤에 붙인다. lora 는 학습 템플릿이 고정이라 쓰지 않는다.
 
     반환:
       - ParsedPrompt : 성공
@@ -176,5 +180,5 @@ def parse_prompt_llm(
         logger.warning("알 수 없는 LLM_PROVIDER={} — 휴리스틱 사용", provider)
         return None
 
-    text = caller(prompt, settings)
+    text = caller(prompt, settings, SYSTEM_PROMPT + examples)
     return normalize_parsed(extract_json_object(text))

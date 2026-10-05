@@ -141,8 +141,46 @@ GEMINI_API_KEY=...
 
 ---
 
+## 프롬프트 해석 RAG (사용자 교정 즉시 반영)
+
+`backend/app/services/prompt_rag.py` — 지금 요청과 **비슷한 문장의 확인된 정답**을 찾아 `SYSTEM_PROMPT` 뒤에 예시로 붙인다.
+사용자가 결과 화면의 "정답 알려주기"로 교정하면 LoRA 재학습 없이 **다음 요청부터** 바로 반영된다.
+ollama · openai · gemini 에만 적용 (lora 는 학습 템플릿이 고정이라 제외).
+
+| 항목 | 내용 |
+|------|------|
+| 지식 베이스 | `data/feedback/*.json` — `correction`(dislike 코멘트의 정답 JSON) > `like`(사용자가 맞다고 확인한 해석). 같은 문장이면 교정이 이김. `pipeline_failure` 는 제외 |
+| 검색 | 글자 2·3-gram TF-IDF 코사인 (외부 모델·의존성 없음, 수천 건 규모 ms 단위) |
+| 갱신 | 피드백 폴더가 바뀌면 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 자동 재색인 |
+| 기록 | `meta.prompt_rag` 에 출처·점수만 (다른 사용자의 문장 원문은 남기지 않음) |
+
+```env
+PROMPT_RAG_ENABLED=true
+PROMPT_RAG_SOURCES=correction,like   # seed 를 넣으면 training/lora/seed/train.jsonl 도 사용 (비권장, 아래)
+PROMPT_RAG_TOP_K=3
+PROMPT_RAG_MIN_SCORE=0.6             # 같은 뜻의 다른 표현 0.62~0.73 / 틀만 같은 문장 0.3~0.46
+```
+
+평가 (2026-10-04, `seed/eval.jsonl` 40건, gemma4:e4b, 평가 문장과 같은 예시는 지식 베이스에서 제외):
+
+| 구성 | 완전 일치 | 비고 |
+|------|-----------|------|
+| RAG 없음 | 95.0% | 기준 |
+| 시드 800건 포함 (top 4, 0.2) | 90.0% | 표면만 비슷한 예시의 selector 를 따라감 (`count`·`position` 오답) |
+| 시드 포함 + 지시 문구 보강 (top 3, 0.3) | 92.5% | 여전히 기준보다 낮음 → **시드는 기본 제외** |
+| 교정·좋아요만 (현재 피드백, 0.6) | 92.5% | 예시가 붙은 문항은 1건이고 정답. 추가 오답 1건은 예시 없이 같은 요청 → Ollama 실행 간 흔들림 (±1건) |
+| 교정·좋아요만 + 비슷한 표현 교정 2건 | **97.5%** | 기준의 오답 "앞줄 맨 앞 사람만 남기고 크롭까지" 가 교정 "앞줄 제일 앞 사람만 남기고 크롭해줘" 로 해결 |
+
+- 교정이 없으면 예시가 붙지 않아 기준과 같은 동작 — RAG 가 해석을 망치지 않게 **임계값을 높게** 둔다
+- 검색 버그 수정: 지식 베이스에 없는 n-gram 을 질의 벡터에서 빼면 "왼쪽 세 번째 자전거만 남기고 배경 제거" ↔
+  "사람만 남기고 배경 제거" 가 0.88 로 떴다 → 가장 희귀한 IDF 로 남겨 0.40 으로 내려감
+- 재현: `python training/lora/eval_parser.py --parsers ollama,ollama_rag` (`FEEDBACK_DIR`·`PROMPT_RAG_*` 환경변수로 구성 변경)
+
+---
+
 ## Fallback
 
 - `LLM_PROVIDER=heuristic` 이거나, LLM 호출·파싱이 실패하면 `workflows/nodes.py` 키워드 파서 사용
 - 키워드 파서도 지우기 동사·위치·서수·개수·색+부위를 인식한다 (평가 35%, 즉시 응답)
 - 실제로 쓰인 파서는 결과 `meta.prompt_parser` 와 서버 로그 `prompt_analyzer … parser=` 로 확인
+- RAG 검색이 실패해도 예시 없이 LLM 을 호출한다 (경고 로그 `프롬프트 RAG 검색 실패`)

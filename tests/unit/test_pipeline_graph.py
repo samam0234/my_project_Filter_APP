@@ -68,7 +68,7 @@ def run(monkeypatch):
     def _run(plan):
         proc = FakeProcessor(plan)
         monkeypatch.setattr(nodes, "_get_processor", lambda: proc)
-        monkeypatch.setattr(nodes, "parse_prompt_llm", lambda prompt, settings: None)  # 키워드 파서
+        monkeypatch.setattr(nodes, "parse_prompt_llm", lambda prompt, settings, **kw: None)  # 키워드 파서
         result = graph.run_pipeline(_jpeg(), "사람만 남기고 배경 제거", job_id=f"zzgraph{len(made)}", persist=False)
         made.append(result.job_id)
         return result, proc
