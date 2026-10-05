@@ -36,6 +36,9 @@ prompt_analyzer → preprocessor → segmentor → validator
 - 기동 직후 백그라운드에서 세그 모델 로드 + 빈 이미지 추론 1회 (`PRELOAD_MODELS`, `main._preload_models`)
   → 서버 시작 후 첫 요청 71 s → 4.5 s (로컬 RTX 4070 SUPER, 측정 2026-10-04)
 - 노드마다 소요 시간을 누적해 `meta.timings`(ms)와 로그 `pipeline job=… timings(ms)=…` 에 남긴다
+- 측정 (2026-10-06): prompt_analyzer(Ollama) 약 6 s · segmentor 35 ms · effect_applier 약 1 s (GrabCut 을 마스크 주변 ROI 에서만).
+  동시 4 이상은 LLM 대기열로 처리량 약 22 건/분에서 멈춘다 → [`vaildates/experiments-20261006.md`](vaildates/experiments-20261006.md)
+- 위치로 인스턴스를 고를 때 멀리 찍힌 아주 작은 인스턴스는 제외 (`instance_selector._salient`)
 
 ## 결과 meta 추적 정보
 
