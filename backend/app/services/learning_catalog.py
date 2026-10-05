@@ -233,3 +233,74 @@ def sync_from_files(db: Session, settings: Settings | None = None) -> dict[str, 
     if any(added.values()):
         logger.info("학습 DB 동기화: 피드백 {}건 · 의사 라벨 {}건 추가", added["feedbacks"], added["pseudo_labels"])
     return added
+
+
+# ------------------------------------------------------------------ 회원 요청 → 검수 후보
+
+
+def _usable_prompt(prompt: Optional[str]) -> bool:
+    """검수 후보로 쓸 만한 문장인가 (빈 문장·인코딩 깨진 문장 제외)."""
+    if not prompt or not prompt.strip():
+        return False
+    # cp949 ↔ latin-1 로 깨진 문장 ("¹ö½º¸¸ …") — 라틴-1 보충 문자만 있고 한글이 없음
+    has_latin1 = any("\u0080" <= ch <= "\u00ff" for ch in prompt)
+    has_hangul = any("\uac00" <= ch <= "\ud7a3" for ch in prompt)
+    return not (has_latin1 and not has_hangul)
+
+
+def record_request(
+    db: Session,
+    *,
+    job_id: str,
+    prompt: Optional[str],
+    parsed_prompt: Any,
+    user_id: Optional[str] = None,
+    image_path: Optional[str] = None,
+) -> Optional[LearningSample]:
+    """회원 요청 1건 → source=request 검수 후보 (시스템 해석을 정답 후보로).
+
+    같은 문장의 request 후보가 이미 있으면 (검수 여부·삭제 무관) 다시 만들지 않는다.
+    """
+    answer = parse_answer(parsed_prompt)
+    if not _usable_prompt(prompt) or not answer:
+        return None
+    prompt = prompt.strip()
+    exists = (
+        db.query(LearningSample.id)
+        .filter(LearningSample.kind == "prompt", LearningSample.source == "request")
+        .filter((LearningSample.origin_id == job_id) | (LearningSample.prompt == prompt))
+        .first()
+    )
+    if exists:
+        return None
+    sample = LearningSample(
+        id=uuid4().hex, kind="prompt", source="request", status="pending", origin_id=job_id,
+        job_id=job_id, user_id=user_id, prompt=prompt, answer=answer, image_path=image_path,
+    )
+    db.add(sample)
+    db.commit()
+    return sample
+
+
+def sync_requests_from_jobs(db: Session, service_db: Session, settings: Settings | None = None) -> int:
+    """서비스 DB jobs 중 아직 후보가 아닌 요청을 적재 (기동 시). 반환: 추가 건수."""
+    from app.models.job import Job
+
+    settings = settings or get_settings()
+    added = 0
+    rows = (
+        service_db.query(Job.id, Job.prompt, Job.parsed_prompt, Job.user_id, Job.before_path)
+        .filter(Job.parsed_prompt.isnot(None))
+        .order_by(Job.created_at.asc())
+        .all()
+    )
+    for job_id, prompt, parsed, user_id, before in rows:
+        before_path = Path(before) if before else None
+        if record_request(
+            db, job_id=job_id, prompt=prompt, parsed_prompt=parsed, user_id=user_id,
+            image_path=shared_relpath(before_path, settings) if before_path and before_path.is_file() else None,
+        ):
+            added += 1
+    if added:
+        logger.info("학습 DB 동기화: 회원 요청 후보 {}건 추가", added)
+    return added

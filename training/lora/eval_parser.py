@@ -91,7 +91,7 @@ def make_parsers(names: list[str], args: argparse.Namespace) -> dict[str, Callab
             s = Settings.model_validate({"LLM_PROVIDER": "ollama", "LLM_TIMEOUT_SECONDS": 120})
             parsers[name] = lambda t, s=s: json.loads(parsed_to_json(parse_prompt_llm(t, s)))
         elif name == "ollama_rag":
-            # 서비스와 같은 RAG(PROMPT_RAG_SOURCES — 기본 사용자 교정·좋아요)로 예시를 붙여 Ollama 호출.
+            # 서비스와 같은 RAG(학습 DB 의 승인된 샘플, PROMPT_RAG_SOURCES)로 예시를 붙여 Ollama 호출.
             # 평가 문장과 같은 예시는 지식 베이스에서 빼서 정답 누수를 막는다.
             from app.core.config import Settings
             from app.services.prompt_llm import parse_prompt_llm

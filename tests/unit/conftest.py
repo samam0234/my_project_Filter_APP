@@ -57,10 +57,11 @@ def api_env(monkeypatch, tmp_path):
         lambda to, subject, body, settings=None: mails.append({"to": to, "subject": subject, "body": body})
         or True,
     )
-    # 피드백 사이드카를 임시 폴더로 — 실제 data/feedback(학습·RAG 입력)을 오염시키지 않는다
+    # 피드백·의사 라벨 폴더를 임시 폴더로 — 실제 data/(학습·RAG 입력)를 오염시키지 않는다
     from app.core.config import get_settings
 
     monkeypatch.setattr(get_settings(), "feedback_dir", str(tmp_path / "feedback"))
+    monkeypatch.setattr(get_settings(), "pseudo_label_dir", str(tmp_path / "pseudo_labels"))
     application = create_app()
     application.dependency_overrides[get_db] = _db
     application.dependency_overrides[get_learning_db] = _learning_db

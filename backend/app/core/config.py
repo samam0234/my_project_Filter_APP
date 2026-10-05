@@ -117,9 +117,9 @@ class Settings(BaseSettings):
     # 【수동·튜닝】 프롬프트 해석 RAG — 비슷한 정답 예시(사용자 교정·좋아요·시드)를 LLM 지시문에 붙임
     # (ollama · openai · gemini 에만 적용. lora 는 학습 템플릿이 고정이라 제외)
     prompt_rag_enabled: bool = Field(default=True, alias="PROMPT_RAG_ENABLED")
-    # 기본은 사용자 교정·좋아요만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 오히려 정확도를 낮춤
+    # 기본은 운영 콘솔에서 승인된 교정·좋아요·회원 요청만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 정확도를 낮춤
     # (eval 40건: 없음 95.0% → 시드 포함 90.0~92.5%, docs/guidance/llm-and-vision.md)
-    prompt_rag_sources: str = Field(default="correction,like", alias="PROMPT_RAG_SOURCES")
+    prompt_rag_sources: str = Field(default="correction,like,request", alias="PROMPT_RAG_SOURCES")
     prompt_rag_top_k: int = Field(default=3, alias="PROMPT_RAG_TOP_K")
     prompt_rag_min_score: float = Field(default=0.6, alias="PROMPT_RAG_MIN_SCORE")
     prompt_rag_refresh_seconds: float = Field(default=30.0, alias="PROMPT_RAG_REFRESH_SECONDS")
@@ -195,6 +195,9 @@ class Settings(BaseSettings):
     learning_db_connect_timeout: int = Field(default=3, alias="LEARNING_DB_CONNECT_TIMEOUT")
     # 기동 시 data/feedback · data/pseudo_labels 사이드카 중 DB 에 없는 것을 적재 (멱등)
     learning_sync_on_start: bool = Field(default=True, alias="LEARNING_SYNC_ON_START")
+    # 로그인 회원의 요청 문장 + 시스템 해석을 검수 후보(source=request)로 기록 → 승인되면 LoRA·RAG 학습 데이터
+    # (비로그인 요청은 저장하지 않으므로 대상 아님)
+    learning_collect_requests: bool = Field(default=True, alias="LEARNING_COLLECT_REQUESTS")
 
 
     # --- 세그/검증 임계값 (Phase 1 기본) ---

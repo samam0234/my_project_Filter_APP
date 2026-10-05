@@ -1,7 +1,7 @@
 /**
  * 운영 콘솔 루트 (Vite :5174).
  *
- * - 좌측 Sidebar 로 페이지 전환 (dashboard / jobs / system / links)
+ * - 좌측 Sidebar 로 페이지 전환 (dashboard / jobs / learning / system / links)
  * - 마운트 시 + 30초 간격으로 health·jobs 새로고침
  * - useConsoleStore.page 에 따라 해당 Page 컴포넌트 렌더
  */
@@ -12,6 +12,7 @@ import { useConsoleData } from "./hooks/useConsoleData";
 import { useConsoleStore } from "./store/useConsoleStore";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JobsPage } from "./pages/JobsPage";
+import { LearningPage } from "./pages/LearningPage";
 import { LinksPage } from "./pages/LinksPage";
 import { SystemPage } from "./pages/SystemPage";
 
@@ -58,6 +59,7 @@ export default function App() {
           )}
           {page === "dashboard" && <DashboardPage />}
           {page === "jobs" && <JobsPage />}
+          {page === "learning" && <LearningPage />}
           {page === "system" && <SystemPage />}
           {page === "links" && <LinksPage />}
         </main>

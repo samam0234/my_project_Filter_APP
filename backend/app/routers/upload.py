@@ -23,11 +23,13 @@ from app.core.access import owned_job
 from app.core.config import get_settings
 from app.core.deps import current_user_optional
 from app.core.security import validate_upload_file
+from app.db.learning import get_learning_db
 from app.db.session import get_db
 from app.exceptions import CutAndKeepError, FileValidationError, to_http_exception
 from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.schemas.response import UploadResponse
+from app.services.learning_catalog import record_request, shared_relpath
 from app.workflows.graph import run_pipeline
 
 router = APIRouter(tags=["upload"])
@@ -38,6 +40,7 @@ async def upload_and_process(
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
     db: Session = Depends(get_db),
+    ldb: Session = Depends(get_learning_db),
     user: Optional[User] = Depends(current_user_optional),
 ) -> UploadResponse:
     """파일 수신·검증 후 파이프라인 실행.
@@ -60,6 +63,7 @@ async def upload_and_process(
         if user is None:
             return _guest_response(result)
         JobRepository(db).save_result(result, prompt=prompt, user_id=user.id)
+        _collect_request(ldb, result, prompt, user.id)
     except CutAndKeepError as exc:
         raise to_http_exception(exc) from exc
     except Exception as exc:
@@ -82,6 +86,27 @@ async def upload_and_process(
         message=result.message,
         feedback_saved=result.feedback_saved,
     )
+
+
+def _collect_request(ldb: Session, result, prompt: str, user_id: str) -> None:
+    """회원 요청 + 시스템 해석 → 학습 데이터 검수 후보 (운영 콘솔에서 승인되면 LoRA·RAG 에 쓰임).
+
+    학습 DB 문제로 업로드가 실패하면 안 되므로 예외는 로그만 남긴다.
+    """
+    if not get_settings().learning_collect_requests or result.parsed_prompt is None:
+        return
+    try:
+        record_request(
+            ldb,
+            job_id=result.job_id,
+            prompt=prompt,
+            parsed_prompt=result.parsed_prompt.model_dump(),
+            user_id=user_id,
+            image_path=shared_relpath(result.before_path, get_settings()) if result.before_path else None,
+        )
+    except Exception:
+        ldb.rollback()
+        logger.exception("요청 후보 기록 실패 job={}", result.job_id)
 
 
 def _guest_response(result) -> UploadResponse:

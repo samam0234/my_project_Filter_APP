@@ -5,6 +5,7 @@
  */
 import {
   Activity,
+  Database,
   ExternalLink,
   LayoutDashboard,
   ListOrdered,
@@ -16,6 +17,7 @@ import { useConsoleStore } from "../store/useConsoleStore";
 const items: { id: ConsolePage; label: string; icon: typeof Activity }[] = [
   { id: "dashboard", label: "대시보드", icon: LayoutDashboard },
   { id: "jobs", label: "Job 목록", icon: ListOrdered },
+  { id: "learning", label: "학습 데이터", icon: Database },
   { id: "system", label: "시스템", icon: Server },
   { id: "links", label: "바로가기", icon: ExternalLink },
 ];
@@ -74,6 +76,16 @@ export function Sidebar() {
         <div className="mt-1 flex items-center justify-between">
           <span>DB</span>
           <span className="text-slate-300">{health?.db_dialect || "-"}</span>
+        </div>
+        <div className="mt-1 flex items-center justify-between">
+          <span>학습 DB</span>
+          <span
+            className={
+              health?.learning_db?.includes("fallback") ? "text-amber-400" : "text-slate-300"
+            }
+          >
+            {health?.learning_db || "-"}
+          </span>
         </div>
       </div>
     </aside>

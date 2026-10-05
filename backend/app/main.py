@@ -69,6 +69,12 @@ def _init_learning(settings) -> str:
 
             with learning_session() as ldb:
                 sync_from_files(ldb, settings)
+                if settings.learning_collect_requests:
+                    from app.db.session import SessionLocal
+                    from app.services.learning_catalog import sync_requests_from_jobs
+
+                    with SessionLocal() as sdb:
+                        sync_requests_from_jobs(ldb, sdb, settings)
         return mode
     except Exception as exc:
         logger.error("학습 DB 준비 실패 (피드백은 파일로만 저장): {}", exc)
