@@ -71,6 +71,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
 | 인스턴스 선택 | `services/instance_selector.py` — 같은 클래스 중 특정 인스턴스 (학습 아닌 규칙) |
+| 파이프라인 실행 | LangGraph 0.2 · 스레드풀 실행 · 재시도 시 조건 변경 + 최선 시도 채택 · 기동 시 모델 워밍업 (`PRELOAD_MODELS`) · `meta.timings` ([`WORKFLOW.md`](../WORKFLOW.md)) |
 | 계정 | `/api/v1/auth/*` — scrypt 해시 · HttpOnly 세션 쿠키 · 이메일 코드 재설정. SMTP 미설정 시 메일은 로그에만 ([`auth.md`](../guidance/auth.md)) |
 | 접근 정책 | 비로그인: 처리·다운로드만(저장 없음) / 회원: 저장·작업 기록·피드백·배치(본인 것만) / 콘솔 API: 서버 PC 만 |
 | 학습 | `training/` — `train_segment.py` 본선, `env_cuda.ps1` / `setup_cuda_env.ps1` |

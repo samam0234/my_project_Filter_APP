@@ -48,4 +48,8 @@ class GraphState(TypedDict, total=False):
     # --- 제어 ---
     retry_count: int  # 세그 재시도 횟수 (현재 최대 1)
     persist: bool  # False = 비로그인 요청 → 피드백(학습 재료) 저장 안 함
+    segment_strategy: str  # "default" | "retry_no_clahe_lowconf"
+    attempts: int  # 세그·검증 시도 횟수
+    chosen_attempt: int  # 재시도 뒤 채택된 시도 번호 (1-based)
+    timings: Dict[str, float]  # 노드별 누적 소요 시간 (ms)
     message: str  # 단계별 짧은 상태 메시지

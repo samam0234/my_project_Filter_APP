@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
@@ -96,6 +97,7 @@ class Segmentor:
         self._session = None  # ONNX 세션 (선택)
         self._yolo = None  # Ultralytics YOLO 객체 (선택)
         self._ready = False
+        self._lock = threading.Lock()
         self._init_backend()
 
     def _init_backend(self) -> None:
@@ -151,15 +153,21 @@ class Segmentor:
         self,
         image: np.ndarray,
         targets: Optional[List[str]] = None,
+        min_confidence: Optional[float] = None,
     ) -> SegmentationResult:
-        """요청 대상에 대한 인스턴스 마스크 합집합 반환."""
+        """요청 대상에 대한 인스턴스 마스크 합집합 반환.
+
+        min_confidence: 이번 호출만 쓸 신뢰도 기준 (재시도 시 완화). None 이면 Settings 값.
+        """
         targets = targets or ["person"]
 
         # =============================================================================
         # [이미 구현된 구간 · 바이브] YOLO .pt 경로 우선
         # =============================================================================
         if self._yolo is not None:
-            return self._predict_yolo(image, targets)
+            # Ultralytics 모델은 스레드 안전이 보장되지 않음 — 업로드가 스레드풀에서 동시에 돌 수 있으므로 직렬화
+            with self._lock:
+                return self._predict_yolo(image, targets, min_confidence)
 
         # =============================================================================
         # [하드코딩 파트] ONNX predict 분기
@@ -182,6 +190,7 @@ class Segmentor:
         self,
         image: np.ndarray,
         targets: List[str],
+        min_confidence: Optional[float] = None,
     ) -> SegmentationResult:
         """Ultralytics predict → 클래스 필터 → 마스크 bitwise OR 합치기.
 
@@ -201,6 +210,7 @@ class Segmentor:
         instances: List[Instance] = []
         detected: List[str] = []
 
+        threshold = self.settings.min_confidence if min_confidence is None else min_confidence
         target_set = expand_targets({t.lower() for t in targets})
         keep_all = not target_set or "all" in target_set
         for r in results:
@@ -213,7 +223,7 @@ class Segmentor:
                 cls_id = int(boxes.cls[i].item()) if boxes is not None else -1
                 conf = float(boxes.conf[i].item()) if boxes is not None else 0.0
                 label = str(names.get(cls_id, cls_id)).lower()
-                if conf < self.settings.min_confidence:
+                if conf < threshold:
                     continue
                 detected.append(label)
                 if not keep_all and label not in target_set:
