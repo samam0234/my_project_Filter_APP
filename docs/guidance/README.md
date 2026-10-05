@@ -7,7 +7,7 @@
 | 파일 | 설명 |
 |------|------|
 | [commit-message.md](./commit-message.md) | **커밋 제목 영어 / 본문·바닥글 한국어** |
-| [branch-merge.md](./branch-merge.md) | **작업은 feature, 일자 병합은 develop/main만** |
+| [branch-merge.md](./branch-merge.md) | **작업은 feature, 일자 병합은 develop/main만 — 병합은 전체 파트가 끝난 뒤 한 번에 (브랜치마다 병합 금지)** |
 | [getting-started.md](./getting-started.md) | 로컬 전체 기동 |
 | [api-usage.md](./api-usage.md) | 주요 API 사용 |
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |

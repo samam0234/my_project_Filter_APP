@@ -37,6 +37,7 @@
 | 작업 | 통합(일자 병합) |
 |------|-----------------|
 | `feature/*` 등에서 커밋 | **`develop` / `main` 에만** merge로 붙임 |
+| **병합 시점** | **브랜치마다 병합하지 않는다.** 사용자가 준 파트를 모두 커밋한 뒤 **한 번에 총 병합** |
 
 → [`docs/guidance/branch-merge.md`](../guidance/branch-merge.md) · [`BRANCH_MAP.md`](./BRANCH_MAP.md)
 
