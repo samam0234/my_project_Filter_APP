@@ -214,8 +214,12 @@ def test_dry_run_exits_zero_without_peft(tmp_path: Path):
         [
             sys.executable,
             str(LORA_DIR / "train_lora.py"),
+            "--feedback-source",
+            "files",  # 학습 DB 를 건드리지 않고 사이드카 폴더만
             "--feedback-dir",
             str(tmp_path),
+            "--augment-file",
+            str(tmp_path / "no_aug.jsonl"),
             "--pseudo-dir",
             str(tmp_path / "pseudo"),
             "--seed-file",
@@ -270,3 +274,23 @@ def test_intensity_defaults_when_prompt_has_no_number(tmp_path: Path):
     by_prompt = {r.prompt: r.response_json for r in records}
     assert '"intensity":15' in by_prompt["강아지만 남기고 배경 블러"]
     assert '"intensity":20' in by_prompt["강아지만 남기고 배경 블러 강도 20"]
+
+
+def test_eval_prompts_are_dropped_from_training(tmp_path: Path):
+    """평가셋과 같은 문장(공백·대소문자 무시)은 학습 레코드에서 빠진다."""
+    from dataset import discover_jsonl_cases, drop_eval_leaks, load_eval_prompts
+
+    eval_file = tmp_path / "eval.jsonl"
+    eval_file.write_text(json.dumps({"prompt": "사람만 남기고  배경 블러", "parsed_prompt": {"target": ["person"]}},
+                                    ensure_ascii=False) + "\n", encoding="utf-8")
+    aug = tmp_path / "aug.jsonl"
+    aug.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in [
+        {"prompt": "사람만 남기고 배경 블러", "parsed_prompt": {"target": ["person"], "effect": "blur"}},
+        {"prompt": "버스는 남기고 배경만 블러 처리해 주세요", "parsed_prompt": {"target": ["bus"], "effect": "blur"}},
+    ]), encoding="utf-8")
+    cases = discover_jsonl_cases(aug, "augment")
+    assert {c.source for c in cases} == {"augment"}
+    records = to_instruction_records(cases, origin="augment")
+    kept, dropped = drop_eval_leaks(records, load_eval_prompts(eval_file))
+    assert dropped == 1 and [r.prompt for r in kept] == ["버스는 남기고 배경만 블러 처리해 주세요"]
+    assert kept[0].origin == "augment"

@@ -35,7 +35,8 @@ target: object classes the request is about, as lowercase English COCO class nam
   person, dog, cat, car, bus, truck, bicycle, motorcycle, bird, horse, cup, bottle, chair,
   laptop, cell phone, handbag, backpack, teddy bear.
   Map synonyms to the class name (강아지/puppy -> dog, 사람/남자/여자/아이/man/woman -> person,
-  폰 -> cell phone, 머그컵 -> cup). If no object is mentioned, use ["person"].
+  폰 -> cell phone, 머그컵 -> cup, 화분 -> potted plant, 꽃병 -> vase, 곰인형 -> teddy bear).
+  If no object is mentioned, use ["person"].
 
 effect — decide whether the target objects are KEPT or ERASED:
   "remove_bg"     keep the target, make everything else transparent (default).
@@ -135,11 +136,97 @@ def normalize_selector(raw: Any) -> Optional[InstanceSelector]:
     return None if selector.is_empty() else selector
 
 
+# =============================================================================
+# 어휘 정규화 — LLM·LoRA 가 규격 밖 단어를 내도 서비스가 쓸 수 있는 값으로
+# -----------------------------------------------------------------------------
+# 확장 평가셋(seed/eval_ext.jsonl)에서 실제로 나온 이탈:
+#   effect "keep" (Ollama) → 파싱 전체 실패 → 정확도 43% 키워드 파서로 떨어짐
+#   target "flower pot" · "train car" · "pizza piece" (LoRA) → YOLO(COCO) 에 없는 이름이라 아무것도 못 찾음
+# =============================================================================
+COCO_CLASSES: frozenset[str] = frozenset({
+    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+    "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+    "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+    "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+    "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+    "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+    "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
+    "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
+    "scissors", "teddy bear", "hair drier", "toothbrush",
+})
+
+# 규격 밖 이름 → COCO 클래스 (영어 변형 · 한국어 그대로 나온 경우)
+TARGET_ALIASES: dict[str, str] = {
+    **dict.fromkeys(("people", "human", "man", "men", "woman", "women", "child", "children", "kid", "kids",
+                     "boy", "girl", "baby", "worker", "workers", "pedestrian", "couple",
+                     "사람", "남자", "여자", "아이"), "person"),
+    **dict.fromkeys(("puppy", "puppies", "강아지", "개"), "dog"),
+    **dict.fromkeys(("kitten", "고양이"), "cat"),
+    **dict.fromkeys(("bike", "자전거"), "bicycle"),
+    **dict.fromkeys(("motorbike", "scooter", "오토바이"), "motorcycle"),
+    **dict.fromkeys(("van", "minivan", "suv", "taxi", "vehicle", "자동차", "차"), "car"),
+    **dict.fromkeys(("plane", "jet", "비행기"), "airplane"),
+    **dict.fromkeys(("ship", "배"), "boat"),
+    **dict.fromkeys(("train car", "railcar", "subway", "기차"), "train"),
+    **dict.fromkeys(("phone", "mobile phone", "smartphone", "cellphone", "휴대폰", "핸드폰", "폰"), "cell phone"),
+    **dict.fromkeys(("mug", "coffee cup", "머그컵", "컵"), "cup"),
+    **dict.fromkeys(("bag", "purse", "가방"), "handbag"),
+    **dict.fromkeys(("luggage", "캐리어"), "suitcase"),
+    **dict.fromkeys(("teddy", "stuffed animal", "plush", "doll", "곰인형", "인형"), "teddy bear"),
+    **dict.fromkeys(("flower pot", "plant pot", "pot plant", "plant", "houseplant", "화분"), "potted plant"),
+    **dict.fromkeys(("flower vase", "꽃병"), "vase"),
+    **dict.fromkeys(("television", "monitor", "tv monitor"), "tv"),
+    **dict.fromkeys(("sofa", "소파"), "couch"),
+    **dict.fromkeys(("table", "desk", "식탁"), "dining table"),
+    **dict.fromkeys(("pizza piece", "pizza slice", "slice of pizza", "피자"), "pizza"),
+    **dict.fromkeys(("doughnut",), "donut"),
+    **dict.fromkeys(("remote control",), "remote"),
+    **dict.fromkeys(("laptop computer", "notebook", "노트북"), "laptop"),
+    **dict.fromkeys(("bird", "새"), "bird"),
+    **dict.fromkeys(("horse", "말"), "horse"),
+    **dict.fromkeys(("bus", "버스"), "bus"),
+    **dict.fromkeys(("truck", "트럭"), "truck"),
+    **dict.fromkeys(("chair", "의자"), "chair"),
+    **dict.fromkeys(("bottle", "병"), "bottle"),
+    **dict.fromkeys(("umbrella", "우산"), "umbrella"),
+    **dict.fromkeys(("backpack", "백팩"), "backpack"),
+}
+
+# 규격 밖 effect → 규격 값 (모르는 값은 여전히 LLMError → 휴리스틱)
+EFFECT_ALIASES: dict[str, str] = {
+    **dict.fromkeys(("keep", "keep_only", "keep only", "retain", "isolate", "cutout", "cut_out",
+                     "remove_background", "remove background", "background_removal", "transparent",
+                     "transparent_background", "remove-bg", "removebg"), "remove_bg"),
+    **dict.fromkeys(("erase", "delete", "remove", "inpaint", "remove_target", "object_removal",
+                     "erase_object", "remove-object"), "remove_object"),
+    **dict.fromkeys(("blur_background", "background_blur", "bokeh", "blur background"), "blur"),
+    **dict.fromkeys(("cropping", "trim", "cut"), "crop"),
+}
+
+
+def canonical_target(name: str) -> str:
+    """대상 이름 → COCO 클래스. 별칭 → 복수형 → 마지막 단어 순으로 맞춰 보고, 못 맞추면 그대로."""
+    if name in COCO_CLASSES:
+        return name
+    if name in TARGET_ALIASES:
+        return TARGET_ALIASES[name]
+    for cand in (name[:-2] if name.endswith("es") else None, name[:-1] if name.endswith("s") else None):
+        if cand and (cand in COCO_CLASSES or cand in TARGET_ALIASES):
+            return TARGET_ALIASES.get(cand, cand)
+    words = name.split()
+    if len(words) > 1:
+        for size in range(len(words) - 1, 0, -1):  # "red sports car" → "sports car"? → "car"
+            tail = " ".join(words[-size:])
+            if tail in COCO_CLASSES or tail in TARGET_ALIASES:
+                return TARGET_ALIASES.get(tail, tail)
+    return name
+
+
 def normalize_parsed(raw: Dict[str, Any]) -> ParsedPrompt:
     """LLM JSON → ParsedPrompt. 값 범위·어휘를 스키마에 맞게 보정한다.
 
-    - target: 문자열/리스트 허용 → 소문자·공백 정리·중복 제거, 비면 LLMError
-    - effect: 허용 목록 밖이면 LLMError (휴리스틱이 더 믿을 만함)
+    - target: 문자열/리스트 허용 → 소문자·공백 정리 → COCO 이름으로 (canonical_target) · 중복 제거, 비면 LLMError
+    - effect: 별칭(keep → remove_bg 등) 정리 후에도 허용 목록 밖이면 LLMError (휴리스틱이 더 믿을 만함)
     - intensity: 숫자 변환 후 0~100 클램프, 실패 시 15
     - crop: effect=crop 이면 True 로 맞춤 (휴리스틱과 동일 규칙)
     - selector: normalize_selector (잘못된 부분만 버림)
@@ -153,13 +240,14 @@ def normalize_parsed(raw: Dict[str, Any]) -> ParsedPrompt:
     for t in targets_raw:
         if not isinstance(t, str):
             continue
-        name = _clean_phrase(t)
+        name = canonical_target(_clean_phrase(t)) if t.strip() else ""
         if name and name not in targets:
             targets.append(name)
     if not targets:
         raise LLMError("target 비어 있음")
 
     effect = str(raw.get("effect") or "remove_bg").strip().lower()
+    effect = EFFECT_ALIASES.get(effect, effect)
     if effect not in ALLOWED_EFFECTS:
         raise LLMError(f"허용되지 않은 effect: {effect!r}")
 

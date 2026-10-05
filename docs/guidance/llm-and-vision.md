@@ -115,6 +115,8 @@ LORA_ADAPTER_PATH=models/lora                              # backend/models/lora
 - 첫 요청에 모델 로드(수십 초), 이후 요청당 약 1~2 초
 - 평가(2026-09-30, 40문항 완전 일치): **gemma4:e4b 92.5%** / **LoRA v2 87.5%** / 키워드 35%
   → 기본은 품질 우선으로 Ollama, 속도가 중요하면 lora
+- 확장 평가(2026-10-06, 새 말투 56문항): gemma4 91.1% / LoRA v2 83.9% / 키워드 42.9% — 상세·사용자 문장 학습 결과는
+  [`training/lora/README.md`](../../training/lora/README.md#확장-평가셋--사용자-문장-학습-2026-10-06)
 - 학습·평가 방법: [`training/lora/README.md`](../../training/lora/README.md)
 
 ---
@@ -177,6 +179,16 @@ PROMPT_RAG_MIN_SCORE=0.6             # 같은 뜻의 다른 표현 0.62~0.73 / �
 - 재현: `python training/lora/eval_parser.py --parsers ollama,ollama_rag` (`FEEDBACK_DIR`·`PROMPT_RAG_*` 환경변수로 구성 변경)
 
 ---
+
+## 어휘 정규화 (모든 파서 공통)
+
+`prompt_spec.normalize_parsed` 가 LLM·LoRA 출력을 서비스 규격으로 맞춘다.
+
+- target → **COCO 클래스 이름** (`canonical_target`): 별칭(`flower pot` → `potted plant`, `phone` → `cell phone`,
+  한국어 `화분`·`곰인형`…) → 복수형 → 마지막 단어 순. 모르는 이름은 그대로 (세그에서 못 찾음)
+- effect 별칭 (`EFFECT_ALIASES`): `keep`·`isolate`·`remove_background` → `remove_bg`, `erase`·`delete` → `remove_object` 등.
+  그래도 모르는 값이면 기존처럼 실패 → 키워드 파서
+- 이것만으로 확장 평가셋에서 Ollama 85.7% → 91.1%, LoRA v2 80.4% → 83.9%
 
 ## Fallback
 

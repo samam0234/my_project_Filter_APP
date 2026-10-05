@@ -15,7 +15,10 @@ LoRA fine-tuning 진입점 (Phase 2).
 
 데이터:
   - seed/train.jsonl : 인스턴스 선택·물체 지우기 시드 (seed/build_seed.py 로 생성)
-  - data/feedback    : 사용자 피드백 (like / dislike+정답 JSON 코멘트)
+  - 학습 DB          : 운영 콘솔에서 승인된 사용자 문장 (기본 --feedback-source db, train split)
+                       --feedback-source files 면 data/feedback 사이드카 전부 (검수 없음)
+  - 증강 JSONL       : augment_prompts.py 결과 (승인 문장의 다른 표현, 자기 일치 검증 통과분)
+  - 평가셋 문장은 학습에서 뺀다 (--eval-file)
   - data/pseudo_labels : 단순 "X만 크롭" 계열 — --max-pseudo 로 샘플링 (selector 학습 희석 방지)
 """
 
@@ -35,9 +38,13 @@ if str(_LORA_DIR) not in sys.path:
 from dataset import (  # noqa: E402
     DEFAULT_INSTRUCTION_TEMPLATE,
     args_to_jsonable,
+    discover_db_samples,
     discover_feedback_cases,
+    discover_jsonl_cases,
     discover_pseudo_cases,
     discover_seed_cases,
+    drop_eval_leaks,
+    load_eval_prompts,
     summarize_cases,
     to_instruction_records,
     write_run_manifest,
@@ -46,6 +53,31 @@ from dataset import (  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="LoRA fine-tune (Phase 2)")
+    parser.add_argument(
+        "--feedback-source",
+        choices=("db", "files"),
+        default="db",
+        help="사용자 데이터 출처: db = 학습 DB 의 승인된 문장(train split, 기본) / files = data/feedback 사이드카 전부(검수 없음)",
+    )
+    parser.add_argument(
+        "--approved-repeat",
+        type=int,
+        default=3,
+        help="승인된 사용자 문장 반복 횟수 (수가 적어 시드에 묻히지 않게)",
+    )
+    parser.add_argument(
+        "--augment-file",
+        type=Path,
+        default=_LORA_DIR.parent / "outputs" / "lora" / "augment" / "approved_aug.jsonl",
+        help="augment_prompts.py 결과 (없으면 건너뜀)",
+    )
+    parser.add_argument(
+        "--eval-file",
+        type=Path,
+        nargs="+",
+        default=[_LORA_DIR / "seed" / "eval.jsonl", _LORA_DIR / "seed" / "eval_ext.jsonl"],
+        help="평가셋들 — 같은 문장은 학습에서 뺀다 (점수 부풀림 방지)",
+    )
     parser.add_argument(
         "--feedback-dir",
         type=Path,
@@ -342,7 +374,14 @@ def main() -> None:
     # -----------------------------------------------------------------------------
     # torch/peft 는 실제 학습 시에만 import. --dry-run 과 --help 는 학습 의존성 없이 동작.
     # =============================================================================
-    feedback_cases = discover_feedback_cases(args.feedback_dir)
+    # 사용자 데이터: 기본은 운영 콘솔에서 승인된 문장만 (검수 없는 사이드카를 바로 학습하지 않는다)
+    if args.feedback_source == "db":
+        feedback_cases = discover_db_samples(split="train")
+        feedback_origin = "db"
+    else:
+        feedback_cases = discover_feedback_cases(args.feedback_dir)
+        feedback_origin = "feedback"
+    augment_cases = discover_jsonl_cases(args.augment_file, "augment") if args.augment_file else []
     pseudo_cases = discover_pseudo_cases(args.pseudo_dir)
     if args.max_pseudo >= 0 and len(pseudo_cases) > args.max_pseudo:
         pseudo_cases = random.Random(0).sample(pseudo_cases, args.max_pseudo)
@@ -351,8 +390,11 @@ def main() -> None:
         feedback_cases,
         template=instruction_template,
         include_pipeline_failure=include_pipeline_failure,
-        origin="feedback",
+        origin=feedback_origin,
     )
+    if feedback_origin == "db":
+        records = records * max(1, int(args.approved_repeat))
+    records.extend(to_instruction_records(augment_cases, template=instruction_template, origin="augment"))
     records.extend(
         to_instruction_records(
             pseudo_cases,
@@ -367,11 +409,19 @@ def main() -> None:
         origin="seed",
     )
     records.extend(seed_records * max(1, int(args.seed_repeat)))
-    all_cases = feedback_cases + pseudo_cases + seed_cases
+    records, leaked = drop_eval_leaks(records, set().union(*(load_eval_prompts(f) for f in args.eval_file)))
+    all_cases = feedback_cases + augment_cases + pseudo_cases + seed_cases
     summary = summarize_cases(all_cases, records)
     summary["seed_cases"] = len(seed_cases)
+    summary["approved_cases"] = len(feedback_cases) if feedback_origin == "db" else 0
+    summary["augment_cases"] = len(augment_cases)
+    summary["dropped_eval_leaks"] = leaked
     _print_summary("LoRA train", len(feedback_cases), len(pseudo_cases), summary)
     print(f"seed_cases     = {len(seed_cases)} x{args.seed_repeat}  ({args.seed_file})")
+    print(f"user source    = {args.feedback_source}"
+          + (f" (승인 train {len(feedback_cases)} x{args.approved_repeat})" if feedback_origin == "db" else ""))
+    print(f"augment_cases  = {len(augment_cases)}  ({args.augment_file})")
+    print(f"eval leaks     = {leaked} 레코드 제외 ({', '.join(f.name for f in args.eval_file)})")
     print(f"feedback_dir = {args.feedback_dir} exists={args.feedback_dir.exists()}")
     print(f"pseudo_dir   = {args.pseudo_dir} exists={args.pseudo_dir.exists()}")
     print(f"output       = {args.output}")
