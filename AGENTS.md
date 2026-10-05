@@ -15,6 +15,7 @@ Grok / Codex / 호환 에이전트가 저장소 루트에서 자동 로드하는
 | 작업 브랜치 | `feature/*` 등 |
 | 통합 브랜치 | `develop` / `main` 만 |
 | 병합 | **`git merge --no-ff`** (FF 금지) |
+| **병합 시점** | **브랜치 하나 끝날 때마다 병합 금지.** 사용자가 준 파트를 각 브랜치에 모두 커밋한 뒤 **전부 끝났을 때 한 번에 총 병합** |
 | 커밋 기록 파일 | **`docs/branchs/commits/` 에 무조건** (`YYMMDD_HHMM_[id]_[name]_[branch].md`) — 커밋 전·후 생략 금지. `docs/commits/` 사용 금지 |
 | 비전 | **YOLO26s-seg** (기본 s; 전환 안내 `docs/plan/YOLO26S_DEFAULT.md`) |
 | LLM 기본 | Ollama `gemma4:e4b` (선택: `LLM_PROVIDER=lora` Qwen2.5-1.5B 어댑터) |
@@ -45,3 +46,13 @@ feat(llm): add to engine      ❌ (요약 영어 금지)
 ## 문서 허브
 
 [`docs/README.md`](./docs/README.md)
+
+## 병합 시점 (절대 규칙)
+
+- **브랜치 하나(작업 하나)를 끝낼 때마다 `develop` / `main` 에 병합하지 않는다.**
+  브랜치에서는 **커밋 + 커밋 기록(md)** 까지만 한다.
+- 사용자가 준 **파트 작업을 각 브랜치에 모두 커밋한 뒤, 전부 끝났을 때 한 번에 총 병합**한다.
+  (브랜치별 `git merge --no-ff`, 앞 브랜치 위에 쌓인 순서대로)
+- "일단 병합해 두기", 파트 사이 중간 병합은 **금지**. 사용자가 시키지 않은 병합도 금지.
+- 병합 기록 md 는 총 병합 때 한 번에 남긴다.
+- 상세: `docs/guidance/branch-merge.md`
