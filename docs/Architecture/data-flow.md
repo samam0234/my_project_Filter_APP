@@ -34,8 +34,8 @@ Console (백엔드와 같은 PC)
 
 | 데이터 | 위치 | 비로그인 |
 |--------|------|----------|
-| Job 메타 | DB `jobs` (`user_id`) | 저장 안 함 |
+| Job 메타 | 서비스 DB `jobs` (`user_id`) | 저장 안 함 |
 | 이미지 before/after | `backend/data/uploads/{job_id}/` | 응답 후 즉시 삭제 |
-| 피드백 메타 | DB `feedbacks` | 없음 (피드백은 회원 전용) |
+| 피드백 이벤트 · 학습 데이터 목록 | 학습 DB (MariaDB) `feedbacks` · `learning_samples` — 경로·라벨만 | 없음 (피드백은 회원 전용) |
 | 학습용 사이드카 | `data/feedback/*.json|.jpg` | 실패 케이스도 남기지 않음 |
-| 계정 · 세션 · 재설정 코드 | DB `users` · `auth_sessions` · `auth_codes` | — |
+| 계정 · 세션 · 재설정 코드 | 서비스 DB `users` · `auth_sessions` · `auth_codes` | — |

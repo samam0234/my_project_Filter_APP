@@ -1,7 +1,16 @@
 # 컷앤킵 (Cut & Keep) — 데이터베이스 설계
 
-**한 줄 요약**  
-로컬은 **SQLite**, 배포/Docker는 **MariaDB**. 접근은 항상 **Repository** 계층을 통한다.
+**한 줄 요약**
+DB 가 둘이다. **서비스 DB (SQLite)** = 계정·작업 기록, **학습 DB (MariaDB)** = 피드백 이벤트·학습 데이터 카탈로그.
+이미지·영상은 어느 DB 에도 넣지 않고 **파일 경로만** 기록한다. 접근은 Repository / 서비스 계층을 통한다.
+
+| DB | 테이블 | 기본 엔진 | 엔진 코드 |
+|----|--------|-----------|-----------|
+| 서비스 DB | `users` · `auth_sessions` · `auth_codes` · `jobs` · `batch_jobs` | SQLite `backend/data/cutnkeep.db` | `app/db/session.py` (`Base`) |
+| 학습 DB | `feedbacks` · `learning_samples` | MariaDB (`MARIADB_*`) | `app/db/learning.py` (`LearningBase`) |
+
+왜 나눴나: 서비스 데이터는 작고 요청마다 읽혀서 파일 하나짜리 SQLite 가 단순·빠르다.
+학습 데이터 기록은 계속 쌓이고 검수·집계·외부 도구(DBeaver·학습 스크립트)에서 조회하므로 서버형 MariaDB 에 둔다.
 
 **관련 코드**
 - 연결: `backend/app/db/`
@@ -44,11 +53,15 @@ SQLite (local)  |  MariaDB (prod / docker)
 
 ## 2. 엔진 선택
 
-| 환경 | Dialect | 설정 |
-|------|---------|------|
-| **로컬 개발 (기본)** | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.db` (backend/ 기준 → `backend/data/cutnkeep.db`) |
-| **Docker / 스테이징 / 운영** | MariaDB | `DB_DIALECT=mariadb` + `MARIADB_*` |
-| **직접 URL** | 아무거나 | `DATABASE_URL=...` (최우선) |
+| DB | 기본 | 설정 | 직접 URL (최우선) |
+|----|------|------|-------------------|
+| 서비스 DB | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.db` (backend/ 기준) | `DATABASE_URL` |
+| 학습 DB | MariaDB | `LEARNING_DB_DIALECT=mariadb` + `MARIADB_*` (또는 `sqlite` → `LEARNING_SQLITE_PATH`) | `LEARNING_DATABASE_URL` |
+
+학습 DB 는 MariaDB 가 꺼져 있어도 서비스가 뜨도록 **로컬 SQLite fallback** 이 있다
+(`LEARNING_DB_FALLBACK_SQLITE=true`, `backend/data/learning.db`, 경고 로그 · `/health` 의 `learning_db: "sqlite(fallback)"`).
+MariaDB 를 다시 켜고 재기동하면 사이드카 파일에서 빠진 기록이 MariaDB 로 동기화된다.
+Docker 에서는 MariaDB healthy 후에만 backend 가 뜨므로 fallback 을 끈다.
 
 ### 2.1 환경변수
 
@@ -70,11 +83,10 @@ MYSQL_ROOT_PASSWORD=...    # 볼륨 최초 생성 시에만 적용
 DB_ECHO=false
 ```
 
-| 실행 위치 | Host | Port | Dialect |
-|-----------|------|------|---------|
-| 로컬 uvicorn (기본) | — | — | **sqlite** |
-| 호스트 → Docker MariaDB | `127.0.0.1` | `MARIADB_PORT` | mariadb |
-| **backend 컨테이너** | **`mariadb`** | **`3306`** | compose 가 강제 |
+| 실행 위치 | 서비스 DB | 학습 DB (Host:Port) |
+|-----------|-----------|---------------------|
+| 로컬 uvicorn (기본) | sqlite | `127.0.0.1:MARIADB_PORT` (Docker MariaDB) — 꺼져 있으면 sqlite fallback |
+| **backend 컨테이너** | sqlite (`./backend/data` 볼륨) | **`mariadb:3306`** (compose 가 강제) |
 
 Docker MariaDB: 공식 `mariadb:11`, **비밀번호만**, `skip_ssl`. GSS 미사용.  
 → `docker/mariadb/README.md`, `docs/plan/CURRENT_STACK.md`
@@ -96,7 +108,10 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 
 ### 2.3 기동 시 테이블 생성
 
-`lifespan` → `init_db()` → `Base.metadata.create_all()` → `_ensure_columns()`
+학습 DB: `lifespan` → `init_learning_db()` (접속 확인 → fallback → `LearningBase.metadata.create_all()`)
+→ `sync_from_files()` — `data/feedback/*.json`·`data/pseudo_labels/*.json` 중 DB 에 없는 것만 적재 (멱등, `LEARNING_SYNC_ON_START`).
+
+서비스 DB: `lifespan` → `init_db()` → `Base.metadata.create_all()` → `_ensure_columns()`
 `create_all` 은 **없는 테이블만** 만들고 기존 테이블에 컬럼을 추가하지 않는다.
 그래서 `db/session.py` 의 `_ADDED_COLUMNS` 목록에 있는 컬럼만 `ALTER TABLE … ADD COLUMN … NULL` 로 보강한다
 (현재 `jobs.user_id`, `batch_jobs.user_id`). 스키마 변경이 잦아지면 Alembic 도입 권장.
@@ -125,16 +140,22 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 │ backend, labels, confidences, message│
 │ feedback_saved, error                │
 │ created_at, updated_at, expires_at   │
-└──────────────────┬───────────────────┘
-                   │ 1:N
-                   ▼
-┌──────────── feedbacks ───────────────┐
-│ id (PK)                              │
-│ job_id (FK → jobs.id) CASCADE        │
-│ vote, comment, source                │
-│ image_path, meta(JSON)               │
-│ created_at                           │
 └──────────────────────────────────────┘
+        ┆ job_id · user_id 를 값으로만 참조 (DB 가 달라 FK 없음)
+════════╪═══════════════ 학습 DB (MariaDB) ═══════════════
+        ▼
+┌──────────── feedbacks ───────────────┐      ┌────────── learning_samples ──────────┐
+│ id (PK) = case_id = 사이드카 파일명  │ 1:N  │ id (PK), origin_id (+kind 유일)       │
+│ job_id, user_id                      │─────▶│ kind: prompt | segment                │
+│ vote, comment, source, prompt        │      │ source: correction | like |           │
+│ image_path (경로), meta(JSON)        │      │   pipeline_failure | pseudo_label     │
+│ created_at                           │      │ status: pending|approved|rejected     │
+└──────────────────────────────────────┘      │ split: train | val                    │
+                                              │ prompt, answer(JSON 정답)             │
+                                              │ image_path, label_path (경로)         │
+                                              │ note, reviewed_by, reviewed_at        │
+                                              └───────────────────────────────────────┘
+════════════════════════════════════════════════════════════
 
 ┌────────── batch_jobs (Phase 2) ──────┐
 │ id, status, prompt                   │
@@ -170,15 +191,32 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 | feedback_saved | int 0/1 | 피드백 존재 여부 |
 | expires_at | datetime | 업로드 파일 만료 (기본 24h) |
 
-#### `feedbacks`
+#### `feedbacks` (학습 DB)
+사용자·파이프라인 피드백 **이벤트** 원장. 원본은 `data/feedback/{id}.json` 사이드카.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | str(64) PK | case id |
-| job_id | FK | 부모 job |
+| id | str(64) PK | case id (= 사이드카 파일명) |
+| job_id · user_id | str | 서비스 DB 값 참조 (FK 없음) |
 | vote | str | like / dislike |
+| comment | text | dislike 코멘트 — 정답 JSON 이면 교정 |
 | source | str | user / pipeline_failure |
-| image_path | str | 사이드카 이미지 경로 (옵션) |
-| meta | JSON | prompt, scores 등 |
+| prompt | text | 요청 문장 (job 에서 보강) |
+| image_path | str | 저장소 루트 기준 상대 경로 (실패 원본 이미지) |
+| meta | JSON | parsed_prompt, scores 등 |
+
+#### `learning_samples` (학습 DB)
+**학습에 쓸 수 있는 데이터 목록** (카탈로그). 피드백 1건에서 0~2개 파생, 의사 라벨 1건에서 1개.
+
+| 컬럼 | 설명 |
+|------|------|
+| kind | `prompt` (문장 → ParsedPrompt 정답, LoRA·RAG) / `segment` (세그 실패 이미지, YOLO 재학습 후보) |
+| source | `correction` (정답 알려주기) · `like` · `pipeline_failure` · `pseudo_label` |
+| status | `pending` → 운영 콘솔에서 `approved` / `rejected` |
+| split | 승인 시 id 해시로 `train` / `val` 고정 (10% val) |
+| prompt · answer | 문장 · 정답 JSON |
+| image_path · label_path | 이미지 · 사이드카 JSON 의 저장소 루트 기준 상대 경로 (Docker·호스트 공통) |
+| origin_id | 출처 레코드 id — (origin_id, kind) 유일이라 같은 출처를 두 번 넣지 않음 |
 
 #### `batch_jobs` (Phase 2)
 배치 작업 진행률·상태 저장. 현재 API는 stub + DB row 생성. `user_id` = 등록한 회원 (배치는 회원 전용).
@@ -194,8 +232,9 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 |--------|----|--------|
 | Job 메타 (status, prompt, paths) | ✅ `jobs` | — |
 | Before/After 이미지 | 경로만 DB | `backend/data/uploads/{job_id}/` |
-| 피드백 메타 | ✅ `feedbacks` | 학습용 JSON 사이드카 `data/feedback/` |
-| 실패 이미지 | 경로 가능 | `data/feedback/*.jpg` |
+| 피드백 이벤트 | ✅ 학습 DB `feedbacks` | 원본 JSON 사이드카 `data/feedback/` |
+| 학습 데이터 목록 (정답·검수 상태) | ✅ 학습 DB `learning_samples` | — |
+| 실패 이미지 | 경로만 (학습 DB) | `data/feedback/*.jpg` |
 | 배치 진행률 | ✅ `batch_jobs` | — |
 
 일반 업로드 파일은 **영구 저장하지 않음** (`FILE_RETENTION_HOURS`, 기본 24h).  
@@ -208,7 +247,7 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 | 클래스 | 주요 메서드 |
 |--------|-------------|
 | `JobRepository` | `get`, `create_pending`, `save_result`, `mark_feedback_saved`, `list_recent` |
-| `FeedbackRepository` | `create`, `list_by_job`, `get` |
+| `FeedbackRepository` (학습 DB) | `list_by_job`, `get` — 저장은 `learning_catalog.record_feedback` |
 | `BatchRepository` | `create`, `get`, `update_progress` |
 | `UserRepository` | `by_username`, `by_email`, `create`, 세션 `add/get/delete`, 코드 `replace/active/latest` |
 
@@ -216,10 +255,11 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 1. `run_pipeline(...)`  
 2. `JobRepository.save_result(result, prompt, user_id)` — 로그인 상태면 소유자 연결    
 
-피드백 라우터 흐름:
-1. (옵션) 파일 사이드카 저장  
-2. `FeedbackRepository.create(...)`  
-3. `JobRepository.mark_feedback_saved(job_id)`
+피드백 라우터 흐름 (`FeedbackService.save_case`) — 두 DB 사이 트랜잭션이 없어 원본 파일을 먼저 남긴다:
+1. 서비스 DB `jobs` 에서 prompt·parsed_prompt·user_id 보강
+2. 파일 사이드카 `data/feedback/{case_id}.json` (+ 실패 이미지 `.jpg`)
+3. 학습 DB `feedbacks` + 파생 `learning_samples` (`learning_catalog.record_feedback`) — 실패해도 다음 기동 때 사이드카에서 복구
+4. 서비스 DB `JobRepository.mark_feedback_saved(job_id)`
 
 ---
 
@@ -238,12 +278,20 @@ uvicorn app.main:app --reload
 # → backend/data/cutnkeep.db 자동 생성 + 테이블 create
 ```
 
-### Docker (MariaDB)
+학습 DB 는 Docker MariaDB 를 쓴다 (`docker compose -p cut_and_keep up -d mariadb`).
+꺼 두면 `backend/data/learning.db` 로 대체되고, 켜고 재기동하면 MariaDB 로 동기화된다.
+
+### Docker
 
 ```bash
-docker compose up --build
-# backend environment: DB_DIALECT=mariadb, MARIADB_HOST=mariadb
+docker compose -p cut_and_keep --env-file .env up -d --build
+# backend environment: DB_DIALECT=sqlite, LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb
 ```
+
+### 분리 이전 데이터
+
+분리 전 서비스 DB 에 있던 `feedbacks` 테이블은 지우지 않고 남겨 둔다 (더 이상 쓰지 않음).
+같은 내용의 원본 사이드카가 `data/feedback/` 에 있어 기동 시 학습 DB 로 자동 적재된다.
 
 `docker-compose.yml`에 `mariadb` 서비스 + healthcheck 포함.
 

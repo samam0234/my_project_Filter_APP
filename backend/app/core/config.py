@@ -170,7 +170,7 @@ class Settings(BaseSettings):
     # --- DB: 로컬 SQLite / 배포 MariaDB ---
     # 【수동·.env】 로컬 기본 sqlite / Docker·배포는 mariadb
     # 조건: DB_DIALECT=mariadb 이면 MARIADB_* 계정·DB 가 실제로 존재해야 함
-    # 기능: jobs/feedbacks/batch_jobs 테이블 영속화
+    # 기능: users · auth_* · jobs · batch_jobs (서비스 DB). 피드백·학습 데이터는 아래 학습 DB
     db_dialect: str = Field(default="sqlite", alias="DB_DIALECT")
     # 전체 URL 덮어쓰기 (있으면 dialect 헬퍼보다 우선)
     database_url_override: str | None = Field(default=None, alias="DATABASE_URL")
@@ -182,6 +182,19 @@ class Settings(BaseSettings):
     mariadb_password: str = Field(default="cutnkeep", alias="MARIADB_PASSWORD")
     mariadb_database: str = Field(default="cutnkeep", alias="MARIADB_DATABASE")
     db_echo: bool = Field(default=False, alias="DB_ECHO")
+
+    # --- 학습 데이터 DB (서비스 DB 와 분리) ---
+    # 서비스 DB(위 DB_*): users · auth_* · jobs · batch_jobs — 로컬 SQLite
+    # 학습 DB: feedbacks(사용자·실패 피드백 이벤트) · learning_samples(학습 데이터 카탈로그: 경로·라벨·출처·split·검수)
+    #   이미지·영상 자체는 DB 에 넣지 않고 data/feedback · data/pseudo_labels 파일 경로만 기록
+    # 【수동·.env】 기본 mariadb (MARIADB_* 계정 재사용). 접속 실패 시 LEARNING_DB_FALLBACK_SQLITE 면 로컬 파일로
+    learning_db_dialect: str = Field(default="mariadb", alias="LEARNING_DB_DIALECT")
+    learning_database_url_override: str | None = Field(default=None, alias="LEARNING_DATABASE_URL")
+    learning_sqlite_path: str = Field(default="data/learning.db", alias="LEARNING_SQLITE_PATH")
+    learning_db_fallback_sqlite: bool = Field(default=True, alias="LEARNING_DB_FALLBACK_SQLITE")
+    learning_db_connect_timeout: int = Field(default=3, alias="LEARNING_DB_CONNECT_TIMEOUT")
+    # 기동 시 data/feedback · data/pseudo_labels 사이드카 중 DB 에 없는 것을 적재 (멱등)
+    learning_sync_on_start: bool = Field(default=True, alias="LEARNING_SYNC_ON_START")
 
 
     # --- 세그/검증 임계값 (Phase 1 기본) ---
@@ -280,6 +293,34 @@ class Settings(BaseSettings):
 
         raise ValueError(
             f"지원하지 않는 DB_DIALECT={self.db_dialect!r}. 'sqlite' 또는 'mariadb'를 사용하세요."
+        )
+
+    def _mariadb_url(self, connect_timeout: int | None = None) -> str:
+        url = (
+            f"mysql+pymysql://{self.mariadb_user}:{self.mariadb_password}"
+            f"@{self.mariadb_host}:{self.mariadb_port}/{self.mariadb_database}?charset=utf8mb4"
+        )
+        return f"{url}&connect_timeout={connect_timeout}" if connect_timeout else url
+
+    @property
+    def learning_sqlite_url(self) -> str:
+        """학습 DB 의 로컬 SQLite (dialect=sqlite 또는 MariaDB 접속 실패 fallback)."""
+        path = self.resolve_runtime_path(self.learning_sqlite_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return f"sqlite:///{path.as_posix()}"
+
+    @property
+    def learning_database_url(self) -> str:
+        """학습 DB URL. LEARNING_DATABASE_URL > LEARNING_DB_DIALECT(mariadb|sqlite)."""
+        if self.learning_database_url_override:
+            return self.learning_database_url_override
+        dialect = (self.learning_db_dialect or "mariadb").strip().lower()
+        if dialect in {"sqlite", "local"}:
+            return self.learning_sqlite_url
+        if dialect in {"mariadb", "mysql"}:
+            return self._mariadb_url(self.learning_db_connect_timeout)
+        raise ValueError(
+            f"지원하지 않는 LEARNING_DB_DIALECT={self.learning_db_dialect!r}. 'mariadb' 또는 'sqlite'를 사용하세요."
         )
 
 

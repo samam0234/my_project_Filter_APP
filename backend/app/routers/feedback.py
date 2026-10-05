@@ -1,4 +1,4 @@
-"""사용자 피드백 라우터 — DB 저장 (+ 선택적 파일 사이드카).
+"""사용자 피드백 라우터 — 파일 사이드카 + 학습 DB(feedbacks · learning_samples).
 
 엔드포인트:
   POST /api/v1/feedback  — like/dislike + 선택 코멘트
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.access import owned_job
 from app.core.constants import FeedbackVote
 from app.core.deps import current_user
+from app.db.learning import get_learning_db
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.feedback import FeedbackRequest, FeedbackResponse
@@ -24,20 +25,22 @@ router = APIRouter(tags=["feedback"])
 async def submit_feedback(
     body: FeedbackRequest,
     db: Session = Depends(get_db),
+    learning_db: Session = Depends(get_learning_db),
     user: User = Depends(current_user),
 ) -> FeedbackResponse:
     """프론트 좋아요/싫어요 버튼에서 호출.
 
-    FeedbackService 가 DB + data/feedback 사이드카에 기록한다.
+    FeedbackService 가 data/feedback 사이드카 + 학습 DB 에 기록한다.
     dislike 일 때 메시지를 조금 다르게 돌려 UX 를 구분한다.
     """
     owned_job(db, body.job_id, user)  # 로그인 · 본인 작업에만 피드백
-    service = FeedbackService(db=db)
+    service = FeedbackService(db=db, learning_db=learning_db)
     row, path = service.save_case(
         job_id=body.job_id,
         vote=body.vote,
         meta={"source": "user"},
         comment=body.comment,
+        user_id=user.id,
     )
     return FeedbackResponse(
         ok=True,

@@ -17,7 +17,8 @@ class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = "0.1.0"
     phase: int = 1
-    db_dialect: Optional[str] = None  # sqlite / mysql 등
+    db_dialect: Optional[str] = None  # 서비스 DB: sqlite / mysql 등
+    learning_db: Optional[str] = None  # 학습 DB: mysql / sqlite / sqlite(fallback)
 
 
 class ProcessResult(BaseModel):

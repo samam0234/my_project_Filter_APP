@@ -13,6 +13,7 @@ from loguru import logger
 from app import __version__
 from app.core.config import get_settings
 from app.core.constants import PHASE
+from app.db.learning import init_learning_db, learning_db_mode, learning_session
 from app.db.session import get_engine, init_db
 from app.routers import api_router
 from app.schemas.response import HealthResponse
@@ -36,13 +37,16 @@ async def lifespan(app: FastAPI):
         settings.pseudo_label_path,
     ):
         ensure_dir(path)
-    # SQLite/MariaDB 테이블 create_all (없으면 생성)
+    # 서비스 DB 테이블 create_all (없으면 생성)
     init_db()
+    # 학습 DB (MariaDB, 꺼져 있으면 로컬 SQLite fallback) + 사이드카 파일 중 빠진 것 적재
+    learning_mode = _init_learning(settings)
     logger.info(
-        "컷앤킵 시작 env={} phase={} db={} upload={} model={} feedback={} logs={}",
+        "컷앤킵 시작 env={} phase={} db={} learning_db={} upload={} model={} feedback={} logs={}",
         settings.app_env,
         PHASE,
         get_engine().dialect.name,
+        learning_mode,
         settings.upload_path,
         settings.yolo_model_file,
         settings.feedback_path,
@@ -54,6 +58,21 @@ async def lifespan(app: FastAPI):
         threading.Thread(target=_preload_models, name="preload-models", daemon=True).start()
     yield
     logger.info("컷앤킵 종료")
+
+
+def _init_learning(settings) -> str:
+    """학습 DB 준비. 실패해도 서비스는 뜬다 (피드백은 사이드카 파일로 남고 다음 기동 때 동기화)."""
+    try:
+        mode = init_learning_db()
+        if settings.learning_sync_on_start:
+            from app.services.learning_catalog import sync_from_files
+
+            with learning_session() as ldb:
+                sync_from_files(ldb, settings)
+        return mode
+    except Exception as exc:
+        logger.error("학습 DB 준비 실패 (피드백은 파일로만 저장): {}", exc)
+        return "unavailable"
 
 
 def _preload_models() -> None:
@@ -96,7 +115,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     async def health() -> HealthResponse:
-        """헬스체크: 프로세스 생존 + DB dialect 표시."""
+        """헬스체크: 프로세스 생존 + 서비스 DB dialect + 학습 DB 모드."""
         dialect = None
         try:
             dialect = get_engine().dialect.name
@@ -107,6 +126,7 @@ def create_app() -> FastAPI:
             version=__version__,
             phase=PHASE,
             db_dialect=dialect,
+            learning_db=learning_db_mode(),
         )
 
     return app
