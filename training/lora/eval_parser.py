@@ -12,6 +12,7 @@
 사용:
   python training/lora/eval_parser.py --adapter training/outputs/lora/instance_v1/adapter
   python training/lora/eval_parser.py --parsers heuristic,ollama
+  python training/lora/eval_parser.py --eval-source db-val --parsers ollama   # 승인된 실제 문장(val)
 결과: 표 출력 + --report JSON (틀린 샘플 포함)
 """
 
@@ -148,6 +149,12 @@ def evaluate(rows, parse: Callable[[str], dict]) -> tuple[dict[str, float], list
 def main() -> None:
     ap = argparse.ArgumentParser(description="프롬프트 분석기 평가")
     ap.add_argument("--eval-file", type=Path, default=_LORA_DIR / "seed" / "eval.jsonl")
+    ap.add_argument(
+        "--eval-source",
+        choices=("file", "db-val"),
+        default="file",
+        help="file = --eval-file / db-val = 학습 DB 의 승인된 문장 중 val split (학습에 쓰지 않은 실제 사용자 문장)",
+    )
     ap.add_argument("--parsers", default="heuristic,ollama,base,lora")
     ap.add_argument("--base-model", type=Path,
                     default=_REPO_ROOT / "training" / "models" / "qwen2.5-1.5b-instruct")
@@ -155,7 +162,19 @@ def main() -> None:
     ap.add_argument("--report", type=Path, default=None, help="결과 JSON 저장 경로")
     args = ap.parse_args()
 
-    rows = load_eval(args.eval_file)
+    if args.eval_source == "db-val":
+        from dataset import discover_db_samples
+
+        rows = [
+            {"prompt": c.prompt, "parsed_prompt": c.parsed_prompt,
+             "gold": json.loads(parsed_to_json(normalize_parsed(c.parsed_prompt)))}
+            for c in discover_db_samples(split="val") if c.prompt and c.parsed_prompt
+        ]
+        args.eval_file = Path("learning_db:val")
+        if not rows:
+            raise SystemExit("학습 DB 에 승인된 val 문장이 없습니다 (운영 콘솔에서 승인하면 10% 가 val)")
+    else:
+        rows = load_eval(args.eval_file)
     args.eval_rows = rows
     names = [n.strip() for n in args.parsers.split(",") if n.strip()]
     if "lora" in names and args.adapter is None:

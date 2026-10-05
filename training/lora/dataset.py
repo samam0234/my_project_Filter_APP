@@ -6,6 +6,8 @@
   - data/feedback/*.json (+ 짝 이미지)
   - data/pseudo_labels/*.json (있으면)
   - training/lora/seed/train.jsonl (인스턴스 선택·물체 지우기 시드)
+  - 학습 DB learning_samples 중 운영 콘솔에서 승인된 문장 (사용자 교정·좋아요·회원 요청)
+  - 승인 문장의 증강 JSONL (augment_prompts.py — 같은 뜻 다른 표현, 자기 일치 검증 통과분)
   → prompt + ParsedPrompt JSON 쌍만 학습에 사용
 
 정답 형식·템플릿은 backend/app/services/prompt_spec.py 를 그대로 쓴다 (서빙과 동일 규격).
@@ -76,7 +78,7 @@ class InstructionRecord:
     response_json: str
     vote: str
     source: str
-    origin: str  # feedback | pseudo | seed
+    origin: str  # feedback | db | augment | pseudo | seed
 
 
 def _read_json(path: Path) -> Optional[dict[str, Any]]:
@@ -208,6 +210,68 @@ def discover_seed_cases(seed_file: Path) -> list[FeedbackCase]:
     return cases
 
 
+def discover_jsonl_cases(path: Path, source: str) -> list[FeedbackCase]:
+    """{"prompt", "parsed_prompt"} JSONL (시드 · 증강 파일) → 케이스. source 로 출처 표시."""
+    cases = discover_seed_cases(path)
+    for case in cases:
+        case.source = source
+    return cases
+
+
+def discover_db_samples(split: Optional[str] = "train", sources: Optional[Iterable[str]] = None) -> list[FeedbackCase]:
+    """학습 DB(learning_samples) 중 운영 콘솔에서 **승인된** 문장 샘플.
+
+    split: "train" | "val" | None(전부). 승인 시 id 해시로 고정 배정된 값을 그대로 쓴다.
+    정답은 사람이 검수했으므로 like 취급. 접속 정보는 backend Settings(.env) 를 따른다.
+    """
+    from app.db.learning import learning_session  # noqa: E402 — 학습 DB 가 필요할 때만
+    from app.services.learning_review import approved_prompt_samples
+
+    with learning_session() as db:
+        rows = approved_prompt_samples(db, list(sources) if sources is not None else None)
+    return [
+        FeedbackCase(
+            case_id=f"db_{r.id}",
+            json_path=Path("learning_db"),
+            image_path=None,
+            vote="like",
+            comment=None,
+            source=r.source,
+            prompt=(r.prompt or "").strip() or None,
+            parsed_prompt=_as_parsed(r.answer),
+            payload={"split": r.split, "sample_id": r.id},
+        )
+        for r in rows
+        if split is None or r.split == split
+    ]
+
+
+def normalize_prompt(text: str) -> str:
+    """누수 검사용 문장 키 (공백·대소문자 무시)."""
+    return " ".join(text.lower().split())
+
+
+def load_eval_prompts(eval_file: Path) -> set[str]:
+    """평가셋 문장 키 — 학습 데이터에서 빼서 점수가 부풀지 않게 한다."""
+    if not eval_file.is_file():
+        return set()
+    keys: set[str] = set()
+    for line in eval_file.read_text(encoding="utf-8").splitlines():
+        try:
+            prompt = json.loads(line).get("prompt")
+        except (json.JSONDecodeError, AttributeError):
+            continue
+        if isinstance(prompt, str):
+            keys.add(normalize_prompt(prompt))
+    return keys
+
+
+def drop_eval_leaks(records: list["InstructionRecord"], eval_prompts: set[str]) -> tuple[list["InstructionRecord"], int]:
+    """평가셋과 같은 문장의 레코드를 뺀다. 반환: (남은 레코드, 뺀 수)."""
+    kept = [r for r in records if normalize_prompt(r.prompt) not in eval_prompts]
+    return kept, len(records) - len(kept)
+
+
 def comment_as_parsed(comment: Optional[str]) -> Optional[dict[str, Any]]:
     """dislike 코멘트가 ParsedPrompt JSON 이면 정답으로 쓴다."""
     if not comment or not comment.strip():
@@ -265,7 +329,7 @@ def to_instruction_records(
         if source == "pipeline_failure":
             if include_pipeline_failure:
                 response = case.parsed_prompt
-        elif origin in {"pseudo", "seed"} or source in {"pseudo", "seed"}:
+        elif origin in {"pseudo", "seed", "db", "augment"} or source in {"pseudo", "seed"}:
             response = case.parsed_prompt
         elif vote == "dislike":
             response = comment_as_parsed(case.comment)
@@ -350,6 +414,8 @@ def args_to_jsonable(args: Any) -> dict[str, Any]:
     for key, value in raw.items():
         if isinstance(value, Path):
             out[key] = str(value)
+        elif isinstance(value, (list, tuple)):
+            out[key] = [str(v) if isinstance(v, Path) else v for v in value]
         else:
             out[key] = value
     return out

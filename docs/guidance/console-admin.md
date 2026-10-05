@@ -46,6 +46,8 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 - **삭제**: 원본 사이드카 파일(`data/feedback/*.json|jpg`, 의사 라벨 json)까지 지우고 되돌릴 수 없다.
   행은 내용을 비운 `deleted` 표식으로 남아 기동 시 동기화가 되살리지 않는다
 - 승인 · 삭제는 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 RAG 색인에 반영된다
+- 승인된 문장으로 LoRA 를 다시 학습하는 방법: [`training/lora/README.md`](../../training/lora/README.md)
+  (`augment_prompts.py` → `train_lora.py` → `eval_parser.py`)
 
 ## 자동 갱신
 

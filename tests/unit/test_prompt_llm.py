@@ -241,3 +241,18 @@ def test_lora_provider_missing_dir_raises(tmp_path):
             "강아지만 남겨",
             _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL=str(tmp_path / "nope")),
         )
+
+
+def test_normalize_maps_targets_to_coco_and_effect_aliases():
+    """확장 평가셋에서 나온 규격 이탈: effect 'keep', target 'flower pot' 등."""
+    from app.services.prompt_spec import canonical_target, normalize_parsed
+
+    p = normalize_parsed({"target": ["flower pot", "Pizza Piece", "dogs", "train car"], "effect": "keep"})
+    assert p.target == ["potted plant", "pizza", "dog", "train"]
+    assert p.effect == "remove_bg"
+    assert normalize_parsed({"target": "phone", "effect": "erase"}).effect == "remove_object"
+    assert canonical_target("red sports car") == "car"
+    assert canonical_target("hot dog") == "hot dog"  # COCO 이름은 그대로
+    assert canonical_target("spaceship") == "spaceship"  # 모르면 그대로 (세그에서 못 찾음)
+    with pytest.raises(Exception):
+        normalize_parsed({"target": ["person"], "effect": "teleport"})
