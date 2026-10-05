@@ -12,6 +12,7 @@ from loguru import logger
 
 from app import __version__
 from app.core.config import get_settings
+from app.core import preflight
 from app.core.constants import PHASE
 from app.db.learning import init_learning_db, learning_db_mode, learning_session
 from app.db.session import get_engine, init_db
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI):
     """
     settings = get_settings()
     setup_logging(settings.debug, settings.log_path, settings.log_retention_days)
+    _preflight(settings)
     # 런타임에 쓸 디렉터리가 없으면 만든다
     for path in (
         settings.upload_path,
@@ -58,6 +60,21 @@ async def lifespan(app: FastAPI):
         threading.Thread(target=_preload_models, name="preload-models", daemon=True).start()
     yield
     logger.info("컷앤킵 종료")
+
+
+def _preflight(settings) -> None:
+    """배포 설정 점검 — production 에서 위험한 기본값이면 기동 거부 (core/preflight)."""
+    issues = preflight.check(settings)
+    prod = preflight.is_production(settings)
+    for issue in issues:
+        log = logger.error if prod and issue.level == "error" else logger.warning
+        log("설정 점검 [{}] {}: {}", issue.key, issue.level, issue.message)
+    stop = preflight.blocking(settings, issues)
+    if stop:
+        raise RuntimeError(
+            "production 설정 점검 실패: " + ", ".join(i.key for i in stop)
+            + " (python -m app.core.preflight 로 확인, 급하면 PREFLIGHT_STRICT=false)"
+        )
 
 
 def _init_learning(settings) -> str:
@@ -116,6 +133,18 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        """기본 보안 헤더 (API 응답이 다른 사이트 프레임·MIME 추측에 쓰이지 않게)."""
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        if settings.session_cookie_secure:
+            # HTTPS 배포일 때만 (로컬 http 에서 HSTS 를 박으면 브라우저가 계속 https 로 감)
+            response.headers.setdefault("Strict-Transport-Security", "max-age=15552000")
+        return response
+
     # /api/v1/* 엔드포인트 묶음
     app.include_router(api_router)
 

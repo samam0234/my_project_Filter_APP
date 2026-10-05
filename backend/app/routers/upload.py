@@ -13,7 +13,7 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 from loguru import logger
@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from app.core.access import owned_job
 from app.core.config import get_settings
 from app.core.deps import current_user_optional
+from app.core.ratelimit import enforce, upload_limiter
 from app.core.security import validate_upload_file
 from app.db.learning import get_learning_db
 from app.db.session import get_db
@@ -37,6 +38,7 @@ router = APIRouter(tags=["upload"])
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_and_process(
+    request: Request,
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
     db: Session = Depends(get_db),
@@ -49,6 +51,14 @@ async def upload_and_process(
     비로그인: 저장하지 않음 — DB 기록·결과 파일·실패 케이스 모두 남기지 않고,
               결과 이미지를 data URL 로 응답에 담아 바로 다운로드만 가능 (saved=false)
     """
+    settings = get_settings()
+    if user is not None:
+        enforce(upload_limiter, f"user:{user.id}", settings.upload_rate_member_per_min, "처리 요청")
+    else:
+        ip = request.client.host if request.client else "unknown"
+        enforce(upload_limiter, f"ip:{ip}", settings.upload_rate_guest_per_min,
+                "처리 요청 (비로그인은 분당 제한이 더 낮습니다)")
+
     try:
         data = await validate_upload_file(file)
     except FileValidationError as exc:

@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="APP_ENV")
     debug: bool = Field(default=True, alias="DEBUG")
     secret_key: str = Field(default="dev-secret-change-me", alias="SECRET_KEY")
+    # APP_ENV=production 에서 위험한 설정(기본 SECRET_KEY·DEBUG·비보안 쿠키·SMTP 없음 등)이면 기동 거부
+    # (core/preflight.py). false 면 경고 로그만
+    preflight_strict: bool = Field(default=True, alias="PREFLIGHT_STRICT")
+    # 업로드(LLM + GPU) 분당 허용 횟수 — 비로그인은 IP, 회원은 계정 기준. 0 = 제한 없음 (core/ratelimit.py)
+    upload_rate_guest_per_min: int = Field(default=6, alias="UPLOAD_RATE_GUEST_PER_MIN")
+    upload_rate_member_per_min: int = Field(default=20, alias="UPLOAD_RATE_MEMBER_PER_MIN")
 
     # --- 업로드 제한 ---
     # 【수동·.env】 MAX_UPLOAD_SIZE_MB / ALLOWED_MIME_TYPES

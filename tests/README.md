@@ -21,7 +21,12 @@ tests/
 │   ├── conftest.py                # api_env fixture — 메모리 SQLite 앱 + 메일 가로채기
 │   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정
 │   ├── test_access.py             # 비로그인 다운로드만 · 회원 본인 작업만 · 배치 · 콘솔 loopback (가짜 파이프라인)
-│   └── test_lora_dataset.py       # training/lora 데이터 계약·시드 (torch 불필요)
+│   ├── test_lora_dataset.py       # training/lora 데이터 계약·시드·평가셋 누수 차단 (torch 불필요)
+│   ├── test_learning_db.py        # 서비스/학습 DB 분리 · 사이드카 동기화 · MariaDB fallback
+│   ├── test_learning_review.py    # 학습 데이터 검수 콘솔 · 회원 요청 후보
+│   ├── test_prompt_rag.py         # 승인 샘플 RAG
+│   ├── test_preflight.py          # 배포 설정 점검 · 보안 헤더
+│   └── test_ratelimit.py          # 업로드 속도 제한
 ├── structure/               # 폴더·문서·스크립트 존재 검사
 │   └── test_project_layout.py
 └── smoke/                   # 가벼운 import 스모크

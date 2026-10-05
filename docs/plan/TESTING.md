@@ -57,16 +57,29 @@ pytest
 
 ---
 
-## 4. CI 제안 (향후)
+## 4. CI — `.github/workflows/ci.yml`
 
-```yaml
-# 예: GitHub Actions 스케치
-# - Python 3.11
-# - pip install -r requirements.txt -r tests/requirements-test.txt
-# - pytest tests/structure tests/unit tests/smoke
+push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 3개 job 이 병렬로 돈다.
+
+| job | 내용 |
+|-----|------|
+| backend | Python 3.11 · `requirements.docker.txt` + `tests/requirements-test.txt` (모델 없음, 학습 DB=SQLite) → `pytest` → 안전한 production 값으로 `python -m app.core.preflight` |
+| frontend | Node 20 · `npm ci` → `npm test`(vitest) → `npm run build` → `npm audit --omit=dev --audit-level=high` |
+| console | frontend 와 같음 |
+
+- 모델(ultralytics·torch)이 필요한 테스트는 `importorskip` 으로 건너뛰고 세그는 stub 마스크로 동작
+- 로컬에서 CI 와 같은 조건 확인 (2026-10-06, 깨끗한 venv · `.env` 없이 204 passed):
+  `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 `.env` 가 없는 폴더에서 pytest
+- 아직 원격에 push 하지 않아 실제 Actions 실행은 확인 전
+
+### 프론트 · 콘솔 테스트 (vitest + Testing Library, jsdom)
+
+```powershell
+cd frontend; npm test      # 16건 — 회원 전용 화면 잠금, 로그인 상태, 라우터, 프롬프트 입력, 포맷
+cd console;  npm test      # 4건 — 학습 데이터 검수 (목록·승인·정답 수정 JSON 검증·삭제 확인)
 ```
 
-Docker 이미지 빌드와 분리해 **가벼운 unit** 을 먼저 돌리는 것을 권장.
+테스트 파일(`*.test.ts[x]`)은 `tsconfig.app.json` 에서 빼 프로덕션 빌드와 분리한다.
 
 ---
 

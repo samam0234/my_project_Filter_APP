@@ -1,0 +1,84 @@
+# 컷앤킵 CI — push · PR 마다 백엔드 테스트, 프론트·콘솔 테스트와 빌드
+#
+# 백엔드는 무거운 모델 의존성(ultralytics·torch·transformers) 없이 돈다.
+# 모델이 필요한 테스트는 importorskip 으로 건너뛰고, 세그는 stub 마스크로 동작한다.
+# 학습 DB 는 MariaDB 대신 SQLite (서비스 동작은 같다).
+name: ci
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "fix/**"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      LEARNING_DB_DIALECT: sqlite
+      PRELOAD_MODELS: "false"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.docker.txt
+            tests/requirements-test.txt
+      - name: 의존성 (경량 런타임 + 테스트)
+        run: pip install -r requirements.docker.txt -r tests/requirements-test.txt
+      - name: pytest
+        run: python -m pytest tests
+      - name: 배포 설정 점검 (안전한 production 값이면 통과해야 함)
+        working-directory: backend
+        env:
+          APP_ENV: production
+          DEBUG: "false"
+          SECRET_KEY: ci-only-secret-key-0123456789abcdefghijklmnop
+          SESSION_COOKIE_SECURE: "true"
+          SMTP_HOST: smtp.example.com
+          CORS_ORIGINS: https://cutnkeep.example.com
+          LEARNING_DB_FALLBACK_SQLITE: "false"
+          YOLO_MODEL_PATH: ../pytest.ini  # 가중치는 CI 에 없음 — 존재하는 파일로 대체
+        run: python -m app.core.preflight
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: 배포 번들 의존성 취약점 (high 이상이면 실패)
+        run: npm audit --omit=dev --audit-level=high
+
+  console:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: console/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
