@@ -60,6 +60,9 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 
 파이프라인을 **동기**로 실행한다.
 
+- **속도 제한:** 분당 비로그인 IP 6회 · 회원 20회 (`UPLOAD_RATE_*`). 넘으면 `429` + `Retry-After` 헤더
+- **회원 요청은 학습 데이터 후보:** 문장과 시스템 해석이 운영 콘솔 검수 목록에 들어간다 (`LEARNING_COLLECT_REQUESTS`)
+
 - **로그인:** `jobs` 테이블에 저장(`user_id` 연결), 결과 파일 보관, `before_url`/`after_url` 은 파일 경로, `saved: true`
 - **비로그인:** 저장하지 않음 — DB 기록·결과 파일·실패 케이스(학습 재료)를 남기지 않는다.
   `after_url` 은 결과 이미지 **data URL**(`data:image/png;base64,…`), `before_url` 은 `null`, `saved: false`

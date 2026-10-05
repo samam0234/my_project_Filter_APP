@@ -62,6 +62,9 @@ def api_env(monkeypatch, tmp_path):
 
     monkeypatch.setattr(get_settings(), "feedback_dir", str(tmp_path / "feedback"))
     monkeypatch.setattr(get_settings(), "pseudo_label_dir", str(tmp_path / "pseudo_labels"))
+    from app.core.ratelimit import upload_limiter
+
+    upload_limiter.reset()  # 테스트끼리 업로드 횟수가 섞이지 않게
     application = create_app()
     application.dependency_overrides[get_db] = _db
     application.dependency_overrides[get_learning_db] = _learning_db
