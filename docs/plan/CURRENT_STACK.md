@@ -26,8 +26,8 @@
 
 | 항목 | 현재 |
 |------|------|
-| 로컬 기본 | `DB_DIALECT=sqlite` → `backend/data/cutnkeep.db` |
-| Docker backend | compose 가 **`DB_DIALECT=mariadb`**, `MARIADB_HOST=mariadb`, `PORT=3306` 강제 |
+| 서비스 DB | `DB_DIALECT=sqlite` → `backend/data/cutnkeep.db` (users · auth_* · jobs · batch_jobs) — 로컬·Docker 공통 |
+| 학습 DB | `LEARNING_DB_DIALECT=mariadb` (feedbacks · learning_samples, 경로·라벨만). 호스트는 `127.0.0.1:MARIADB_PORT`, 꺼져 있으면 `backend/data/learning.db` fallback. Docker backend 는 `mariadb:3306` 강제 ([`DATABASE.md`](DATABASE.md)) |
 | 이미지 | 공식 **`mariadb:11`** (GSS 커스텀 이미지 **제거됨**) |
 | 인증 | **비밀번호만** (`mysql_native_password`). GSS-API **미사용** |
 | SSL | 서버 **`skip_ssl`** (로컬 Docker) |

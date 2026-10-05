@@ -30,7 +30,6 @@ class JobRepository:
     def create_pending(self, job_id: str, prompt: str) -> Job:
         """처리 전 pending 행 생성.
 
-        피드백 FK 를 위해 job 이 없을 때 stub 으로도 사용한다.
         expires_at 은 file_retention_hours 기준.
         """
         hours = self.settings.file_retention_hours

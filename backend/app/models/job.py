@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
 from app.db.base import Base
@@ -56,11 +56,4 @@ class Job(Base):
     expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
-    )
-
-    # 1:N 피드백 (job 삭제 시 함께 삭제)
-    feedbacks: Mapped[list["Feedback"]] = relationship(  # noqa: F821
-        "Feedback",
-        back_populates="job",
-        cascade="all, delete-orphan",
     )

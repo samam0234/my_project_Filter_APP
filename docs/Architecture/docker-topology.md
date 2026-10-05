@@ -28,7 +28,8 @@ cut_and_keep-adminer-1    :8081→8080  (default server=mariadb)
 
 | 키 | 값 |
 |----|-----|
-| `DB_DIALECT` | `mariadb` |
+| `DB_DIALECT` | `sqlite` (서비스 DB, `./backend/data` 볼륨) |
+| `LEARNING_DB_DIALECT` | `mariadb` (학습 DB) · `LEARNING_DB_FALLBACK_SQLITE=false` |
 | `MARIADB_HOST` | `mariadb` |
 | `MARIADB_PORT` | `3306` |
 | `REDIS_URL` | `redis://redis:6379/0` |
