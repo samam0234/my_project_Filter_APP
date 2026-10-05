@@ -109,7 +109,8 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 ### 2.3 기동 시 테이블 생성
 
 학습 DB: `lifespan` → `init_learning_db()` (접속 확인 → fallback → `LearningBase.metadata.create_all()`)
-→ `sync_from_files()` — `data/feedback/*.json`·`data/pseudo_labels/*.json` 중 DB 에 없는 것만 적재 (멱등, `LEARNING_SYNC_ON_START`).
+→ `sync_from_files()` — `data/feedback/*.json`·`data/pseudo_labels/*.json` 중 DB 에 없는 것만 적재 (멱등, `LEARNING_SYNC_ON_START`)
+→ `sync_requests_from_jobs()` — 서비스 DB `jobs` 의 요청 문장 중 아직 후보가 아닌 것 (`LEARNING_COLLECT_REQUESTS`).
 
 서비스 DB: `lifespan` → `init_db()` → `Base.metadata.create_all()` → `_ensure_columns()`
 `create_all` 은 **없는 테이블만** 만들고 기존 테이블에 컬럼을 추가하지 않는다.
@@ -147,9 +148,9 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 ┌──────────── feedbacks ───────────────┐      ┌────────── learning_samples ──────────┐
 │ id (PK) = case_id = 사이드카 파일명  │ 1:N  │ id (PK), origin_id (+kind 유일)       │
 │ job_id, user_id                      │─────▶│ kind: prompt | segment                │
-│ vote, comment, source, prompt        │      │ source: correction | like |           │
+│ vote, comment, source, prompt        │      │ source: correction | like | request | │
 │ image_path (경로), meta(JSON)        │      │   pipeline_failure | pseudo_label     │
-│ created_at                           │      │ status: pending|approved|rejected     │
+│ created_at                           │      │ status: pending|approved|rejected|del │
 └──────────────────────────────────────┘      │ split: train | val                    │
                                               │ prompt, answer(JSON 정답)             │
                                               │ image_path, label_path (경로)         │
@@ -211,8 +212,8 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 | 컬럼 | 설명 |
 |------|------|
 | kind | `prompt` (문장 → ParsedPrompt 정답, LoRA·RAG) / `segment` (세그 실패 이미지, YOLO 재학습 후보) |
-| source | `correction` (정답 알려주기) · `like` · `pipeline_failure` · `pseudo_label` |
-| status | `pending` → 운영 콘솔에서 `approved` / `rejected` |
+| source | `correction` (정답 알려주기) · `like` · `request` (회원 요청 + 시스템 해석) · `pipeline_failure` · `pseudo_label` |
+| status | `pending` → 운영 콘솔에서 `approved` / `rejected`. 삭제하면 `deleted` (내용·경로를 비운 표식, 재동기화 방지) |
 | split | 승인 시 id 해시로 `train` / `val` 고정 (10% val) |
 | prompt · answer | 문장 · 정답 JSON |
 | image_path · label_path | 이미지 · 사이드카 JSON 의 저장소 루트 기준 상대 경로 (Docker·호스트 공통) |

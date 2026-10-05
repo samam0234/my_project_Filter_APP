@@ -176,9 +176,15 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 | `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
 | `GET /api/v1/console/files/{job_id}/{before\|after}` | 작업 파일 (소유자 무관) |
+| `GET /api/v1/console/learning/stats` | 학습 데이터 상태·출처·split 별 건수 + 학습 DB 모드 |
+| `GET /api/v1/console/learning/samples?status=&source=&kind=&q=&limit=&offset=` | 학습 데이터 목록 (기본: 삭제 제외 전체) → `{items, total, limit, offset}` |
+| `POST /api/v1/console/learning/samples/{id}/review` | `{"action": "approve"\|"reject"\|"reset", "answer"?: ParsedPrompt, "note"?}` — 승인 시 정답 수정 가능, 형식 오류 400 |
+| `POST /api/v1/console/learning/samples/bulk` | `{"ids": [...], "action": "approve"\|"reject"}` → `{done, skipped}` |
+| `DELETE /api/v1/console/learning/samples/{id}` | 삭제 + 원본 사이드카 파일 정리 → `{id, removed_files}` |
+| `GET /api/v1/console/learning/samples/{id}/image` | 샘플 원본 이미지 (학습 데이터·업로드 폴더 안의 파일만) |
 
 ---
 
 ## DB
 
-로컬 SQLite (`backend/data/cutnkeep.db`) / 배포 MariaDB — [`docs/plan/DATABASE.md`](plan/DATABASE.md)
+서비스 DB SQLite (`backend/data/cutnkeep.db`) + 학습 DB MariaDB (`feedbacks` · `learning_samples`) — [`docs/plan/DATABASE.md`](plan/DATABASE.md)

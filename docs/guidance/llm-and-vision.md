@@ -144,19 +144,19 @@ GEMINI_API_KEY=...
 ## 프롬프트 해석 RAG (사용자 교정 즉시 반영)
 
 `backend/app/services/prompt_rag.py` — 지금 요청과 **비슷한 문장의 확인된 정답**을 찾아 `SYSTEM_PROMPT` 뒤에 예시로 붙인다.
-사용자가 결과 화면의 "정답 알려주기"로 교정하면 LoRA 재학습 없이 **다음 요청부터** 바로 반영된다.
+사용자가 "정답 알려주기"로 교정하고 운영 콘솔에서 **승인하면**, LoRA 재학습 없이 다음 요청부터 반영된다.
 ollama · openai · gemini 에만 적용 (lora 는 학습 템플릿이 고정이라 제외).
 
 | 항목 | 내용 |
 |------|------|
-| 지식 베이스 | `data/feedback/*.json` — `correction`(dislike 코멘트의 정답 JSON) > `like`(사용자가 맞다고 확인한 해석). 같은 문장이면 교정이 이김. `pipeline_failure` 는 제외 |
+| 지식 베이스 | 학습 DB `learning_samples` 중 **승인된** 문장 — `correction`(사용자 교정) > `like` · `request`(회원 요청). 같은 문장이면 교정이 이김. 승인 전 교정은 쓰지 않음 ([`console-admin.md`](console-admin.md#학습-데이터-검수)) |
 | 검색 | 글자 2·3-gram TF-IDF 코사인 (외부 모델·의존성 없음, 수천 건 규모 ms 단위) |
-| 갱신 | 피드백 폴더가 바뀌면 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 자동 재색인 |
+| 갱신 | 승인 샘플 수·최종 수정 시각이 바뀌면 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 자동 재색인. 학습 DB 가 없으면 예시 없이 진행 |
 | 기록 | `meta.prompt_rag` 에 출처·점수만 (다른 사용자의 문장 원문은 남기지 않음) |
 
 ```env
 PROMPT_RAG_ENABLED=true
-PROMPT_RAG_SOURCES=correction,like   # seed 를 넣으면 training/lora/seed/train.jsonl 도 사용 (비권장, 아래)
+PROMPT_RAG_SOURCES=correction,like,request   # seed 를 넣으면 training/lora/seed/train.jsonl 도 사용 (비권장, 아래)
 PROMPT_RAG_TOP_K=3
 PROMPT_RAG_MIN_SCORE=0.6             # 같은 뜻의 다른 표현 0.62~0.73 / 틀만 같은 문장 0.3~0.46
 ```

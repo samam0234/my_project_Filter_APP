@@ -10,7 +10,8 @@ source
   - like             : 사용자가 맞다고 확인한 해석
   - pipeline_failure : 파이프라인이 실패·fallback 으로 끝난 이미지
   - pseudo_label     : scripts/pseudo_labeling.py 가 만든 의사 라벨
-status : pending → approved | rejected (운영 콘솔 검수)
+  - request          : 로그인 회원의 요청 문장 + 시스템 해석 (검수 후 정답이 됨)
+status : pending → approved | rejected (운영 콘솔 검수) · deleted (삭제 표식 — 내용은 비움)
 split  : train | val (승인 시 id 해시로 고정 배정 — 재학습해도 같은 데이터가 같은 쪽)
 """
 

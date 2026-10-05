@@ -93,29 +93,74 @@ def test_examples_are_injected_into_llm_system_prompt(monkeypatch):
     assert sent["system"].endswith("EXAMPLE-BLOCK")
 
 
-def test_rag_reindexes_when_feedback_changes(tmp_path):
-    seed = _seed(tmp_path, [{"prompt": "강아지만 남겨", "parsed_prompt": {"target": ["dog"]}}])
-    fb = tmp_path / "feedback"
-    fb.mkdir()
-    s = Settings.model_validate({
-        "PROMPT_RAG_SEED_FILE": str(seed), "FEEDBACK_DIR": str(fb), "PROMPT_RAG_REFRESH_SECONDS": 0,
-        "PROMPT_RAG_SOURCES": "correction,like,seed",
-    })
-    rag = PromptRAG(s)
-    assert len(rag.index().examples) == 1
-    _feedback(fb, "new", vote="dislike", source="user", comment=json.dumps(LEFT2_REMOVE),
-              meta={"prompt": "왼쪽 두 번째 사람 삭제"})
-    assert {e.source for e in rag.index().examples} == {"seed", "correction"}
+def _learning_db():
+    from contextlib import contextmanager
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    from app.db.learning import LearningBase
+
+    eng = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    LearningBase.metadata.create_all(eng)
+    Session = sessionmaker(bind=eng, autoflush=False, expire_on_commit=False)
+
+    @contextmanager
+    def factory():
+        with Session() as db:
+            yield db
+
+    return Session, factory
 
 
-def test_default_sources_exclude_seed(tmp_path):
-    """기본 PROMPT_RAG_SOURCES 는 사용자 교정·좋아요만 (시드는 평가에서 정확도를 낮춰 제외)."""
+def _sample(db, prompt, answer, source="correction", status="pending"):
+    from uuid import uuid4
+
+    from app.models.learning_sample import LearningSample
+
+    row = LearningSample(id=uuid4().hex, kind="prompt", source=source, status=status,
+                         origin_id=uuid4().hex, prompt=prompt, answer=answer)
+    db.add(row)
+    db.commit()
+    return row
+
+
+def test_rag_uses_only_approved_samples_and_reindexes(tmp_path):
+    """승인 전 교정은 쓰지 않고, 승인하면 다음 색인부터 쓰인다."""
+    from app.services import learning_review
+
+    Session, factory = _learning_db()
+    s = Settings.model_validate({"PROMPT_RAG_REFRESH_SECONDS": 0})
+    rag = PromptRAG(s, session_factory=factory)
+    with Session() as db:
+        pending = _sample(db, "왼쪽 두 번째 사람 삭제", LEFT2_REMOVE)
+        _sample(db, "고양이만 크롭", {"target": ["cat"], "effect": "crop"}, source="request", status="approved")
+        _sample(db, "버스만", {"target": ["bus"]}, source="pseudo_label", status="approved")  # 기본 출처 아님
+    assert {e.prompt for e in rag.index().examples} == {"고양이만 크롭"}
+    with Session() as db:
+        learning_review.review(db, pending.id, "approve")
+    assert {e.source for e in rag.index().examples} == {"correction", "request"}
+    with Session() as db:
+        learning_review.delete_sample(db, pending.id, s)
+    assert [e.source for e in rag.index().examples] == ["request"]
+
+
+def test_seed_is_used_only_when_listed(tmp_path):
     seed = _seed(tmp_path, [{"prompt": "강아지만 남겨", "parsed_prompt": {"target": ["dog"]}}])
-    fb = tmp_path / "feedback"
-    _feedback(fb, "c", vote="dislike", source="user", comment=json.dumps(LEFT2_REMOVE),
-              meta={"prompt": "왼쪽 두 번째 사람 삭제"})
-    s = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed), "FEEDBACK_DIR": str(fb)})
-    assert [e.source for e in PromptRAG(s).index().examples] == ["correction"]
+    _, factory = _learning_db()
+    default = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed)})
+    with_seed = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed), "PROMPT_RAG_SOURCES": "correction,seed"})
+    assert PromptRAG(default, session_factory=factory).index().examples == []
+    assert [e.source for e in PromptRAG(with_seed, session_factory=factory).index().examples] == ["seed"]
+
+
+def test_rag_survives_learning_db_outage():
+    def broken():
+        raise RuntimeError("learning db down")
+
+    rag = PromptRAG(Settings.model_validate({}), session_factory=broken)
+    assert rag.retrieve("사람 지워") == []
 
 
 def test_prompt_analyzer_records_rag_sources_without_text(monkeypatch):
