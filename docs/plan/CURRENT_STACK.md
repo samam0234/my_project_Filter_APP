@@ -1,7 +1,7 @@
 # 컷앤킵 — 현재 스택 스냅샷
 
 **기준 브랜치:** `develop`  
-**스냅샷 일자:** 2026-07-28  
+**스냅샷 일자:** 2026-10-06 (ONNX 직접 추론 · YOLO26m-seg · vite 7 반영)  
 **목적:** 추가·수정·제외된 구성을 한곳에 모아, 다른 문서가 어긋나지 않게 한다.
 
 ---
@@ -11,8 +11,8 @@
 | 구성 | 로컬 개발 | Docker (`-p cut_and_keep`) |
 |------|-----------|----------------------------|
 | Backend FastAPI | `:8000` | `:8000` |
-| Frontend (사용자) | Vite `:5173` | nginx `:80` |
-| Console (운영) | Vite `:5174` | **Compose 미포함** → 로컬만 (콘솔 API 는 loopback 요청만 허용) |
+| Frontend (사용자) | Vite 7 `:5173` | nginx `:80` |
+| Console (운영) | Vite 7 `:5174` | **Compose 미포함** → 로컬만 (콘솔 API 는 loopback 요청만 허용) |
 | MariaDB | (선택) 호스트 클라이언트 | 호스트 **`${MARIADB_PORT}`** (예: **3309**) → 컨테이너 `3306` |
 | Redis | — | 호스트 **6380** → 컨테이너 `6379` |
 | Adminer | — | **`:8081`** (Server=`mariadb`) |
@@ -54,7 +54,7 @@
 | 파일 | 용도 |
 |------|------|
 | **루트** `requirements.txt` | 로컬 backend 풀스택 |
-| **루트** `requirements.docker.txt` | Docker 런타임 공통 (LangGraph 포함). 세그용 ultralytics + CPU torch 는 `backend/Dockerfile` 에서 따로 설치 (CI 는 미설치로 가볍게) |
+| **루트** `requirements.docker.txt` | Docker 런타임 공통 (LangGraph 포함). 세그는 `backend/Dockerfile` 의 `SEG_RUNTIME`: `ultralytics`(CPU torch, 약 2.8GB) 또는 `onnx`(onnxruntime 만, 약 1.1GB). 검증은 `docs/plan/ONNX_INFERENCE.md` |
 | `training/requirements-training.txt` | 학습 venv (torch 는 로컬 wheel, 원격 자동 대용량 금지 정책) |
 | ~~`backend/requirements*.txt`~~ | **제거됨** (루트로 이전) |
 
@@ -66,7 +66,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 
 | 항목 | 현재 기본 |
 |------|-----------|
-| 세그 | **YOLO26m-seg** — 서빙 `backend/models/yolo26m-seg.pt` / `.onnx`, 원본·후보 루트 `models/` |
+| 세그 | **YOLO26m-seg** — 서빙 `backend/models/yolo26m-seg.pt` / `.onnx`, 원본·후보 루트 `models/`. ONNX 경로는 `backend/app/utils/onnx_utils.py` (torch·ultralytics 불필요) |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
@@ -85,8 +85,8 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 
 | 서비스 | 비고 |
 |--------|------|
-| `backend` | env_file `.env` + DB/Redis/LLM 오버라이드 |
-| `frontend` | nginx :80 |
+| `backend` | env_file `.env` + DB/Redis/LLM 오버라이드. 빌드 `SEG_RUNTIME=ultralytics`(기본) 또는 `onnx` |
+| `frontend` | nginx :80. 로컬 개발 도구는 Vite **7** / Vitest **5** (`frontend/`, `console/`) |
 | `mariadb` | 공식 11, password + skip_ssl |
 | `redis` | 6380:6379 |
 | `adminer` | 8081 |
