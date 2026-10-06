@@ -77,6 +77,8 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `c1af991` | feature/phase2 → develop 병합 (no-ff) | [commits/261006_2253_c1af991_merge-phase2_develop.md](./commits/261006_2253_c1af991_merge-phase2_develop.md) |
+| `205805d` | feature/docs-sync → develop 병합 (no-ff) | [commits/261006_2253_205805d_merge-docs-sync_develop.md](./commits/261006_2253_205805d_merge-docs-sync_develop.md) |
 | `0ed7063` | 배치·영상·오픈보캐브·LLM 폴백 | [commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md](./commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md) |
 | `351eaa7` | 비전 기본 m · ONNX · Vite 문서 정합 | [commits/261006_2226_351eaa7_plan-docs-align_feature-docs-sync.md](./commits/261006_2226_351eaa7_plan-docs-align_feature-docs-sync.md) |
 | `17e9ef0` | feature/lora → develop 병합 (no-ff) | [commits/260916_0211_17e9ef0_merge-lora_develop.md](./commits/260916_0211_17e9ef0_merge-lora_develop.md) |
