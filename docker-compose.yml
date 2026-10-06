@@ -29,6 +29,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        # 세그 런타임: ultralytics(기본, .pt) | onnx(가볍게, .onnx — YOLO_MODEL_PATH 도 .onnx 로)
+        SEG_RUNTIME: ${SEG_RUNTIME:-ultralytics}
     ports:
       - "8000:8000"
     env_file:
