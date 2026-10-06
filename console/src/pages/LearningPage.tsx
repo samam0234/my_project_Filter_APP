@@ -52,7 +52,8 @@ function summarize(answer?: Record<string, unknown> | null): string {
 }
 
 export function LearningPage() {
-  const [query, setQuery] = useState<SampleQuery>({ status: "pending", source: "", kind: "prompt", q: "" });
+  // 기본은 사용자 데이터(교정·좋아요·회원 요청) — 의사 라벨 수천 건에 묻히지 않게
+  const [query, setQuery] = useState<SampleQuery>({ status: "pending", source: "user", kind: "prompt", q: "" });
   const [offset, setOffset] = useState(0);
   const [items, setItems] = useState<LearningSample[]>([]);
   const [total, setTotal] = useState(0);
@@ -140,9 +141,13 @@ export function LearningPage() {
         <StatCard label="승인" value={by.approved ?? 0} hint={`train ${split.train ?? 0} · val ${split.val ?? 0}`} />
         <StatCard label="거절" value={by.rejected ?? 0} />
         <StatCard
-          label="회원 요청 대기"
-          value={stats?.by_source.request?.pending ?? 0}
-          hint={`교정 대기 ${stats?.by_source.correction?.pending ?? 0}`}
+          label="사용자 데이터 대기"
+          value={
+            (stats?.by_source.request?.pending ?? 0) +
+            (stats?.by_source.like?.pending ?? 0) +
+            (stats?.by_source.correction?.pending ?? 0)
+          }
+          hint={`교정 ${stats?.by_source.correction?.pending ?? 0} · 좋아요 ${stats?.by_source.like?.pending ?? 0} · 요청 ${stats?.by_source.request?.pending ?? 0}`}
         />
       </div>
 
@@ -168,6 +173,7 @@ export function LearningPage() {
             value={query.source}
             onChange={(e) => setFilter({ source: e.target.value })}
           >
+            <option value="user">사용자 데이터 (교정·좋아요·요청)</option>
             <option value="">전체</option>
             {Object.entries(SOURCE_LABEL).map(([k, v]) => (
               <option key={k} value={k}>

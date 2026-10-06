@@ -25,6 +25,7 @@ from app.models.learning_sample import LearningSample
 from app.services.learning_catalog import assign_split, parse_answer
 
 STATUSES = ("pending", "approved", "rejected", "deleted")
+USER_SOURCES = ("correction", "like", "request")
 
 
 class ReviewError(ValueError):
@@ -47,7 +48,9 @@ def list_samples(
     else:
         query = query.filter(LearningSample.status != "deleted")
     if source:
-        query = query.filter(LearningSample.source == source)
+        # "user" = 사용자에게서 온 데이터 (교정·좋아요·회원 요청) — 의사 라벨 수천 건에 묻히지 않게
+        sources = USER_SOURCES if source == "user" else tuple(s for s in source.split(",") if s)
+        query = query.filter(LearningSample.source.in_(sources))
     if kind:
         query = query.filter(LearningSample.kind == kind)
     if q:

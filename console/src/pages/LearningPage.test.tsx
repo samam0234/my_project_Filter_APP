@@ -42,10 +42,12 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("LearningPage (학습 데이터 검수)", () => {
-  it("기본 필터는 검수 대기 문장, 목록·출처·해석 요약을 보여 준다", async () => {
+  it("기본 필터는 사용자 데이터의 검수 대기 문장, 목록·출처·해석 요약을 보여 준다", async () => {
     render(<LearningPage />);
     expect(await screen.findByText(SAMPLE.prompt)).toBeTruthy();
-    expect(client.fetchSamples).toHaveBeenCalledWith(expect.objectContaining({ status: "pending", kind: "prompt" }));
+    expect(client.fetchSamples).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "pending", kind: "prompt", source: "user" }),
+    );
     expect(screen.getAllByText("회원 요청").length).toBeGreaterThan(0);
     expect(screen.getByText("person · remove_bg")).toBeTruthy();
   });

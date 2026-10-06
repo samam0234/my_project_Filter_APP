@@ -11,4 +11,5 @@
 | [mvp-checklist.md](./mvp-checklist.md) | Phase 1 MVP 검증 항목 |
 | [api-smoke.md](./api-smoke.md) | API 스모크 시나리오 |
 | [console-checklist.md](./console-checklist.md) | 운영 콘솔 검증 |
+| [ui-check-20261006.md](./ui-check-20261006.md) | 브라우저 직접 확인: 사용자 앱·콘솔 9개 흐름 (Playwright) |
 | [experiments-20261006.md](./experiments-20261006.md) | 실험: 확장 평가 · 실제 이미지 인스턴스 선택 · GrabCut 속도 · 동시 요청 부하 (+ `*.json` 원자료) |

@@ -95,7 +95,7 @@ function JobDetail({ jobId }: { jobId: string }) {
             </Row>
             <Row label="세그 엔진">{job.backend ?? "-"}</Row>
             <Row label="서버 메시지">{job.message ?? "-"}</Row>
-            <Row label="실패 케이스 저장">{job.feedback_saved ? "예 (학습 재료)" : "아니오"}</Row>
+            <Row label="피드백">{job.feedback_saved ? "저장됨 (학습 데이터 후보)" : "없음"}</Row>
           </dl>
           <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
             <div className="flex items-center justify-between">
