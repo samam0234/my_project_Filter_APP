@@ -12,7 +12,7 @@ Docker(`cut_and_keep`) 스택 실행 방법을 정리한다.
 | 항목 | 권장 |
 |------|------|
 | Python | 3.10 ~ 3.12 (**3.11 권장**, 3.14 비권장) |
-| Node.js | 18.x 또는 20.x LTS |
+| Node.js | **22.12 이상** (vite 7 · vitest 5 요구, 24 에서 확인) |
 | Docker Desktop | 선택 (전체 스택) |
 | Git | 2.30+ |
 | **Ollama** (로컬 LLM) | `gemma4:e4b` — 프롬프트 분석 기본 |
