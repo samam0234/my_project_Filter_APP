@@ -81,6 +81,13 @@ def stats(db: Session) -> dict:
         .group_by(LearningSample.split)
     ):
         out["approved_by_split"][split or "none"] = n
+    # 재학습 진행 표시용: 승인된 사용자 문장 (교정·좋아요·회원 요청)
+    out["approved_user_prompts"] = (
+        db.query(func.count(LearningSample.id))
+        .filter(LearningSample.kind == "prompt", LearningSample.status == "approved")
+        .filter(LearningSample.source.in_(USER_SOURCES))
+        .scalar()
+    )
     return out
 
 

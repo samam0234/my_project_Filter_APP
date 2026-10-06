@@ -9,6 +9,7 @@
 | `convert_to_onnx.py` | YOLO 가중치 → ONNX 변환 |
 | `cleanup.py` | 오래된 업로드 임시 파일 삭제 (보관 시간) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
+| `retrain_lora.py` | 승인 사용자 문장이 기준 이상 쌓이면 증강·학습·평가·배포본 비교 (`--deploy` 로 교체) |
 | `fine_tune_lora.py` | Phase 2 LoRA 주간 배치 래퍼 (`training/lora/train_lora.py` 호출) |
 | `evaluate_model.py` | 모델 평가 스캐폴드 |
 | `experiments/selection_e2e.py` | 실제 이미지에서 위치·크기 인스턴스 선택 정확도 (정답 폴리곤) |

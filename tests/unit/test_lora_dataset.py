@@ -294,3 +294,25 @@ def test_eval_prompts_are_dropped_from_training(tmp_path: Path):
     kept, dropped = drop_eval_leaks(records, load_eval_prompts(eval_file))
     assert dropped == 1 and [r.prompt for r in kept] == ["버스는 남기고 배경만 블러 처리해 주세요"]
     assert kept[0].origin == "augment"
+
+
+def test_retrain_decide_requires_gain_and_no_big_drop():
+    """재학습 후보 채택: 전체 맞힌 수가 늘고, 어느 평가셋도 max_drop 보다 더 떨어지지 않아야."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("retrain_lora", REPO_ROOT / "scripts" / "retrain_lora.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["retrain_lora"] = mod  # dataclass 가 모듈을 찾을 수 있게
+    spec.loader.exec_module(mod)
+    S = mod.Score
+    base = {"eval": S(35, 40), "eval_ext": S(47, 56)}
+    assert mod.decide({"eval": S(37, 40), "eval_ext": S(46, 56)}, base)[0] is True   # +2, -1 허용
+    assert mod.decide({"eval": S(39, 40), "eval_ext": S(44, 56)}, base)[0] is False  # -3 하락
+    assert mod.decide({"eval": S(35, 40), "eval_ext": S(47, 56)}, base)[0] is False  # 개선 없음
+    assert mod.decide({"eval": S(36, 40)}, {"other": S(1, 1)})[0] is False           # 비교 불가
+
+    class C:
+        def __init__(self, i):
+            self.payload = {"sample_id": i}
+
+    assert [c.payload["sample_id"] for c in mod.new_approved([C("a"), C("b")], {"a"})] == ["b"]

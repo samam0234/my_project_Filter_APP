@@ -204,6 +204,8 @@ class Settings(BaseSettings):
     # 로그인 회원의 요청 문장 + 시스템 해석을 검수 후보(source=request)로 기록 → 승인되면 LoRA·RAG 학습 데이터
     # (비로그인 요청은 저장하지 않으므로 대상 아님)
     learning_collect_requests: bool = Field(default=True, alias="LEARNING_COLLECT_REQUESTS")
+    # 승인된 사용자 문장이 이만큼 새로 쌓이면 LoRA 재학습 (scripts/retrain_lora.py 기본값 · 콘솔 진행 표시)
+    lora_retrain_min_new: int = Field(default=200, alias="LORA_RETRAIN_MIN_NEW")
 
 
     # --- 세그/검증 임계값 (Phase 1 기본) ---
