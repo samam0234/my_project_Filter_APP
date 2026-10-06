@@ -182,9 +182,9 @@ SECRET_KEY=your-secret-key-here
 MAX_UPLOAD_SIZE_MB=20
 ALLOWED_MIME_TYPES=image/jpeg,image/png,image/webp
 
-# 모델 경로 (YOLO26s instance segmentation — 기본 s 스케일)
-YOLO_MODEL_PATH=models/yolo26s-seg.pt
-# YOLO_MODEL_PATH=models/yolo26s-seg.onnx
+# 모델 경로 (YOLO26m instance segmentation — 기본 m 스케일)
+YOLO_MODEL_PATH=models/yolo26m-seg.pt
+# YOLO_MODEL_PATH=models/yolo26m-seg.onnx
 UPLOAD_DIR=data/uploads
 FEEDBACK_DIR=data/feedback
 

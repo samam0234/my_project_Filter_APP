@@ -86,14 +86,14 @@ def test_runtime_paths_resolve_under_backend(backend_root):
         {
             "UPLOAD_DIR": "data/uploads",
             "SQLITE_PATH": "data/test_cutnkeep.db",
-            "YOLO_MODEL_PATH": "models/yolo26s-seg.pt",
+            "YOLO_MODEL_PATH": "models/yolo26m-seg.pt",
             "LOG_DIR": "logs",
             "DB_DIALECT": "sqlite",
         }
     )
     root = backend_root.resolve()
     assert s.upload_path == root / "data" / "uploads"
-    assert s.yolo_model_file == root / "models" / "yolo26s-seg.pt"
+    assert s.yolo_model_file == root / "models" / "yolo26m-seg.pt"
     assert s.log_path == root / "logs"
     assert (root / "data" / "test_cutnkeep.db").as_posix() in s.database_url
 

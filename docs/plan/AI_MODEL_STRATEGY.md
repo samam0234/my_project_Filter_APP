@@ -1,4 +1,4 @@
-# 컷앤킵 — AI 모델 전략 (YOLO26s-seg + Ollama E4B + 클라우드 LLM)
+# 컷앤킵 — AI 모델 전략 (YOLO26m-seg + Ollama E4B + 클라우드 LLM)
 
 **상태:** Phase 1 확정 방향 (2026-07 기준, **비전 기본 스케일: s**)  
 **관련:** `LOGIC_STRUCTURE.md`, `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md`, `.env.example`, `RUN.md`  
@@ -10,20 +10,20 @@
 
 | 선택 | 판정 | 한 줄 |
 |------|------|--------|
-| **YOLO26s-seg** (세그멘테이션) | **좋음 (기본)** | small 급 — 마스크 품질·속도 균형, Phase 1 본선 |
+| **YOLO26m-seg** (세그멘테이션) | **좋음 (기본)** | medium 급 — COCO val2017 실험에서 s 보다 검출률·선택 정확도 높음 (2026-10-06) |
 | **YOLO26s** (detection) | **좋음 (학습·실험)** | bbox 탐지 학습/검수. 서비스 마스크 본선은 아님 |
 | **Ollama `gemma4:e4b` (E4B)** 로컬 LLM | **좋음 (기본)** | 키 없이 프롬프트 구조화, 프라이버시·비용 0 |
 | **고도화: OpenAI API** | **좋음 (품질 축)** | 복잡한 한국어 프롬프트·안정 JSON에 유리 |
 | **고도화: Gemini API** | **좋음 (비용·쿼터 축)** | 무료/저비용 구간이 넓을 때 실사용 트래픽용 |
 
 **종합:**  
-「로컬 비전은 **YOLO26s-seg** + 가벼운 LLM(Ollama E4B), 고도화는 LLM만 클라우드」가  
+「로컬 비전은 **YOLO26m-seg** + 가벼운 LLM(Ollama E4B), 고도화는 LLM만 클라우드」가  
 컷앤킵 Phase 1 기본이다. (이전 문서의 n 스케일은 s 로 상향 통일.)  
 더 가벼우면 `yolo26n-seg`, 더 무거우면 `m` 등 **경로만 교체** 가능.
 
 ---
 
-## 2. 비전: YOLO26s-seg
+## 2. 비전: YOLO26m-seg
 
 ### 2.1 왜 s(small) + seg 인가
 
@@ -37,13 +37,13 @@
 
 | 용도 | 파일 예 |
 |------|---------|
-| **서빙 (백엔드가 로드)** | `backend/models/yolo26s-seg.pt` (`apply_best.py` 로 배포) |
-| 원본·후보 보관 | `models/yolo26s-seg.pt`, `models/yolo26s.pt` (detect 실험용) |
-| 배포·ONNX Runtime | `backend/models/yolo26s-seg.onnx` (ONNX predict 는 하드코딩 구간) |
+| **서빙 (백엔드가 로드)** | `backend/models/yolo26m-seg.pt` (`apply_best.py` 로 배포) |
+| 원본·후보 보관 | `models/yolo26m-seg.pt`, `models/yolo26s.pt` (detect 실험용) |
+| 배포·ONNX Runtime | `backend/models/yolo26m-seg.onnx` (ONNX predict 는 하드코딩 구간) |
 
 ```bash
 # 예시 (ultralytics CLI / Python export)
-# yolo export model=yolo26s-seg.pt format=onnx
+# yolo export model=yolo26m-seg.pt format=onnx
 ```
 
 ### 2.3 주의
@@ -56,9 +56,9 @@
 ### 2.4 환경변수
 
 ```env
-YOLO_MODEL_PATH=models/yolo26s-seg.pt      # backend/ 기준 → backend/models/
+YOLO_MODEL_PATH=models/yolo26m-seg.pt      # backend/ 기준 → backend/models/
 # 또는
-# YOLO_MODEL_PATH=models/yolo26s-seg.onnx
+# YOLO_MODEL_PATH=models/yolo26m-seg.onnx
 ```
 
 - 현재 서빙 가중치는 **5클래스 커스텀**(person·dog·cat·car·bag). COCO 이름(`handbag` 등)은
@@ -98,7 +98,7 @@ ollama run gemma4:e4b
 | 로컬 비전 LLM이 꼭 필요하면 | Ollama에서 비전 검증된 모델(예: `llava`, `llama3.2-vision` 등)을 **별 프로파일**로 두고 E4B와 분리 |
 
 즉, “이미지 이해까지 전부 E4B”에 올인하기보다  
-**세그=YOLO26s-seg, 프롬프트 파싱=E4B** 가 Phase 1에 더 안정적이다.  
+**세그=YOLO26m-seg, 프롬프트 파싱=E4B** 가 Phase 1에 더 안정적이다.  
 이미지 조건 프롬프트(“이 사진 속 빨간 가방만”)는 Phase 2 오픈보캐브/비전 LLM과 맞물리는 편이 안전.
 
 ### 3.4 환경변수 (로컬 기본)
@@ -147,7 +147,7 @@ Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)          ← 기본, 평가 9
 
 평가: `training/lora/eval_parser.py` · 손으로 쓴 40문항 (`training/lora/seed/eval.jsonl`) 완전 일치 기준.
 
-**비전(세그)은 당분간 YOLO26s-seg 고정.** LLM 클라우드 전환과 분리할 것.
+**비전(세그)은 당분간 YOLO26m-seg 고정.** LLM 클라우드 전환과 분리할 것.
 
 ---
 
@@ -167,7 +167,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
   ParsedPrompt JSON  (target · effect · intensity · crop · selector)
         │
         ▼
-  segmentor (YOLO26s-seg) → instance_selector (위치·순서·개수·색) → validator → effects
+  segmentor (YOLO26m-seg) → instance_selector (위치·순서·개수·색) → validator → effects
 ```
 
 - 설정은 `core/config.py` + `.env` 만 변경
@@ -180,7 +180,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
 
 | Phase | 비전 | LLM |
 |-------|------|-----|
-| **P1** | YOLO26s-seg (ONNX 권장 배포) + 규칙 기반 인스턴스 선택 | Ollama E4B 기본 · LoRA 선택 |
+| **P1** | YOLO26m-seg (ONNX 권장 배포) + 규칙 기반 인스턴스 선택 | Ollama E4B 기본 · LoRA 선택 |
 | **P1 데모 강화** | 동일 | OpenAI 또는 Gemini 스위치 |
 | **P2** | + Grounding DINO / SAM2, 배치 | 클라우드 LLM + 로컬 fallback 유지 |
 | **P3** | 영상 + temporal | 동일 LLM 계층 재사용 |
@@ -202,7 +202,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
 ## 8. 체크리스트 (도입 시)
 
 - [x] `ollama pull gemma4:e4b` 후 로컬 응답 확인  
-- [x] `yolo26s-seg.pt` 학습 산출물 배치 (`backend/models/`)  
+- [x] `yolo26m-seg.pt` 학습 산출물 배치 (`backend/models/`)  
 - [ ] (선택) ONNX export → `YOLO_MODEL_PATH` (ONNX predict 구현 필요)  
 - [x] `.env` 에 `LLM_PROVIDER=ollama` 설정  
 - [x] 프롬프트 → ParsedPrompt 단위 테스트 + 평가 (`training/lora/eval_parser.py`)  
@@ -217,7 +217,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
 | 경로 | 내용 |
 |------|------|
 | **`training/`** | **학습 전용 구역** (yolo detect/seg, lora, datasets, outputs) |
-| `training/yolo/train_segment.py` | 세그 학습 진입점 (기본 `yolo26s-seg.pt`) |
+| `training/yolo/train_segment.py` | 세그 학습 진입점 (기본 `yolo26s-seg.pt` — 서빙 기본 m 과 별개, 직접 학습용) |
 | `training/yolo/train_detect.py` | 탐지 학습 진입점 (기본 `yolo26s.pt`) |
 | `training/lora/train_lora.py` | 시드·피드백·의사라벨 → 프롬프트 분석 LoRA |
 | `training/lora/eval_parser.py` | heuristic · ollama · base · lora 비교 평가 |
@@ -233,5 +233,5 @@ prompt_analyzer 노드 (workflows/nodes.py)
 ---
 
 **결론:**  
-**YOLO26s-seg** + Ollama E4B 기본, OpenAI/Gemini를 고도화 스위치로 두는 구성은 **추천한다.**  
+**YOLO26m-seg** + Ollama E4B 기본, OpenAI/Gemini를 고도화 스위치로 두는 구성은 **추천한다.**  
 문서·env·학습 스크립트 기본값을 s 스케일에 맞춰 둔다.

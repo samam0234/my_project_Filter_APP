@@ -43,7 +43,7 @@
 | 폴더 | 내용 |
 |------|------|
 | `data/` | `uploads/{job_id}/`, `cutnkeep.db` |
-| `models/` | 서빙 가중치 `yolo26s-seg.pt`, LoRA 어댑터 `lora/` |
+| `models/` | 서빙 가중치 `yolo26m-seg.pt`, LoRA 어댑터 `lora/` |
 | `logs/` | `app_YYYY-MM-DD.log` |
 
 ## 실행

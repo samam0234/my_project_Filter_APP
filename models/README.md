@@ -6,7 +6,7 @@ ONNX, PyTorch 체크포인트, LoRA 어댑터의 **원본과 후보**를 보관�
 ## 【수동·필수】
 
 - 이 폴더에 **직접 파일을 배치**해야 한다 (git 에 가중치 없음).
-- 서비스 본선: **`yolo26s-seg.pt`** (또는 onnx) — **세그** 모델.
+- 서비스 본선: **`yolo26m-seg.pt`** (또는 onnx) — **세그** 모델.
 - detect 전용 `yolo26s.pt` 만 넣으면 마스크가 없어 stub 로 떨어질 수 있음.
 - 서빙 반영: `python training/yolo/apply_best.py --weights models/<파일>` → `backend/models/` 로 배포.
 
@@ -14,8 +14,9 @@ ONNX, PyTorch 체크포인트, LoRA 어댑터의 **원본과 후보**를 보관�
 
 | 파일 | 설명 |
 |------|------|
-| `yolo26s-seg.pt` | Ultralytics YOLO26s 인스턴스 세그 (로컬 추론) |
-| `yolo26s-seg.onnx` | 배포·ONNX Runtime 용 export 산출물 |
+| `yolo26m-seg.pt` | Ultralytics YOLO26m 인스턴스 세그 — 서빙 기본 (2026-10-06~) |
+| `yolo26s-seg.pt` | YOLO26s 인스턴스 세그 (이전 기본, 가벼운 대안) |
+| `yolo26m-seg.onnx` | 배포·ONNX Runtime 용 export 산출물 (ONNX predict 는 하드코딩 구간) |
 
 ## Git
 
@@ -26,7 +27,7 @@ ONNX, PyTorch 체크포인트, LoRA 어댑터의 **원본과 후보**를 보관�
 
 ```powershell
 # 예: ONNX 변환 (ultralytics 환경)
-python scripts/convert_to_onnx.py --weights models/yolo26s-seg.pt --out models/yolo26s-seg.onnx
+python scripts/convert_to_onnx.py --weights models/yolo26m-seg.pt --out models/yolo26m-seg.onnx
 ```
 
 ## Docker

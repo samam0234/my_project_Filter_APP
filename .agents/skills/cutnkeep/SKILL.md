@@ -1,6 +1,6 @@
 ---
 name: cutnkeep
-description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 시 docs/branchs/commits 에 md 기록 필수(docs/commits 금지), 제목 요약 한국어(type/scope 영어), feature 브랜치, develop·main --no-ff, YOLO26s-seg·Ollama E4B. 트리거: commit, branchs, commits, console, backend, cutnkeep, ollama, yolo."
+description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 시 docs/branchs/commits 에 md 기록 필수(docs/commits 금지), 제목 요약 한국어(type/scope 영어), feature 브랜치, develop·main --no-ff, YOLO26m-seg·Ollama E4B. 트리거: commit, branchs, commits, console, backend, cutnkeep, ollama, yolo."
 ---
 
 # 컷앤킵 프로젝트 스킬
@@ -10,7 +10,7 @@ description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 시 docs/branchs/c
 - 이름: 컷앤킵 / Cut & Keep  
 - 루트: `backend/`, `frontend/`, `console/`, `docs/`, `docker-compose.yml`  
 - Phase 1: 단일 이미지 파이프라인, 계층형 백엔드, SQLite/MariaDB, 운영 콘솔  
-- 비전: **YOLO26s-seg** (기본 s; n→s 안내 `docs/plan/YOLO26S_DEFAULT.md`)  
+- 비전: **YOLO26m-seg** (기본 m; s→m 안내 `docs/plan/YOLO26M_DEFAULT.md`)  
 - LLM 기본: **Ollama gemma4:e4b** · 빠른 로컬: `lora` (Qwen2.5-1.5B 어댑터) · 고도화: OpenAI/Gemini
 - 프롬프트 규격 정본: `backend/app/services/prompt_spec.py` (바꾸면 `training/lora` 재학습)
 - 런타임(uploads·SQLite·서빙 모델·앱 로그)은 `backend/`, 학습 공유(feedback·pseudo·모델 원본)는 루트  

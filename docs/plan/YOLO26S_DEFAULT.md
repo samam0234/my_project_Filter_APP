@@ -1,5 +1,7 @@
 # 비전 기본 모델: YOLO26n → YOLO26s 전환
 
+> **2026-10-06 이후 기본은 YOLO26m-seg** — [`YOLO26M_DEFAULT.md`](YOLO26M_DEFAULT.md). 이 문서는 n→s 전환 기록.
+
 **일자:** 2026-07-28  
 **브랜치:** `feature/backend`  
 **대상:** Phase 1 기본 비전 스케일을 **nano(n) → small(s)** 로 통일
