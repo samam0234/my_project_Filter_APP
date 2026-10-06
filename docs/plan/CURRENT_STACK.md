@@ -54,7 +54,7 @@
 | 파일 | 용도 |
 |------|------|
 | **루트** `requirements.txt` | 로컬 backend 풀스택 |
-| **루트** `requirements.docker.txt` | Docker 경량 이미지 (YOLO/torch 없음 → stub 세그 가능) |
+| **루트** `requirements.docker.txt` | Docker 런타임 공통 (LangGraph 포함). 세그용 ultralytics + CPU torch 는 `backend/Dockerfile` 에서 따로 설치 (CI 는 미설치로 가볍게) |
 | `training/requirements-training.txt` | 학습 venv (torch 는 로컬 wheel, 원격 자동 대용량 금지 정책) |
 | ~~`backend/requirements*.txt`~~ | **제거됨** (루트로 이전) |
 

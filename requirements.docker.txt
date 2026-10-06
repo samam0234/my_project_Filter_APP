@@ -24,12 +24,12 @@ python-dotenv==1.0.1
 aiofiles==24.1.0
 loguru==0.7.2
 
+# 파이프라인 그래프 (없으면 선형 실행으로 대체됨 — Docker 에서도 로컬과 같은 경로로)
+langgraph==0.2.28
+langchain-core==0.3.6
+
 SQLAlchemy==2.0.35
 PyMySQL==1.1.1
 cryptography==43.0.1
 
-# LangGraph 스택은 용량이 큼. 컨테이너에서 전체 워크플로 필요 시 주석 해제:
-# langchain==0.3.1
-# langchain-core==0.3.6
-# langgraph==0.2.28
-# langchain-openai==0.2.1
+# langchain · langchain-openai 는 백엔드 코드가 쓰지 않아 넣지 않는다 (LLM 호출은 urllib)
