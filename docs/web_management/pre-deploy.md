@@ -26,8 +26,9 @@
 - [ ] uvicorn 워커 1개 기준 (속도 제한·모델이 프로세스 메모리) — 늘리려면 속도 제한을 Redis 로
 - [ ] 업로드 파일 정리 `scripts/cleanup.py` 를 cron/작업 스케줄러에 등록 (`FILE_RETENTION_HOURS`)
 - [ ] CI 통과 (`.github/workflows/ci.yml`)
-- [ ] 프론트 개발 도구 취약점: 배포 번들은 0건, `npm audit`(dev 포함) 은 vite 5·esbuild·eslint 계열 10건 →
-      vite 메이저 업그레이드 별도 작업. dev 서버(`npm run dev`)를 외부망에 열지 말 것
+- [ ] 프론트 개발 도구 취약점: 배포 번들은 0건. `npm audit`(dev 포함) 은 2026-10-06 vite 7 · vitest 5 로 올려 10건(치명 2) → 7건(높음 5 · 중간 2)
+      — 남은 건 전부 **tailwindcss 3** 계열(braces·chokidar·postcss-selector-parser, 빌드 시점) → tailwind 4 마이그레이션 별도 작업.
+      dev 서버(`npm run dev`)를 외부망에 열지 말 것
 - [ ] 이미지 빌드 성공 (`backend`, `frontend`)
 - [ ] 포트 충돌 없음 (`ports-inventory.md`)
 - [ ] 콘솔 외부 노출 여부 결정 (기본 비권장/내부망). 콘솔 API 는 기본 loopback 전용 — 원격은 앞단 인증 후 `CONSOLE_ALLOW_REMOTE=true`

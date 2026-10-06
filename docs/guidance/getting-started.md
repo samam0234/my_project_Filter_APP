@@ -6,7 +6,7 @@
 ## 전제
 
 - Python 3.10–3.12 (3.11 권장, 3.14 비권장)
-- Node 18/20
+- Node 22.12 이상 (vite 7 · vitest 5 요구)
 - (선택) Docker Desktop · 로컬 Ollama `gemma4:e4b`
 - (선택) `backend/models/yolo26m-seg.pt` — 없으면 stub 세그 (`training/yolo/apply_best.py` 로 배포)
 

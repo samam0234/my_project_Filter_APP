@@ -1,7 +1,7 @@
 # 컷앤킵 Frontend 이미지 (Vite 빌드 → nginx 정적 서빙)
 
 # --- 빌드 단계 ---
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
