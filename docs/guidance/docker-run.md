@@ -37,7 +37,7 @@ DB 초기화: `down` 후 `data/mariaDB_datas` 폴더를 삭제하고 다시 `up`
 
 - 콘솔(`console/`)은 Compose **미포함** → 로컬 `npm run dev` (:5174)
 - 백엔드 이미지: 루트 `requirements.docker.txt` + Dockerfile 에서 **ultralytics + CPU 전용 torch** (약 2.8 GB)
-  - 세그 가중치 `backend/models/yolo26s-seg.pt` 가 있어야 실제 마스크 (없으면 stub). 기동 로그 `YOLO 세그멘터 준비` 로 확인
+  - 세그 가중치(`.env` 의 `YOLO_MODEL_PATH` — 기본 `backend/models/yolo26m-seg.pt`, `docs/plan/YOLO26M_DEFAULT.md`)가 있어야 실제 마스크 (없으면 stub). 기동 로그 `YOLO 세그멘터 준비` 로 확인
   - LangGraph 포함 — 로컬과 같은 그래프 경로 (로그에 `langgraph 미설치` 경고가 없어야 정상)
   - 서비스 DB 는 SQLite(`./backend/data`), 학습 DB 는 MariaDB — `/health` 의 `db_dialect: sqlite`, `learning_db: mysql`
 
@@ -46,7 +46,7 @@ DB 초기화: `down` 후 `data/mariaDB_datas` 폴더를 삭제하고 다시 `up`
 | 항목 | 결과 |
 |------|------|
 | `/health` | `db_dialect=sqlite` · `learning_db=mysql` |
-| 세그 | 이전: ultralytics 없어 **stub(가짜) 마스크** → 이후: YOLO26s-seg CPU, segmentor 97~135 ms |
+| 세그 | 이전: ultralytics 없어 **stub(가짜) 마스크** → 이후: YOLO CPU 추론 — s 97~135 ms, (같은 날 교체한) m 225~345 ms |
 | 해석 | 컨테이너 → 호스트 Ollama(`host.docker.internal`) 정상, parser=ollama |
 | 파이프라인 | 이전: langgraph 없어 선형 실행 → 이후: LangGraph |
 | frontend(nginx :80) | 화면 200 · 새로고침 경로(`/history`) 200 · `/health`·`/api` 프록시 정상 |
