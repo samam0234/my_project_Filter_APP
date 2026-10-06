@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
+from contextvars import ContextVar
 from typing import Any, Dict, Optional
 
 from loguru import logger
@@ -34,6 +35,8 @@ from app.services.prompt_spec import (  # noqa: F401  (테스트·호출측 재�
 )
 
 LLM_PROVIDERS = {"ollama", "openai", "gemini", "lora"}
+# 이번 호출에서 실제로 성공한 provider. 노드가 휴리스틱과 구분하려고 읽는다.
+_LAST_PROVIDER: ContextVar[str] = ContextVar("cutnkeep_llm_provider", default="")
 
 OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 GEMINI_URL_TEMPLATE = (
@@ -145,9 +148,53 @@ _CALLERS = {
 
 
 def llm_enabled(settings: Settings | None = None) -> bool:
-    """provider 가 실제 LLM(ollama/openai/gemini)인지."""
+    """provider 가 실제 LLM(ollama/openai/gemini/lora)인지."""
     settings = settings or get_settings()
     return (settings.llm_provider or "").strip().lower() in LLM_PROVIDERS
+
+
+def clear_last_llm_provider() -> None:
+    """직전 호출의 provider 기록을 지운다. 노드가 호출 직전에 쓴다."""
+    _LAST_PROVIDER.set("")
+
+
+def last_llm_provider() -> str:
+    """방금 성공한 provider. 없으면 빈 문자열."""
+    return _LAST_PROVIDER.get()
+
+
+def llm_chain(settings: Settings | None = None) -> list[str]:
+    """기본 provider 와, 다르면 LLM_FALLBACK 한 단계.
+
+    heuristic·빈 값·알 수 없는 이름은 체인을 만들지 않는다 (LLM 생략).
+    """
+    settings = settings or get_settings()
+    primary = (settings.llm_provider or "").strip().lower()
+    if primary not in LLM_PROVIDERS:
+        return []
+    chain = [primary]
+    fallback = (settings.llm_fallback or "").strip().lower()
+    if fallback in LLM_PROVIDERS and fallback not in chain:
+        chain.append(fallback)
+    return chain
+
+
+def _parse_with_provider(
+    provider: str,
+    prompt: str,
+    settings: Settings,
+    examples: str,
+) -> ParsedPrompt:
+    """provider 하나. 실패는 LLMError."""
+    if provider == "lora":
+        from app.services.prompt_lora import parse_prompt_lora
+
+        return parse_prompt_lora(prompt, settings)
+    caller = _CALLERS.get(provider)
+    if caller is None:
+        raise LLMError(f"지원하지 않는 provider: {provider}")
+    text = caller(prompt, settings, SYSTEM_PROMPT + examples)
+    return normalize_parsed(extract_json_object(text))
 
 
 def parse_prompt_llm(
@@ -160,25 +207,50 @@ def parse_prompt_llm(
     examples: RAG 가 찾은 비슷한 정답 예시 블록 (services/prompt_rag.format_examples).
               SYSTEM_PROMPT 뒤에 붙인다. lora 는 학습 템플릿이 고정이라 쓰지 않는다.
 
+    기본 provider 가 LLMError 이면 LLM_FALLBACK 을 한 번 더 시도한다.
+    성공한 이름은 last_llm_provider() 에 남는다.
+
     반환:
       - ParsedPrompt : 성공
       - None         : provider 가 heuristic/빈 값/미지원 → LLM 생략
     예외:
-      - LLMError     : 호출·파싱 실패 (호출측이 휴리스틱으로 fallback)
+      - LLMError     : 체인 전부 실패 (호출측이 휴리스틱으로 fallback)
     """
     settings = settings or get_settings()
-    provider = (settings.llm_provider or "").strip().lower()
-    if provider in {"", "heuristic", "none"}:
-        return None
-    if provider == "lora":
-        # 로컬 어댑터 — HTTP 가 아니라 프로세스 내 추론 (services/prompt_lora)
-        from app.services.prompt_lora import parse_prompt_lora
-
-        return parse_prompt_lora(prompt, settings)
-    caller = _CALLERS.get(provider)
-    if caller is None:
-        logger.warning("알 수 없는 LLM_PROVIDER={} — 휴리스틱 사용", provider)
+    clear_last_llm_provider()
+    chain = llm_chain(settings)
+    if not chain:
+        provider = (settings.llm_provider or "").strip().lower()
+        if provider not in {"", "heuristic", "none"}:
+            logger.warning("알 수 없는 LLM_PROVIDER={} — 휴리스틱 사용", provider)
         return None
 
-    text = caller(prompt, settings, SYSTEM_PROMPT + examples)
-    return normalize_parsed(extract_json_object(text))
+    errors: list[str] = []
+    for index, provider in enumerate(chain):
+        try:
+            parsed = _parse_with_provider(provider, prompt, settings, examples)
+        except LLMError as exc:
+            errors.append(f"{provider}: {exc}")
+            logger.warning("LLM {} 실패: {}", provider, exc)
+            continue
+        _LAST_PROVIDER.set(provider)
+        if index:
+            logger.warning("LLM fallback 성공 provider={}", provider)
+        return parsed
+    raise LLMError(" | ".join(errors))
+
+
+def parse_prompt_or_heuristic(
+    prompt: str,
+    settings: Settings | None = None,
+) -> ParsedPrompt:
+    """배치·영상용. LLM 체인이 실패하거나 꺼져 있으면 휴리스틱."""
+    from app.workflows.nodes import parse_prompt_heuristic
+
+    try:
+        parsed = parse_prompt_llm(prompt, settings)
+        if parsed is not None:
+            return parsed
+    except Exception as exc:
+        logger.warning("프롬프트 LLM 실패 — 휴리스틱: {}", exc)
+    return parse_prompt_heuristic(prompt)

@@ -47,6 +47,7 @@ cryptography==43.0.1
 # transformers>=4.45
 # peft>=0.13
 
-# Phase 2 (필요 시 주석 해제)
-# celery==5.4.0
-# redis==5.0.8
+# Phase 2 배치 워커. 기본 경로는 Celery 없이 BackgroundTasks.
+# compose 의 celery_worker 는 profile phase2. BATCH_USE_CELERY=true 일 때만 사용.
+celery==5.4.0
+redis==5.0.8

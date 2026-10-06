@@ -171,7 +171,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
 ```
 
 - 설정은 `core/config.py` + `.env` 만 변경
-- 키가 없거나 Ollama down·타임아웃(`LLM_TIMEOUT_SECONDS`)이면 **휴리스틱 파서로 fallback**
+- 키가 없거나 호출이 실패하면 `LLM_FALLBACK`(기본 ollama)을 한 번 더 시도하고, 그것도 실패하면 **휴리스틱**
 - "특정 인스턴스"를 고르는 것은 LLM 이 아니라 규칙(`instance_selector`) — LLM 은 조건만 뽑는다
 
 ---
@@ -182,8 +182,8 @@ prompt_analyzer 노드 (workflows/nodes.py)
 |-------|------|-----|
 | **P1** | YOLO26m-seg (ONNX 권장 배포) + 규칙 기반 인스턴스 선택 | Ollama E4B 기본 · LoRA 선택 |
 | **P1 데모 강화** | 동일 | OpenAI 또는 Gemini 스위치 |
-| **P2** | + Grounding DINO / SAM2, 배치 | 클라우드 LLM + 로컬 fallback 유지 |
-| **P3** | 영상 + temporal | 동일 LLM 계층 재사용 |
+| **P2** | Grounding DINO / SAM2 (`OPEN_VOCAB_ENABLED`, 로컬 가중치), 배치(기본 인프로세스, Celery 는 선택) | 클라우드 LLM + `LLM_FALLBACK` |
+| **P3** | 영상 프레임 세그 + 직전 마스크 유지 (avi). 광학 흐름은 후속 | 동일 LLM 계층 재사용 |
 
 ---
 
@@ -203,7 +203,7 @@ prompt_analyzer 노드 (workflows/nodes.py)
 
 - [x] `ollama pull gemma4:e4b` 후 로컬 응답 확인  
 - [x] `yolo26m-seg.pt` 학습 산출물 배치 (`backend/models/`)  
-- [ ] (선택) ONNX export → `YOLO_MODEL_PATH` (ONNX predict 구현 필요)  
+- [x] (선택) ONNX 추론 (`onnx_utils.py`, `SEG_RUNTIME=onnx`)  
 - [x] `.env` 에 `LLM_PROVIDER=ollama` 설정  
 - [x] 프롬프트 → ParsedPrompt 단위 테스트 + 평가 (`training/lora/eval_parser.py`)  
 - [x] 업로드 1건 → 마스크·효과 e2e (인스턴스 선택·지우기 포함)

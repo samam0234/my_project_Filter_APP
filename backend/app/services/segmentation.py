@@ -163,6 +163,20 @@ class Segmentor:
         """
         targets = targets or ["person"]
 
+        # 닫힌 어휘에 없는 대상만. 실패·미설치·빈 검출은 YOLO/ONNX/stub 으로 이어진다.
+        if self._needs_open_vocab(targets):
+            try:
+                opened = predict_grounding_sam2(
+                    image,
+                    ", ".join(targets),
+                    settings=self.settings,
+                )
+                if opened.mask.any() or (self._yolo is None and self._session is None):
+                    return opened
+                logger.info("오픈보캐브 검출 없음 — 닫힌 어휘 세그로 계속")
+            except Exception as exc:
+                logger.warning("오픈보캐브 세그 생략: {}", exc)
+
         # =============================================================================
         # [이미 구현된 구간 · 바이브] YOLO .pt 경로 우선
         # =============================================================================
@@ -190,6 +204,29 @@ class Segmentor:
         # [이미 구현된 구간 · 바이브] 모델 없을 때 stub 마스크
         # =============================================================================
         return self._stub_mask(image, targets)
+
+    def _known_labels(self) -> set[str]:
+        """로드된 YOLO/ONNX 클래스 이름. 모델이 없으면 빈 집합."""
+        raw = None
+        if self._yolo is not None:
+            raw = getattr(self._yolo, "names", None)
+        elif self._onnx_names:
+            raw = self._onnx_names
+        if isinstance(raw, dict):
+            return {str(value).lower() for value in raw.values()}
+        return set()
+
+    def _needs_open_vocab(self, targets: List[str]) -> bool:
+        """OPEN_VOCAB_ENABLED 이고, 요청 중 모델 클래스 밖 이름이 있을 때만."""
+        if not self.settings.open_vocab_enabled:
+            return False
+        wanted = {item.lower() for item in targets if item}
+        if not wanted or "all" in wanted:
+            return False
+        known = self._known_labels()
+        if not known:
+            return True
+        return any(item not in expand_targets(known) for item in expand_targets(wanted))
 
     def _predict_onnx(
         self,
@@ -326,10 +363,172 @@ class Segmentor:
 # [규칙] Phase1 YOLO 안정 후. DINO 박스 → SAM2. 절대경로 금지.
 # [힌트] boxes=dino...; masks=sam2...; return SegmentationResult(..., backend="dino_sam2")
 # =============================================================================
+_OV_CACHE: dict[str, tuple] = {}
+
+
+def _dino_text(prompt: str) -> str:
+    """Grounding DINO 는 'dog . cat .' 형태를 기대한다."""
+    parts = [part.strip() for part in prompt.replace(",", ".").split(".") if part.strip()]
+    if not parts:
+        parts = [prompt.strip()] if prompt.strip() else ["object"]
+    return " . ".join(parts) + " ."
+
+
+def _load_local_pair(kind: str, model_id: str, model_cls, processor_cls):
+    """local_files_only. 허브 다운로드는 하지 않는다."""
+    key = f"{kind}:{model_id}"
+    if key in _OV_CACHE:
+        return _OV_CACHE[key]
+    try:
+        processor = processor_cls.from_pretrained(model_id, local_files_only=True)
+        model = model_cls.from_pretrained(model_id, local_files_only=True)
+    except Exception as exc:
+        raise NotImplementedError(
+            f"{kind} 가중치를 로컬에서 열 수 없습니다 ({model_id}): {exc}"
+        ) from exc
+    _OV_CACHE[key] = (processor, model)
+    return processor, model
+
+
+def _post_dino(processor, outputs, inputs, threshold: float, hw: Tuple[int, int]):
+    """transformers 버전마다 인자 이름이 다르다."""
+    attempts = (
+        {
+            "outputs": outputs,
+            "input_ids": inputs.input_ids,
+            "threshold": threshold,
+            "text_threshold": threshold,
+            "target_sizes": [hw],
+        },
+        {
+            "outputs": outputs,
+            "input_ids": inputs.input_ids,
+            "box_threshold": threshold,
+            "text_threshold": threshold,
+            "target_sizes": [hw],
+        },
+    )
+    last: Exception | None = None
+    for kwargs in attempts:
+        try:
+            return processor.post_process_grounded_object_detection(**kwargs)
+        except TypeError as exc:
+            last = exc
+    raise NotImplementedError(f"Grounding DINO 후처리 시그니처 불일치: {last}")
+
+
+def _infer_open_vocab(
+    image: np.ndarray,
+    prompt: str,
+    settings: Settings,
+) -> SegmentationResult:
+    """로컬 Grounding DINO 박스 → SAM2 마스크. 의존성·가중치가 없으면 NotImplementedError."""
+    try:
+        import torch
+        from PIL import Image
+        from transformers import (
+            AutoModelForZeroShotObjectDetection,
+            AutoProcessor,
+            Sam2Model,
+            Sam2Processor,
+        )
+    except ImportError as exc:
+        raise NotImplementedError(f"open-vocab 의존성 없음: {exc}") from exc
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dino_proc, dino_model = _load_local_pair(
+        "dino",
+        settings.dino_model_id,
+        AutoModelForZeroShotObjectDetection,
+        AutoProcessor,
+    )
+    sam_proc, sam_model = _load_local_pair(
+        "sam2",
+        settings.sam2_model_id,
+        Sam2Model,
+        Sam2Processor,
+    )
+    dino_model.to(device).eval()
+    sam_model.to(device).eval()
+
+    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    pil = Image.fromarray(rgb)
+    inputs = dino_proc(images=pil, text=_dino_text(prompt), return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = dino_model(**inputs)
+    height, width = image.shape[:2]
+    threshold = float(settings.min_confidence)
+    processed = _post_dino(dino_proc, outputs, inputs, threshold, (height, width))
+    first = processed[0] if processed else {}
+    boxes = first["boxes"].detach().cpu().tolist() if len(first.get("boxes", [])) else []
+    scores = first["scores"].detach().cpu().tolist() if len(first.get("scores", [])) else []
+    raw_labels = first.get("text_labels", first.get("labels", []))
+    labels = [str(item).lower() for item in raw_labels] or ["object"] * len(boxes)
+
+    if not boxes:
+        return SegmentationResult(
+            mask=np.zeros((height, width), dtype=np.uint8),
+            backend="dino_sam2",
+            detected=[],
+        )
+
+    box_inputs = sam_proc(
+        images=pil,
+        input_boxes=[[[float(value) for value in box] for box in boxes]],
+        return_tensors="pt",
+    ).to(device)
+    with torch.no_grad():
+        sam_out = sam_model(**box_inputs, multimask_output=False)
+    pred = sam_out.pred_masks.detach().cpu()
+    original_sizes = box_inputs.get("original_sizes")
+    if original_sizes is not None and hasattr(sam_proc, "post_process_masks"):
+        try:
+            mask_arr = sam_proc.post_process_masks(pred, original_sizes.cpu())[0]
+        except Exception:
+            mask_arr = pred[0]
+    else:
+        mask_arr = pred[0]
+    if hasattr(mask_arr, "numpy"):
+        mask_arr = mask_arr.numpy()
+
+    instances: List[Instance] = []
+    detected = labels
+    for index, _box in enumerate(boxes):
+        mask = mask_arr[index]
+        while getattr(mask, "ndim", 0) > 2:
+            mask = mask[0]
+        if tuple(mask.shape[:2]) != (height, width):
+            mask = cv2.resize(mask.astype(np.float32), (width, height), interpolation=cv2.INTER_LINEAR)
+        binary = (mask > 0.0).astype(np.uint8) * 255
+        confidence = float(scores[index]) if index < len(scores) else threshold
+        label = detected[index] if index < len(detected) else "object"
+        if binary.any():
+            instances.append(Instance.from_mask(binary, label, confidence))
+    union = union_mask(instances, (height, width))
+    return SegmentationResult(
+        mask=union,
+        confidences=[item.confidence for item in instances],
+        labels=[item.label for item in instances],
+        backend="dino_sam2",
+        detected=detected,
+        instances=instances,
+    )
+
+
 def predict_grounding_sam2(
     image: np.ndarray,
     prompt: str,
+    settings: Settings | None = None,
 ) -> SegmentationResult:
-    """Phase 2: Grounding DINO + SAM2. 하드코딩 구간 — 본문 직접 구현."""
-    # >>> 여기에 구현 <<<
-    raise NotImplementedError("Grounding DINO + SAM2 is Phase 2.")
+    """Phase 2: Grounding DINO + SAM2.
+
+    OPEN_VOCAB_ENABLED 가 꺼져 있거나 로컬 가중치가 없으면 NotImplementedError.
+    호출측(Segmentor.predict)은 그 경우 YOLO/ONNX/stub 으로 넘어간다.
+    """
+    settings = settings or get_settings()
+    if not settings.open_vocab_enabled:
+        raise NotImplementedError("OPEN_VOCAB_ENABLED 가 꺼져 있습니다.")
+    text = (prompt or "").strip()
+    if not text:
+        raise NotImplementedError("오픈보캐브 프롬프트가 비어 있습니다.")
+    return _infer_open_vocab(image, text, settings)

@@ -145,7 +145,7 @@ DB 상세·ERD: **`DATABASE.md`**
 | 1 | `routers/upload.py`, `core/security.py` | 구현 |
 | 2 | `workflows/nodes.py` (`prompt_analyzer`), `services/prompt_spec.py` | 구현 (Ollama 기본, LoRA·클라우드 선택) |
 | 3 | `services/image_processor.py` | 구현 |
-| 4 | `services/segmentation.py`, `utils/onnx_utils.py`, `services/instance_selector.py` | 구현 (YOLO26m-seg `.pt` / ONNX). SAM2 는 Phase 2 미착수 |
+| 4 | `services/segmentation.py`, `utils/onnx_utils.py`, `services/instance_selector.py` | 구현 (YOLO26m-seg `.pt` / ONNX). SAM2 는 `OPEN_VOCAB_ENABLED` 일 때만, 가중치 없으면 YOLO 로 폴백 |
 | 5 | `services/effects.py` | 구현 |
 | 6 | `services/validator.py` | 구현 |
 | 7 | `services/feedback_service.py`, `routers/feedback.py` | 구현 |
@@ -325,23 +325,24 @@ useAppStore
 
 ### 8.1 배치 (Phase 2)
 ```
-POST /batch → Celery task enqueue
-  worker: for image in generator(files):
-            run same 7-step pipeline
-            update Redis progress
-  client: poll or SSE → progress %
+POST /batch (회원) → 파일 저장 + status=queued
+  기본: BackgroundTasks → run_batch_job
+  BATCH_USE_CELERY=true: Celery + Redis (compose profile phase2)
+  worker: generator 로 한 장씩 → batch_jobs.progress 갱신
+  client: GET /batch/{job_id}
 ```
 - 최대 500장
-- 메모리: **반드시 generator/스트리밍** (한 번에 전체 로드 금지)
+- 메모리: **한 장씩** (`process_batch_generator`)
 
-### 8.2 영상 (Phase 3)
+### 8.2 영상
 ```
-video → frames
-  per frame: 7-step pipeline
-  Temporal Smoothing: Optical Flow + LSTM/GRU
-  → reassembled video
+POST /video → frames
+  per frame: 기존 segmentor + effects
+  검출 없는 프레임: 직전 마스크 유지
+  → MJPG avi
 ```
-- 목표: 프레임 간 마스크 깜빡임/흔들림 감소
+- 비로그인은 응답으로만 받고 저장하지 않는다
+- 광학 흐름·LSTM 은 아직 없다
 
 ---
 

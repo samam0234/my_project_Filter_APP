@@ -33,3 +33,7 @@ PyMySQL==1.1.1
 cryptography==43.0.1
 
 # langchain · langchain-openai 는 백엔드 코드가 쓰지 않아 넣지 않는다 (LLM 호출은 urllib)
+
+# Phase 2 배치 워커 (기본 BATCH_USE_CELERY=false. compose profile phase2 에서 import)
+celery==5.4.0
+redis==5.0.8

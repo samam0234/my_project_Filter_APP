@@ -251,11 +251,17 @@ npm run dev
 
 - 기본 주소: http://localhost:5173
 
-### 5.3 Celery Worker (Phase 2)
+### 5.3 Celery Worker (Phase 2, 선택)
+
+기본 배치는 API 프로세스의 BackgroundTasks 다 (`BATCH_USE_CELERY=false`).
+Redis 워커를 쓸 때만 아래를 켠다. compose 서비스 `celery_worker` 는 profile `phase2` 라
+`docker compose up` 만으로는 뜨지 않는다.
 
 ```bash
 cd backend
 celery -A app.tasks.batch_tasks worker --loglevel=info
+# 또는
+# BATCH_USE_CELERY=true docker compose -p cut_and_keep --profile phase2 up -d celery_worker
 ```
 
 ### 5.4 Redis (Phase 2)

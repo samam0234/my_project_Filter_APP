@@ -1,0 +1,90 @@
+"""짧은 영상: 프레임마다 기존 세그멘터를 쓰고, 검출이 없으면 직전 마스크를 유지한다.
+
+출력은 MJPG avi. 환경마다 mp4 코덱이 달라 여기서는 avi 로 고정한다.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+from app.schemas.request import ParsedPrompt
+from app.services.effects import apply_effects
+
+
+def _as_bgr(image: np.ndarray, width: int, height: int) -> np.ndarray:
+    """효과 결과(그레이·BGRA·크롭)를 원본 프레임 크기의 BGR 로 맞춘다."""
+    if image.ndim == 2:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    if image.shape[2] == 4:
+        bgr = image[:, :, :3].astype(np.float32)
+        alpha = image[:, :, 3:4].astype(np.float32) / 255.0
+        image = (bgr * alpha).astype(np.uint8)
+    if image.shape[1] != width or image.shape[0] != height:
+        image = cv2.resize(image, (width, height))
+    return image
+
+
+def process_video(
+    src: Path,
+    dst: Path,
+    parsed: ParsedPrompt,
+    segmentor,
+    *,
+    max_frames: int = 240,
+    max_seconds: float = 20.0,
+) -> dict:
+    """src 를 읽어 dst(avi) 로 쓴다.
+
+    반환: frames(처리 프레임 수), held(직전 마스크를 재사용한 프레임 수), fps.
+    """
+    capture = cv2.VideoCapture(str(src))
+    if not capture.isOpened():
+        raise ValueError(f"영상을 열 수 없습니다: {src}")
+    fps = float(capture.get(cv2.CAP_PROP_FPS) or 0.0)
+    if fps <= 1 or fps > 120:
+        fps = 15.0
+    limit = max(1, int(max_frames))
+    if max_seconds > 0:
+        limit = min(limit, max(1, int(fps * max_seconds)))
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    writer = None
+    previous = None
+    frames = 0
+    held = 0
+    try:
+        while frames < limit:
+            ok, frame = capture.read()
+            if not ok or frame is None:
+                break
+            if frame.ndim == 2:
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            seg = segmentor.predict(frame, targets=list(parsed.target or ["person"]))
+            mask = seg.mask
+            if mask is None or not np.any(mask):
+                if previous is not None:
+                    mask = previous
+                    held += 1
+            else:
+                previous = mask.copy()
+            if mask is None:
+                mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+            rendered = _as_bgr(apply_effects(frame, mask, parsed), frame.shape[1], frame.shape[0])
+            if writer is None:
+                height, width = rendered.shape[:2]
+                fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+                writer = cv2.VideoWriter(str(dst), fourcc, fps, (width, height))
+                if not writer.isOpened():
+                    raise ValueError("영상 인코더를 열 수 없습니다.")
+            writer.write(rendered)
+            frames += 1
+    finally:
+        capture.release()
+        if writer is not None:
+            writer.release()
+    if frames == 0:
+        raise ValueError("프레임이 없습니다.")
+    return {"frames": frames, "held": held, "fps": fps, "path": str(dst)}

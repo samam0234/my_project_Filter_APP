@@ -154,6 +154,38 @@ def test_malformed_response_raises(monkeypatch):
         parse_prompt_llm("강아지", _settings())
 
 
+def test_openai_falls_back_to_ollama(monkeypatch):
+    def fake_post(url, payload, headers=None, timeout=30.0):
+        if "openai.com" in url:
+            raise LLMError("cloud down")
+        return {
+            "message": {
+                "content": '{"target": ["dog"], "effect": "blur", "intensity": 10, "crop": false}'
+            }
+        }
+
+    monkeypatch.setattr(prompt_llm, "_post_json", fake_post)
+    parsed = parse_prompt_llm(
+        "강아지",
+        _settings(LLM_PROVIDER="openai", OPENAI_API_KEY="sk-test", LLM_FALLBACK="ollama"),
+    )
+    assert parsed.target == ["dog"]
+    assert prompt_llm.last_llm_provider() == "ollama"
+
+
+def test_fallback_does_not_repeat_same_provider(monkeypatch):
+    calls = {"n": 0}
+
+    def fake_post(url, payload, headers=None, timeout=30.0):
+        calls["n"] += 1
+        raise LLMError("down")
+
+    monkeypatch.setattr(prompt_llm, "_post_json", fake_post)
+    with pytest.raises(LLMError):
+        parse_prompt_llm("강아지", _settings(LLM_PROVIDER="ollama", LLM_FALLBACK="ollama"))
+    assert calls["n"] == 1
+
+
 def test_connection_refused_raises_llm_error():
     # 닫힌 로컬 포트 → URLError → LLMError (실제 소켓, 외부 네트워크 없음)
     s = _settings(LLM_BASE_URL="http://127.0.0.1:9", LLM_TIMEOUT_SECONDS=2)
@@ -177,6 +209,34 @@ def test_prompt_analyzer_uses_llm_result(monkeypatch):
     out = nodes.prompt_analyzer({"job_id": "j1", "prompt": "머그컵만 남겨"})
     assert out["parsed_prompt"]["target"] == ["cup"]
     assert out["prompt_parser"] == "ollama"
+
+
+def test_prompt_analyzer_records_fallback_provider(monkeypatch):
+    nodes = pytest.importorskip("app.workflows.nodes")
+
+    monkeypatch.setattr(
+        nodes,
+        "get_settings",
+        lambda: _settings(
+            LLM_PROVIDER="openai",
+            OPENAI_API_KEY="",
+            LLM_FALLBACK="ollama",
+            PROMPT_RAG_ENABLED=False,
+        ),
+    )
+
+    def fake_post(url, payload, headers=None, timeout=30.0):
+        assert "/api/chat" in url
+        return {
+            "message": {
+                "content": '{"target": ["cat"], "effect": "blur", "intensity": 15, "crop": false}'
+            }
+        }
+
+    monkeypatch.setattr(prompt_llm, "_post_json", fake_post)
+    out = nodes.prompt_analyzer({"job_id": "j3", "prompt": "고양이만"})
+    assert out["prompt_parser"] == "ollama"
+    assert out["parsed_prompt"]["target"] == ["cat"]
 
 
 def test_prompt_analyzer_falls_back_on_llm_error(monkeypatch):
@@ -230,16 +290,26 @@ def test_system_prompt_documents_keep_vs_remove():
 
 
 def test_lora_provider_without_base_model_raises():
-    """LLM_PROVIDER=lora 인데 베이스 경로가 없으면 LLMError → 노드가 휴리스틱으로 fallback."""
+    """LLM_PROVIDER=lora 인데 베이스 경로가 없으면 LLMError.
+
+    LLM_FALLBACK 을 끄면 로컬 Ollama 로 넘어가지 않고 로라 설정 오류가 그대로 올라온다.
+    """
     with pytest.raises(LLMError):
-        parse_prompt_llm("강아지만 남겨", _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL=""))
+        parse_prompt_llm(
+            "강아지만 남겨",
+            _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL="", LLM_FALLBACK=""),
+        )
 
 
 def test_lora_provider_missing_dir_raises(tmp_path):
     with pytest.raises(LLMError):
         parse_prompt_llm(
             "강아지만 남겨",
-            _settings(LLM_PROVIDER="lora", LORA_BASE_MODEL=str(tmp_path / "nope")),
+            _settings(
+                LLM_PROVIDER="lora",
+                LORA_BASE_MODEL=str(tmp_path / "nope"),
+                LLM_FALLBACK="",
+            ),
         )
 
 
