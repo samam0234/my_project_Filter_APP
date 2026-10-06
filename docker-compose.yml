@@ -121,6 +121,34 @@ services:
     networks:
       - cutnkeep_net
 
+  # 기본 `up` 에는 포함되지 않는다. 배치를 Redis 로 보낼 때만:
+  #   BATCH_USE_CELERY=true docker compose -p cut_and_keep --profile phase2 up -d celery_worker
+  celery_worker:
+    profiles: ["phase2"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        SEG_RUNTIME: ${SEG_RUNTIME:-ultralytics}
+    command: celery -A app.tasks.batch_tasks worker --loglevel=info
+    env_file:
+      - .env
+    environment:
+      DB_DIALECT: sqlite
+      REDIS_URL: redis://redis:6379/0
+      BATCH_USE_CELERY: "true"
+      LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/models:/app/models
+      - ./backend/logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - cutnkeep_net
+
   adminer:
     image: adminer:4
     ports:

@@ -24,7 +24,7 @@ from app.schemas.request import InstanceSelector, ParsedPrompt
 from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
 from app.services.instance_selector import select_instances
-from app.services.prompt_llm import parse_prompt_llm
+from app.services.prompt_llm import clear_last_llm_provider, last_llm_provider, llm_chain, parse_prompt_llm
 from app.services.prompt_rag import format_examples, get_prompt_rag
 from app.services.segmentation import union_mask
 from app.workflows.state import GraphState
@@ -225,17 +225,21 @@ def prompt_analyzer(state: GraphState) -> GraphState:
     rag_hits: list = []
     examples = ""
     provider = (settings.llm_provider or "").strip().lower()
-    if settings.prompt_rag_enabled and provider in {"ollama", "openai", "gemini"}:
+    chain = llm_chain(settings)
+    if settings.prompt_rag_enabled and any(p in {"ollama", "openai", "gemini"} for p in chain):
         # RAG: 비슷한 정답 예시(사용자 교정·좋아요·시드)를 찾아 LLM 지시문에 붙인다
         try:
             rag_hits = get_prompt_rag(settings).retrieve(prompt)
             examples = format_examples(rag_hits)
         except Exception as exc:  # 검색 실패는 예시 없이 진행
             logger.warning("프롬프트 RAG 검색 실패 job={}: {}", job_id, exc)
+    clear_last_llm_provider()
     try:
         parsed = parse_prompt_llm(prompt, settings, examples=examples)
         if parsed is not None:
-            parser_used = settings.llm_provider.strip().lower()
+            # fallback 이 성공하면 기본 provider 가 아니라 실제 성공한 이름을 남긴다.
+            # parse_prompt_llm 이 테스트에서 교체되면 기록이 비어 기본 이름을 쓴다.
+            parser_used = last_llm_provider() or provider
     except Exception as exc:
         logger.warning("LLM 프롬프트 분석 실패 job={} — 휴리스틱 사용: {}", job_id, exc)
         parsed = None

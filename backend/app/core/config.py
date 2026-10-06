@@ -119,6 +119,9 @@ class Settings(BaseSettings):
     # 【수동·튜닝】 LLM_TIMEOUT_SECONDS — Ollama 첫 호출은 모델 로드로 느릴 수 있음
     # 초과 시 휴리스틱 fallback 이므로 너무 길면 업로드 응답이 늦어진다
     llm_timeout_seconds: float = Field(default=30.0, alias="LLM_TIMEOUT_SECONDS")
+    # 【수동】 LLM_FALLBACK — 기본 provider 가 LLMError 일 때 한 번 더 시도 (기본 로컬 Ollama).
+    # 같은 값이거나 heuristic/빈 값이면 건너뛴다. 둘 다 실패하면 휴리스틱.
+    llm_fallback: str = Field(default="ollama", alias="LLM_FALLBACK")
     # 【수동·선택】 LLM_PROVIDER=lora — training/lora 로 학습한 어댑터를 transformers 로 서빙
     # 경로는 backend/ 기준. 베이스는 HF 형식 폴더(config.json + safetensors), 어댑터는 서빙용 복사본
     lora_base_model: str = Field(default="", alias="LORA_BASE_MODEL")
@@ -168,7 +171,22 @@ class Settings(BaseSettings):
     # 【수동·Phase2】 REDIS_URL — compose 호스트 포트는 6380 매핑 주의
     # FILE_RETENTION_HOURS: scripts/cleanup.py 와 동일 env 사용
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
+    # 【수동·Phase2】 true 이고 celery 가 설치돼 있으면 배치를 Redis 워커로 보낸다.
+    # 기본 false: API 프로세스의 BackgroundTasks 가 한 장씩 처리 (compose 기본 up 과 동일).
+    batch_use_celery: bool = Field(default=False, alias="BATCH_USE_CELERY")
     file_retention_hours: int = Field(default=24, alias="FILE_RETENTION_HOURS")
+    # 【수동·Phase2】 닫힌 어휘(YOLO names)에 없는 대상만 Grounding DINO+SAM2.
+    # 가중치·torch 가 없으면 업로드는 YOLO/ONNX/stub 으로 계속된다. 기동 중 다운로드 없음.
+    open_vocab_enabled: bool = Field(default=False, alias="OPEN_VOCAB_ENABLED")
+    dino_model_id: str = Field(
+        default="IDEA-Research/grounding-dino-tiny",
+        alias="DINO_MODEL_ID",
+    )
+    sam2_model_id: str = Field(default="facebook/sam2-hiera-tiny", alias="SAM2_MODEL_ID")
+    # 【수동】 영상 업로드. 비로그인은 응답으로만 받고 디스크에 남기지 않는다.
+    video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
+    video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")
+    video_max_seconds: float = Field(default=20.0, alias="VIDEO_MAX_SECONDS")
 
     # 【수동】 CORS_ORIGINS — 프론트(5173)·콘솔(5174) 배포 도메인을 콤마로 추가
     cors_origins: str = Field(

@@ -158,14 +158,23 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 ---
 
-## Batch (Phase 2 scaffold)
+## Batch
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/batch` | **로그인 필요** · `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 배치 등록만 (실제 처리 미구현) |
-| `GET /api/v1/batch/{job_id}` | **로그인 필요** · 본인 배치 상태·진행률. 없거나 남의 배치면 `status: "not_found"` |
+| `POST /api/v1/batch` | **로그인 필요** · `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 파일 저장 후 `queued`. 기본은 프로세스 안에서 한 장씩 처리. `BATCH_USE_CELERY=true` 이면 Redis 워커 |
+| `GET /api/v1/batch/{job_id}` | **로그인 필요** · 본인 배치 상태·진행률·`item_results`. 없거나 남의 배치면 `status: "not_found"` |
 
-→ DB `batch_jobs`. 워커 구현은 `backend/app/tasks/batch_tasks.py` 하드코딩 구간.
+→ DB `batch_jobs`. 워커는 `backend/app/tasks/batch_tasks.py`.
+
+## Video
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 MJPG avi. **비로그인**은 첨부 응답만(저장 없음). **회원**은 `uploads/videos/{job_id}` 보관 |
+| `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
+
+검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
 
 ---
 
