@@ -136,17 +136,19 @@ DB 상세·ERD: **`DATABASE.md`**
     · P2: Pseudo Label → 주 1회 LoRA (오프라인)
 ```
 
-### 3.1 단계 ↔ 코드 매핑 (구현 앵커)
+### 3.1 단계 ↔ 코드 매핑 (현재 구현)
 
-| Step | 모듈 (예정) | Feature 브랜치 |
-|------|-------------|----------------|
-| 1 | `api/endpoints/upload.py`, `core/security.py` | `feature/backend` |
-| 2 | `workflows/nodes.py` (`prompt_analyzer`) | `feature/llm`, `feature/langgraph` |
-| 3 | `services/image_processor.py` | `feature/opencv` |
-| 4 | `services/segmentation.py` | `feature/yolo` → `feature/sam2` |
-| 5 | `services/effects.py` | `feature/opencv` |
-| 6 | `services/validator.py` | `feature/langgraph` |
-| 7 | `services/feedback_service.py`, `api/.../feedback.py` | `feature/feedback` |
+경로는 모두 `backend/app/` 기준. 오른쪽은 처음 넣은 브랜치 이름이고, 지금 코드는 `develop` 에 있다.
+
+| Step | 모듈 | 상태 |
+|------|------|------|
+| 1 | `routers/upload.py`, `core/security.py` | 구현 |
+| 2 | `workflows/nodes.py` (`prompt_analyzer`), `services/prompt_spec.py` | 구현 (Ollama 기본, LoRA·클라우드 선택) |
+| 3 | `services/image_processor.py` | 구현 |
+| 4 | `services/segmentation.py`, `utils/onnx_utils.py`, `services/instance_selector.py` | 구현 (YOLO26m-seg `.pt` / ONNX). SAM2 는 Phase 2 미착수 |
+| 5 | `services/effects.py` | 구현 |
+| 6 | `services/validator.py` | 구현 |
+| 7 | `services/feedback_service.py`, `routers/feedback.py` | 구현 |
 
 ---
 

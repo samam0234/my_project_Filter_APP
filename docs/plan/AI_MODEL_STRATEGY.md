@@ -1,8 +1,8 @@
 # 컷앤킵 — AI 모델 전략 (YOLO26m-seg + Ollama E4B + 클라우드 LLM)
 
-**상태:** Phase 1 확정 방향 (2026-07 기준, **비전 기본 스케일: s**)  
+**상태:** Phase 1 확정 방향 (비전 기본 **YOLO26m-seg**, 2026-10-06 s→m)  
 **관련:** `LOGIC_STRUCTURE.md`, `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md`, `.env.example`, `RUN.md`  
-**변경 메모:** `docs/plan/YOLO26S_DEFAULT.md` (n → s 전환)
+**변경 메모:** `docs/plan/YOLO26S_DEFAULT.md` (n → s), `docs/plan/YOLO26M_DEFAULT.md` (s → m)
 
 ---
 
@@ -18,20 +18,20 @@
 
 **종합:**  
 「로컬 비전은 **YOLO26m-seg** + 가벼운 LLM(Ollama E4B), 고도화는 LLM만 클라우드」가  
-컷앤킵 Phase 1 기본이다. (이전 문서의 n 스케일은 s 로 상향 통일.)  
-더 가벼우면 `yolo26n-seg`, 더 무거우면 `m` 등 **경로만 교체** 가능.
+컷앤킵 Phase 1 기본이다. (n → s → **m**. 검출 비교는 `YOLO26M_DEFAULT.md`.)  
+더 가볍게 되돌리려면 `YOLO_MODEL_PATH=models/yolo26s-seg.pt` 처럼 **경로만 교체**한다.
 
 ---
 
 ## 2. 비전: YOLO26m-seg
 
-### 2.1 왜 s(small) + seg 인가
+### 2.1 왜 m(medium) + seg 인가
 
 - **세그멘테이션(`-seg`)**: bbox만 있는 detect 모델이 아니라 **픽셀 마스크**가 나와 배경 제거/블러 전제와 맞음.
 - **YOLO26 계열**: Ultralytics 최신 라인. 인스턴스 세그 마스크 품질·속도 개선.
-- **s 스케일 (기본)**: n 대비 표현력이 커 마스크 품질에 유리하면서도 1인 개발·로컬 GPU에서 현실적.
+- **m 스케일 (서빙 기본, 2026-10-06)**: COCO val2017 비교에서 직접 학습 s(5클래스)와 COCO s 보다 검출률·선택 정확도가 높고, l 과의 차이는 작다. 근거는 `YOLO26M_DEFAULT.md`.
 - **detect (`yolo26s.pt`)**: 학습 구역·검수용. 서비스 `Segmentor` 는 **seg 가중치** 전제.
-- 필요 시 같은 파이프라인으로 `yolo26n-seg` / `m` 등으로 **파일 경로만 교체** 가능.
+- 학습 스크립트 출발 가중치(`train_segment.py` 기본 `yolo26s-seg.pt`)는 서빙 기본과 별개다.
 
 ### 2.2 권장 산출물
 
@@ -39,7 +39,7 @@
 |------|---------|
 | **서빙 (백엔드가 로드)** | `backend/models/yolo26m-seg.pt` (`apply_best.py` 로 배포) |
 | 원본·후보 보관 | `models/yolo26m-seg.pt`, `models/yolo26s.pt` (detect 실험용) |
-| 배포·ONNX Runtime | `backend/models/yolo26m-seg.onnx` (ONNX predict 는 하드코딩 구간) |
+| 배포·ONNX Runtime | `backend/models/yolo26m-seg.onnx` (`SEG_RUNTIME=onnx`, `onnx_utils.py`. `docs/plan/ONNX_INFERENCE.md`) |
 
 ```bash
 # 예시 (ultralytics CLI / Python export)
@@ -224,14 +224,16 @@ prompt_analyzer 노드 (workflows/nodes.py)
 | `backend/app/services/prompt_spec.py` | 프롬프트 규격 정본 (서빙·학습 공용) |
 | `backend/app/services/instance_selector.py` | 특정 인스턴스 선택 규칙 |
 | `.env.example` | YOLO / LLM 환경변수 템플릿 |
-| `backend/app/core/config.py` | Settings (`YOLO_MODEL_PATH` 기본 s-seg) |
+| `backend/app/core/config.py` | Settings (`YOLO_MODEL_PATH` 기본 `models/yolo26m-seg.pt`) |
 | `backend/app/services/segmentation.py` | 추론 시 YOLO 로드 |
 | `docs/guidance/llm-and-vision.md` | 실행 가이드 (요약) |
 | `docs/plan/YOLO26S_DEFAULT.md` | n→s 전환 안내 |
+| `docs/plan/YOLO26M_DEFAULT.md` | s→m 전환 (현재 서빙 기본) |
+| `docs/plan/ONNX_INFERENCE.md` | torch 없는 ONNX 세그 추론 |
 | `RUN.md` | Ollama·모델 기동 메모 |
 
 ---
 
 **결론:**  
 **YOLO26m-seg** + Ollama E4B 기본, OpenAI/Gemini를 고도화 스위치로 두는 구성은 **추천한다.**  
-문서·env·학습 스크립트 기본값을 s 스케일에 맞춰 둔다.
+서빙·env 기본은 **m**. 학습 스크립트의 출발 가중치만 s-seg 를 유지한다 (직접 학습용).
