@@ -140,11 +140,40 @@ def record_feedback(
         fb.created_at = created_at
     db.add(fb)
     for sample in _samples_for(fb, label_path):
+        if sample.kind == "prompt" and _merge_into_request(db, sample):
+            continue
         if created_at is not None:
             sample.created_at = created_at
         db.add(sample)
     db.commit()
     return fb
+
+
+def _merge_into_request(db: Session, sample: LearningSample) -> bool:
+    """같은 작업의 회원 요청 후보가 있으면 새 행 대신 그 후보를 갱신 (검수 목록 중복 방지).
+
+    좋아요 → 출처만 like (사용자가 시스템 해석을 확인), 교정 → 정답까지 사용자 값으로.
+    정답이 바뀌었는데 이미 검수된 후보면 다시 검수 대기로 돌린다.
+    원본을 피드백으로 옮겨(origin_id) 삭제 시 피드백 사이드카까지 정리되게 한다.
+    """
+    if not sample.job_id:
+        return False
+    req = (
+        db.query(LearningSample)
+        .filter(LearningSample.kind == "prompt", LearningSample.source == "request")
+        .filter(LearningSample.job_id == sample.job_id, LearningSample.status != "deleted")
+        .first()
+    )
+    if req is None:
+        return False
+    changed = req.answer != sample.answer
+    req.source, req.answer, req.origin_id = sample.source, sample.answer, sample.origin_id
+    req.label_path = sample.label_path or req.label_path
+    req.image_path = req.image_path or sample.image_path
+    if changed and req.status != "pending":
+        req.status, req.split, req.reviewed_by, req.reviewed_at = "pending", None, None, None
+        req.note = "사용자 교정으로 정답이 바뀌어 다시 검수 대기"
+    return True
 
 
 # ------------------------------------------------------------------ 사이드카 동기화
@@ -259,7 +288,7 @@ def record_request(
 ) -> Optional[LearningSample]:
     """회원 요청 1건 → source=request 검수 후보 (시스템 해석을 정답 후보로).
 
-    같은 문장의 request 후보가 이미 있으면 (검수 여부·삭제 무관) 다시 만들지 않는다.
+    같은 작업·같은 문장의 후보가 이미 있으면 (검수 여부·삭제·피드백으로 합쳐짐 무관) 다시 만들지 않는다.
     """
     answer = parse_answer(parsed_prompt)
     if not _usable_prompt(prompt) or not answer:
@@ -267,8 +296,13 @@ def record_request(
     prompt = prompt.strip()
     exists = (
         db.query(LearningSample.id)
-        .filter(LearningSample.kind == "prompt", LearningSample.source == "request")
-        .filter((LearningSample.origin_id == job_id) | (LearningSample.prompt == prompt))
+        .filter(LearningSample.kind == "prompt")
+        # 같은 작업(삭제 표식·피드백으로 합쳐진 후보 포함) 또는 같은 문장이면 출처와 상관없이 다시 만들지 않는다
+        .filter(
+            (LearningSample.origin_id == job_id)
+            | (LearningSample.job_id == job_id)
+            | (LearningSample.prompt == prompt)
+        )
         .first()
     )
     if exists:

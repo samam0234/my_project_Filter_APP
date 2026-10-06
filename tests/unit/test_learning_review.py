@@ -117,24 +117,25 @@ def test_delete_removes_files_and_is_not_resurrected_by_sync(env):
     c = env["client"]
     job_id = _upload(c, "왼쪽에서 두 번째 사람 지워줘")
     assert c.post("/api/v1/feedback", json={"job_id": job_id, "vote": "dislike", "comment": json.dumps(FIX)}).status_code == 200
-    correction = _samples(c, source="correction")["items"][0]
+    # 요청 후보에 교정이 합쳐져 1건
+    items = _samples(c)["items"]
+    assert [i["source"] for i in items] == ["correction"]
+    correction = items[0]
     sidecar = get_settings().feedback_path / f"{correction['origin_id']}.json"
     assert sidecar.is_file()
 
     r = c.delete(f"/api/v1/console/learning/samples/{correction['id']}")
     assert r.status_code == 200 and r.json()["removed_files"] == [sidecar.name]
     assert not sidecar.exists()
-    assert _samples(c, source="correction")["total"] == 0
+    assert _samples(c)["total"] == 0
     assert c.delete(f"/api/v1/console/learning/samples/{correction['id']}").status_code == 404
 
-    req = _samples(c, source="request")["items"][0]
-    assert c.delete(f"/api/v1/console/learning/samples/{req['id']}").status_code == 200
     with env["LearningSession"]() as ldb, env["Session"]() as sdb:
         assert ldb.get(Feedback, correction["origin_id"]) is None
-        # 재기동 동기화가 지운 것을 되살리지 않음 (요청 후보는 job 이 남아 있어도 삭제 표식으로 막힘)
+        # 재기동 동기화가 지운 것을 되살리지 않음 (job 은 남아 있어도 같은 작업의 삭제 표식으로 막힘)
         assert sync_from_files(ldb, get_settings()) == {"feedbacks": 0, "pseudo_labels": 0}
         assert sync_requests_from_jobs(ldb, sdb, get_settings()) == 0
-        tomb = ldb.get(LearningSample, req["id"])
+        tomb = ldb.get(LearningSample, correction["id"])
         assert tomb.status == "deleted" and tomb.prompt is None and tomb.answer is None
 
 
@@ -147,3 +148,39 @@ def test_broken_encoding_prompt_is_not_a_candidate(env):
 def test_learning_console_is_local_only(env, monkeypatch):
     monkeypatch.setattr(get_settings(), "console_allow_remote", False)
     assert env["client"].get("/api/v1/console/learning/samples").status_code == 403
+
+
+def test_like_merges_into_request_candidate(env):
+    """같은 작업의 요청 후보 + 좋아요 → 검수 목록에는 1건 (출처는 like 로 승격)."""
+    c = env["client"]
+    job_id = _upload(c, "가운데 사람만 남기고 배경 블러")
+    assert c.post("/api/v1/feedback", json={"job_id": job_id, "vote": "like"}).status_code == 200
+    body = _samples(c, q="가운데 사람만")
+    assert body["total"] == 1
+    item = body["items"][0]
+    assert item["source"] == "like" and item["job_id"] == job_id and item["origin_id"] != job_id
+
+
+def test_correction_after_approval_goes_back_to_pending(env):
+    c = env["client"]
+    job_id = _upload(c, "왼쪽에서 두 번째 사람 지워줘")
+    sid = _samples(c)["items"][0]["id"]
+    assert c.post(f"/api/v1/console/learning/samples/{sid}/review", json={"action": "approve"}).status_code == 200
+    c.post("/api/v1/feedback", json={"job_id": job_id, "vote": "dislike", "comment": json.dumps(FIX)})
+    item = _samples(c, status="pending")["items"][0]
+    assert item["id"] == sid and item["source"] == "correction"
+    assert item["answer"]["effect"] == "remove_object" and "다시 검수" in item["note"]
+
+
+def test_user_source_filter_hides_pseudo_labels(env):
+    from app.models.learning_sample import LearningSample as LS
+
+    c = env["client"]
+    _upload(c, "강아지만 남겨")
+    with env["LearningSession"]() as ldb:
+        ldb.add(LS(id="p1", kind="prompt", source="pseudo_label", status="pending", origin_id="coco_1",
+                   prompt="자동차만 크롭", answer={"target": ["car"], "effect": "crop"}))
+        ldb.commit()
+    assert _samples(c)["total"] == 2
+    assert [i["source"] for i in _samples(c, source="user")["items"]] == ["request"]
+    assert _samples(c, source="pseudo_label,request")["total"] == 2
