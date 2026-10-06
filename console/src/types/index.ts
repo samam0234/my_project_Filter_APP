@@ -64,4 +64,8 @@ export interface LearningStats {
   by_source: Record<string, Record<string, number>>;
   approved_by_split: Record<string, number>;
   learning_db?: string | null;
+  /** 승인된 사용자 문장 수 (재학습 진행 표시) */
+  approved_user_prompts?: number;
+  /** 재학습 기준 (LORA_RETRAIN_MIN_NEW) */
+  retrain_min_new?: number;
 }

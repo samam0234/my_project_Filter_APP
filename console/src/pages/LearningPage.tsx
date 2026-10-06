@@ -138,7 +138,11 @@ export function LearningPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="검수 대기" value={by.pending ?? 0} />
-        <StatCard label="승인" value={by.approved ?? 0} hint={`train ${split.train ?? 0} · val ${split.val ?? 0}`} />
+        <StatCard
+          label="승인"
+          value={by.approved ?? 0}
+          hint={`train ${split.train ?? 0} · val ${split.val ?? 0} · 재학습 ${stats?.approved_user_prompts ?? 0}/${stats?.retrain_min_new ?? 200}`}
+        />
         <StatCard label="거절" value={by.rejected ?? 0} />
         <StatCard
           label="사용자 데이터 대기"

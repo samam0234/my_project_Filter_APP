@@ -54,6 +54,23 @@ backend/models/lora/ 로 복사 + .env LLM_PROVIDER=lora  (backend 재시작)
 - 응답 JSON 토큰에만 loss (지시문 암기 방지), 끝에 EOS
 - `count` 규칙: 숫자 표현이나 위치 단어가 있을 때만. 명사만("남자") 으로는 채우지 않는다
 
+### 재학습 루프 (`scripts/retrain_lora.py`)
+
+승인된 사용자 문장이 쌓이면 이 스크립트 하나로 증강 → 학습 → 평가 → 배포본과 비교까지 한다.
+
+```powershell
+python scripts/retrain_lora.py              # 지난 재학습 이후 새 승인이 기준(LORA_RETRAIN_MIN_NEW=200) 미만이면 "대기"만
+python scripts/retrain_lora.py --force      # 기준 무시하고 한 바퀴 (점검용)
+python scripts/retrain_lora.py --deploy     # 후보가 이기면 backend/models/lora 교체 (이전 것은 lora_prev_<시각> 로 백업)
+```
+
+- 평가셋: `seed/eval.jsonl`(40) · `seed/eval_ext.jsonl`(56) · 승인 val split — 배포본과 같은 평가셋으로 비교
+- **채택 조건**: 전체 맞힌 수가 배포본보다 많고, 어느 평가셋에서도 1문항(`--max-drop`)보다 더 떨어지지 않을 때.
+  평가셋이 작아 재학습만으로 1~2문항이 흔들리므로 둘 다 요구한다
+- 결과: `training/outputs/lora/user_<시각>/retrain_report.md`, 상태 `training/outputs/lora/retrain_state.json`(학습에 쓴 승인 샘플 id)
+- 운영 콘솔 "학습 데이터" 승인 카드에 `재학습 N/200` 표시 (승인된 사용자 문장 수 / 기준)
+- 정기 실행: 작업 스케줄러(cron)에 `python scripts/retrain_lora.py` 를 걸어 두면 기준을 넘을 때만 학습한다
+
 ### 사용자 문장을 정답으로 넣는 법
 
 1. 회원이 쓴 요청은 자동으로 검수 후보(`request`)가 되고, 결과 화면 "정답 알려주기"는 교정 후보(`correction`)가 된다

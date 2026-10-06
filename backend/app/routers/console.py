@@ -88,7 +88,11 @@ def _sample_view(row, settings) -> LearningSampleResponse:
 @router.get("/learning/stats")
 async def learning_stats(ldb: Session = Depends(get_learning_db)) -> dict:
     """출처·상태·split 별 건수 + 학습 DB 모드."""
-    return {**learning_review.stats(ldb), "learning_db": learning_db_mode()}
+    return {
+        **learning_review.stats(ldb),
+        "learning_db": learning_db_mode(),
+        "retrain_min_new": get_settings().lora_retrain_min_new,
+    }
 
 
 @router.get("/learning/samples", response_model=LearningSampleList)

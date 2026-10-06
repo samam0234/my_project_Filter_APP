@@ -49,7 +49,8 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
   행은 내용을 비운 `deleted` 표식으로 남아 기동 시 동기화가 되살리지 않는다
 - 승인 · 삭제는 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 RAG 색인에 반영된다
 - 승인된 문장으로 LoRA 를 다시 학습하는 방법: [`training/lora/README.md`](../../training/lora/README.md)
-  (`augment_prompts.py` → `train_lora.py` → `eval_parser.py`)
+  (`augment_prompts.py` → `train_lora.py` → `eval_parser.py`) — 한 번에: `python scripts/retrain_lora.py`
+- 승인 카드의 `재학습 N/200` = 승인된 사용자 문장 수 / 재학습 기준 (`LORA_RETRAIN_MIN_NEW`)
 
 ## 자동 갱신
 
