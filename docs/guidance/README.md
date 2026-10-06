@@ -14,7 +14,7 @@
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
 | [auth.md](./auth.md) | 로그인 · 회원가입 · 아이디/비밀번호 찾기 · 보안 · SMTP |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
-| [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · yolo26s-seg · OpenAI/Gemini |
+| [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · yolo26m-seg · OpenAI/Gemini |
 
 테스트 실행: [`../plan/TESTING.md`](../plan/TESTING.md), [`../../tests/README.md`](../../tests/README.md)
 

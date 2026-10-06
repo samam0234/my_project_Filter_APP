@@ -30,7 +30,7 @@ const FEATURES = [
 
 const STEPS = [
   { icon: Sparkles, title: "문장 해석", body: "LLM 이 대상 · 조건 · 하고 싶은 것을 구조화" },
-  { icon: ScanSearch, title: "대상 찾기", body: "YOLO26s-seg 가 사물을 픽셀 단위로 분리" },
+  { icon: ScanSearch, title: "대상 찾기", body: "YOLO26m-seg 가 사물을 픽셀 단위로 분리" },
   { icon: Wand2, title: "고르고 적용", body: "조건에 맞는 것만 골라 남기기 / 지우기" },
 ];
 

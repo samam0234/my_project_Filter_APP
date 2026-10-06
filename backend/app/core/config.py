@@ -71,13 +71,13 @@ class Settings(BaseSettings):
     # --- 서비스 런타임 경로 (상대 경로는 backend/ 기준) ---
     # 【수동·필수】 YOLO_MODEL_PATH — 지금 서빙 중인 활성 모델 (backend/models/)
     # 조건:
-    #   1) 서비스 본선은 **세그** 가중치 (yolo26s-seg.pt 또는 .onnx), git 에 안 올라감
+    #   1) 서비스 본선은 **세그** 가중치 (yolo26m-seg.pt 또는 .onnx — 2026-10-06 s→m, docs/plan/YOLO26M_DEFAULT.md), git 에 안 올라감
     #   2) 없으면 segmentation 이 stub 타원 마스크로 동작 (데모용)
     # 기능: Segmentor 가 Ultralytics/ONNX 로 로드하는 유일한 경로 설정
     # 배포: 루트 models/(원본·후보 보관소) 또는 학습 best.pt
     #       → training/yolo/apply_best.py 가 backend/models/ 로 복사
     yolo_model_path: str = Field(
-        default="models/yolo26s-seg.pt",
+        default="models/yolo26m-seg.pt",
         alias="YOLO_MODEL_PATH",
     )
     # 【수동】 업로드 before/after — FILE_RETENTION_HOURS 뒤 scripts/cleanup.py 가 정리

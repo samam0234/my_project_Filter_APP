@@ -66,7 +66,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 
 | 항목 | 현재 기본 |
 |------|-----------|
-| 세그 | **YOLO26s-seg** — 서빙 `backend/models/yolo26s-seg.pt` / `.onnx`, 원본·후보 루트 `models/` |
+| 세그 | **YOLO26m-seg** — 서빙 `backend/models/yolo26m-seg.pt` / `.onnx`, 원본·후보 루트 `models/` |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |

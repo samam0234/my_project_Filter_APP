@@ -5,8 +5,8 @@
 
 | 파일 | 설명 |
 |------|------|
-| `yolo26s-seg.pt` | 서빙 중인 YOLO 세그 가중치 (`YOLO_MODEL_PATH` 기본값) |
-| `yolo26s-seg.onnx` | (선택) ONNX Runtime 서빙용 |
+| `yolo26m-seg.pt` | 서빙 중인 YOLO 세그 가중치 (`YOLO_MODEL_PATH` 기본값) |
+| `yolo26m-seg.onnx` | (선택) ONNX Runtime 서빙용 |
 
 ## 배포 (교체)
 
@@ -21,7 +21,7 @@ python training/yolo/apply_best.py --weights models/<후보>.pt --skip-predict
 교체 후 backend 재시작. detect 전용 `.pt` 는 마스크가 없어 stub 로 떨어지니 넣지 말 것.
 
 ```env
-YOLO_MODEL_PATH=models/yolo26s-seg.pt   # backend/ 기준
+YOLO_MODEL_PATH=models/yolo26m-seg.pt   # backend/ 기준
 ```
 
 Docker: `./backend/models` → `/app/models` 마운트.

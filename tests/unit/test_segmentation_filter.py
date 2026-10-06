@@ -62,11 +62,24 @@ class _Result:
 
 
 class _FakeYolo:
+    """Ultralytics 처럼 conf 미만 검출은 predict 단계에서 버린다 (기본 0.25)."""
+
     def __init__(self, result):
         self._result = result
+        self.calls: list[float] = []
 
-    def predict(self, img, verbose=False):
-        return [self._result]
+    def predict(self, img, verbose=False, conf=0.25):
+        self.calls.append(conf)
+        r = self._result
+        keep = [i for i, c in enumerate(r.boxes.conf) if c.item() >= conf]
+        if r.masks is None or len(keep) == len(r.boxes.conf):
+            return [r]
+        out = _Result.__new__(_Result)
+        out.names = r.names
+        data = r.masks.data.cpu().numpy()[keep] if keep else None
+        out.masks = type("M", (), {"data": _Tensor(data)})() if keep else None
+        out.boxes = _Boxes([r.boxes.cls[i].item() for i in keep], [r.boxes.conf[i].item() for i in keep])
+        return [out]
 
 
 NAMES = {0: "person", 1: "car", 2: "dog"}
@@ -173,5 +186,8 @@ def test_min_confidence_override_includes_low_confidence_target():
     """재시도용 신뢰도 기준 완화 — 기본 기준에서 빠지던 낮은 신뢰도 대상이 포함된다."""
     img = np.zeros((H, W, 3), np.uint8)
     default = _segmentor().predict(img, targets=["person"])
-    relaxed = _segmentor().predict(img, targets=["person"], min_confidence=0.05)
+    seg = _segmentor()
+    relaxed = seg.predict(img, targets=["person"], min_confidence=0.05)
     assert len(relaxed.labels) == len(default.labels) + 1
+    # 낮춘 기준이 모델 predict 까지 전달돼야 한다 (안 넘기면 Ultralytics 기본 0.25 가 먼저 거름)
+    assert seg._yolo.calls[-1] == 0.05

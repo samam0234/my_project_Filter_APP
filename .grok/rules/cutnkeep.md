@@ -17,9 +17,9 @@
 4. develop/main 병합: **`git merge --no-ff` 필수**  
 5. OpenCV 코드: `backend/app/services/` (별도 루트 폴더 아님)  
 6. Python 의존성: 루트 `requirements.txt` / `requirements.docker.txt`  
-7. 모델: **YOLO26s-seg** + Ollama gemma4:e4b  
+7. 모델: **YOLO26m-seg** + Ollama gemma4:e4b  
    - 전략: `docs/plan/AI_MODEL_STRATEGY.md`  
-   - n→s 전환: `docs/plan/YOLO26S_DEFAULT.md`  
+   - n→s 전환: `docs/plan/YOLO26M_DEFAULT.md`  
 
 ## 병합 시점 (절대 규칙)
 

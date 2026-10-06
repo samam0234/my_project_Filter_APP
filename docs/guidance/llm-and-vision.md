@@ -10,7 +10,7 @@
    ▼
 {"target":["person"], "effect":"remove_bg",
  "selector":{"position":"front","count":1,"attributes":["red helmet"]}}
-   │ YOLO26s-seg (segmentor) → person 인스턴스 6개
+   │ YOLO26m-seg (segmentor) → person 인스턴스 6개
    │ instance_selector (규칙: 색 비율 · 위치 정렬 · 개수)
    ▼
 맨 앞 1명 마스크 → effects (배경 투명)
@@ -18,7 +18,7 @@
 
 ---
 
-## 비전: YOLO26s-seg (기본 스케일 s)
+## 비전: YOLO26m-seg (기본 스케일 m)
 
 > 이전 문서의 YOLO26n 기본은 **s 로 통일**했다. 상세: [`docs/plan/YOLO26S_DEFAULT.md`](../plan/YOLO26S_DEFAULT.md)
 
@@ -30,13 +30,13 @@ python training/yolo/apply_best.py
 python training/yolo/apply_best.py --weights models/<후보>.pt --skip-predict
 
 # ONNX export 예 (ultralytics 설치 환경)
-# yolo export model=yolo26s-seg.pt format=onnx
+# yolo export model=yolo26m-seg.pt format=onnx
 ```
 
 `.env` (경로는 **backend/ 기준**):
 
 ```env
-YOLO_MODEL_PATH=models/yolo26s-seg.pt   # → backend/models/yolo26s-seg.pt
+YOLO_MODEL_PATH=models/yolo26m-seg.pt   # → backend/models/yolo26m-seg.pt
 ```
 
 - 모델이 없거나 로드에 실패하면 중앙 타원 **stub 마스크**로 동작 (데모용)

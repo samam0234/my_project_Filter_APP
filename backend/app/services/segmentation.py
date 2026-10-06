@@ -108,7 +108,7 @@ class Segmentor:
         # [이미 구현된 구간 · 바이브] Ultralytics .pt 로드
         # -----------------------------------------------------------------------------
         # 가중치 파일 배치(.env YOLO_MODEL_PATH)는 코드 밖 작업.
-        # 서비스 본선: instance segmentation (yolo26s-seg). detect 전용 .pt 금지.
+        # 서비스 본선: instance segmentation (yolo26m-seg). detect 전용 .pt 금지.
         # =============================================================================
         if model_path.suffix.lower() in {".pt", ".onnx"} and model_path.exists():
             try:
@@ -205,12 +205,13 @@ class Segmentor:
         # 하드코딩 숙제 아님. 튜닝( conf 필터, 0.5 임계 )만 필요 시 수정.
         # =============================================================================
         img = image.copy()
-        results = self._yolo.predict(img, verbose=False)
+        threshold = self.settings.min_confidence if min_confidence is None else min_confidence
+        # conf 를 넘겨야 재시도의 낮춘 기준이 실제로 적용된다 (Ultralytics 기본 conf=0.25 가 먼저 걸러 버림)
+        results = self._yolo.predict(img, verbose=False, conf=threshold)
         h, w = img.shape[:2]
         instances: List[Instance] = []
         detected: List[str] = []
 
-        threshold = self.settings.min_confidence if min_confidence is None else min_confidence
         target_set = expand_targets({t.lower() for t in targets})
         keep_all = not target_set or "all" in target_set
         for r in results:

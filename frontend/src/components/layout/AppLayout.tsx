@@ -148,7 +148,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <footer className="border-t border-slate-800/80">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500">
           <span>Cut &amp; Keep · 프롬프트로 원하는 것만 남기기</span>
-          <span>YOLO26s-seg · LangGraph · OpenCV · Ollama / LoRA</span>
+          <span>YOLO26m-seg · LangGraph · OpenCV · Ollama / LoRA</span>
         </div>
       </footer>
     </div>
