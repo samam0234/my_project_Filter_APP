@@ -21,11 +21,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.docker.txt requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.docker.txt
 
-# 세그 모델(.pt) 추론 — ultralytics + CPU 전용 torch (CUDA 판 대비 수 GB 작음)
-# 없으면 세그가 가짜(stub) 마스크로 동작한다 (2026-10-06 Docker 재빌드 점검에서 발견).
+# 세그 추론 런타임 (빌드 인자 SEG_RUNTIME)
+#   ultralytics (기본): .pt 를 ultralytics + CPU 전용 torch 로 — 이미지 약 2.8 GB. YOLO_MODEL_PATH=models/yolo26m-seg.pt
+#   onnx             : torch·ultralytics 없이 onnxruntime 만 (직접 구현 onnx_utils) — 훨씬 가벼움.
+#                      YOLO_MODEL_PATH=models/yolo26m-seg.onnx 필요. 검증·크기: docs/plan/ONNX_INFERENCE.md
+# 둘 다 없으면 세그가 가짜(stub) 마스크로 동작한다 (2026-10-06 Docker 재빌드 점검에서 발견).
 # CI 는 가볍게 유지하려고 requirements.docker.txt 에 넣지 않고 이미지에서만 설치.
 # ultralytics 가 끌고 오는 opencv-python 은 headless 와 cv2 가 겹치므로 지우고 headless 로 맞춘다.
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.11.0 torchvision     && pip install --no-cache-dir ultralytics==8.4.152     && pip uninstall -y opencv-python     && pip install --no-cache-dir --force-reinstall --no-deps opencv-python-headless==4.10.0.84
+ARG SEG_RUNTIME=ultralytics
+RUN if [ "$SEG_RUNTIME" = "ultralytics" ]; then       pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.11.0 torchvision       && pip install --no-cache-dir ultralytics==8.4.152       && pip uninstall -y opencv-python       && pip install --no-cache-dir --force-reinstall --no-deps opencv-python-headless==4.10.0.84;     elif [ "$SEG_RUNTIME" != "onnx" ]; then       echo "SEG_RUNTIME 은 ultralytics 또는 onnx" >&2 && exit 1;     fi
 
 # backend 앱 소스만 이미지에 포함 (WORKDIR=/app → app 패키지 경로 유지)
 COPY backend/ ./

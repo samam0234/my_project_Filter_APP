@@ -67,9 +67,11 @@ class _FakeYolo:
     def __init__(self, result):
         self._result = result
         self.calls: list[float] = []
+        self.retina = None
 
-    def predict(self, img, verbose=False, conf=0.25):
+    def predict(self, img, verbose=False, conf=0.25, retina_masks=False):
         self.calls.append(conf)
+        self.retina = retina_masks
         r = self._result
         keep = [i for i, c in enumerate(r.boxes.conf) if c.item() >= conf]
         if r.masks is None or len(keep) == len(r.boxes.conf):
@@ -191,3 +193,9 @@ def test_min_confidence_override_includes_low_confidence_target():
     assert len(relaxed.labels) == len(default.labels) + 1
     # 낮춘 기준이 모델 predict 까지 전달돼야 한다 (안 넘기면 Ultralytics 기본 0.25 가 먼저 거름)
     assert seg._yolo.calls[-1] == 0.05
+
+
+def test_yolo_predict_uses_full_resolution_masks():
+    seg = _segmentor()
+    seg.predict(np.zeros((H, W, 3), np.uint8), targets=["person"])
+    assert seg._yolo.retina is True  # 기본 letterbox 크기 마스크를 단순 확대하면 경계가 거칠어진다

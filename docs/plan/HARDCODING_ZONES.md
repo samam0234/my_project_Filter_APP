@@ -52,7 +52,7 @@
 | 비전 품질·학습 루프 | ~30% | ~70% | 데이터, **평가**, **pseudo**, YOLO fine-tune |
 | Phase2 | ~35% | ~65% | **배치**, ~~LoRA~~ (정책·시드·평가·서빙 완료), **DINO+SAM2** |
 
-**권장 순서:** ~~LLM~~ → 모델 배치 → ONNX(선택) → 학습·평가 → batch → pseudo → LoRA → SAM2
+**권장 순서:** ~~LLM~~ → 모델 배치 → ~~ONNX~~ → 학습·평가 → batch → pseudo → LoRA → SAM2
 
 ---
 
@@ -61,8 +61,8 @@
 | 작업 이름 | 파일 | 비고 |
 |-----------|------|------|
 | ~~LLM 프롬프트 분석 연결~~ | `backend/app/services/prompt_llm.py`, `workflows/nodes.py` | **완료** — Ollama/OpenAI/Gemini, 실패 시 heuristic fallback |
-| ONNX 세션·predict 분기 | `backend/app/services/segmentation.py` | YOLO .pt / stub 는 바이브 |
-| ONNX 전·후처리 루프 | `backend/app/utils/onnx_utils.py` | create_session 은 바이브 |
+| ~~ONNX 세션·predict 분기~~ | `backend/app/services/segmentation.py` | **완료** (2026-10-06) — `_predict_onnx`, `SEG_PREFER_ONNX` ([`ONNX_INFERENCE.md`](ONNX_INFERENCE.md)) |
+| ~~ONNX 전·후처리 루프~~ | `backend/app/utils/onnx_utils.py` | **완료** (2026-10-06) — letterbox · NMS · 마스크 복원, Ultralytics ONNX 와 IoU 0.973 |
 | Grounding DINO + SAM2 | `backend/app/services/segmentation.py` | Phase2 |
 | 배치 실처리 워커 | `backend/app/tasks/batch_tasks.py` | stub return 은 바이브 |
 | ~~LoRA 샘플 정책·템플릿~~ | `training/lora/train_lora.py` | **완료** — 템플릿 `prompt_spec.LORA_TEMPLATE`, 시드 반복·pseudo 샘플링, 응답 전용 loss, q/k/v/o |

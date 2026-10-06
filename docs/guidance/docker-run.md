@@ -38,6 +38,8 @@ DB 초기화: `down` 후 `data/mariaDB_datas` 폴더를 삭제하고 다시 `up`
 - 콘솔(`console/`)은 Compose **미포함** → 로컬 `npm run dev` (:5174)
 - 백엔드 이미지: 루트 `requirements.docker.txt` + Dockerfile 에서 **ultralytics + CPU 전용 torch** (약 2.8 GB)
   - 세그 가중치(`.env` 의 `YOLO_MODEL_PATH` — 기본 `backend/models/yolo26m-seg.pt`, `docs/plan/YOLO26M_DEFAULT.md`)가 있어야 실제 마스크 (없으면 stub). 기동 로그 `YOLO 세그멘터 준비` 로 확인
+  - 슬림 빌드: `SEG_RUNTIME=onnx docker compose … up -d --build backend` + `.env` 의 `YOLO_MODEL_PATH=models/yolo26m-seg.onnx` →
+    torch·ultralytics 없이 onnxruntime 만, 이미지 **1.11 GB** ([`ONNX_INFERENCE.md`](../plan/ONNX_INFERENCE.md))
   - LangGraph 포함 — 로컬과 같은 그래프 경로 (로그에 `langgraph 미설치` 경고가 없어야 정상)
   - 서비스 DB 는 SQLite(`./backend/data`), 학습 DB 는 MariaDB — `/health` 의 `db_dialect: sqlite`, `learning_db: mysql`
 

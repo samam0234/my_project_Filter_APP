@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     # 기능: Segmentor 가 Ultralytics/ONNX 로 로드하는 유일한 경로 설정
     # 배포: 루트 models/(원본·후보 보관소) 또는 학습 best.pt
     #       → training/yolo/apply_best.py 가 backend/models/ 로 복사
+    # 【수동】 SEG_PREFER_ONNX — YOLO_MODEL_PATH 가 .onnx 일 때 ultralytics 가 설치돼 있어도 onnxruntime 으로 추론
+    # (torch 없이 CPU 에서 가볍게. 경량 Docker 이미지는 ultralytics 가 없어 자동으로 이 경로). 검증: scripts/experiments/onnx_vs_pt.py
+    seg_prefer_onnx: bool = Field(default=False, alias="SEG_PREFER_ONNX")
     yolo_model_path: str = Field(
         default="models/yolo26m-seg.pt",
         alias="YOLO_MODEL_PATH",

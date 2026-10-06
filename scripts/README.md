@@ -14,6 +14,7 @@
 | `evaluate_model.py` | 모델 평가 스캐폴드 |
 | `experiments/selection_e2e.py` | 실제 이미지에서 위치·크기 인스턴스 선택 정확도 (정답 폴리곤) |
 | `experiments/refine_speed.py` | GrabCut 정제 전체 vs ROI 속도·정답 IoU |
+| `experiments/onnx_vs_pt.py` | 직접 구현한 ONNX 추론이 `.pt` · Ultralytics ONNX 와 얼마나 같은지 (마스크 IoU · 정답 대비) — `docs/plan/ONNX_INFERENCE.md` |
 | `experiments/seg_model_compare.py` | 세그 모델 공정 비교 (COCO val2017, 검출률·오검출·선택 정확도) — `docs/plan/YOLO26M_DEFAULT.md` |
 | `experiments/ui_check.py` | 브라우저 직접 확인 9개 흐름 (Playwright, 테스트 계정 자동 정리) — `docs/vaildates/ui-check-20261006.md` |
 | `experiments/load_test.py` | 동시 업로드 부하 (실서버 필요) — 결과는 `docs/vaildates/experiments-20261006.md` |

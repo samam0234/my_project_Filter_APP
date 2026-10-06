@@ -16,7 +16,7 @@ ONNX, PyTorch 체크포인트, LoRA 어댑터의 **원본과 후보**를 보관�
 |------|------|
 | `yolo26m-seg.pt` | Ultralytics YOLO26m 인스턴스 세그 — 서빙 기본 (2026-10-06~) |
 | `yolo26s-seg.pt` | YOLO26s 인스턴스 세그 (이전 기본, 가벼운 대안) |
-| `yolo26m-seg.onnx` | 배포·ONNX Runtime 용 export 산출물 (ONNX predict 는 하드코딩 구간) |
+| `yolo26m-seg.onnx` | 배포·ONNX Runtime 용 export 산출물 — torch 없이 추론 ([`docs/plan/ONNX_INFERENCE.md`](../docs/plan/ONNX_INFERENCE.md)) |
 
 ## Git
 
@@ -33,7 +33,7 @@ python scripts/convert_to_onnx.py --weights models/yolo26m-seg.pt --out models/y
 ## Docker
 
 Compose 는 이 폴더가 아니라 `./backend/models` → `/app/models` 를 마운트한다.  
-경량 이미지에 torch 가 없으면 **ONNX + onnxruntime** 경로를 쓰는 편이 안전하다.
+경량 이미지에 torch 가 없으면 **ONNX + onnxruntime** 경로를 쓴다 (`SEG_RUNTIME=onnx` 빌드, 이미지 2.81 → 1.11 GB).
 
 ## 학습은 어디서?
 

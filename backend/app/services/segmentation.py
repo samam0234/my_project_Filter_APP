@@ -11,7 +11,7 @@ import numpy as np
 from loguru import logger
 
 from app.core.config import Settings, get_settings
-from app.utils.onnx_utils import create_session
+from app.utils.onnx_utils import class_names, create_session, run_yolo_seg_onnx
 
 
 # 【수동】 라벨 별칭 — 프롬프트 어휘(COCO)와 서빙 모델 names 가 다를 때 양방향으로 맞춘다.
@@ -95,6 +95,7 @@ class Segmentor:
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
         self._session = None  # ONNX 세션 (선택)
+        self._onnx_names: Optional[dict[int, str]] = None  # ONNX 메타데이터의 클래스 이름 (첫 추론 때 읽음)
         self._yolo = None  # Ultralytics YOLO 객체 (선택)
         self._ready = False
         self._lock = threading.Lock()
@@ -110,7 +111,8 @@ class Segmentor:
         # 가중치 파일 배치(.env YOLO_MODEL_PATH)는 코드 밖 작업.
         # 서비스 본선: instance segmentation (yolo26m-seg). detect 전용 .pt 금지.
         # =============================================================================
-        if model_path.suffix.lower() in {".pt", ".onnx"} and model_path.exists():
+        prefer_onnx = self.settings.seg_prefer_onnx and model_path.suffix.lower() == ".onnx"
+        if not prefer_onnx and model_path.suffix.lower() in {".pt", ".onnx"} and model_path.exists():
             try:
                 from ultralytics import YOLO
 
@@ -129,8 +131,8 @@ class Segmentor:
         # [규칙] 세션만 만들고 predict 미연결이면 stub. 실패 시 _stub_mask.
         # [힌트] self._session = create_session(...); # + _predict_onnx 작성
         # =============================================================================
-        # >>> 여기에 ONNX 준비·확장 작성 (아래 create_session 은 최소 바이브 유지) <<<
-        #
+        # ONNX 는 create_session 으로 열고, 추론은 _predict_onnx (onnx_utils.run_yolo_seg_onnx) 가 한다.
+        # SEG_PREFER_ONNX=true 면 ultralytics 가 설치돼 있어도 이 경로 (CPU 에서 torch 없이 가볍게).
 
         # =============================================================================
         # [이미 구현된 구간 · 바이브] ONNX 세션 생성 시도 + 미준비 경고
@@ -177,14 +179,55 @@ class Segmentor:
         # [규칙] 반환=SegmentationResult, backend="onnx", target 필터는 yolo 와 동일 권장
         # [힌트] if self._session is not None: return self._predict_onnx(image, targets)
         # =============================================================================
-        # >>> 여기에 ONNX 분기 작성 <<<
-        # if self._session is not None:
-        #     return self._predict_onnx(image, targets)
+        if self._session is not None:
+            try:
+                return self._predict_onnx(image, targets, min_confidence)
+            except Exception as exc:  # 추론 오류가 요청 전체를 막지 않게 — stub 이 아니라 실패를 드러내려면 예외 유지
+                logger.exception("ONNX 추론 실패: {}", exc)
+                raise
 
         # =============================================================================
         # [이미 구현된 구간 · 바이브] 모델 없을 때 stub 마스크
         # =============================================================================
         return self._stub_mask(image, targets)
+
+    def _predict_onnx(
+        self,
+        image: np.ndarray,
+        targets: List[str],
+        min_confidence: Optional[float] = None,
+    ) -> SegmentationResult:
+        """onnxruntime 추론 → _predict_yolo 와 같은 규칙으로 대상 라벨만 모아 SegmentationResult.
+
+        신뢰도 기준은 모델 출력 단계에서 바로 적용 (ONNX 는 predict(conf=) 가 없음).
+        """
+        threshold = self.settings.min_confidence if min_confidence is None else min_confidence
+        if self._onnx_names is None:
+            self._onnx_names = class_names(self._session)
+        names = self._onnx_names
+        h, w = image.shape[:2]
+        target_set = expand_targets({t.lower() for t in targets})
+        keep_all = not target_set or "all" in target_set
+        instances: List[Instance] = []
+        detected: List[str] = []
+        for cls_id, conf, binary in run_yolo_seg_onnx(self._session, image, threshold):
+            label = str(names.get(cls_id, cls_id)).lower()
+            detected.append(label)
+            if not keep_all and label not in target_set:
+                continue
+            if binary.any():
+                instances.append(Instance.from_mask(binary, label, conf))
+        union = union_mask(instances, (h, w))
+        if not union.any():
+            logger.info("요청 대상 없음 targets={} detected={}", sorted(target_set), detected)
+        return SegmentationResult(
+            mask=union,
+            confidences=[i.confidence for i in instances],
+            labels=[i.label for i in instances],
+            backend="onnx",
+            detected=detected,
+            instances=instances,
+        )
 
     def _predict_yolo(
         self,
@@ -207,7 +250,9 @@ class Segmentor:
         img = image.copy()
         threshold = self.settings.min_confidence if min_confidence is None else min_confidence
         # conf 를 넘겨야 재시도의 낮춘 기준이 실제로 적용된다 (Ultralytics 기본 conf=0.25 가 먼저 걸러 버림)
-        results = self._yolo.predict(img, verbose=False, conf=threshold)
+        # retina_masks: 마스크를 원본 해상도로 직접 계산 (기본은 letterbox 크기라 단순 확대하면 경계가 거칠어짐 —
+        # 정답 폴리곤 대비 IoU 0.825 → 0.848, 속도 차이 없음. docs/plan/ONNX_INFERENCE.md)
+        results = self._yolo.predict(img, verbose=False, conf=threshold, retina_masks=True)
         h, w = img.shape[:2]
         instances: List[Instance] = []
         detected: List[str] = []
