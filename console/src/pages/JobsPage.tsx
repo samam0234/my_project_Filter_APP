@@ -14,7 +14,7 @@ export function JobsPage() {
       <div>
         <h2 className="text-xl font-semibold text-white">Job 관리</h2>
         <p className="mt-1 text-sm text-console-muted">
-          `GET /api/v1/console/jobs` — DB에 저장된 전체 처리 이력 (서버 PC 에서만 조회 가능)
+          `GET /api/v1/console/jobs` — DB에 저장된 전체 처리 이력 (관리자 로그인 또는 서버 PC 에서만 조회 가능)
         </p>
       </div>
 

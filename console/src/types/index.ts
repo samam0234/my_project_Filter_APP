@@ -43,7 +43,7 @@ export interface BatchSummary {
 }
 
 /** 사이드바 페이지 키 */
-export type ConsolePage = "dashboard" | "jobs" | "batches" | "learning" | "system" | "links";
+export type ConsolePage = "dashboard" | "jobs" | "batches" | "users" | "learning" | "system" | "links";
 
 /** 학습 데이터 카탈로그 (학습 DB learning_samples) */
 export type SampleStatus = "pending" | "approved" | "rejected";
@@ -92,3 +92,39 @@ export interface ConsoleMe {
 }
 
 export type ConsoleAuthStatus = "checking" | "in" | "login";
+
+/** GET /api/v1/console/users 항목 (비밀번호 해시 없음) */
+export interface ConsoleUser {
+  id: string;
+  username: string;
+  email: string;
+  display_name: string | null;
+  created_at: string | null;
+  last_login_at: string | null;
+  locked: boolean;
+  locked_until: string | null;
+  failed_logins: number;
+  active_sessions: number;
+  job_count: number;
+  batch_count: number;
+  /** CONSOLE_ADMINS 에 있는 계정 — 삭제 불가 */
+  is_admin: boolean;
+}
+
+export interface ConsoleUserList {
+  items: ConsoleUser[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** DELETE /api/v1/console/users/{id} 결과 */
+export interface DeleteUserResult {
+  id: string;
+  username: string;
+  jobs: number;
+  batches: number;
+  videos: number;
+  removed_dirs: number;
+  learning_unlinked: number;
+}

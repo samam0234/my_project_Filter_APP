@@ -1,7 +1,7 @@
 /**
  * 운영 콘솔 루트 (Vite :5174).
  *
- * - 좌측 Sidebar 로 페이지 전환 (dashboard / jobs / batches / learning / system / links)
+ * - 좌측 Sidebar 로 페이지 전환 (dashboard / jobs / batches / users / learning / system / links)
  * - 먼저 /console/me 로 접근 확인 → 401·403 이면 로그인 화면 (관리자 계정 · 서버 PC 는 바로 통과)
  * - 들어온 뒤 마운트 시 + 30초 간격으로 health·jobs 새로고침
  * - useConsoleStore.page 에 따라 해당 Page 컴포넌트 렌더
@@ -15,6 +15,7 @@ import { useConsoleStore } from "./store/useConsoleStore";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JobsPage } from "./pages/JobsPage";
 import { BatchesPage } from "./pages/BatchesPage";
+import { UsersPage } from "./pages/UsersPage";
 import { LearningPage } from "./pages/LearningPage";
 import { LinksPage } from "./pages/LinksPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -106,6 +107,7 @@ export default function App() {
           {page === "dashboard" && <DashboardPage />}
           {page === "jobs" && <JobsPage />}
           {page === "batches" && <BatchesPage />}
+          {page === "users" && <UsersPage />}
           {page === "learning" && <LearningPage />}
           {page === "system" && <SystemPage />}
           {page === "links" && <LinksPage />}
