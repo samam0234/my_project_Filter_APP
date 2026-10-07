@@ -62,6 +62,8 @@ def api_env(monkeypatch, tmp_path):
 
     monkeypatch.setattr(get_settings(), "feedback_dir", str(tmp_path / "feedback"))
     monkeypatch.setattr(get_settings(), "pseudo_label_dir", str(tmp_path / "pseudo_labels"))
+    # 업로드·배치·영상 파일도 임시 폴더로 — 실제 backend/data/uploads 에 테스트 찌꺼기를 남기지 않는다
+    monkeypatch.setattr(get_settings(), "upload_dir", str(tmp_path / "uploads"))
     from app.core.ratelimit import upload_limiter
 
     upload_limiter.reset()  # 테스트끼리 업로드 횟수가 섞이지 않게

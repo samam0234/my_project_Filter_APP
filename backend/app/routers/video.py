@@ -21,6 +21,8 @@ from starlette.concurrency import run_in_threadpool
 from app.core.config import get_settings
 from app.core.deps import current_user_optional
 from app.core.ratelimit import enforce, upload_limiter
+from app.core.security import validate_video_signature
+from app.exceptions import FileValidationError
 from app.models.user import User
 from app.services.prompt_llm import parse_prompt_or_heuristic
 from app.services.video_processor import process_video
@@ -28,14 +30,10 @@ from app.services.video_processor import process_video
 router = APIRouter(tags=["video"])
 
 ALLOWED_VIDEO_EXT = {".mp4", ".avi", ".webm", ".mov", ".mkv"}
-ALLOWED_VIDEO_MIME = {
-    "video/mp4",
-    "video/webm",
-    "video/x-msvideo",
-    "video/quicktime",
-    "video/x-matroska",
-    "application/octet-stream",
-}
+def _mime_ok(mime: str) -> bool:
+    """브라우저·OS 마다 같은 파일에 다른 MIME 을 붙인다 (.avi → video/avi · video/x-msvideo · video/msvideo ...).
+    그래서 video/* 와 octet-stream 이면 받고, 진짜 영상인지는 내용 시그니처(validate_video_signature)로 확인한다."""
+    return mime.startswith("video/") or mime == "application/octet-stream"
 
 
 def _video_dir(job_id: str) -> Path:
@@ -76,13 +74,17 @@ async def process_video_upload(
     if ext not in ALLOWED_VIDEO_EXT:
         raise HTTPException(status_code=400, detail=f"허용 확장자: {', '.join(sorted(ALLOWED_VIDEO_EXT))}")
     mime = (file.content_type or "").split(";")[0].strip().lower()
-    if mime not in ALLOWED_VIDEO_MIME:
-        raise HTTPException(status_code=400, detail="영상 MIME 이 아닙니다.")
+    if not _mime_ok(mime):
+        raise HTTPException(status_code=400, detail="영상 파일이 아닙니다.")
     data = await file.read()
     if not data:
         raise HTTPException(status_code=400, detail="빈 파일입니다.")
     if len(data) > settings.video_max_upload_mb * 1024 * 1024:
         raise HTTPException(status_code=400, detail=f"영상이 최대 크기를 초과합니다: {settings.video_max_upload_mb}MB.")
+    try:
+        validate_video_signature(data)
+    except FileValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     if user is None:
         tmp = Path(tempfile.mkdtemp(prefix="cnk-video-"))

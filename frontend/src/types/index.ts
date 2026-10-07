@@ -99,15 +99,46 @@ export interface FeedbackResponse {
   message: string;
 }
 
-/** POST /api/v1/batch · GET /api/v1/batch/{id} (Phase 2 스캐폴드) */
+/** 배치 항목 하나 (GET /api/v1/batch/{id} 의 item_results[]) */
+export interface BatchItem {
+  index: number;
+  filename: string;
+  /** ok | fallback | failed — 실패 항목은 after_url 이 없다 */
+  status: string;
+  backend?: string | null;
+  quality_score?: number;
+  message?: string | null;
+  output?: string | null;
+  before_url: string;
+  after_url?: string | null;
+}
+
+/** POST /api/v1/batch · GET /api/v1/batch/{id} */
 export interface BatchStatus {
   job_id: string;
+  /** queued | running | done | failed | not_found */
   status: string;
   total?: number;
   completed?: number;
   progress?: number;
   message?: string | null;
+  prompt?: string;
+  created_at?: string | null;
+  item_results?: BatchItem[];
+  /** 처리된 결과가 하나라도 있으면 zip 주소 */
+  download_url?: string | null;
 }
+
+/** GET /api/v1/batch (내 배치 목록) 항목 */
+export type BatchSummary = Pick<
+  BatchStatus,
+  "job_id" | "status" | "progress" | "total" | "completed" | "message" | "prompt" | "created_at"
+>;
+
+/** POST /api/v1/video 결과 — 비로그인은 파일만, 회원은 보관본 */
+export type VideoResult =
+  | { kind: "download"; blob: Blob; frames: number; held: number }
+  | { kind: "saved"; jobId: string; url: string; frames: number; held: number };
 
 /**
  * UI store 에 넣는 처리 결과 (camelCase).

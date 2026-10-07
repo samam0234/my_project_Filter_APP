@@ -18,6 +18,7 @@ from app.core.config import get_settings
 from app.db.learning import get_learning_db, learning_db_mode
 from app.db.session import get_db
 from app.models.learning_sample import LearningSample
+from app.repositories.batch_repository import BatchRepository
 from app.repositories.job_repository import JobRepository
 from app.routers.jobs import _to_response
 from app.schemas.learning import (
@@ -57,6 +58,29 @@ async def console_job(job_id: str, db: Session = Depends(get_db)) -> JobResponse
     if row is None:
         raise HTTPException(status_code=404, detail="job 없음")
     return _console_view(row)
+
+
+@router.get("/batches")
+async def console_batches(limit: int = 50, db: Session = Depends(get_db)) -> list[dict]:
+    """전체 회원의 배치 최근 목록 (상태·진행·실패 수). 이미지는 노출하지 않는다. limit 상한 200."""
+    out = []
+    for r in BatchRepository(db).list_recent(limit=min(max(limit, 1), 200)):
+        items = r.item_results or []
+        out.append(
+            {
+                "job_id": r.id,
+                "user_id": r.user_id,
+                "status": r.status,
+                "progress": r.progress,
+                "total": r.total,
+                "completed": r.completed,
+                "failed": sum(1 for i in items if i.get("status") != "ok"),
+                "message": r.message,
+                "prompt": r.prompt,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+        )
+    return out
 
 
 @router.get("/files/{job_id}/{kind}")

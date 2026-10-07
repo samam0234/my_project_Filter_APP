@@ -27,8 +27,23 @@ export interface JobResponse {
   created_at?: string | null;
 }
 
+/** GET /api/v1/console/batches 항목 (전체 회원, 이미지 주소 없음) */
+export interface BatchSummary {
+  job_id: string;
+  user_id?: string | null;
+  status: string;
+  progress?: number;
+  total?: number;
+  completed?: number;
+  /** 완료된 장 중 처리하지 못한 수 */
+  failed?: number;
+  message?: string | null;
+  prompt?: string | null;
+  created_at?: string | null;
+}
+
 /** 사이드바 페이지 키 */
-export type ConsolePage = "dashboard" | "jobs" | "learning" | "system" | "links";
+export type ConsolePage = "dashboard" | "jobs" | "batches" | "learning" | "system" | "links";
 
 /** 학습 데이터 카탈로그 (학습 DB learning_samples) */
 export type SampleStatus = "pending" | "approved" | "rejected";

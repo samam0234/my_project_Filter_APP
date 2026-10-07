@@ -58,6 +58,20 @@ def validate_image_signature(data: bytes) -> str:
     raise FileValidationError("이미지 파일이 아닙니다 (JPEG · PNG · WebP 만 가능).")
 
 
+_MP4_BOXES = (b"ftyp", b"moov", b"mdat", b"wide", b"free", b"skip")  # MP4 · MOV 의 첫 박스
+
+
+def validate_video_signature(data: bytes) -> str:
+    """AVI · MP4/MOV · WebM/MKV 시그니처가 아니면 FileValidationError. 반환: 컨테이너 이름."""
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"AVI ":
+        return "AVI"
+    if len(data) >= 8 and data[4:8] in _MP4_BOXES:
+        return "MP4"
+    if data[:4] == bytes([0x1A, 0x45, 0xDF, 0xA3]):  # EBML
+        return "WEBM"
+    raise FileValidationError("영상 파일이 아닙니다 (mp4 · mov · avi · webm · mkv 만 가능).")
+
+
 async def validate_upload_file(
     file: UploadFile,
     settings: Settings | None = None,

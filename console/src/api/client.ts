@@ -4,6 +4,7 @@
  */
 import axios from "axios";
 import type {
+  BatchSummary,
   HealthResponse,
   JobResponse,
   LearningSample,
@@ -117,4 +118,10 @@ export function errorMessage(err: unknown): string {
     return err.message;
   }
   return String(err);
+}
+
+/** GET /api/v1/console/batches?limit= — 전체 회원 배치 현황 */
+export async function fetchBatches(limit = 50): Promise<BatchSummary[]> {
+  const { data } = await api.get<BatchSummary[]>("/api/v1/console/batches", { params: { limit } });
+  return data;
 }

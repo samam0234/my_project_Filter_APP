@@ -99,8 +99,8 @@ DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)
 | Phase | 범위 |
 |-------|------|
 | **1 (현재)** | 단일 이미지, YOLO-seg, LangGraph, LLM 프롬프트 분석(Ollama · LoRA), **특정 인스턴스 선택 · 물체 지우기**, 피드백 UI |
-| **2** | Grounding DINO + SAM2, 배치 500장, 학습형 inpaint(LaMa), LoRA 고도화(사용자 정답 피드백 루프) |
-| **3** | 영상 + Temporal Smoothing, Docker 배포 고도화 |
+| **2** | 배치 500장(처리·결과 받기·화면 ✅), 영상(프레임 세그·직전 마스크 유지·화면 ✅), Grounding DINO + SAM2(코드 있음·가중치 필요), 학습형 inpaint(LaMa), LoRA 고도화(승인 데이터 재학습 루프 ✅) |
+| **3** | 영상 프레임 간 추적(광학 흐름·LSTM) + Temporal Smoothing, Docker 배포 고도화 |
 
 ## 라이선스
 

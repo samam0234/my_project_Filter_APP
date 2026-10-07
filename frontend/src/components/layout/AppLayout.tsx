@@ -6,7 +6,19 @@
  */
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { BookOpen, History, Home, Layers, Lock, LogIn, LogOut, Scissors, UserRound, Wand2 } from "lucide-react";
+import {
+  BookOpen,
+  Clapperboard,
+  History,
+  Home,
+  Layers,
+  Lock,
+  LogIn,
+  LogOut,
+  Scissors,
+  UserRound,
+  Wand2,
+} from "lucide-react";
 import { Link, navigate, usePathname } from "../../router";
 import { useHealth } from "../../hooks/useApi";
 import { useAppStore } from "../../store/useAppStore";
@@ -25,6 +37,7 @@ const NAV = [
   },
   { to: "/guide", label: "프롬프트 가이드", icon: BookOpen, match: (p: string) => p.startsWith("/guide"), members: false },
   { to: "/batch", label: "배치", icon: Layers, match: (p: string) => p.startsWith("/batch"), members: true },
+  { to: "/video", label: "영상", icon: Clapperboard, match: (p: string) => p.startsWith("/video"), members: false },
 ];
 
 function ServerStatus() {
