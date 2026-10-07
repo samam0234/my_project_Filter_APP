@@ -1,42 +1,63 @@
 /**
  * 영상 (/video) — 짧은 영상 한 개에 같은 문장을 프레임마다 적용.
  *
- * 비로그인도 쓸 수 있지만 서버에 아무것도 남기지 않으므로 결과를 바로 내려받아야 한다.
- * 회원은 서버에 보관된 결과를 24시간 동안 다시 받을 수 있다.
- * 결과는 webm(VP8)이라 페이지에서 바로 재생한다. 서버에 VP8 인코더가 없으면 avi(다운로드 전용)로 온다.
+ * 결과는 H.264 mp4(서버에 ffmpeg 가 없으면 webm → avi)라 페이지에서 바로 재생하고 저장한다.
+ * 마지막 결과 1건은 이 브라우저(IndexedDB)에도 보관해 새로고침·재방문해도 다시 보고 저장할 수 있다 —
+ * 비로그인은 서버에 아무것도 남지 않으므로 이 보관이 유일한 "다시 보기"다. 회원은 서버에도 24시간 보관된다.
+ * 서버가 해석한 효과·강도를 보여 줘 기대와 다르면 문장을 고쳐 바로 "다시 처리"할 수 있다.
  * 처리는 동기라 길게 기다린다 (프레임마다 세그).
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Clapperboard, Download, Info, Loader2, X } from "lucide-react";
+import { Clapperboard, Download, HardDrive, Info, Loader2, RotateCcw, Trash2, X } from "lucide-react";
 import { errorMessage, fetchBlob, processVideo, saveBlob } from "../api/client";
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
 import { Link } from "../router";
 import { useAuthStore } from "../store/useAuthStore";
-import type { VideoResult } from "../types";
-import { formatFileSize } from "../utils/formatters";
+import type { VideoFormat } from "../types";
+import { effectLabel, formatFileSize } from "../utils/formatters";
+import { clearVideo, loadVideo, saveVideo } from "../utils/videoStore";
 
 // 【수동】 백엔드 VIDEO_MAX_UPLOAD_MB(80) · VIDEO_MAX_SECONDS(20) · VIDEO_MAX_FRAMES(240) 와 맞춤
 const MAX_MB = 80;
 const MAX_SECONDS = 20;
 
+/** 화면에 보여 주는 결과 (방금 처리했거나 브라우저 보관에서 되살린 것) */
+interface Shown {
+  blob: Blob;
+  format: VideoFormat;
+  frames: number;
+  held: number;
+  prompt: string;
+  fileName: string;
+  effect?: string;
+  intensity?: number;
+  /** 서버에도 보관됨(회원) */
+  onServer: boolean;
+  /** 이 브라우저에 보관됨 */
+  inBrowser: boolean;
+  /** 보관에서 되살린 결과 — 원본 파일이 없어 다시 처리하려면 영상을 다시 올려야 한다 */
+  restored: boolean;
+}
+
 export function VideoPage() {
   const authStatus = useAuthStore((s) => s.status);
+  const userId = useAuthStore((s) => s.user?.id);
   const [file, setFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("사람만 남기고 배경 블러");
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [result, setResult] = useState<VideoResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  // 재생·저장에 쓰는 결과 Blob (회원 보관본은 인증 요청으로 받아 온다)
-  const [blob, setBlob] = useState<Blob | null>(null);
+  const [shown, setShown] = useState<Shown | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [playFailed, setPlayFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const owner = userId ?? "guest";
 
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted[0]) {
       setFile(accepted[0]);
-      setResult(null);
       setError(null);
     }
   }, []);
@@ -54,6 +75,34 @@ export function VideoPage() {
     disabled: running,
   });
 
+  // 로그인 상태가 정해지면 이 브라우저에 보관된 마지막 결과를 되살린다
+  useEffect(() => {
+    if (authStatus === "loading") return;
+    let alive = true;
+    void loadVideo(owner).then((saved) => {
+      if (!alive || !saved) return;
+      setShown((current) =>
+        current ?? {
+          blob: saved.blob,
+          format: saved.format,
+          frames: saved.frames,
+          held: saved.held,
+          prompt: saved.prompt,
+          fileName: saved.fileName,
+          effect: saved.effect,
+          intensity: saved.intensity,
+          onServer: false,
+          inBrowser: true,
+          restored: true,
+        },
+      );
+      setPrompt((current) => (current === "사람만 남기고 배경 블러" ? saved.prompt : current));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [authStatus, owner]);
+
   useEffect(() => {
     if (!running) return;
     setElapsed(0);
@@ -62,40 +111,51 @@ export function VideoPage() {
     return () => window.clearInterval(t);
   }, [running]);
 
+  // 재생용 object URL — 결과가 바뀌거나 페이지를 떠나면 해제. avi 는 브라우저가 재생하지 못해 만들지 않는다
   useEffect(() => {
-    setBlob(null);
-    if (!result) return;
-    if (result.kind === "download") {
-      setBlob(result.blob);
-      return;
-    }
-    let alive = true;
-    fetchBlob(result.url)
-      .then((b) => alive && setBlob(b))
-      .catch((err) => alive && setError(errorMessage(err)));
-    return () => {
-      alive = false;
-    };
-  }, [result]);
-
-  // webm 만 브라우저가 재생한다. object URL 은 바뀌거나 페이지를 떠날 때 해제
-  useEffect(() => {
-    if (!blob || result?.format !== "webm" || typeof URL.createObjectURL !== "function") {
+    setPlayFailed(false);
+    if (!shown || shown.format === "avi" || typeof URL.createObjectURL !== "function") {
       setPreviewUrl(null);
       return;
     }
-    const href = URL.createObjectURL(blob);
+    const href = URL.createObjectURL(shown.blob);
     setPreviewUrl(href);
     return () => URL.revokeObjectURL(href);
-  }, [blob, result?.format]);
+  }, [shown?.blob, shown?.format]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async () => {
     if (!file) return;
     setRunning(true);
     setError(null);
-    setResult(null);
     try {
-      setResult(await processVideo(file, prompt.trim()));
+      const text = prompt.trim();
+      const res = await processVideo(file, text);
+      const blob = res.kind === "download" ? res.blob : await fetchBlob(res.url);
+      const inBrowser = await saveVideo({
+        blob,
+        format: res.format,
+        frames: res.frames,
+        held: res.held,
+        prompt: text,
+        fileName: file.name,
+        effect: res.effect,
+        intensity: res.intensity,
+        owner,
+        savedAt: Date.now(),
+      });
+      setShown({
+        blob,
+        format: res.format,
+        frames: res.frames,
+        held: res.held,
+        prompt: text,
+        fileName: file.name,
+        effect: res.effect,
+        intensity: res.intensity,
+        onServer: res.kind === "saved",
+        inBrowser,
+        restored: false,
+      });
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -104,11 +164,18 @@ export function VideoPage() {
   };
 
   const save = () => {
-    if (!result || !blob) return;
-    saveBlob(blob, `cutnkeep_video.${result.format}`);
+    if (!shown) return;
+    const base = shown.fileName.replace(/\.[^.]+$/, "") || "video";
+    saveBlob(shown.blob, `${base}_cutnkeep.${shown.format}`);
+  };
+
+  const discard = async () => {
+    await clearVideo();
+    setShown(null);
   };
 
   const member = authStatus === "user";
+  const retryable = Boolean(file);
 
   return (
     <div className="space-y-6">
@@ -122,14 +189,15 @@ export function VideoPage() {
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <ul className="space-y-1">
           <li>
-            결과는 이 페이지에서 바로 재생되고 <b className="text-slate-300">webm 파일</b>로 저장할 수 있어요.
+            결과는 이 페이지에서 바로 재생되고 <b className="text-slate-300">mp4 파일</b>로 저장할 수 있어요. 마지막 결과 1개는 이 브라우저에도
+            보관돼 새로고침해도 다시 볼 수 있어요.
           </li>
           <li>
             {member ? (
-              "회원은 결과가 서버에 24시간 보관돼 그 안에는 다시 받을 수 있어요."
+              "회원은 결과가 서버에도 24시간 보관돼요."
             ) : (
               <>
-                로그인하지 않으면 서버에 <b className="text-slate-300">아무것도 남기지 않아요</b> — 처리가 끝나면 바로 내려받아야 합니다.{" "}
+                로그인하지 않으면 서버에 <b className="text-slate-300">아무것도 남기지 않아요</b> — 이 브라우저에 보관된 결과가 유일한 사본입니다.{" "}
                 <Link to="/login?next=%2Fvideo" className="text-brand-500 hover:text-brand-100">
                   로그인
                 </Link>
@@ -161,7 +229,6 @@ export function VideoPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setFile(null);
-                      setResult(null);
                     }}
                     className="text-slate-500 hover:text-white"
                   >
@@ -185,10 +252,20 @@ export function VideoPage() {
               disabled={running}
               className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-brand-500"
             />
+            <span className="block text-xs text-slate-500">블러를 더 세게: "배경 블러 강도 60" 처럼 숫자를 적어 보세요.</span>
           </label>
           <Button onClick={() => void run()} disabled={running || !file || !prompt.trim()}>
-            {running ? "처리 중…" : "영상 처리 시작"}
+            {running ? "처리 중…" : shown ? (
+              <>
+                <RotateCcw className="h-4 w-4" /> 다시 처리
+              </>
+            ) : (
+              "영상 처리 시작"
+            )}
           </Button>
+          {shown && !file && !running && (
+            <p className="text-xs text-slate-500">다시 처리하려면 원본 영상을 올려 주세요 (결과만 이 브라우저에 보관돼요).</p>
+          )}
         </section>
 
         <section className="space-y-4" aria-live="polite">
@@ -199,36 +276,69 @@ export function VideoPage() {
               <span className="tabular-nums text-xs text-brand-100/70">{elapsed}s</span>
             </div>
           )}
-          {result && (
+          {shown && (
             <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
-              <p className="font-semibold text-white">처리가 끝났어요</p>
+              <p className="font-semibold text-white">{shown.restored ? "이 브라우저에 보관된 마지막 결과" : "처리가 끝났어요"}</p>
               <p className="text-xs text-slate-400">
-                {result.frames}프레임 처리 · 대상이 없어 직전 모양을 유지한 프레임 {result.held}개
-                {result.kind === "saved" ? " · 서버에 보관됨 (24시간)" : " · 서버에 저장되지 않았어요"}
+                {shown.frames}프레임 처리 · 대상이 없어 직전 모양을 유지한 프레임 {shown.held}개
+                {shown.onServer ? " · 서버에 보관됨 (24시간)" : " · 서버에 저장되지 않았어요"}
               </p>
-              {previewUrl && (
+              {shown.effect && (
+                <p className="text-xs text-slate-300" data-testid="video-applied">
+                  적용된 효과: <b>{effectLabel(shown.effect)}</b>
+                  {shown.effect === "blur" && shown.intensity !== undefined && ` · 강도 ${shown.intensity}`}
+                  <span className="text-slate-500"> — 문장 “{shown.prompt}”</span>
+                </p>
+              )}
+              {shown.effect !== undefined && shown.effect !== "blur" && /블러|흐리|blur/i.test(shown.prompt) && (
+                <p className="text-xs text-amber-200/80">
+                  문장에 블러가 있는데 “{effectLabel(shown.effect)}”로 해석됐어요. “배경 블러”처럼 효과를 분명히 적어 다시 처리해 보세요.
+                </p>
+              )}
+              {previewUrl && !playFailed && (
                 <video
                   src={previewUrl}
                   controls
                   loop
                   playsInline
                   aria-label="처리 결과 영상"
+                  onError={() => setPlayFailed(true)}
                   className="w-full rounded-xl border border-slate-800 bg-black"
                 />
               )}
-              {result.format === "avi" && (
+              {(shown.format === "avi" || playFailed) && (
                 <p className="text-xs text-amber-200/80">
-                  서버에 webm 인코더가 없어 avi 로 만들었어요 — 브라우저에서는 재생되지 않으니 내려받아 열어 주세요.
+                  {shown.format === "avi"
+                    ? "서버에 ffmpeg 가 없어 avi 로 만들었어요 — 브라우저에서는 재생되지 않으니 내려받아 열어 주세요."
+                    : "이 브라우저에서 재생되지 않아요 — 저장해서 영상 플레이어로 열어 주세요."}
                 </p>
               )}
-              <Button onClick={save} disabled={!blob}>
-                <Download className="h-4 w-4" /> 결과 저장 ({result.format})
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button onClick={save}>
+                  <Download className="h-4 w-4" /> 결과 저장 ({shown.format})
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => void discard()}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:border-slate-500"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> 보관된 결과 지우기
+                </button>
+                {shown.inBrowser && (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                    <HardDrive className="h-3.5 w-3.5" /> 이 브라우저에 보관됨
+                  </span>
+                )}
+              </div>
+              {!shown.inBrowser && !shown.restored && (
+                <p className="text-xs text-slate-500">브라우저 저장소를 쓸 수 없어(시크릿 창 등) 이 결과는 새로고침하면 사라져요. 바로 저장해 주세요.</p>
+              )}
+              {retryable && <p className="text-xs text-slate-500">결과가 마음에 들지 않으면 문장을 고치고 “다시 처리”를 눌러 주세요.</p>}
             </div>
           )}
-          {!running && !result && !error && (
+          {!running && !shown && !error && (
             <p className="rounded-2xl border border-dashed border-slate-800 py-16 text-center text-sm text-slate-500">
-              영상을 올리고 처리하면 결과를 내려받을 수 있어요.
+              영상을 올리고 처리하면 결과를 바로 재생하고 내려받을 수 있어요.
             </p>
           )}
           {error && (

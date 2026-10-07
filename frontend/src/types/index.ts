@@ -136,12 +136,18 @@ export type BatchSummary = Pick<
 >;
 
 /** POST /api/v1/video 결과 — 비로그인은 파일만, 회원은 보관본 */
-/** webm = 브라우저에서 바로 재생, avi = 서버에 VP8 인코더가 없을 때의 다운로드 전용 */
-export type VideoFormat = "webm" | "avi";
+/** mp4 = H.264(기본) · webm = ffmpeg 가 없을 때 · avi = 둘 다 못 만들 때의 다운로드 전용(브라우저 재생 불가) */
+export type VideoFormat = "mp4" | "webm" | "avi";
+
+/** 서버가 해석한 효과와 요청 강도 — 화면에 보여 "무엇이 적용됐는지" 확인하게 한다 */
+export interface VideoApplied {
+  effect?: string;
+  intensity?: number;
+}
 
 export type VideoResult =
-  | { kind: "download"; blob: Blob; format: VideoFormat; frames: number; held: number }
-  | { kind: "saved"; jobId: string; url: string; format: VideoFormat; frames: number; held: number };
+  | ({ kind: "download"; blob: Blob; format: VideoFormat; frames: number; held: number } & VideoApplied)
+  | ({ kind: "saved"; jobId: string; url: string; format: VideoFormat; frames: number; held: number } & VideoApplied);
 
 /**
  * UI store 에 넣는 처리 결과 (camelCase).
