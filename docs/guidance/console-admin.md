@@ -45,7 +45,7 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 | 배치 현황 | 전체 회원의 배치 목록·진행·실패 수 (`GET /api/v1/console/batches`). 진행 중이면 5초마다 갱신. 회원 사진 보호를 위해 이미지는 보여 주지 않음 |
 | **회원 관리** | 아이디·이메일 검색, 작업·배치 수, 로그인·잠김 상태. 잠금 해제 · 모든 기기 로그아웃 · 계정 삭제 (아래) |
 | **학습 데이터** | 학습 DB `learning_samples` 검수 — 승인 · 정답 고쳐서 승인 · 거절 · 되돌리기 · 삭제 · 선택 일괄 승인/거절 |
-| 시스템 | version, dialect, 포트 메모 |
+| 시스템 | 배포 설정 점검(preflight) · 세그/오픈보캐브/LLM·RAG/배치 큐(Redis)/영상/콘솔 설정 · 저장 공간(작업·배치·영상) · **보관 기간 지난 파일 정리** |
 | 바로가기 | frontend / swagger / health |
 
 ## 학습 데이터 검수
@@ -85,6 +85,16 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 - 삭제는 서버 로그에 `회원 삭제 ... by=관리자아이디` 로 남는다
 - 비밀번호는 해시로만 저장돼 콘솔에서도 볼 수 없다 — 회원에게 사용자 앱의 "비밀번호 재설정"을 안내
 
+## 시스템 · 저장 공간 정리
+
+- **배포 설정 점검**: `python -m app.core.preflight` 와 같은 결과. production 에서 `error` 가 있으면 백엔드가 뜨지 않는다
+- **런타임**: 화면을 연다고 모델을 로드하지 않는다 — 첫 요청 전이면 세그 런타임이 "로드 전"
+- **배치 큐**: `BATCH_USE_CELERY=true` 일 때만 Redis 를 1초 ping. 연결 안 됨이면 배치는 API 프로세스에서 처리된다
+- **저장 공간**: 단일 작업 · 배치 · 영상 별 용량, `FILE_RETENTION_HOURS` 가 지난 파일 수, 디스크 남은 공간(10% 미만이면 빨강)
+- **정리**: "정리 미리 보기"로 지울 파일 수·용량을 먼저 보고 "지금 정리". `scripts/cleanup.py` 와 같은 함수
+  (`app/services/retention.py`). 작업 기록(DB 행)은 남는다. 정리 실행은 서버 로그에 관리자 이름과 함께 남는다
+- 정기 실행: `python scripts/cleanup.py` (`--dry-run` 으로 집계만) — 서버 cron/작업 스케줄러에 등록
+
 ## 자동 갱신
 
 30초 간격 + 수동 새로고침 버튼.
@@ -95,6 +105,7 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 |-----------|--------|
 | 접근 확인 · 로그인 · 로그아웃 | `GET /api/v1/console/me` · `POST /api/v1/auth/login` · `/auth/logout` |
 | 회원 목록 · 잠금 해제 · 세션 끊기 · 삭제 | `GET /api/v1/console/users` · `POST /users/{id}/unlock` · `POST /users/{id}/sessions/revoke` · `DELETE /users/{id}` |
+| 시스템 스냅샷 · 정리 | `GET /api/v1/console/system` · `POST /api/v1/console/system/cleanup?dry_run=` |
 | 헬스 | `GET /health` |
 | Job 목록 · 단건 | `GET /api/v1/console/jobs` · `/console/jobs/{id}` |
 | after 링크 | `GET /api/v1/console/files/{id}/after` |

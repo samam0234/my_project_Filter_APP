@@ -128,3 +128,36 @@ export interface DeleteUserResult {
   removed_dirs: number;
   learning_unlinked: number;
 }
+
+/** GET /api/v1/console/system */
+export interface StorageArea {
+  name: "jobs" | "batches" | "videos";
+  files: number;
+  bytes: number;
+  oldest_hours: number | null;
+  /** 보관 기간이 지나 다음 정리에서 지워질 파일 */
+  expired_files: number;
+}
+
+export interface SystemSnapshot {
+  version: string;
+  app_env: string;
+  production: boolean;
+  segmentation: { runtime: "not_loaded" | "ultralytics" | "onnx" | "stub"; model_file: string; model_exists: boolean; prefer_onnx: boolean; min_confidence: number };
+  open_vocab: { enabled: boolean; dino_model_id: string; sam2_model_id: string; box_threshold: number; text_threshold: number; loaded: string[] };
+  llm: { provider: string; model: string; fallback: string; lora_adapter: boolean; rag_enabled: boolean; rag_sources: string };
+  batch: { use_celery: boolean; redis_ok: boolean | null };
+  video: { output_format: string; max_seconds: number; max_frames: number };
+  console: { require_login: boolean; admins: number; allow_remote: boolean };
+  storage: { retention_hours: number; areas: StorageArea[]; disk: { total: number; used: number; free: number } | null };
+  preflight: { level: "error" | "warn"; key: string; message: string }[];
+}
+
+/** POST /api/v1/console/system/cleanup */
+export interface CleanupResult {
+  removed_files: number;
+  freed_bytes: number;
+  removed_dirs: number;
+  dry_run: boolean;
+  retention_hours: number;
+}

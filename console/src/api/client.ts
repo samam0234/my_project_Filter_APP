@@ -5,6 +5,7 @@
 import axios from "axios";
 import type {
   BatchSummary,
+  CleanupResult,
   ConsoleMe,
   ConsoleUserList,
   DeleteUserResult,
@@ -13,6 +14,7 @@ import type {
   LearningSample,
   LearningSampleList,
   LearningStats,
+  SystemSnapshot,
 } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -184,5 +186,21 @@ export async function revokeUserSessions(id: string): Promise<number> {
 /** DELETE /api/v1/console/users/{id} — confirm 에 아이디를 다시 입력해야 지워진다 (되돌릴 수 없음) */
 export async function deleteUser(id: string, confirm: string): Promise<DeleteUserResult> {
   const { data } = await api.delete<DeleteUserResult>(`/api/v1/console/users/${id}`, { data: { confirm } });
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// 시스템
+// ---------------------------------------------------------------------------
+
+/** GET /api/v1/console/system — 런타임·저장 공간·배포 설정 점검 (모델을 새로 로드하지 않음) */
+export async function fetchSystem(): Promise<SystemSnapshot> {
+  const { data } = await api.get<SystemSnapshot>("/api/v1/console/system");
+  return data;
+}
+
+/** POST /api/v1/console/system/cleanup?dry_run= — 보관 기간이 지난 업로드 파일 정리 */
+export async function runCleanup(dryRun: boolean): Promise<CleanupResult> {
+  const { data } = await api.post<CleanupResult>("/api/v1/console/system/cleanup", null, { params: { dry_run: dryRun } });
   return data;
 }
