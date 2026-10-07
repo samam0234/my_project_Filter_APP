@@ -52,6 +52,22 @@ def _open_vocab(settings: Settings) -> dict:
     }
 
 
+def _stuff(settings: Settings) -> dict:
+    """배경 덩어리(건물·하늘…) 모델 — 파일 유무와 로드 여부 (새로 로드하지 않는다)."""
+    from app.workflows import nodes
+
+    processor = nodes._processor
+    seg = processor.segmentor if processor is not None else None
+    loaded = bool(seg is not None and seg._stuff is not None and seg._stuff.available)
+    return {
+        "enabled": settings.stuff_seg_enabled,
+        "model_file": settings.stuff_model_file.name,
+        "model_exists": settings.stuff_model_file.is_file(),
+        "min_prob": settings.stuff_min_prob,
+        "loaded": loaded,
+    }
+
+
 def _llm(settings: Settings) -> dict:
     provider = (settings.llm_provider or "").lower()
     model = {
@@ -106,6 +122,7 @@ def snapshot(settings: Settings | None = None) -> dict:
         "production": preflight.is_production(settings),
         "segmentation": _segmentation(settings),
         "open_vocab": _open_vocab(settings),
+        "stuff_seg": _stuff(settings),
         "llm": _llm(settings),
         "batch": _batch(settings),
         "video": {

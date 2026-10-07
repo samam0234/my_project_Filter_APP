@@ -144,6 +144,7 @@ export interface SystemSnapshot {
   app_env: string;
   production: boolean;
   segmentation: { runtime: "not_loaded" | "ultralytics" | "onnx" | "stub"; model_file: string; model_exists: boolean; prefer_onnx: boolean; min_confidence: number };
+  stuff_seg: { enabled: boolean; model_file: string; model_exists: boolean; min_prob: number; loaded: boolean };
   open_vocab: { enabled: boolean; dino_model_id: string; sam2_model_id: string; box_threshold: number; text_threshold: number; loaded: string[] };
   llm: { provider: string; model: string; fallback: string; lora_adapter: boolean; rag_enabled: boolean; rag_sources: string };
   batch: { use_celery: boolean; redis_ok: boolean | null };

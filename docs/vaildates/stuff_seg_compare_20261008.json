@@ -1,0 +1,77 @@
+{
+ "images": 100,
+ "models": {
+  "b0": {
+   "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+   "params_m": 3.8,
+   "input": 512,
+   "iou": {
+    "building": 0.8485,
+    "sky": 0.9211,
+    "road": 0.7405,
+    "sidewalk": 0.5735,
+    "tree": 0.672,
+    "grass": 0.4186,
+    "water": 0.8098,
+    "mountain": 0.6022,
+    "wall": 0.6962,
+    "floor": 0.7481,
+    "ceiling": 0.8281,
+    "ground": 0.1585,
+    "bridge": 0.6484,
+    "fence": 0.5613
+   },
+   "miou_groups": 0.6591,
+   "gpu_ms": 25.0,
+   "cpu_ms": 107.5
+  },
+  "b2": {
+   "model": "nvidia/segformer-b2-finetuned-ade-512-512",
+   "params_m": 27.5,
+   "input": 512,
+   "iou": {
+    "building": 0.8605,
+    "sky": 0.9367,
+    "road": 0.7854,
+    "sidewalk": 0.6277,
+    "tree": 0.7125,
+    "grass": 0.626,
+    "water": 0.8545,
+    "mountain": 0.5469,
+    "wall": 0.7112,
+    "floor": 0.7717,
+    "ceiling": 0.865,
+    "ground": 0.247,
+    "bridge": 0.7807,
+    "fence": 0.4807
+   },
+   "miou_groups": 0.7005,
+   "gpu_ms": 55.0,
+   "cpu_ms": 480.1
+  },
+  "b5": {
+   "model": "nvidia/segformer-b5-finetuned-ade-640-640",
+   "params_m": 84.7,
+   "input": 640,
+   "iou": {
+    "building": 0.8478,
+    "sky": 0.9398,
+    "road": 0.7739,
+    "sidewalk": 0.6284,
+    "tree": 0.7152,
+    "grass": 0.6906,
+    "water": 0.8585,
+    "mountain": 0.5873,
+    "wall": 0.7496,
+    "floor": 0.7733,
+    "ceiling": 0.8892,
+    "ground": 0.2889,
+    "bridge": 0.7746,
+    "fence": 0.4709
+   },
+   "miou_groups": 0.7134,
+   "gpu_ms": 88.7,
+   "cpu_ms": 1094.2
+  }
+ }
+}

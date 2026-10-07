@@ -216,8 +216,8 @@ def test_preflight_warns_about_console_login():
     from app.core.config import Settings
 
     keys = lambda **v: {i.key for i in preflight.check(Settings.model_validate({"DB_DIALECT": "sqlite", **v}))}
-    assert "CONSOLE_REQUIRE_LOGIN" in keys()
-    assert "CONSOLE_ADMINS" in keys(CONSOLE_REQUIRE_LOGIN=True)
+    assert "CONSOLE_REQUIRE_LOGIN" in keys(CONSOLE_REQUIRE_LOGIN=False)
+    assert "CONSOLE_ADMINS" in keys(CONSOLE_REQUIRE_LOGIN=True, CONSOLE_ADMINS="")  # .env 의 값과 무관하게
     assert not {"CONSOLE_REQUIRE_LOGIN", "CONSOLE_ADMINS"} & keys(CONSOLE_REQUIRE_LOGIN=True, CONSOLE_ADMINS="boss")
 
 

@@ -36,6 +36,11 @@ target: object classes the request is about, as lowercase English COCO class nam
   laptop, cell phone, handbag, backpack, teddy bear.
   Map synonyms to the class name (강아지/puppy -> dog, 사람/남자/여자/아이/man/woman -> person,
   폰 -> cell phone, 머그컵 -> cup, 화분 -> potted plant, 꽃병 -> vase, 곰인형 -> teddy bear).
+  Scenery / large regions are also valid targets (lowercase English): building, sky, road, sidewalk,
+  tree, grass, water, mountain, wall, floor, ceiling, ground, bridge, fence.
+  Map: 건물/빌딩/집/아파트/house -> building, 하늘 -> sky, 도로/차도 -> road, 인도/보도 -> sidewalk,
+  나무/가로수 -> tree, 잔디/풀밭 -> grass, 바다/호수/강/물 -> water, 산 -> mountain, 벽 -> wall, 바닥 -> floor,
+  천장 -> ceiling, 땅/모래/흙 -> ground, 울타리 -> fence. Use them only when the request is about that region.
   If no object is mentioned, use ["person"].
 
 effect — decide whether the target objects are KEPT or ERASED:
@@ -71,6 +76,8 @@ Examples:
 "맨 앞에 빨간 안전모와 형광 조끼를 입은 남자를 제외하고 전부 제거" -> {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "front", "rank": null, "count": 1, "attributes": ["red helmet", "neon yellow vest"]}}
 "왼쪽에서 두 번째 사람 지워줘" -> {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": 2, "count": 1, "attributes": []}}
 "흰색 차 없애줘" -> {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["white car"]}}
+"건물만 남기고 배경 제거" -> {"target": ["building"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}
+"하늘 빼고 전부 블러" -> {"target": ["sky"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}
 "keep the biggest dog and blur background strength 40" -> {"target": ["dog"], "effect": "blur", "intensity": 40, "crop": false, "selector": {"position": "largest", "rank": null, "count": 1, "attributes": []}}"""
 
 
@@ -155,8 +162,47 @@ COCO_CLASSES: frozenset[str] = frozenset({
     "scissors", "teddy bear", "hair drier", "toothbrush",
 })
 
+# 배경 덩어리 — 사용자가 말하는 단위 → ADE20K(SegFormer) 클래스 이름들. COCO(YOLO)에 없는 대상은 이쪽이 맡는다
+# (services/stuff_segmentation). 묶음 안의 클래스는 확률을 합쳐서 판정한다.
+STUFF_GROUPS: dict[str, tuple[str, ...]] = {
+    "building": ("building", "house", "skyscraper", "hovel"),
+    "sky": ("sky",),
+    "road": ("road",),
+    "sidewalk": ("sidewalk",),
+    "tree": ("tree", "palm"),
+    "grass": ("grass",),
+    "water": ("water", "sea", "river", "lake", "waterfall"),
+    "mountain": ("mountain", "hill"),
+    "wall": ("wall",),
+    "floor": ("floor",),
+    "ceiling": ("ceiling",),
+    "ground": ("earth", "sand", "land"),
+    "bridge": ("bridge",),
+    "fence": ("fence",),
+}
+STUFF_CLASSES: frozenset[str] = frozenset(STUFF_GROUPS)
+
+_STUFF_ALIASES: dict[str, str] = {
+    **dict.fromkeys(("buildings", "건물", "빌딩", "건축물", "house", "houses", "집", "주택", "skyscraper", "skyscrapers",
+                     "apartment", "아파트", "고층빌딩"), "building"),
+    **dict.fromkeys(("skies", "하늘"), "sky"),
+    **dict.fromkeys(("roads", "street", "streets", "도로", "차도", "asphalt"), "road"),
+    **dict.fromkeys(("sidewalks", "pavement", "인도", "보도"), "sidewalk"),
+    **dict.fromkeys(("trees", "palm", "forest", "나무", "가로수", "숲"), "tree"),
+    **dict.fromkeys(("lawn", "meadow", "잔디", "잔디밭", "풀", "풀밭"), "grass"),
+    **dict.fromkeys(("sea", "ocean", "lake", "river", "물", "바다", "호수", "강", "수면"), "water"),
+    **dict.fromkeys(("mountains", "hill", "hills", "산", "산맥", "언덕"), "mountain"),
+    **dict.fromkeys(("walls", "벽"), "wall"),
+    **dict.fromkeys(("floors", "바닥", "마루"), "floor"),
+    **dict.fromkeys(("ceilings", "천장"), "ceiling"),
+    **dict.fromkeys(("sand", "earth", "land", "dirt", "땅", "지면", "모래", "흙"), "ground"),
+    **dict.fromkeys(("bridges", "교량"), "bridge"),
+    **dict.fromkeys(("fences", "울타리", "펜스"), "fence"),
+}
+
 # 규격 밖 이름 → COCO 클래스 (영어 변형 · 한국어 그대로 나온 경우)
 TARGET_ALIASES: dict[str, str] = {
+    **_STUFF_ALIASES,
     **dict.fromkeys(("people", "human", "man", "men", "woman", "women", "child", "children", "kid", "kids",
                      "boy", "girl", "baby", "worker", "workers", "pedestrian", "couple",
                      "사람", "남자", "여자", "아이"), "person"),
@@ -206,18 +252,18 @@ EFFECT_ALIASES: dict[str, str] = {
 
 def canonical_target(name: str) -> str:
     """대상 이름 → COCO 클래스. 별칭 → 복수형 → 마지막 단어 순으로 맞춰 보고, 못 맞추면 그대로."""
-    if name in COCO_CLASSES:
+    if name in COCO_CLASSES or name in STUFF_CLASSES:
         return name
     if name in TARGET_ALIASES:
         return TARGET_ALIASES[name]
     for cand in (name[:-2] if name.endswith("es") else None, name[:-1] if name.endswith("s") else None):
-        if cand and (cand in COCO_CLASSES or cand in TARGET_ALIASES):
+        if cand and (cand in COCO_CLASSES or cand in STUFF_CLASSES or cand in TARGET_ALIASES):
             return TARGET_ALIASES.get(cand, cand)
     words = name.split()
     if len(words) > 1:
         for size in range(len(words) - 1, 0, -1):  # "red sports car" → "sports car"? → "car"
             tail = " ".join(words[-size:])
-            if tail in COCO_CLASSES or tail in TARGET_ALIASES:
+            if tail in COCO_CLASSES or tail in STUFF_CLASSES or tail in TARGET_ALIASES:
                 return TARGET_ALIASES.get(tail, tail)
     return name
 

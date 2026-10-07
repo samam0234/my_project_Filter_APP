@@ -37,6 +37,9 @@ describe("formatters", () => {
     expect(effectLabel("remove_object")).toBe("대상 지우기");
     expect(effectLabel("teleport")).toBe("teleport");
     expect(classLabel("cell phone")).toBe("휴대폰");
+    expect(classLabel("building")).toBe("건물");
+    expect(classLabel("sky")).toBe("하늘");
+    expect(classLabel("unknown-thing")).toBe("unknown-thing");
     expect(classLabel("zebra")).toBe("zebra");
     expect(statusLabel("fallback")).toBe("부분 성공");
   });

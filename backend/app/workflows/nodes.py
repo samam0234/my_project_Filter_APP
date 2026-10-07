@@ -190,6 +190,15 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
             ("cat", ["cat", "고양이"]),
             ("car", ["car", "차", "자동차"]),
             ("bag", ["bag", "가방"]),
+            # 배경 덩어리 (SegFormer) — "산" 처럼 다른 단어에 섞이는 한 글자 키워드는 뺐다
+            ("building", ["building", "건물", "빌딩", "건축물", "아파트"]),
+            ("sky", ["sky", "하늘"]),
+            ("road", ["road", "도로", "차도"]),
+            ("tree", ["tree", "나무", "가로수"]),
+            ("grass", ["grass", "잔디", "풀밭"]),
+            ("water", ["water", "바다", "호수", "수면"]),
+            ("mountain", ["mountain", "산맥", "언덕"]),
+            ("fence", ["fence", "울타리", "펜스"]),
         ]
         for label, keys in keywords:
             if any(k in text for k in keys):

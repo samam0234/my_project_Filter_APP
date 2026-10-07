@@ -112,10 +112,12 @@ def _preload_models() -> None:
         from app.services.segmentation import warmup_open_vocab
 
         open_vocab = warmup_open_vocab()
+        stuff = processor.segmentor.warmup_stuff()
         logger.info(
-            "모델 미리 로드·워밍업 완료 {:.1f}s (오픈보캐브 {})",
+            "모델 미리 로드·워밍업 완료 {:.1f}s (오픈보캐브 {} · 배경 덩어리 {})",
             time.perf_counter() - started,
             "포함" if open_vocab else "제외",
+            "포함" if stuff else "제외",
         )
     except Exception as exc:  # 실패해도 첫 요청에서 다시 시도
         logger.warning("모델 미리 로드 실패 (첫 요청에서 다시 시도): {}", exc)

@@ -152,6 +152,14 @@ export function SystemPage() {
                   ["세그 런타임", RUNTIME_LABEL[snap.segmentation.runtime] ?? snap.segmentation.runtime],
                   ["가중치", `${snap.segmentation.model_file}${snap.segmentation.model_exists ? "" : " (없음!)"}`],
                   ["신뢰도 기준", String(snap.segmentation.min_confidence)],
+                  [
+                    "배경 덩어리 (건물·하늘·도로…)",
+                    !snap.stuff_seg.enabled
+                      ? "꺼짐"
+                      : !snap.stuff_seg.model_exists
+                        ? `모델 파일 없음 (${snap.stuff_seg.model_file})`
+                        : `${snap.stuff_seg.model_file} · ${snap.stuff_seg.loaded ? "로드됨" : "로드 전"}`,
+                  ],
                   ["오픈 보캐브 (DINO+SAM2)", yesNo(snap.open_vocab.enabled)],
                   ["DINO 임계값 (박스/문구)", `${snap.open_vocab.box_threshold} / ${snap.open_vocab.text_threshold}`],
                   ["오픈 보캐브 로드됨", snap.open_vocab.loaded.length ? snap.open_vocab.loaded.join(", ") : "-"],

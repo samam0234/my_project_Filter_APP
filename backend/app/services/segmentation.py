@@ -11,6 +11,7 @@ import numpy as np
 from loguru import logger
 
 from app.core.config import Settings, get_settings
+from app.services.prompt_spec import STUFF_CLASSES
 from app.utils.onnx_utils import class_names, create_session, run_yolo_seg_onnx
 
 
@@ -99,7 +100,59 @@ class Segmentor:
         self._yolo = None  # Ultralytics YOLO 객체 (선택)
         self._ready = False
         self._lock = threading.Lock()
+        self._stuff = None  # 배경 덩어리 세그(SegFormer ONNX) — 첫 사용 때 만든다
+        self._stuff_lock = threading.Lock()
         self._init_backend()
+
+    def stuff_segmenter(self):
+        """건물·하늘·도로 같은 덩어리용 세그 (파일이 없거나 꺼져 있으면 available=False 인 객체)."""
+        if self._stuff is None:
+            with self._stuff_lock:
+                if self._stuff is None:
+                    from app.services.stuff_segmentation import StuffSegmenter
+
+                    self._stuff = StuffSegmenter(self.settings)
+        return self._stuff
+
+    def warmup_stuff(self) -> bool:
+        """기동 때 모델을 올리고 빈 이미지로 한 번 추론 (첫 요청 지연 방지). 못 쓰면 False."""
+        stuff = self.stuff_segmenter()
+        if not stuff.available:
+            return False
+        stuff.predict(np.zeros((480, 640, 3), np.uint8), ["sky"])
+        return True
+
+    def _predict_stuff(
+        self,
+        image: np.ndarray,
+        targets: List[str],
+        min_confidence: Optional[float],
+    ) -> "SegmentationResult":
+        """덩어리 대상(건물·하늘…)은 SegFormer 로, 섞여 있는 낱개 물체(사람·차…)는 기존 경로로 → 합친다."""
+        stuff_targets = [t for t in targets if t in STUFF_CLASSES]
+        others = [t for t in targets if t not in STUFF_CLASSES]
+        mask, comps = self.stuff_segmenter().predict(image, stuff_targets)
+        instances = [Instance(mask=m, label=lab, confidence=conf, bbox=box) for m, lab, conf, box in comps]
+        present = [g for g in stuff_targets if any(i.label == g for i in instances)]
+        result = SegmentationResult(
+            mask=mask,
+            confidences=[i.confidence for i in instances],
+            labels=[i.label for i in instances],
+            backend="segformer",
+            detected=present,
+            instances=instances,
+        )
+        if not others:
+            return result
+        base = self.predict(image, others, min_confidence)
+        return SegmentationResult(
+            mask=cv2.bitwise_or(base.mask, result.mask) if base.mask.shape == result.mask.shape else result.mask,
+            confidences=[*base.confidences, *result.confidences],
+            labels=[*base.labels, *result.labels],
+            backend=f"{base.backend}+segformer",
+            detected=[*base.detected, *result.detected],
+            instances=[*base.instances, *result.instances],
+        )
 
     def _init_backend(self) -> None:
         """설정 경로의 가중치를 로드. 없으면 stub 모드로 둔다."""
@@ -162,6 +215,10 @@ class Segmentor:
         min_confidence: 이번 호출만 쓸 신뢰도 기준 (재시도 시 완화). None 이면 Settings 값.
         """
         targets = targets or ["person"]
+
+        # 건물·하늘·도로… 덩어리는 YOLO(COCO)가 모른다 → SegFormer. 모델 파일이 없으면 아래 기존 흐름(빈 결과)
+        if any(t in STUFF_CLASSES for t in targets) and self.stuff_segmenter().available:
+            return self._predict_stuff(image, targets, min_confidence)
 
         # 닫힌 어휘에 없는 대상만. 실패·미설치·빈 검출은 YOLO/ONNX/stub 으로 이어진다.
         if self._needs_open_vocab(targets):
