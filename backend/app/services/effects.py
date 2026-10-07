@@ -1,7 +1,6 @@
 """마스크 정제 및 시각 효과 (블러, 크롭, 배경 제거).
 
-OpenCV 연산의 핵심 모듈. LangGraph effect_applier 노드와
-ImageProcessor.run 이 공통으로 사용한다.
+OpenCV 연산의 핵심 모듈. LangGraph effect_applier 노드가 사용한다.
 
 원칙:
   - 입력 image/mask 는 가능한 한 복사본에서 작업

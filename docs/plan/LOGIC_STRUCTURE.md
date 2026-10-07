@@ -332,7 +332,7 @@ POST /batch (회원) → 파일 저장 + status=queued
   client: GET /batch/{job_id}
 ```
 - 최대 500장
-- 메모리: **한 장씩** (`process_batch_generator`)
+- 메모리: **한 장씩** (`run_batch_job` 이 항목마다 `run_pipeline` 호출, 결과는 `batches/{id}/out/` 으로 옮기고 임시 폴더 삭제)
 
 ### 8.2 영상
 ```
