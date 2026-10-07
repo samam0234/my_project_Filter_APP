@@ -183,9 +183,10 @@ def test_video_applies_selector_per_frame(tmp_path):
 
     parsed = ParsedPrompt(target=["person"], effect="blur", intensity=50,
                           selector=InstanceSelector(position="left", count=1))
-    info = process_video(src, tmp_path / "out.avi", parsed, Spy(), max_frames=10, max_seconds=5)
+    info = process_video(src, tmp_path / "out", parsed, Spy(), max_frames=10, max_seconds=5)
     assert info["frames"] == 3 and info["held"] == 0
-    out = cv2.VideoCapture(str(tmp_path / "out.avi"))
+    assert info["format"] == "webm" and info["path"].endswith(".webm")
+    out = cv2.VideoCapture(info["path"])
     ok, frame = out.read()
     out.release()
     assert ok and frame.shape[:2] == (H, W)
@@ -212,6 +213,43 @@ def test_video_route_uses_shared_segmentor(env, monkeypatch, tmp_path):
     assert r.headers["X-Cutnkeep-Frames"] == "2"
     assert env["seg"].calls == 2
     assert video_router  # import 확인
+
+
+def test_video_guest_gets_browser_playable_webm(env):
+    """비로그인 응답은 브라우저 <video> 로 바로 재생되는 webm."""
+    r = env["client"].post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "video/avi")},
+                           data={"prompt": "사람만 남기고 배경 블러"})
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "video/webm"
+    assert r.headers["X-Cutnkeep-Format"] == "webm"
+    assert "result.webm" in r.headers["content-disposition"]
+    assert r.content[:4] == bytes([0x1A, 0x45, 0xDF, 0xA3])  # EBML (webm)
+
+
+def test_video_member_result_is_webm(env):
+    c = env["client"]
+    _signup(c, "vid_webm")
+    r = c.post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "video/avi")},
+               data={"prompt": "사람만 남기고 배경 블러"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["format"] == "webm"
+    got = c.get(body["url"])
+    assert got.status_code == 200 and got.headers["content-type"] == "video/webm"
+
+
+def test_video_falls_back_to_avi_without_vp8(tmp_path, monkeypatch):
+    """VP8 인코더가 없는 OpenCV 빌드면 MJPG avi 로 내려간다."""
+    from app.schemas.request import ParsedPrompt
+    from app.services import video_processor
+
+    monkeypatch.setitem(video_processor._FORMATS, "webm", (".webm", "ZZZZ", "video/webm"))
+    src = tmp_path / "in.avi"
+    src.write_bytes(_avi_bytes(tmp_path))
+    info = video_processor.process_video(src, tmp_path / "out", ParsedPrompt(target=["person"], effect="blur"),
+                                         TwoPeople(), max_frames=5, max_seconds=5)
+    assert info["format"] == "avi" and info["media_type"] == "video/x-msvideo"
+    assert not (tmp_path / "out.webm").exists()
 
 
 def _avi_bytes(tmp_path) -> bytes:
@@ -264,7 +302,7 @@ def test_cors_exposes_video_headers(env):
     )
     r2 = env["client"].get("/health", headers={"Origin": "http://localhost:5173"})
     exposed = r2.headers.get("access-control-expose-headers", "")
-    assert "X-Cutnkeep-Frames" in exposed and "Content-Disposition" in exposed
+    assert "X-Cutnkeep-Frames" in exposed and "Content-Disposition" in exposed and "X-Cutnkeep-Format" in exposed
     assert r.status_code in {200, 204}
 
 

@@ -62,7 +62,7 @@ def test_video_holds_previous_mask(tmp_path):
     segmentor = _MaskSegmentor()
     info = process_video(
         src,
-        tmp_path / "out.avi",
+        tmp_path / "out",
         ParsedPrompt(target=["person"], effect="blur", intensity=15),
         segmentor,
         max_frames=10,
@@ -70,8 +70,8 @@ def test_video_holds_previous_mask(tmp_path):
     )
     assert info["frames"] == 4
     assert info["held"] == 1
-    assert (tmp_path / "out.avi").stat().st_size > 0
-    replay = cv2.VideoCapture(str(tmp_path / "out.avi"))
+    assert Path(info["path"]).stat().st_size > 0
+    replay = cv2.VideoCapture(info["path"])
     ok, _ = replay.read()
     replay.release()
     assert ok

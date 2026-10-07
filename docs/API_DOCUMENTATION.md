@@ -178,12 +178,14 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 MJPG avi. **비로그인**은 첨부 응답만(저장 없음). **회원**은 `uploads/videos/{job_id}` 보관 |
+| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 **webm(VP8)**. **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `frames` · `held`) |
 | `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
 
 검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
 프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
-세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 MJPG avi 라 **브라우저에서 바로 재생되지 않고 내려받아 재생**한다.
+세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 webm(VP8)이라 **브라우저 `<video>` 로 바로 재생**된다.
+OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) mp4 는 쓰지 않는다. VP8 인코더를 못 열면 MJPG avi(다운로드 전용)로 자동 전환 — `format` 으로 구분.
+`VIDEO_OUTPUT_FORMAT=avi` 로 고정할 수도 있다 (인코딩 약 4배 빠름: 720p 기준 MJPG 56fps · VP8 13fps).
 업로드 검증: 확장자 + `video/*`(또는 octet-stream) + **내용 시그니처**(AVI·MP4/MOV·WebM/MKV). MIME 은 브라우저·OS 마다 달라(`.avi` → `video/avi`·`video/x-msvideo`) 시그니처가 기준이다.
 비로그인 응답 헤더 `X-Cutnkeep-Frames` · `X-Cutnkeep-Held` 는 CORS `expose_headers` 로 다른 도메인 프론트에서도 읽힌다.
 

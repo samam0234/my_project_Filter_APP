@@ -141,7 +141,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
         # 다른 도메인의 프론트가 영상 응답의 안내 헤더를 읽을 수 있게
-        expose_headers=["Content-Disposition", "X-Cutnkeep-Frames", "X-Cutnkeep-Held"],
+        expose_headers=["Content-Disposition", "X-Cutnkeep-Format", "X-Cutnkeep-Frames", "X-Cutnkeep-Held"],
     )
     @app.middleware("http")
     async def security_headers(request, call_next):

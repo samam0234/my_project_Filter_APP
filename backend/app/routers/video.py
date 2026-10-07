@@ -25,7 +25,7 @@ from app.core.security import validate_video_signature
 from app.exceptions import FileValidationError
 from app.models.user import User
 from app.services.prompt_llm import parse_prompt_or_heuristic
-from app.services.video_processor import process_video
+from app.services.video_processor import MEDIA_TYPES, find_result, process_video
 
 router = APIRouter(tags=["video"])
 
@@ -52,6 +52,7 @@ def _run(src: Path, dst: Path, prompt: str) -> dict:
         nodes._get_processor().segmentor,  # 프로세스 공용 세그 모델 (요청마다 다시 로드하지 않는다)
         max_frames=settings.video_max_frames,
         max_seconds=settings.video_max_seconds,
+        output_format=settings.video_output_format,
     )
 
 
@@ -62,7 +63,7 @@ async def process_video_upload(
     prompt: str = Form(default="person blur"),
     user: Optional[User] = Depends(current_user_optional),
 ):
-    """영상 한 개를 프레임 세그 후 avi 로 돌려준다."""
+    """영상 한 개를 프레임 세그 후 webm(브라우저 재생, 인코더가 없으면 avi)으로 돌려준다."""
     settings = get_settings()
     if user is not None:
         enforce(upload_limiter, f"user:{user.id}", settings.upload_rate_member_per_min, "처리 요청")
@@ -90,10 +91,11 @@ async def process_video_upload(
         tmp = Path(tempfile.mkdtemp(prefix="cnk-video-"))
         try:
             src = tmp / f"in{ext}"
-            dst = tmp / "result.avi"
+            dst = tmp / "result"
             src.write_bytes(data)
             info = await run_in_threadpool(_run, src, dst, prompt)
-            payload = dst.read_bytes()
+            out = Path(info["path"])
+            payload = out.read_bytes()
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except Exception as exc:
@@ -103,9 +105,10 @@ async def process_video_upload(
             shutil.rmtree(tmp, ignore_errors=True)
         return Response(
             content=payload,
-            media_type="video/x-msvideo",
+            media_type=info["media_type"],
             headers={
-                "Content-Disposition": "attachment; filename=result.avi",
+                "Content-Disposition": f"attachment; filename=result{out.suffix}",
+                "X-Cutnkeep-Format": info["format"],
                 "X-Cutnkeep-Frames": str(info["frames"]),
                 "X-Cutnkeep-Held": str(info["held"]),
             },
@@ -115,7 +118,7 @@ async def process_video_upload(
     root = _video_dir(job_id)
     root.mkdir(parents=True, exist_ok=True)
     src = root / f"in{ext}"
-    dst = root / "result.avi"
+    dst = root / "result"
     src.write_bytes(data)
     try:
         info = await run_in_threadpool(_run, src, dst, prompt)
@@ -135,6 +138,7 @@ async def process_video_upload(
         "status": "ok",
         "frames": info["frames"],
         "held": info["held"],
+        "format": info["format"],
         "url": f"/api/v1/video/{job_id}",
         "saved": True,
     }
@@ -148,8 +152,8 @@ async def get_video(
     """회원 본인의 영상 결과. 비로그인·남의 작업은 404."""
     root = _video_dir(job_id)
     meta_path = root / "owner.json"
-    result = root / "result.avi"
-    if user is None or not meta_path.is_file() or not result.is_file():
+    result = find_result(root)
+    if user is None or not meta_path.is_file() or result is None:
         raise HTTPException(status_code=404, detail="영상 없음")
     try:
         owner = json.loads(meta_path.read_text(encoding="utf-8")).get("user_id")
@@ -157,4 +161,4 @@ async def get_video(
         owner = None
     if owner != user.id:
         raise HTTPException(status_code=404, detail="영상 없음")
-    return FileResponse(result, media_type="video/x-msvideo", filename="result.avi")
+    return FileResponse(result, media_type=MEDIA_TYPES[result.suffix], filename=result.name)

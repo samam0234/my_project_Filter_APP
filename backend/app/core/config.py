@@ -9,7 +9,7 @@ Docker 에서는 둘 다 /app 이며, compose 마운트로 같은 역할 분리�
 
 from functools import lru_cache
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -191,6 +191,8 @@ class Settings(BaseSettings):
     video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
     video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")
     video_max_seconds: float = Field(default=20.0, alias="VIDEO_MAX_SECONDS")
+    # webm(VP8, 브라우저 재생) | avi(MJPG, 다운로드 전용·인코딩 4배 빠름). webm 인코더가 없으면 자동으로 avi
+    video_output_format: Literal["webm", "avi"] = Field(default="webm", alias="VIDEO_OUTPUT_FORMAT")
 
     # 【수동】 CORS_ORIGINS — 프론트(5173)·콘솔(5174) 배포 도메인을 콤마로 추가
     cors_origins: str = Field(

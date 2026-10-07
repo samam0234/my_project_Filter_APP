@@ -3,13 +3,13 @@
  *
  * 비로그인도 쓸 수 있지만 서버에 아무것도 남기지 않으므로 결과를 바로 내려받아야 한다.
  * 회원은 서버에 보관된 결과를 24시간 동안 다시 받을 수 있다.
- * 결과는 MJPG avi 라 브라우저에서 바로 재생되지 않는다 — 내려받아 재생한다.
+ * 결과는 webm(VP8)이라 페이지에서 바로 재생한다. 서버에 VP8 인코더가 없으면 avi(다운로드 전용)로 온다.
  * 처리는 동기라 길게 기다린다 (프레임마다 세그).
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Clapperboard, Download, Info, Loader2, X } from "lucide-react";
-import { downloadFile, errorMessage, processVideo, saveBlob } from "../api/client";
+import { errorMessage, fetchBlob, processVideo, saveBlob } from "../api/client";
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
 import { Link } from "../router";
@@ -29,6 +29,9 @@ export function VideoPage() {
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<VideoResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 재생·저장에 쓰는 결과 Blob (회원 보관본은 인증 요청으로 받아 온다)
+  const [blob, setBlob] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted[0]) {
@@ -59,6 +62,33 @@ export function VideoPage() {
     return () => window.clearInterval(t);
   }, [running]);
 
+  useEffect(() => {
+    setBlob(null);
+    if (!result) return;
+    if (result.kind === "download") {
+      setBlob(result.blob);
+      return;
+    }
+    let alive = true;
+    fetchBlob(result.url)
+      .then((b) => alive && setBlob(b))
+      .catch((err) => alive && setError(errorMessage(err)));
+    return () => {
+      alive = false;
+    };
+  }, [result]);
+
+  // webm 만 브라우저가 재생한다. object URL 은 바뀌거나 페이지를 떠날 때 해제
+  useEffect(() => {
+    if (!blob || result?.format !== "webm" || typeof URL.createObjectURL !== "function") {
+      setPreviewUrl(null);
+      return;
+    }
+    const href = URL.createObjectURL(blob);
+    setPreviewUrl(href);
+    return () => URL.revokeObjectURL(href);
+  }, [blob, result?.format]);
+
   const run = async () => {
     if (!file) return;
     setRunning(true);
@@ -73,15 +103,9 @@ export function VideoPage() {
     }
   };
 
-  const save = async () => {
-    if (!result) return;
-    setError(null);
-    try {
-      if (result.kind === "download") saveBlob(result.blob, "cutnkeep_video.avi");
-      else await downloadFile(result.url, "cutnkeep_video.avi");
-    } catch (err) {
-      setError(errorMessage(err));
-    }
+  const save = () => {
+    if (!result || !blob) return;
+    saveBlob(blob, `cutnkeep_video.${result.format}`);
   };
 
   const member = authStatus === "user";
@@ -98,7 +122,7 @@ export function VideoPage() {
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <ul className="space-y-1">
           <li>
-            결과는 <b className="text-slate-300">avi 파일</b>이라 브라우저에서 바로 재생되지 않아요. 내려받아 영상 플레이어로 열어 주세요.
+            결과는 이 페이지에서 바로 재생되고 <b className="text-slate-300">webm 파일</b>로 저장할 수 있어요.
           </li>
           <li>
             {member ? (
@@ -182,8 +206,23 @@ export function VideoPage() {
                 {result.frames}프레임 처리 · 대상이 없어 직전 모양을 유지한 프레임 {result.held}개
                 {result.kind === "saved" ? " · 서버에 보관됨 (24시간)" : " · 서버에 저장되지 않았어요"}
               </p>
-              <Button onClick={() => void save()}>
-                <Download className="h-4 w-4" /> 결과 저장 (avi)
+              {previewUrl && (
+                <video
+                  src={previewUrl}
+                  controls
+                  loop
+                  playsInline
+                  aria-label="처리 결과 영상"
+                  className="w-full rounded-xl border border-slate-800 bg-black"
+                />
+              )}
+              {result.format === "avi" && (
+                <p className="text-xs text-amber-200/80">
+                  서버에 webm 인코더가 없어 avi 로 만들었어요 — 브라우저에서는 재생되지 않으니 내려받아 열어 주세요.
+                </p>
+              )}
+              <Button onClick={save} disabled={!blob}>
+                <Download className="h-4 w-4" /> 결과 저장 ({result.format})
               </Button>
             </div>
           )}
