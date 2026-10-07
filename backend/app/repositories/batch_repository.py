@@ -22,6 +22,16 @@ class BatchRepository:
         """PK 단건 조회."""
         return self.db.get(BatchJob, batch_id)
 
+    def list_for_user(self, user_id: str, limit: int = 30) -> list[BatchJob]:
+        """회원 본인의 배치 최신순."""
+        return (
+            self.db.query(BatchJob)
+            .filter(BatchJob.user_id == user_id)
+            .order_by(BatchJob.created_at.desc(), BatchJob.id)
+            .limit(limit)
+            .all()
+        )
+
     def create(
         self,
         *,

@@ -211,6 +211,17 @@ def prompt_analyzer(state: GraphState) -> GraphState:
     prompt = state.get("prompt") or ""
     job_id = state.get("job_id") or uuid4().hex
 
+    # 배치처럼 같은 문장을 여러 장에 쓸 때는 한 번만 해석해 넘긴다 (장마다 LLM 을 부르지 않게)
+    if state.get("parsed_prompt"):
+        return {
+            **state,
+            "job_id": job_id,
+            "prompt_parser": "preset",
+            "prompt_rag": [],
+            "status": JobStatus.PENDING.value,
+            "retry_count": state.get("retry_count") or 0,
+        }
+
     # =============================================================================
     # [이미 구현된 구간 · 바이브] LLM 프롬프트 분석 연결
     # -----------------------------------------------------------------------------

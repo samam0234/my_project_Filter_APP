@@ -1,5 +1,8 @@
 """짧은 영상: 프레임마다 기존 세그멘터를 쓰고, 검출이 없으면 직전 마스크를 유지한다.
 
+프롬프트에 selector(위치·순서·개수·색)가 있으면 프레임마다 같은 규칙으로 인스턴스를 고른다.
+프레임 사이 추적은 하지 않아 사람이 겹치거나 지나가면 선택이 바뀔 수 있다 (광학 흐름·추적은 후속).
+
 출력은 MJPG avi. 환경마다 mp4 코덱이 달라 여기서는 avi 로 고정한다.
 """
 
@@ -12,6 +15,8 @@ import numpy as np
 
 from app.schemas.request import ParsedPrompt
 from app.services.effects import apply_effects
+from app.services.instance_selector import select_instances
+from app.services.segmentation import union_mask
 
 
 def _as_bgr(image: np.ndarray, width: int, height: int) -> np.ndarray:
@@ -64,6 +69,9 @@ def process_video(
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
             seg = segmentor.predict(frame, targets=list(parsed.target or ["person"]))
             mask = seg.mask
+            if parsed.selector is not None and seg.instances:
+                picked = select_instances(seg.instances, parsed.selector, frame)
+                mask = union_mask(picked.chosen, frame.shape[:2])
             if mask is None or not np.any(mask):
                 if previous is not None:
                     mask = previous

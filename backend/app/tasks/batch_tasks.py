@@ -8,11 +8,10 @@ BATCH_USE_CELERY=true 이고 celery 가 설치돼 있으면 Redis 워커로 넘�
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
-import cv2
-import numpy as np
 from loguru import logger
 
 from app.core.config import Settings, get_settings
@@ -52,24 +51,31 @@ def _load_manifest(job_id: str, settings: Settings) -> list[dict]:
     return data if isinstance(data, list) else []
 
 
-def _save_result_image(path: Path, image: np.ndarray) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if image.ndim == 3 and image.shape[2] == 4:
-        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-    cv2.imwrite(str(path), image)
+def _store_output(job_dir: Path, out_dir: Path, index: int) -> str | None:
+    """파이프라인이 만든 결과 파일을 배치 폴더(out/)로 옮기고 상대 경로를 돌려준다. 없으면 None."""
+    for name in ("after.png", "after.jpg"):
+        src = job_dir / name
+        if src.is_file():
+            out_dir.mkdir(parents=True, exist_ok=True)
+            dst = out_dir / f"{index:04d}{src.suffix}"
+            shutil.move(str(src), str(dst))
+            return f"out/{dst.name}"
+    return None
 
 
 def run_batch_job(
     job_id: str,
     *,
     session_factory: Callable | None = None,
-    processor=None,
     settings: Settings | None = None,
     parsed: ParsedPrompt | None = None,
 ) -> Dict[str, Any]:
     """매니페스트의 이미지를 한 장씩 처리하고 진행률을 커밋한다.
 
-    항목 하나의 실패가 나머지를 중단하지 않는다.
+    한 장 한 장이 **단일 업로드와 같은 파이프라인**(workflows.graph.run_pipeline)을 탄다 —
+    인스턴스 선택(위치·순서·색), 마스크 원본 크기 복원, 재시도·최선 시도 채택이 똑같이 적용된다.
+    문장은 한 번만 해석해 모든 장에 넘기고(LLM 호출 1회), 세그 모델은 프로세스 공용 싱글톤을 쓴다.
+    항목 하나의 실패가 나머지를 중단하지 않는다. 실패 케이스는 학습 후보로 저장하지 않는다(대량 등록 방지).
     """
     settings = settings or get_settings()
     factory = session_factory or SessionLocal
@@ -95,10 +101,6 @@ def run_batch_job(
             message="처리 중",
             item_results=[],
         )
-        if processor is None:
-            from app.services.image_processor import ImageProcessor
-
-            processor = ImageProcessor(settings)
         if parsed is None:
             from app.services.prompt_llm import parse_prompt_or_heuristic
 
@@ -112,27 +114,38 @@ def run_batch_job(
             rel = str(item.get("relpath") or "")
             completed += 1
             try:
+                from app.workflows.graph import run_pipeline
+
                 data = (root / rel).read_bytes()
-                output = next(processor.process_batch_generator([(data, parsed)]))
-                out_name = f"{int(item.get('index', completed)):04d}.jpg"
-                _save_result_image(root / "out" / out_name, output.result)
-                ok = bool(output.validation.ok)
+                index = int(item.get("index", completed - 1))
+                result = run_pipeline(data, row.prompt or "", parsed=parsed, persist=False)
+                stored = _store_output(settings.upload_path / result.job_id, root / "out", index)
+                shutil.rmtree(settings.upload_path / result.job_id, ignore_errors=True)  # 임시 작업 폴더
+                ok = result.status == "ok" and stored is not None
                 if not ok:
                     failed += 1
                 results.append(
                     {
+                        "index": index,
                         "filename": name,
-                        "status": "ok" if ok else "fallback",
-                        "backend": output.seg.backend,
-                        "message": output.validation.message,
-                        "output": f"out/{out_name}",
+                        "status": result.status if stored else "failed",
+                        "backend": (result.meta or {}).get("backend"),
+                        "quality_score": round(result.quality_score, 3),
+                        "message": result.message,
+                        "output": stored,
                     }
                 )
             except Exception as exc:
                 failed += 1
                 logger.exception("배치 항목 실패 job={} file={}", job_id, name)
                 results.append(
-                    {"filename": name, "status": "failed", "message": str(exc)[:300]}
+                    {
+                        "index": int(item.get("index", completed - 1)),
+                        "filename": name,
+                        "status": "failed",
+                        "message": str(exc)[:300],
+                        "output": None,
+                    }
                 )
             repo.update_progress(
                 job_id,
