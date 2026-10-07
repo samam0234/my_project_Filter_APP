@@ -390,21 +390,21 @@ def _load_local_pair(kind: str, model_id: str, model_cls, processor_cls):
     return processor, model
 
 
-def _post_dino(processor, outputs, inputs, threshold: float, hw: Tuple[int, int]):
+def _post_dino(processor, outputs, inputs, box_threshold: float, text_threshold: float, hw: Tuple[int, int]):
     """transformers 버전마다 인자 이름이 다르다."""
     attempts = (
         {
             "outputs": outputs,
             "input_ids": inputs.input_ids,
-            "threshold": threshold,
-            "text_threshold": threshold,
+            "threshold": box_threshold,
+            "text_threshold": text_threshold,
             "target_sizes": [hw],
         },
         {
             "outputs": outputs,
             "input_ids": inputs.input_ids,
-            "box_threshold": threshold,
-            "text_threshold": threshold,
+            "box_threshold": box_threshold,
+            "text_threshold": text_threshold,
             "target_sizes": [hw],
         },
     )
@@ -415,6 +415,35 @@ def _post_dino(processor, outputs, inputs, threshold: float, hw: Tuple[int, int]
         except TypeError as exc:
             last = exc
     raise NotImplementedError(f"Grounding DINO 후처리 시그니처 불일치: {last}")
+
+
+def _keep_matched(boxes: list, scores: list, labels: list[str]):
+    """요청 문구와 이어지지 않은 박스(빈 라벨)는 버린다.
+
+    DINO 는 박스 점수가 임계값을 넘어도 문구 토큰 점수가 낮으면 라벨을 빈 문자열로 준다 —
+    "무언가 있긴 한데 요청한 그것은 아님" 이라 지우면 엉뚱한 영역이 지워진다.
+    """
+    keep = [i for i, label in enumerate(labels) if label.strip()]
+    if len(keep) == len(boxes):
+        return boxes, scores, labels
+    return (
+        [boxes[i] for i in keep],
+        [scores[i] for i in keep if i < len(scores)],
+        [labels[i] for i in keep],
+    )
+
+
+def warmup_open_vocab(settings: Settings | None = None) -> bool:
+    """DINO·SAM2 를 미리 올리고 빈 이미지로 한 번 추론 (첫 요청 16초 → 1초). 꺼져 있거나 실패하면 False."""
+    settings = settings or get_settings()
+    if not settings.open_vocab_enabled:
+        return False
+    try:
+        _infer_open_vocab(np.zeros((480, 640, 3), np.uint8), "object", settings)
+        return True
+    except Exception as exc:
+        logger.warning("오픈보캐브 워밍업 실패 (첫 요청에서 다시 시도): {}", exc)
+        return False
 
 
 def _infer_open_vocab(
@@ -457,13 +486,16 @@ def _infer_open_vocab(
     with torch.no_grad():
         outputs = dino_model(**inputs)
     height, width = image.shape[:2]
-    threshold = float(settings.min_confidence)
-    processed = _post_dino(dino_proc, outputs, inputs, threshold, (height, width))
+    threshold = float(settings.open_vocab_box_threshold)
+    processed = _post_dino(
+        dino_proc, outputs, inputs, threshold, float(settings.open_vocab_text_threshold), (height, width)
+    )
     first = processed[0] if processed else {}
     boxes = first["boxes"].detach().cpu().tolist() if len(first.get("boxes", [])) else []
     scores = first["scores"].detach().cpu().tolist() if len(first.get("scores", [])) else []
     raw_labels = first.get("text_labels", first.get("labels", []))
     labels = [str(item).lower() for item in raw_labels] or ["object"] * len(boxes)
+    boxes, scores, labels = _keep_matched(boxes, scores, labels)
 
     if not boxes:
         return SegmentationResult(
