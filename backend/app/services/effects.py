@@ -75,6 +75,40 @@ def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray
     return m
 
 
+def upscale_mask(mask: np.ndarray, size: Tuple[int, int]) -> np.ndarray:
+    """작게 세그한 0/255 마스크를 (w, h) 로 키운다 — 선형 보간 후 절반 임계.
+
+    최근접 보간은 확대 배율만큼 계단이 생긴다 (1280 으로 줄여 세그한 4000px 사진이면 3px 계단).
+    """
+    w, h = size
+    if mask.shape[1] == w and mask.shape[0] == h:
+        return mask.copy()
+    up = cv2.resize(mask, (w, h), interpolation=cv2.INTER_LINEAR)
+    return np.where(up >= 128, 255, 0).astype(np.uint8)
+
+
+# 【수동·튜닝】 경계 부드럽게 — 가우시안 안티앨리어싱 폭(긴 변 대비, 최소 1px).
+# 가이드 필터(이미지 경계를 따라 알파를 퍼뜨림)도 시험했지만 잔디처럼 질감 있는 배경에서 반투명 번짐 띠가 생겼다
+# (docs/vaildates/edge-tuning-20261008.md). 좁은 가우시안은 계단만 지우고 배경을 끌어오지 않는다.
+FEATHER_SIGMA_RATIO = 0.0008  # 긴 변 1920 → 1.5px
+FEATHER_SIGMA_MIN = 1.0
+
+
+def feather_alpha(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray:
+    """0/255 마스크 → 경계 1~2px 만 0~255 로 부드러운 알파 (안티앨리어싱).
+
+    합성할 때 계단이 사라진다. 경계에서 몇 px 떨어진 안·밖은 255/0 그대로라 구멍·배경 번짐이 없다.
+    image 는 크기 기준으로만 쓴다 (없으면 마스크 크기).
+    """
+    m = mask if mask.ndim == 2 else cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    if not m.any() or m.all():
+        return m.copy()
+    h, w = (image if image is not None else m).shape[:2]
+    sigma = max(FEATHER_SIGMA_MIN, max(h, w) * FEATHER_SIGMA_RATIO)
+    soft = cv2.GaussianBlur((m > 127).astype(np.float32), (0, 0), sigma)
+    return (np.clip(soft, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8)
+
+
 def _grabcut_scaled(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """긴 변이 GRABCUT_MAX_SIDE 를 넘으면 줄여서 GrabCut → 원래 크기로 되돌림."""
     h, w = mask.shape[:2]
@@ -140,7 +174,8 @@ def apply_blur(
 ) -> np.ndarray:
     """배경만 블러, 피사체는 선명하게.
 
-    전체 가우시안 블러 후 마스크로 전경/배경을 합성한다.
+    전체 가우시안 블러 후 마스크를 알파(0~255)로 전경/배경을 섞는다 — 0/255 마스크면 예전처럼 딱 잘리고,
+    feather_alpha 로 부드럽게 한 마스크면 경계가 자연스럽게 이어진다.
     intensity 는 커널 크기 힌트 (홀수로 정규화).
     """
     img = image.copy()
@@ -149,13 +184,8 @@ def apply_blur(
         m = cv2.cvtColor(m, cv2.COLOR_BGR2GRAY)
     k = max(1, intensity // 2 * 2 + 1)  # 홀수 커널
     blurred = cv2.GaussianBlur(img, (k, k), 0)
-    # 전경: 원본 & 마스크 / 배경: 블러 & 반전마스크
-    m3 = cv2.cvtColor(m, cv2.COLOR_GRAY2BGR)
-    subject = cv2.bitwise_and(img, m3)
-    inv = cv2.bitwise_not(m)
-    inv3 = cv2.cvtColor(inv, cv2.COLOR_GRAY2BGR)
-    bg = cv2.bitwise_and(blurred, inv3)
-    return cv2.add(subject, bg)
+    a = (m.astype(np.float32) / 255.0)[:, :, None]
+    return (img.astype(np.float32) * a + blurred.astype(np.float32) * (1.0 - a) + 0.5).astype(np.uint8)
 
 
 def apply_crop(
@@ -232,6 +262,9 @@ def apply_effects(
     image: np.ndarray,
     mask: np.ndarray,
     parsed: ParsedPrompt,
+    *,
+    refine: bool = True,
+    feather: bool = True,
 ) -> np.ndarray:
     """구조화 프롬프트에 따라 효과 적용.
 
@@ -244,22 +277,30 @@ def apply_effects(
 
     parsed.crop 이 True 이고 effect 가 crop 이 아니면,
     주 효과 적용 후 추가로 크롭한다.
+
+    refine=False: 호출 측이 이미 refine_mask 를 했을 때 (GrabCut 을 두 번 하면 경계가 깎이고 시간도 두 배 —
+    docs/vaildates/edge-tuning-20261008.md). feather: 블러·배경 제거의 경계를 부드러운 알파로.
     """
     effect = (parsed.effect or "remove_bg").lower()
     if effect == "remove_object":
         # GrabCut 으로 줄이면 윤곽이 남으므로 원 마스크 + 팽창만 사용
         return apply_remove_object(image, mask)
 
-    refined = refine_mask(mask, image)
+    if refine:
+        refined = refine_mask(mask, image)
+    else:
+        m = mask if mask.ndim == 2 else cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+        refined = np.where(m > 127, 255, 0).astype(np.uint8)
+    soft = feather_alpha(refined, image) if feather and effect != "crop" and effect != "none" else refined
     if effect == "blur":
-        out = apply_blur(image, refined, intensity=parsed.intensity)
+        out = apply_blur(image, soft, intensity=parsed.intensity)
     elif effect == "crop":
         out = apply_crop(image, refined)
     elif effect == "none":
         out = image.copy()
     else:
         # 기본: 배경 제거 (BGRA)
-        out = apply_remove_bg(image, refined)
+        out = apply_remove_bg(image, soft)
 
     if parsed.crop and effect != "crop":
         # crop 플래그 시 다른 효과 후 크롭

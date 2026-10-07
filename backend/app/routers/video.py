@@ -53,6 +53,8 @@ def _run(src: Path, dst: Path, prompt: str) -> dict:
         max_frames=settings.video_max_frames,
         max_seconds=settings.video_max_seconds,
         output_format=settings.video_output_format,
+        smoothing=settings.video_temporal_smoothing,
+        smoothing_weight=settings.video_smoothing_weight,
     )
 
 

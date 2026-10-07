@@ -438,7 +438,7 @@ def _keep_best_attempt(scored: GraphState, cache: Dict[str, Any], mask: Any) -> 
 
 def effect_applier(state: GraphState) -> GraphState:
     """노드: 마스크 정제 + 블러/크롭/배경제거 적용 후 디스크 저장."""
-    from app.services.effects import apply_effects, refine_mask
+    from app.services.effects import apply_effects, refine_mask, upscale_mask
     from app.core.config import get_settings
     from app.utils.image_utils import ensure_dir, save_image
 
@@ -452,12 +452,14 @@ def effect_applier(state: GraphState) -> GraphState:
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
     if mask.shape[:2] != original.shape[:2]:
         # 세그는 리사이즈된 전처리 이미지 기준 → 원본 크기로 맞춤 (큰 사진 크기 불일치 방지)
+        # 선형 보간 + 절반 임계 — 최근접 보간은 확대 배율만큼 계단이 생긴다
         oh, ow = original.shape[:2]
-        mask = cv2.resize(mask, (ow, oh), interpolation=cv2.INTER_NEAREST)
+        mask = upscale_mask(mask, (ow, oh))
     if mask.any():
-        # remove_object 는 윤곽까지 지워야 해서 GrabCut 정제 없이 원 마스크 사용
+        # remove_object 는 윤곽까지 지워야 해서 GrabCut 정제 없이 원 마스크 사용.
+        # 정제는 여기서 한 번만 — apply_effects 가 또 하면 경계가 깎인다(refine=False)
         refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original)
-        result_img = apply_effects(original, refined, parsed)
+        result_img = apply_effects(original, refined, parsed, refine=False)
     else:
         # 대상 없음: 전부 투명/전부 블러 대신 원본 유지 (status 는 failed 그대로)
         result_img = original.copy()
