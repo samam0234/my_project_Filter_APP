@@ -8,7 +8,8 @@
  * | /history      | 작업 기록         |
  * | /jobs/:id     | 작업 상세         |
  * | /guide        | 프롬프트 가이드   |
- * | /batch        | 배치 (Phase 2)    |
+ * | /batch        | 배치 (회원 전용)  |
+ * | /video        | 영상              |
  * | /login        | 로그인            |
  * | /signup       | 회원가입          |
  * | /find-id      | 아이디 찾기       |
@@ -28,6 +29,7 @@ import { HomePage } from "./pages/HomePage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { StudioPage } from "./pages/StudioPage";
+import { VideoPage } from "./pages/VideoPage";
 import { FindIdPage } from "./pages/auth/FindIdPage";
 import { FindPasswordPage } from "./pages/auth/FindPasswordPage";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -41,6 +43,7 @@ const TITLES: Record<string, string> = {
   "/history": "작업 기록",
   "/guide": "프롬프트 가이드",
   "/batch": "배치",
+  "/video": "영상",
   "/login": "로그인",
   "/signup": "회원가입",
   "/find-id": "아이디 찾기",
@@ -56,6 +59,7 @@ function Page({ pathname }: { pathname: string }) {
   if (matchRoute("/history", pathname)) return <HistoryPage />;
   if (matchRoute("/guide", pathname)) return <GuidePage />;
   if (matchRoute("/batch", pathname)) return <BatchPage />;
+  if (matchRoute("/video", pathname)) return <VideoPage />;
   if (matchRoute("/login", pathname)) return <LoginPage />;
   if (matchRoute("/signup", pathname)) return <SignupPage />;
   if (matchRoute("/find-id", pathname)) return <FindIdPage />;

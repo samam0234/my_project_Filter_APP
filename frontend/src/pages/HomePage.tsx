@@ -121,7 +121,7 @@ export function HomePage() {
         {!loggedIn ? (
           <EmptyBlock title="로그인하면 작업이 저장돼요">
             <p className="max-w-sm text-xs text-slate-500">
-              로그인하지 않아도 배경 제거 후 바로 다운로드할 수 있어요. 작업 기록 · 피드백 · 배치는 회원 전용입니다.
+              로그인하지 않아도 배경 제거(사진·영상) 후 바로 다운로드할 수 있어요. 작업 기록 · 피드백 · 배치는 회원 전용입니다.
             </p>
             <span className="flex gap-3">
               <Link to="/login" className="text-brand-500 hover:text-brand-100">

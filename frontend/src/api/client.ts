@@ -8,12 +8,14 @@ import axios from "axios";
 import type {
   AuthUser,
   BatchStatus,
+  BatchSummary,
   FeedbackRequest,
   FeedbackResponse,
   HealthResponse,
   JobResponse,
   MessageResponse,
   UploadResponse,
+  VideoResult,
 } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -121,7 +123,7 @@ export async function sendFeedback(body: FeedbackRequest): Promise<FeedbackRespo
   return data;
 }
 
-/** 배치 등록 (Phase 2 스캐폴드 — 처리 없이 등록만) */
+/** 배치 등록 — 서버가 파일을 저장하고 한 장씩 처리한다 (진행률은 getBatch 폴링) */
 export async function createBatch(files: File[], prompt: string): Promise<BatchStatus> {
   const form = new FormData();
   files.forEach((f) => form.append("files", f));
@@ -137,6 +139,92 @@ export async function createBatch(files: File[], prompt: string): Promise<BatchS
 export async function getBatch(jobId: string): Promise<BatchStatus> {
   const { data } = await api.get<BatchStatus>(`/api/v1/batch/${encodeURIComponent(jobId)}`);
   return data;
+}
+
+/** 내 배치 목록 (최신순) */
+export async function listBatches(limit = 30): Promise<BatchSummary[]> {
+  const { data } = await api.get<BatchSummary[]>("/api/v1/batch", { params: { limit } });
+  return data;
+}
+
+/**
+ * 인증이 필요한 파일(zip·영상)을 받아 브라우저 다운로드로 저장.
+ * <a href> 직접 링크는 다른 도메인 배포에서 쿠키가 안 가므로 axios(withCredentials)로 받는다.
+ */
+export async function downloadFile(url: string, filename: string): Promise<void> {
+  try {
+    const { data } = await api.get<Blob>(url, { responseType: "blob", timeout: 120_000 });
+    saveBlob(data, filename);
+  } catch (err) {
+    throw await unwrapBlobError(err);
+  }
+}
+
+/** Blob 을 문자열로 (Blob.text 가 없는 환경 — 일부 구형 브라우저·jsdom — 은 FileReader 로) */
+function blobText(blob: Blob): Promise<string> {
+  if (typeof blob.text === "function") return blob.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
+
+/** responseType: "blob" 요청의 오류 본문(JSON)은 Blob 으로 와서 errorMessage 가 못 읽는다 → 풀어서 다시 던진다 */
+async function unwrapBlobError(err: unknown): Promise<unknown> {
+  const e = err as { response?: { data?: unknown } };
+  if (e?.response?.data instanceof Blob) {
+    try {
+      e.response.data = JSON.parse(await blobText(e.response.data));
+    } catch {
+      /* JSON 이 아니면 그대로 */
+    }
+  }
+  return err;
+}
+
+/** Blob 을 파일로 저장 (비로그인 영상 결과 등) */
+export function saveBlob(blob: Blob, filename: string): void {
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(href), 10_000);
+}
+
+/**
+ * 영상 한 개 처리. 동기 처리라 길게 기다린다 (프레임마다 세그).
+ * 비로그인: avi 파일이 응답 본문(저장 없음) / 회원: JSON(보관본 job_id·url).
+ */
+export async function processVideo(file: File, prompt: string): Promise<VideoResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("prompt", prompt);
+  let res;
+  try {
+    res = await api.post<Blob>("/api/v1/video", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+      responseType: "blob",
+      timeout: 600_000,
+    });
+  } catch (err) {
+    throw await unwrapBlobError(err);
+  }
+  const contentType = String(res.headers["content-type"] ?? "");
+  if (contentType.includes("json")) {
+    const body = JSON.parse(await blobText(res.data)) as { job_id: string; url: string; frames: number; held: number };
+    return { kind: "saved", jobId: body.job_id, url: body.url, frames: body.frames, held: body.held };
+  }
+  return {
+    kind: "download",
+    blob: res.data,
+    frames: Number(res.headers["x-cutnkeep-frames"] ?? 0),
+    held: Number(res.headers["x-cutnkeep-held"] ?? 0),
+  };
 }
 
 /** 헬스체크 */
