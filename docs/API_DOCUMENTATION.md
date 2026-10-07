@@ -162,8 +162,15 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/batch` | **로그인 필요** · `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 파일 저장 후 `queued`. 기본은 프로세스 안에서 한 장씩 처리. `BATCH_USE_CELERY=true` 이면 Redis 워커 |
-| `GET /api/v1/batch/{job_id}` | **로그인 필요** · 본인 배치 상태·진행률·`item_results`. 없거나 남의 배치면 `status: "not_found"` |
+| `POST /api/v1/batch` | **로그인 필요** · `multipart`: `files[]`(최대 `MAX_BATCH_SIZE`), `prompt` → 파일 저장 후 `queued`. 기본은 프로세스 안에서 한 장씩 처리. `BATCH_USE_CELERY=true` 이면 Redis 워커. 이미지 시그니처가 아니면 400 (배치를 만들지 않음) |
+| `GET /api/v1/batch` | **로그인 필요** · 내 배치 목록 (최신순, `limit` ≤ 100) |
+| `GET /api/v1/batch/{job_id}` | **로그인 필요** · 본인 배치 상태·진행률·`prompt`·`item_results[]`(각각 `index`·`filename`·`status`·`backend`·`quality_score`·`message`·`before_url`·`after_url`)·`download_url`. 없거나 남의 배치면 `status: "not_found"` |
+| `GET /api/v1/batch/{job_id}/items/{index}/{before\|after}` | **본인만** · 원본 / 결과 이미지. 남의 것·없는 항목·만료는 404 |
+| `GET /api/v1/batch/{job_id}/download` | **본인만** · 처리된 결과를 zip 으로 (`{원본이름}_result.png`) |
+
+- 한 장 한 장이 **단일 업로드와 같은 파이프라인**을 탄다 — 인스턴스 선택(위치·순서·색), 마스크 원본 크기 복원, 재시도. 문장은 한 번만 해석(LLM 1회)
+- 한 항목이 실패(`status: "failed"`)해도 나머지는 계속 처리. 실패 케이스는 학습 후보로 저장하지 않음
+- 결과·원본 파일은 `FILE_RETENTION_HOURS`(기본 24 h) 뒤 `scripts/cleanup.py` 가 지운다 — 이후 이미지 요청은 404 (DB 행은 남음)
 
 → DB `batch_jobs`. 워커는 `backend/app/tasks/batch_tasks.py`.
 
@@ -175,6 +182,9 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 | `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
 
 검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
+프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
+세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 MJPG avi 라 **브라우저에서 바로 재생되지 않고 내려받아 재생**한다.
+비로그인 응답 헤더 `X-Cutnkeep-Frames` · `X-Cutnkeep-Held` 는 CORS `expose_headers` 로 다른 도메인 프론트에서도 읽힌다.
 
 ---
 

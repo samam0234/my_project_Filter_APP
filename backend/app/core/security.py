@@ -1,4 +1,4 @@
-"""업로드 보안: MIME, 확장자, 크기 검증.
+"""업로드 보안: MIME, 확장자, 크기, 내용 시그니처 검증.
 
 라우터에서 파이프라인 진입 전에 호출한다.
 실패 시 FileValidationError → HTTP 400 으로 변환.
@@ -41,13 +41,30 @@ def validate_mime(content_type: str | None, settings: Settings | None = None) ->
     return mime
 
 
+# 파일 앞부분(매직 바이트)으로 실제 이미지인지 확인 — 확장자·Content-Type 은 클라이언트가 마음대로 보낼 수 있다.
+_SIGNATURES = (
+    (b"\xff\xd8\xff", "JPEG"),
+    (b"\x89PNG\r\n\x1a\n", "PNG"),
+)
+
+
+def validate_image_signature(data: bytes) -> str:
+    """JPEG · PNG · WebP 시그니처가 아니면 FileValidationError. 반환: 형식 이름."""
+    for magic, name in _SIGNATURES:
+        if data.startswith(magic):
+            return name
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "WEBP"
+    raise FileValidationError("이미지 파일이 아닙니다 (JPEG · PNG · WebP 만 가능).")
+
+
 async def validate_upload_file(
     file: UploadFile,
     settings: Settings | None = None,
 ) -> bytes:
     """업로드 파일을 검증하고 바이트를 읽는다. 실패 시 즉시 거부.
 
-    순서: 확장자 → MIME → 본문 읽기 → 빈 파일/크기 상한.
+    순서: 확장자 → MIME → 본문 읽기 → 빈 파일/크기 상한 → 내용 시그니처.
     """
     settings = settings or get_settings()
     validate_extension(file.filename)
@@ -60,4 +77,5 @@ async def validate_upload_file(
         raise FileValidationError(
             f"파일이 최대 크기를 초과합니다: {settings.max_upload_size_mb}MB."
         )
+    validate_image_signature(data)
     return data

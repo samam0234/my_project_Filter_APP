@@ -38,3 +38,15 @@ def test_validate_mime_bad():
     """pdf 등 비이미지 MIME 거부."""
     with pytest.raises(FileValidationError):
         validate_mime("application/pdf")
+
+
+def test_image_signature_checks_real_content():
+    from app.core.security import validate_image_signature
+    from app.exceptions import FileValidationError
+
+    assert validate_image_signature(b"\xff\xd8\xff\xe0abc") == "JPEG"
+    assert validate_image_signature(b"\x89PNG\r\n\x1a\nabc") == "PNG"
+    assert validate_image_signature(b"RIFF\x00\x00\x00\x00WEBPVP8 ") == "WEBP"
+    for bad in (b"", b"plain text", b"GIF89a....", b"RIFF\x00\x00\x00\x00WAVEfmt "):
+        with pytest.raises(FileValidationError):
+            validate_image_signature(bad)

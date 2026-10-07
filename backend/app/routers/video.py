@@ -23,7 +23,6 @@ from app.core.deps import current_user_optional
 from app.core.ratelimit import enforce, upload_limiter
 from app.models.user import User
 from app.services.prompt_llm import parse_prompt_or_heuristic
-from app.services.segmentation import Segmentor
 from app.services.video_processor import process_video
 
 router = APIRouter(tags=["video"])
@@ -44,13 +43,15 @@ def _video_dir(job_id: str) -> Path:
 
 
 def _run(src: Path, dst: Path, prompt: str) -> dict:
+    from app.workflows import nodes
+
     settings = get_settings()
     parsed = parse_prompt_or_heuristic(prompt, settings)
     return process_video(
         src,
         dst,
         parsed,
-        Segmentor(settings),
+        nodes._get_processor().segmentor,  # 프로세스 공용 세그 모델 (요청마다 다시 로드하지 않는다)
         max_frames=settings.video_max_frames,
         max_seconds=settings.video_max_seconds,
     )

@@ -77,18 +77,23 @@ def test_video_holds_previous_mask(tmp_path):
     assert ok
 
 
-def test_batch_job_updates_progress(tmp_path):
+def test_batch_job_updates_progress(tmp_path, monkeypatch):
     import app.models  # noqa: F401
+    from app.core.config import get_settings
     from app.db.base import Base
     from app.repositories.batch_repository import BatchRepository
     from app.services.image_processor import ImageProcessor
     from app.tasks.batch_tasks import run_batch_job, write_manifest
+    from app.workflows import nodes
 
     settings = _settings(
         UPLOAD_DIR=str(tmp_path / "uploads"),
         YOLO_MODEL_PATH="models/missing-phase2.pt",
         LLM_PROVIDER="heuristic",
     )
+    # 파이프라인은 전역 설정·공용 세그 싱글톤을 쓴다 → 같은 임시 폴더·가짜 세그를 꽂는다
+    monkeypatch.setattr(get_settings(), "upload_dir", str(tmp_path / "uploads"))
+    monkeypatch.setattr(nodes, "_processor", ImageProcessor(settings, segmentor=_MaskSegmentor()))
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
@@ -124,7 +129,6 @@ def test_batch_job_updates_progress(tmp_path):
     result = run_batch_job(
         job_id,
         session_factory=Session,
-        processor=ImageProcessor(settings, segmentor=_MaskSegmentor()),
         settings=settings,
         parsed=ParsedPrompt(target=["person"], effect="blur", intensity=15),
     )
@@ -139,7 +143,8 @@ def test_batch_job_updates_progress(tmp_path):
     assert len(row.item_results) == 2
     assert row.item_results[0]["status"] in {"ok", "fallback"}
     assert row.item_results[1]["status"] == "failed"
-    assert (settings.upload_path / "batches" / job_id / "out" / "0000.jpg").is_file()
+    assert row.item_results[0]["output"] and (settings.upload_path / "batches" / job_id / row.item_results[0]["output"]).is_file()
+    assert not [p for p in settings.upload_path.iterdir() if p.name != "batches"]  # 처리용 임시 작업 폴더는 남기지 않는다
     check.close()
 
 
