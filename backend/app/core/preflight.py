@@ -57,7 +57,12 @@ def check(settings: Settings) -> list[Issue]:
         add("error", "MARIADB_PASSWORD", "기본 비밀번호 — 교체 후 DB 볼륨 재생성")
     if settings.console_allow_remote:
         add("warn", "CONSOLE_ALLOW_REMOTE",
-            "true — 콘솔 API 에 로그인이 없다. 앞단(reverse proxy 인증·VPN)으로 막았는지 확인")
+            "true — 누구나 콘솔 API 를 쓴다. 관리자 로그인(CONSOLE_ADMINS)으로 바꾸고 false 권장")
+    if not settings.console_require_login:
+        add("warn", "CONSOLE_REQUIRE_LOGIN",
+            "false — 같은 서버의 리버스 프록시를 거치면 모든 요청이 127.0.0.1 로 보여 콘솔이 열릴 수 있다. 배포에서는 true")
+    if settings.console_require_login and not settings.console_admin_set:
+        add("warn", "CONSOLE_ADMINS", "비어 있음 — CONSOLE_REQUIRE_LOGIN=true 라 아무도 운영 콘솔에 들어갈 수 없다")
     if settings.learning_db_fallback_sqlite and uses_maria:
         add("warn", "LEARNING_DB_FALLBACK_SQLITE",
             "true — MariaDB 장애 시 조용히 로컬 SQLite 로 바뀐다. 배포에서는 false 권장 (/health learning_db 감시)")

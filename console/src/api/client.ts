@@ -5,6 +5,7 @@
 import axios from "axios";
 import type {
   BatchSummary,
+  ConsoleMe,
   HealthResponse,
   JobResponse,
   LearningSample,
@@ -21,7 +22,38 @@ const baseURL = import.meta.env.VITE_API_BASE_URL || "";
 export const api = axios.create({
   baseURL,
   timeout: 30_000,
+  // 관리자 세션 쿠키 — 콘솔과 API 가 다른 도메인이어도 보낸다
+  withCredentials: true,
 });
+
+// 콘솔 API 가 401(로그인 필요) · 403(관리자 아님)을 주면 로그인 화면으로 — App 이 처리기를 등록한다
+let onAuthRequired: ((message: string) => void) | null = null;
+export function setAuthRequiredHandler(fn: ((message: string) => void) | null): void {
+  onAuthRequired = fn;
+}
+api.interceptors.response.use(undefined, (err) => {
+  const status = err?.response?.status;
+  const url = String(err?.config?.url ?? "");
+  if ((status === 401 || status === 403) && url.startsWith("/api/v1/console")) {
+    onAuthRequired?.(errorMessage(err));
+  }
+  return Promise.reject(err);
+});
+
+/** GET /api/v1/console/me — 누구로 들어왔는지 (관리자 로그인 · 서버 PC) */
+export async function fetchConsoleMe(): Promise<ConsoleMe> {
+  const { data } = await api.get<ConsoleMe>("/api/v1/console/me");
+  return data;
+}
+
+/** 사용자 앱과 같은 로그인 API — CONSOLE_ADMINS 에 있는 계정만 콘솔에 들어간다 */
+export async function consoleLogin(username: string, password: string): Promise<void> {
+  await api.post("/api/v1/auth/login", { username, password });
+}
+
+export async function consoleLogout(): Promise<void> {
+  await api.post("/api/v1/auth/logout");
+}
 
 /** GET /health */
 export async function fetchHealth(): Promise<HealthResponse> {
@@ -30,7 +62,7 @@ export async function fetchHealth(): Promise<HealthResponse> {
 }
 
 // 사용자 앱의 /api/v1/jobs 는 로그인 사용자 본인 작업만 돌려준다.
-// 콘솔은 전체 작업을 보는 콘솔 전용 API 를 쓴다 — 서버 PC(loopback)에서만 허용 (CONSOLE_ALLOW_REMOTE).
+// 콘솔은 전체 작업을 보는 콘솔 전용 API 를 쓴다 — 관리자 로그인(CONSOLE_ADMINS) 또는 서버 PC 에서만.
 
 /** GET /api/v1/console/jobs?limit= — 전체 작업 (소유자 무관) */
 export async function fetchJobs(limit = 50): Promise<JobResponse[]> {

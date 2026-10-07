@@ -149,6 +149,11 @@ class Settings(BaseSettings):
     # 【수동·보안】 운영 콘솔 API(/api/v1/console/*)는 인증이 없어 기본적으로 이 PC(loopback)에서만 허용.
     # 원격 허용은 앞단에서 접근 제어(VPN·방화벽·리버스 프록시 인증)를 한 경우에만 true
     console_allow_remote: bool = Field(default=False, alias="CONSOLE_ALLOW_REMOTE")
+    # 【수동·보안】 운영 콘솔 관리자 아이디 (쉼표 구분). 이 계정으로 로그인하면 어디서든 콘솔 API 사용 가능
+    console_admins: str = Field(default="", alias="CONSOLE_ADMINS")
+    # 【수동·배포】 true 면 서버 PC(loopback)여도 관리자 로그인 필수. 같은 서버의 리버스 프록시(nginx 등)를 거치면
+    # 모든 요청이 127.0.0.1 로 보일 수 있어 배포에서는 true 권장
+    console_require_login: bool = Field(default=False, alias="CONSOLE_REQUIRE_LOGIN")
     # 【수동·튜닝】 로그인 잠금 · 비밀번호 재설정 코드
     login_max_failures: int = Field(default=5, alias="LOGIN_MAX_FAILURES")
     login_lock_minutes: int = Field(default=10, alias="LOGIN_LOCK_MINUTES")
@@ -248,6 +253,11 @@ class Settings(BaseSettings):
     max_image_side: int = 1280  # 전처리 긴 변 상한
     clahe_clip_limit: float = 2.0
     clahe_tile_size: int = 8
+
+    @property
+    def console_admin_set(self) -> set[str]:
+        """CONSOLE_ADMINS → 소문자 아이디 집합 (아이디는 소문자로 저장된다)."""
+        return {name.strip().lower() for name in self.console_admins.split(",") if name.strip()}
 
     @property
     def allowed_mime_list(self) -> List[str]:

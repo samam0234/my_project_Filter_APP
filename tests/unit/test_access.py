@@ -177,9 +177,48 @@ def test_member_batch_is_private(env):
 
 def test_console_api_is_local_only(env, monkeypatch):
     c = env["client"]  # TestClient 의 클라이언트 주소는 "testclient" (loopback 아님)
-    assert c.get("/api/v1/console/jobs").status_code == 403
+    assert c.get("/api/v1/console/jobs").status_code == 401
     monkeypatch.setattr(get_settings(), "console_allow_remote", True)
     assert c.get("/api/v1/console/jobs").status_code == 200
+
+
+def test_console_admin_login_works_from_anywhere(env, monkeypatch):
+    """원격(배포)에서는 CONSOLE_ADMINS 계정으로 로그인해야 콘솔 API 를 쓴다."""
+    monkeypatch.setattr(get_settings(), "console_admins", "Boss_01, ops_02")
+    c = env["client"]
+    _signup(c, "member_01", "member@example.com")
+    r = c.get("/api/v1/console/jobs")
+    assert r.status_code == 403 and "관리자" in r.json()["detail"]  # 로그인했지만 관리자 아님
+    c.post("/api/v1/auth/logout")
+    _signup(c, "boss_01", "boss@example.com")  # 대소문자 무시
+    assert c.get("/api/v1/console/jobs").status_code == 200
+    assert c.get("/api/v1/console/me").json() == {"via": "admin", "username": "boss_01"}
+    c.post("/api/v1/auth/logout")
+    assert c.get("/api/v1/console/me").status_code == 401
+
+
+def test_console_require_login_closes_loopback(env, monkeypatch):
+    """리버스 프록시 뒤에서는 모든 요청이 127.0.0.1 로 보인다 → CONSOLE_REQUIRE_LOGIN=true 면 loopback 도 로그인 필수."""
+    from app.core import access
+
+    monkeypatch.setattr(access, "LOOPBACK", access.LOOPBACK | {"testclient"})  # 이 클라이언트를 서버 PC 로 취급
+    c = env["client"]
+    assert c.get("/api/v1/console/me").json() == {"via": "local", "username": None}
+    monkeypatch.setattr(get_settings(), "console_require_login", True)
+    assert c.get("/api/v1/console/me").status_code == 401
+    monkeypatch.setattr(get_settings(), "console_admins", "boss_01")
+    _signup(c, "boss_01", "boss@example.com")
+    assert c.get("/api/v1/console/me").json()["via"] == "admin"
+
+
+def test_preflight_warns_about_console_login():
+    from app.core import preflight
+    from app.core.config import Settings
+
+    keys = lambda **v: {i.key for i in preflight.check(Settings.model_validate({"DB_DIALECT": "sqlite", **v}))}
+    assert "CONSOLE_REQUIRE_LOGIN" in keys()
+    assert "CONSOLE_ADMINS" in keys(CONSOLE_REQUIRE_LOGIN=True)
+    assert not {"CONSOLE_REQUIRE_LOGIN", "CONSOLE_ADMINS"} & keys(CONSOLE_REQUIRE_LOGIN=True, CONSOLE_ADMINS="boss")
 
 
 def test_console_file_links_bypass_owner_check_only_for_console(env, monkeypatch):

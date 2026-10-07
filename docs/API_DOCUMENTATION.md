@@ -193,11 +193,19 @@ OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) mp4 는 쓰�
 
 ## Console — 운영 콘솔 전용
 
-콘솔(:5174)이 전체 작업을 보는 API. 인증이 없으므로 **서버 PC(loopback) 요청만 허용**,
-다른 곳에서 오면 403 (`CONSOLE_ALLOW_REMOTE=true` 로 해제 — 앞단 접근 제어가 있을 때만).
+콘솔(:5174)이 전체 작업·회원 데이터를 보는 API. 접근 규칙(`core/access.require_console`):
+
+1. `CONSOLE_ADMINS` 에 있는 아이디로 로그인(`POST /api/v1/auth/login`, 같은 세션 쿠키) → 어디서든 허용
+2. `CONSOLE_ALLOW_REMOTE=true` → 누구나 (하위 호환, 앞단 접근 제어가 있을 때만)
+3. `CONSOLE_REQUIRE_LOGIN=false` 이고 서버 PC(loopback) → 로그인 없이 허용 (로컬 개발)
+
+그 외: 비로그인 **401**, 관리자 아닌 회원 **403**. 배포에서는 `CONSOLE_REQUIRE_LOGIN=true` —
+같은 서버의 리버스 프록시를 거치면 모든 요청이 127.0.0.1 로 보일 수 있다 (preflight 가 경고).
+학습 데이터 검수 기록(`reviewed_by`)에는 `admin:{아이디}` 가 남는다.
 
 | 엔드포인트 | 설명 |
 |------------|------|
+| `GET /api/v1/console/me` | `{via: "admin"\|"local"\|"open", username}` — 콘솔이 첫 진입에 호출, 401·403 이면 로그인 화면 |
 | `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
 | `GET /api/v1/console/files/{job_id}/{before\|after}` | 작업 파일 (소유자 무관) |
