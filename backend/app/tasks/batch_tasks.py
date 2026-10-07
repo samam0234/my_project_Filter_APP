@@ -15,13 +15,20 @@ from typing import Any, Callable, Dict, List
 from loguru import logger
 
 from app.core.config import Settings, get_settings
-from app.db.session import SessionLocal
+from app.db.session import SessionLocal, get_engine
 from app.repositories.batch_repository import BatchRepository
 from app.schemas.request import ParsedPrompt
 
 # Celery CLI 가 모듈 속성 `celery` 를 찾는다. 미설치면 None.
 celery = None
 run_batch_job_task = None
+
+
+def _default_session():
+    """서비스 DB 세션. Celery 워커는 앱 기동(lifespan)을 거치지 않아 SessionLocal 이 엔진에 연결돼 있지 않다
+    — 여기서 연결을 보장한다 (이미 연결돼 있으면 같은 엔진이라 무해)."""
+    SessionLocal.configure(bind=get_engine())
+    return SessionLocal()
 
 
 def batch_dir(job_id: str, settings: Settings | None = None) -> Path:
@@ -78,7 +85,7 @@ def run_batch_job(
     항목 하나의 실패가 나머지를 중단하지 않는다. 실패 케이스는 학습 후보로 저장하지 않는다(대량 등록 방지).
     """
     settings = settings or get_settings()
-    factory = session_factory or SessionLocal
+    factory = session_factory or _default_session
     db = factory()
     try:
         repo = BatchRepository(db)
@@ -187,7 +194,11 @@ def enqueue_batch(job_id: str) -> bool:
     settings = get_settings()
     if not settings.batch_use_celery or celery is None or run_batch_job_task is None:
         return False
-    run_batch_job_task.delay(job_id)
+    try:
+        run_batch_job_task.delay(job_id)
+    except Exception as exc:  # Redis 가 꺼져 있으면 배치가 영원히 queued 로 남는다 → 프로세스 안에서 처리
+        logger.warning("Celery 큐에 넣지 못해 프로세스 안에서 처리합니다 job={}: {}", job_id, str(exc)[:200])
+        return False
     return True
 
 

@@ -286,3 +286,51 @@ def test_console_lists_all_batches_without_images(env):
 def test_console_batches_is_local_only(env, monkeypatch):
     monkeypatch.setattr(get_settings(), "console_allow_remote", False)
     assert env["client"].get("/api/v1/console/batches").status_code == 403
+
+
+def test_enqueue_falls_back_in_process_when_redis_is_down(monkeypatch):
+    """Redis 가 꺼져 .delay() 가 예외를 내도 요청이 500 이 되거나 배치가 queued 로 남지 않는다."""
+    from app.tasks import batch_tasks
+
+    class Down:
+        def delay(self, job_id):
+            raise ConnectionError("Error 111 connecting to redis:6379")
+
+    monkeypatch.setattr(get_settings(), "batch_use_celery", True)
+    monkeypatch.setattr(batch_tasks, "celery", object())
+    monkeypatch.setattr(batch_tasks, "run_batch_job_task", Down())
+    assert batch_tasks.enqueue_batch("job1") is False  # 호출측이 BackgroundTasks 로 직접 처리
+
+
+def test_enqueue_uses_celery_when_available(monkeypatch):
+    from app.tasks import batch_tasks
+
+    sent = []
+
+    class Queue:
+        def delay(self, job_id):
+            sent.append(job_id)
+
+    monkeypatch.setattr(get_settings(), "batch_use_celery", True)
+    monkeypatch.setattr(batch_tasks, "celery", object())
+    monkeypatch.setattr(batch_tasks, "run_batch_job_task", Queue())
+    assert batch_tasks.enqueue_batch("job2") is True and sent == ["job2"]
+
+
+def test_worker_session_is_bound_without_app_startup(monkeypatch):
+    """Celery 워커는 lifespan(init_db)을 거치지 않는다 — 기본 세션이 스스로 엔진에 연결돼야 한다."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    from app.tasks import batch_tasks
+
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    unbound = sessionmaker(autoflush=False, autocommit=False, expire_on_commit=False)  # 연결 전 상태
+    monkeypatch.setattr(batch_tasks, "SessionLocal", unbound)
+    monkeypatch.setattr(batch_tasks, "get_engine", lambda: engine)
+    session = batch_tasks._default_session()
+    try:
+        assert session.get_bind() is engine
+    finally:
+        session.close()
