@@ -5,12 +5,15 @@
 비로그인: 홈 · 회원 전용 잠금 · 작업실 처리/다운로드 안내
 회원:     가입 → 작업실 처리 → 좋아요 → 기록 → 상세 → 배치(진행률·결과·zip) → 영상 → 로그아웃
 비로그인: 영상 처리 → 결과 저장(서버에 저장되지 않음)
-콘솔:     배치 현황에서 방금 배치 확인 → 학습 데이터에서 방금 요청 찾기 → 잘못된 JSON 안내 → 정답 고쳐 승인 → 삭제(확인 창)
+콘솔:     로그인 화면 → 일반 회원 거절 → 관리자 로그인 → 배치 현황에서 방금 배치 확인 → 학습 데이터에서 방금 요청 찾기
+          → 잘못된 JSON 안내 → 정답 고쳐 승인 → 삭제(확인 창) → 시스템(점검·저장 공간·정리 미리 보기)
+          → 회원 관리에서 테스트 회원 찾아 삭제(파일까지 지워졌는지 확인) → 로그아웃
 모바일:   홈 · 작업실 레이아웃
-콘솔 오류 · 페이지 예외 · 5xx 응답을 모은다 (비로그인 /auth/me 401 은 정상이라 제외).
+콘솔 오류 · 페이지 예외 · 401/403 · 5xx 응답을 모은다 (로그인 확인용 /auth/me · /console/me 의 401/403 은 정상이라 제외).
 끝나면 이번 실행이 만든 테스트 계정·작업·피드백·학습 샘플·파일을 지운다.
 
 준비: 백엔드(:8000) · frontend · console dev 서버, `pip install playwright` (+ 필요 시 `playwright install chromium`)
+      백엔드는 콘솔 로그인 흐름을 위해 CONSOLE_REQUIRE_LOGIN=true CONSOLE_ADMINS=<--admin 값> 으로 띄운다
 실행: python scripts/experiments/ui_check.py --app http://localhost:5173 --console http://localhost:5174
 결과: docs/vaildates/ui-check-20261006.md
 """
@@ -31,12 +34,14 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--app", default="http://localhost:5173", help="사용자 앱 주소")
 ap.add_argument("--console", default="http://localhost:5174", help="운영 콘솔 주소")
 ap.add_argument("--out", type=Path, default=ROOT / "logs" / "ui_check", help="화면 캡처 폴더")
+ap.add_argument("--admin", default="uiadmin", help="백엔드 CONSOLE_ADMINS 에 넣은 관리자 아이디 (없으면 만들고 끝나면 지움)")
 args = ap.parse_args()
 SHOT = args.out
 SHOT.mkdir(parents=True, exist_ok=True)
 IMG = sorted(glob.glob(str(ROOT / "training/datasets/cutnkeep_seg_5k/images/val/*.jpg")))[3]
 APP, CONSOLE = args.app.rstrip("/"), args.console.rstrip("/")
 NAME = "ui" + uuid.uuid4().hex[:8]
+ADMIN, ADMIN_PW = args.admin, "Passw0rd!ui-admin"
 PROMPT = f"가운데 사람만 남기고 배경 블러 강도 33 ({NAME[-4:]})"
 problems: list[str] = []
 steps: list[str] = []
@@ -58,11 +63,27 @@ def make_video(path: Path, frames: int = 12) -> Path:
     return path
 
 
+# 로그인 확인용 요청의 401·403 은 정상 (비로그인 /auth/me, 콘솔 로그인 전 /console/me)
+EXPECTED_DENIED = ("/auth/me", "/console/me")
+
+
 def watch(page, tag):
-    page.on("console", lambda m: m.type == "error" and "401" not in m.text and problems.append(f"[{tag} console] {m.text[:200]}"))
-    page.on("response", lambda r: r.status == 401 and "/auth/me" not in r.url and problems.append(f"[{tag} 401] {r.url}"))
+    # 브라우저 콘솔의 "Failed to load resource ... 401/403" 은 주소가 없어 아래 response 감시로 판단한다
+    page.on("console", lambda m: m.type == "error" and not any(f"status of {c}" in m.text for c in (401, 403))
+            and "401" not in m.text and problems.append(f"[{tag} console] {m.text[:200]}"))
+    page.on("response", lambda r: r.status in (401, 403) and not any(x in r.url for x in EXPECTED_DENIED)
+            and problems.append(f"[{tag} {r.status}] {r.url}"))
     page.on("pageerror", lambda e: problems.append(f"[{tag} pageerror] {e}"))
     page.on("response", lambda r: r.status >= 500 and problems.append(f"[{tag} {r.status}] {r.url}"))
+
+
+def assert_video_plays(page):
+    """결과 <video> 가 실제로 디코드되는지 (webm 메타데이터 로드 · 길이 > 0)."""
+    expect(page.get_by_label("처리 결과 영상")).to_be_visible(timeout=30_000)
+    page.wait_for_function(
+        "() => { const v = document.querySelector('video'); return v && v.readyState >= 1 && v.duration > 0; }",
+        timeout=30_000,
+    )
 
 
 def step(name, fn):
@@ -231,11 +252,12 @@ with sync_playwright() as p:
         page.get_by_role("button", name="영상 처리 시작").click()
         expect(page.get_by_text("처리가 끝났어요")).to_be_visible(timeout=300_000)
         expect(page.get_by_text("서버에 보관됨")).to_be_visible()
+        assert_video_plays(page)
         with page.expect_download() as d:
-            page.get_by_text("결과 저장 (avi)").click()
-        assert d.value.suggested_filename.endswith(".avi")
+            page.get_by_text("결과 저장 (webm)").click()
+        assert d.value.suggested_filename == "cutnkeep_video.webm"
         page.screenshot(path=SHOT / "video_member.png", full_page=True)
-    step("회원 영상: 처리 → 보관본 받기", member_video)
+    step("회원 영상: 처리 → 페이지에서 재생 → 보관본 webm 받기", member_video)
 
     def logout():
         page.get_by_role("button", name="로그아웃").click()
@@ -250,19 +272,40 @@ with sync_playwright() as p:
         page.get_by_role("button", name="영상 처리 시작").click()
         expect(page.get_by_text("처리가 끝났어요")).to_be_visible(timeout=300_000)
         expect(page.get_by_text("서버에 저장되지 않았어요")).to_be_visible()
+        assert_video_plays(page)
         with page.expect_download() as d:
-            page.get_by_text("결과 저장 (avi)").click()
-        assert d.value.suggested_filename == "cutnkeep_video.avi"
+            page.get_by_text("결과 저장 (webm)").click()
+        assert d.value.suggested_filename == "cutnkeep_video.webm"
         import os
-        saved = SHOT / "guest_result.avi"
+        saved = SHOT / "guest_result.webm"
         d.value.save_as(str(saved))
         assert os.path.getsize(saved) > 1000
-    step("비로그인 영상: 처리 → 저장 안 됨 안내 → 파일 받기", guest_video)
+    step("비로그인 영상: 처리 → 페이지에서 재생 → 저장 안 됨 안내 → webm 받기", guest_video)
 
-    # ---------------- 콘솔
-    con = ctx.new_page()
+    # ---------------- 콘솔 (localhost 쿠키는 포트를 가리지 않아 사용자 앱 로그인과 섞이지 않게 따로 연 브라우저 문맥)
+    con_ctx = browser.new_context(viewport={"width": 1280, "height": 860})
+    con = con_ctx.new_page()
     watch(con, "console")
     _pages.append(con)
+
+    def console_login():
+        con.goto(CONSOLE + "/")
+        expect(con.get_by_text("관리자 로그인")).to_be_visible(timeout=15_000)  # 서버 PC 여도 로그인 필수(CONSOLE_REQUIRE_LOGIN)
+        con.get_by_label("아이디").fill(NAME)  # 비밀번호는 맞지만 관리자가 아닌 회원
+        con.get_by_label("비밀번호").fill("Passw0rd!ui")
+        con.get_by_role("button", name="로그인").click()
+        expect(con.get_by_text("운영 콘솔 관리자 계정이 아닙니다.")).to_be_visible(timeout=10_000)
+        # 관리자 계정 준비 (가입하면 그 세션이 생기므로 바로 로그아웃) → 화면에서 로그인
+        r = con_ctx.request.post(CONSOLE + "/api/v1/auth/signup",
+                                 data={"username": ADMIN, "email": f"{ADMIN}@example.com", "password": ADMIN_PW})
+        assert r.status in (201, 409), r.text()
+        con_ctx.request.post(CONSOLE + "/api/v1/auth/logout")
+        con.get_by_label("아이디").fill(ADMIN)
+        con.get_by_label("비밀번호").fill(ADMIN_PW)
+        con.get_by_role("button", name="로그인").click()
+        expect(con.get_by_test_id("console-actor")).to_have_text(f"관리자 {ADMIN}", timeout=10_000)
+        con.screenshot(path=SHOT / "console_login.png", full_page=True)
+    step("콘솔 로그인: 일반 회원 거절 → 관리자 로그인", console_login)
 
     def console_batches():
         con.goto(CONSOLE + "/")
@@ -302,6 +345,44 @@ with sync_playwright() as p:
         expect(con.get_by_text(PROMPT)).to_have_count(0)
     step("콘솔 학습 데이터: 검색 → JSON 오류 안내 → 고쳐 승인 → 삭제", console_learning)
 
+    def console_system():
+        con.get_by_role("button", name="시스템").click()
+        expect(con.get_by_text("배포 설정 점검")).to_be_visible(timeout=15_000)
+        expect(con.get_by_text("CONSOLE_REQUIRE_LOGIN", exact=True)).to_have_count(0)  # 켜 두었으니 경고 없음
+        expect(con.get_by_text("단일 작업")).to_be_visible()
+        # "지금 정리"는 누르지 않는다 — 실제 업로드 폴더의 오래된 파일이 지워진다. 미리 보기만
+        con.get_by_role("button", name="정리 미리 보기").click()
+        expect(con.get_by_text("지울 대상: 파일")).to_be_visible(timeout=15_000)
+        con.screenshot(path=SHOT / "console_system.png", full_page=True)
+    step("콘솔 시스템: 점검 · 저장 공간 · 정리 미리 보기", console_system)
+
+    def console_users():
+        from app.core.config import get_settings
+
+        con.get_by_role("button", name="회원 관리").click()
+        con.get_by_label("회원 검색").fill(NAME)
+        con.get_by_role("button", name="검색").click()
+        row = con.locator("tbody tr").filter(has_text=NAME)
+        expect(row).to_have_count(1, timeout=10_000)
+        con.screenshot(path=SHOT / "console_users.png", full_page=True)
+        row.get_by_role("button", name="삭제").click()
+        confirm = con.get_by_label("삭제 확인 아이디")
+        confirm.fill(NAME[:-1])
+        assert con.get_by_role("button", name="영구 삭제").is_disabled()
+        confirm.fill(NAME)
+        con.get_by_role("button", name="영구 삭제").click()
+        expect(con.get_by_text(f"{NAME} 삭제 — 작업")).to_be_visible(timeout=15_000)
+        expect(con.locator("tbody tr").filter(has_text=NAME)).to_have_count(0)
+        videos = get_settings().upload_path / "videos"
+        left = [m for m in videos.glob("*/owner.json")] if videos.is_dir() else []
+        assert not [m for m in left if NAME in m.read_text(encoding="utf-8")], "영상 보관본이 남음"
+    step("콘솔 회원 관리: 검색 → 확인 입력 → 테스트 회원 삭제(작업·배치·영상 파일 포함)", console_users)
+
+    def console_logout():
+        con.get_by_role("button", name="로그아웃").click()
+        expect(con.get_by_text("관리자 로그인")).to_be_visible(timeout=10_000)
+    step("콘솔 로그아웃 → 로그인 화면", console_logout)
+
     # ---------------- 모바일
     mobile = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     mp = mobile.new_page()
@@ -322,5 +403,6 @@ print("\n".join(steps))
 print(f"\n문제 {len(problems)}건")
 for x in problems:
     print(" ", x)
-cleanup(NAME)
+cleanup(NAME)  # 회원 관리 단계에서 이미 지워졌으면 할 일 없음 — 그 단계가 실패했을 때의 안전망
+cleanup(ADMIN)
 sys.exit(1 if any(x.startswith("FAIL") for x in steps) or problems else 0)
