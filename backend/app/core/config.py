@@ -183,6 +183,10 @@ class Settings(BaseSettings):
         alias="DINO_MODEL_ID",
     )
     sam2_model_id: str = Field(default="facebook/sam2-hiera-tiny", alias="SAM2_MODEL_ID")
+    # Grounding DINO 박스·문구 임계값. YOLO 의 MIN_CONFIDENCE 와 점수 분포가 달라 따로 둔다
+    # (docs/vaildates/open-vocab-20261007.md — COCO 정답으로 측정해 고른 값).
+    open_vocab_box_threshold: float = Field(default=0.35, ge=0.05, le=0.95, alias="OPEN_VOCAB_BOX_THRESHOLD")
+    open_vocab_text_threshold: float = Field(default=0.25, ge=0.05, le=0.95, alias="OPEN_VOCAB_TEXT_THRESHOLD")
     # 【수동】 영상 업로드. 비로그인은 응답으로만 받고 디스크에 남기지 않는다.
     video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
     video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")

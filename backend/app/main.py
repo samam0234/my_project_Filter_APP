@@ -108,7 +108,15 @@ def _preload_models() -> None:
         import numpy as np
 
         processor.segmentor.predict(np.zeros((640, 640, 3), np.uint8), targets=["person"])
-        logger.info("모델 미리 로드·워밍업 완료 {:.1f}s", time.perf_counter() - started)
+        # OPEN_VOCAB_ENABLED 면 DINO·SAM2 도 — 안 하면 COCO 밖 대상의 첫 요청이 16초 걸린다
+        from app.services.segmentation import warmup_open_vocab
+
+        open_vocab = warmup_open_vocab()
+        logger.info(
+            "모델 미리 로드·워밍업 완료 {:.1f}s (오픈보캐브 {})",
+            time.perf_counter() - started,
+            "포함" if open_vocab else "제외",
+        )
     except Exception as exc:  # 실패해도 첫 요청에서 다시 시도
         logger.warning("모델 미리 로드 실패 (첫 요청에서 다시 시도): {}", exc)
 

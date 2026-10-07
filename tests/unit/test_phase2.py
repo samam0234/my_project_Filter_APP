@@ -239,6 +239,37 @@ def test_dino_text_joins_labels():
     assert _dino_text("dog, cat") == "dog . cat ."
 
 
+def test_open_vocab_drops_unmatched_boxes():
+    """문구와 이어지지 않은 박스(빈 라벨)는 지울 대상이 아니다."""
+    from app.services.segmentation import _keep_matched
+
+    boxes, scores, labels = _keep_matched([[0, 0, 1, 1], [1, 1, 2, 2], [2, 2, 3, 3]], [0.9, 0.5, 0.4], ["helmet", "", " "])
+    assert boxes == [[0, 0, 1, 1]] and scores == [0.9] and labels == ["helmet"]
+
+
+def test_open_vocab_thresholds_are_separate_from_yolo():
+    """DINO 후처리에는 YOLO MIN_CONFIDENCE 가 아니라 오픈보캐브 전용 임계값이 들어간다."""
+    from app.services.segmentation import _post_dino
+
+    seen = {}
+
+    class _Proc:
+        def post_process_grounded_object_detection(self, **kw):
+            seen.update(kw)
+            return [{}]
+
+    inputs = type("Inputs", (), {"input_ids": None})()
+    settings = _settings(OPEN_VOCAB_BOX_THRESHOLD=0.4, OPEN_VOCAB_TEXT_THRESHOLD=0.3, MIN_CONFIDENCE=0.25)
+    _post_dino(_Proc(), None, inputs, settings.open_vocab_box_threshold, settings.open_vocab_text_threshold, (4, 4))
+    assert seen["threshold"] == 0.4 and seen["text_threshold"] == 0.3
+
+
+def test_open_vocab_warmup_skipped_when_disabled():
+    from app.services.segmentation import warmup_open_vocab
+
+    assert warmup_open_vocab(_settings(OPEN_VOCAB_ENABLED=False)) is False
+
+
 def test_lora_template_is_shared_with_training():
     """서빙 prompt_spec.LORA_TEMPLATE 과 학습 템플릿이 같은 객체인지.
 
