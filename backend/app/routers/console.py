@@ -1,7 +1,7 @@
 """운영 콘솔 전용 API — /api/v1/console/* (작업 조회 · 학습 데이터 검수)
 
-콘솔(:5174)은 아직 인증이 없어 전체 작업을 볼 수 있는 이 API 를 **서버 PC(loopback)에서만** 허용한다
-(core/access.require_local_console, CONSOLE_ALLOW_REMOTE 로 해제).
+전체 작업·회원 데이터를 다루므로 **관리자 로그인(CONSOLE_ADMINS)** 또는 **서버 PC(loopback)** 에서만 허용한다
+(core/access.require_console). 배포에서는 CONSOLE_REQUIRE_LOGIN=true 로 loopback 도 로그인 필수.
 사용자 앱의 /api/v1/jobs 는 로그인 사용자 본인 작업만 돌려준다.
 """
 
@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.core.access import require_local_console
+from app.core.access import ConsoleActor, require_console
 from app.core.config import get_settings
 from app.db.learning import get_learning_db, learning_db_mode
 from app.db.session import get_db
@@ -33,7 +33,13 @@ from app.schemas.response import JobResponse
 from app.services import learning_review
 from app.services.learning_review import resolve_file
 
-router = APIRouter(prefix="/console", tags=["console"], dependencies=[Depends(require_local_console)])
+router = APIRouter(prefix="/console", tags=["console"], dependencies=[Depends(require_console)])
+
+
+@router.get("/me")
+async def console_me(actor: ConsoleActor = Depends(require_console)) -> dict:
+    """콘솔 화면이 첫 진입에 부른다 — 401/403 이면 로그인 화면, 200 이면 누구로 들어왔는지 표시."""
+    return {"via": actor.via, "username": actor.username}
 
 
 def _console_view(row) -> JobResponse:
@@ -139,16 +145,25 @@ async def learning_samples(
 
 
 @router.post("/learning/samples/bulk", response_model=BulkReviewResponse)
-async def learning_bulk_review(body: BulkReviewRequest, ldb: Session = Depends(get_learning_db)) -> BulkReviewResponse:
-    return BulkReviewResponse(**learning_review.bulk_review(ldb, body.ids, body.action))
+async def learning_bulk_review(
+    body: BulkReviewRequest,
+    ldb: Session = Depends(get_learning_db),
+    actor: ConsoleActor = Depends(require_console),
+) -> BulkReviewResponse:
+    return BulkReviewResponse(**learning_review.bulk_review(ldb, body.ids, body.action, reviewer=actor.label))
 
 
 @router.post("/learning/samples/{sample_id}/review", response_model=LearningSampleResponse)
 async def learning_review_one(
-    sample_id: str, body: ReviewRequest, ldb: Session = Depends(get_learning_db)
+    sample_id: str,
+    body: ReviewRequest,
+    ldb: Session = Depends(get_learning_db),
+    actor: ConsoleActor = Depends(require_console),
 ) -> LearningSampleResponse:
     try:
-        row = learning_review.review(ldb, sample_id, body.action, answer=body.answer, note=body.note)
+        row = learning_review.review(
+            ldb, sample_id, body.action, answer=body.answer, note=body.note, reviewer=actor.label
+        )
     except LookupError:
         raise HTTPException(status_code=404, detail="샘플 없음")
     except learning_review.ReviewError as exc:

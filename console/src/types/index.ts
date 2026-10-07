@@ -84,3 +84,11 @@ export interface LearningStats {
   /** 재학습 기준 (LORA_RETRAIN_MIN_NEW) */
   retrain_min_new?: number;
 }
+
+/** GET /api/v1/console/me — admin: CONSOLE_ADMINS 로그인 · local: 서버 PC(로그인 없음) · open: CONSOLE_ALLOW_REMOTE */
+export interface ConsoleMe {
+  via: "admin" | "local" | "open";
+  username: string | null;
+}
+
+export type ConsoleAuthStatus = "checking" | "in" | "login";

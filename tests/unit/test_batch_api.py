@@ -323,7 +323,7 @@ def test_console_lists_all_batches_without_images(env):
 
 def test_console_batches_is_local_only(env, monkeypatch):
     monkeypatch.setattr(get_settings(), "console_allow_remote", False)
-    assert env["client"].get("/api/v1/console/batches").status_code == 403
+    assert env["client"].get("/api/v1/console/batches").status_code == 401  # 원격 + 비로그인
 
 
 def test_enqueue_falls_back_in_process_when_redis_is_down(monkeypatch):

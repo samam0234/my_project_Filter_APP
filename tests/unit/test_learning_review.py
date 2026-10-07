@@ -145,9 +145,25 @@ def test_broken_encoding_prompt_is_not_a_candidate(env):
     assert _samples(c)["total"] == 0
 
 
+def test_review_records_which_admin_approved(env, monkeypatch):
+    """관리자 로그인으로 검수하면 reviewed_by 에 그 계정이 남는다 (공용 'console' 이 아니라)."""
+    c = env["client"]
+    _upload(c, "왼쪽에서 두 번째 사람 지워줘")
+    sid = _samples(c)["items"][0]["id"]
+    monkeypatch.setattr(get_settings(), "console_allow_remote", False)
+    monkeypatch.setattr(get_settings(), "console_admins", "rev_01")  # 로그인 중인 계정을 관리자로
+    r = c.post(f"/api/v1/console/learning/samples/{sid}/review", json={"action": "approve"})
+    assert r.status_code == 200, r.text
+    assert r.json()["reviewed_by"] == "admin:rev_01"
+    bulk = c.post("/api/v1/console/learning/samples/bulk", json={"ids": [sid], "action": "reject"})
+    assert bulk.status_code == 200
+    with env["LearningSession"]() as ldb:
+        assert ldb.get(LearningSample, sid).reviewed_by == "admin:rev_01"
+
+
 def test_learning_console_is_local_only(env, monkeypatch):
     monkeypatch.setattr(get_settings(), "console_allow_remote", False)
-    assert env["client"].get("/api/v1/console/learning/samples").status_code == 403
+    assert env["client"].get("/api/v1/console/learning/samples").status_code == 403  # 원격 + 관리자 아닌 회원
 
 
 def test_like_merges_into_request_candidate(env):
