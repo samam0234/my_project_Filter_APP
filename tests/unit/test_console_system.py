@@ -67,7 +67,7 @@ def test_system_snapshot_does_not_load_models(admin, monkeypatch):
     monkeypatch.setattr(Segmentor, "__init__", boom)
     body = admin.get("/api/v1/console/system").json()
     assert body["segmentation"]["runtime"] == "not_loaded"
-    assert body["video"]["output_format"] in {"webm", "avi"}
+    assert body["video"]["output_format"] in {"mp4", "webm", "avi"} and body["video"]["ffmpeg"] is True
     assert body["console"]["admins"] == 1
     assert body["batch"]["redis_ok"] is None  # Celery 를 안 쓰면 Redis 를 확인하지 않음
     assert {a["name"] for a in body["storage"]["areas"]} == {"jobs", "batches", "videos"}

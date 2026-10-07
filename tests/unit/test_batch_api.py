@@ -185,7 +185,7 @@ def test_video_applies_selector_per_frame(tmp_path):
                           selector=InstanceSelector(position="left", count=1))
     info = process_video(src, tmp_path / "out", parsed, Spy(), max_frames=10, max_seconds=5)
     assert info["frames"] == 3 and info["held"] == 0
-    assert info["format"] == "webm" and info["path"].endswith(".webm")
+    assert info["format"] == "mp4" and info["path"].endswith(".mp4")  # ffmpeg(imageio-ffmpeg) 번들이 있으면 H.264
     out = cv2.VideoCapture(info["path"])
     ok, frame = out.read()
     out.release()
@@ -215,41 +215,86 @@ def test_video_route_uses_shared_segmentor(env, monkeypatch, tmp_path):
     assert video_router  # import 확인
 
 
-def test_video_guest_gets_browser_playable_webm(env):
-    """비로그인 응답은 브라우저 <video> 로 바로 재생되는 webm."""
+def test_video_guest_gets_h264_mp4(env):
+    """비로그인 응답은 어디서나 재생되는 H.264 mp4 — 해석된 효과·강도도 함께 알려 준다."""
     r = env["client"].post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "video/avi")},
                            data={"prompt": "사람만 남기고 배경 블러"})
     assert r.status_code == 200, r.text
-    assert r.headers["content-type"] == "video/webm"
-    assert r.headers["X-Cutnkeep-Format"] == "webm"
-    assert "result.webm" in r.headers["content-disposition"]
-    assert r.content[:4] == bytes([0x1A, 0x45, 0xDF, 0xA3])  # EBML (webm)
+    assert r.headers["content-type"] == "video/mp4"
+    assert r.headers["X-Cutnkeep-Format"] == "mp4"
+    assert (r.headers["X-Cutnkeep-Effect"], r.headers["X-Cutnkeep-Intensity"]) == ("blur", "15")
+    assert "result.mp4" in r.headers["content-disposition"]
+    assert r.content[4:8] == b"ftyp"  # mp4 컨테이너
 
 
-def test_video_member_result_is_webm(env):
+def test_video_member_result_is_mp4(env):
     c = env["client"]
-    _signup(c, "vid_webm")
+    _signup(c, "vid_mp4")
     r = c.post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "video/avi")},
                data={"prompt": "사람만 남기고 배경 블러"})
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["format"] == "webm"
+    assert (body["format"], body["effect"], body["intensity"]) == ("mp4", "blur", 15)
     got = c.get(body["url"])
-    assert got.status_code == 200 and got.headers["content-type"] == "video/webm"
+    assert got.status_code == 200 and got.headers["content-type"] == "video/mp4"
 
 
-def test_video_falls_back_to_avi_without_vp8(tmp_path, monkeypatch):
-    """VP8 인코더가 없는 OpenCV 빌드면 MJPG avi 로 내려간다."""
+def test_video_falls_back_to_webm_then_avi_without_ffmpeg(tmp_path, monkeypatch):
+    """ffmpeg 가 없으면 webm(VP8), VP8 도 없으면 MJPG avi 로 내려간다."""
     from app.schemas.request import ParsedPrompt
     from app.services import video_processor
 
+    monkeypatch.setattr(video_processor, "ffmpeg_exe", lambda: None)
+    src = tmp_path / "in.avi"
+    src.write_bytes(_avi_bytes(tmp_path))
+    args = (src, tmp_path / "out", ParsedPrompt(target=["person"], effect="blur"), TwoPeople())
+    info = video_processor.process_video(*args, max_frames=5, max_seconds=5)
+    assert info["format"] == "webm" and info["media_type"] == "video/webm"
     monkeypatch.setitem(video_processor._FORMATS, "webm", (".webm", "ZZZZ", "video/webm"))
+    info = video_processor.process_video(*args, max_frames=5, max_seconds=5)
+    assert info["format"] == "avi" and info["media_type"] == "video/x-msvideo"
+    assert not (tmp_path / "out.webm").exists()
+
+
+def test_video_mp4_conversion_failure_keeps_avi(tmp_path, monkeypatch):
+    """ffmpeg 변환이 실패해도 처리 결과를 잃지 않는다 — 임시 avi 가 결과가 된다."""
+    from app.schemas.request import ParsedPrompt
+    from app.services import video_processor
+
+    monkeypatch.setattr(video_processor, "_to_mp4", lambda *a, **k: False)
     src = tmp_path / "in.avi"
     src.write_bytes(_avi_bytes(tmp_path))
     info = video_processor.process_video(src, tmp_path / "out", ParsedPrompt(target=["person"], effect="blur"),
                                          TwoPeople(), max_frames=5, max_seconds=5)
-    assert info["format"] == "avi" and info["media_type"] == "video/x-msvideo"
-    assert not (tmp_path / "out.webm").exists()
+    assert info["format"] == "avi" and (tmp_path / "out.avi").is_file()
+    assert not list(tmp_path.glob("*.tmp.avi"))
+
+
+def test_video_blur_strength_scales_with_frame_size():
+    """블러 커널은 픽셀 단위 — 1080p·4K 영상에서 사진과 같은 강도처럼 보이게 프레임 크기에 비례해 키운다."""
+    from app.services.video_processor import MAX_BLUR_INTENSITY, _scaled_intensity
+
+    assert _scaled_intensity(15, 640, 360) == 15  # 작은 프레임은 그대로
+    assert _scaled_intensity(15, 1280, 720) == 15  # 사진 파이프라인 기준 크기
+    assert _scaled_intensity(15, 1920, 1080) == 22
+    assert _scaled_intensity(15, 3840, 2160) == 45
+    assert _scaled_intensity(200, 3840, 2160) == MAX_BLUR_INTENSITY
+
+
+def test_video_blur_is_visible_on_large_frames(tmp_path):
+    """같은 문장이라도 큰 프레임에서 배경이 실제로 흐려진다 (원본 대비 선명도가 크게 떨어짐)."""
+    from app.schemas.request import ParsedPrompt
+    from app.services.video_processor import _scaled_intensity
+    from app.services.effects import apply_blur
+
+    rng = np.random.default_rng(0)
+    frame = rng.integers(0, 255, (1080, 1920, 3), np.uint8)  # 고주파 배경
+    empty = np.zeros(frame.shape[:2], np.uint8)
+    sharp = lambda a: cv2.Laplacian(cv2.cvtColor(a, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var()
+    plain = apply_blur(frame, empty, intensity=15)
+    scaled = apply_blur(frame, empty, intensity=_scaled_intensity(15, 1920, 1080))
+    assert sharp(scaled) < sharp(plain) * 0.8 < sharp(frame)
+    assert ParsedPrompt  # import 확인
 
 
 def _avi_bytes(tmp_path) -> bytes:
@@ -302,7 +347,8 @@ def test_cors_exposes_video_headers(env):
     )
     r2 = env["client"].get("/health", headers={"Origin": "http://localhost:5173"})
     exposed = r2.headers.get("access-control-expose-headers", "")
-    assert "X-Cutnkeep-Frames" in exposed and "Content-Disposition" in exposed and "X-Cutnkeep-Format" in exposed
+    assert "X-Cutnkeep-Frames" in exposed and "Content-Disposition" in exposed
+    assert {"X-Cutnkeep-Format", "X-Cutnkeep-Effect", "X-Cutnkeep-Intensity"} <= {h.strip() for h in exposed.split(",")}
     assert r.status_code in {200, 204}
 
 

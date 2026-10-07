@@ -13,6 +13,7 @@ from app import __version__
 from app.core import preflight
 from app.core.config import Settings, get_settings
 from app.services.retention import storage_usage
+from app.services.video_processor import ffmpeg_exe
 
 
 def _segmentation(settings: Settings) -> dict:
@@ -109,6 +110,7 @@ def snapshot(settings: Settings | None = None) -> dict:
         "batch": _batch(settings),
         "video": {
             "output_format": settings.video_output_format,
+            "ffmpeg": ffmpeg_exe() is not None,  # 없으면 mp4 를 못 만들고 webm → avi 로 내려간다
             "max_seconds": settings.video_max_seconds,
             "max_frames": settings.video_max_frames,
         },
