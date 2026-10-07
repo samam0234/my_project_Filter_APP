@@ -206,6 +206,10 @@ OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) mp4 는 쓰�
 | 엔드포인트 | 설명 |
 |------------|------|
 | `GET /api/v1/console/me` | `{via: "admin"\|"local"\|"open", username}` — 콘솔이 첫 진입에 호출, 401·403 이면 로그인 화면 |
+| `GET /api/v1/console/users?q=&limit=&offset=` | 회원 목록 `{items, total, limit, offset}` — 작업·배치 수, 활성 세션, 잠김, `is_admin` (비밀번호 해시 없음) |
+| `POST /api/v1/console/users/{id}/unlock` | 로그인 실패 잠금 해제 |
+| `POST /api/v1/console/users/{id}/sessions/revoke` | 모든 세션 삭제 → `{id, revoked}` |
+| `DELETE /api/v1/console/users/{id}` | 본문 `{"confirm": "아이디"}`. 계정·세션·작업·배치·영상·파일 삭제, 학습 샘플은 `user_id` 만 비움 → `{jobs, batches, videos, removed_dirs, learning_unlinked}`. 관리자·본인 400, 확인 아이디 불일치 400 |
 | `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
 | `GET /api/v1/console/files/{job_id}/{before\|after}` | 작업 파일 (소유자 무관) |

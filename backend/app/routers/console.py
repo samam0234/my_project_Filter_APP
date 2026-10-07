@@ -7,10 +7,12 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.access import ConsoleActor, require_console
@@ -30,7 +32,7 @@ from app.schemas.learning import (
     ReviewRequest,
 )
 from app.schemas.response import JobResponse
-from app.services import learning_review
+from app.services import learning_review, user_admin
 from app.services.learning_review import resolve_file
 
 router = APIRouter(prefix="/console", tags=["console"], dependencies=[Depends(require_console)])
@@ -186,3 +188,55 @@ async def learning_image(sample_id: str, ldb: Session = Depends(get_learning_db)
     if path is None:
         raise HTTPException(status_code=404, detail="이미지 없음")
     return FileResponse(path)
+
+
+# ---------------------------------------------------------------------------- 회원 관리
+
+
+class DeleteUserRequest(BaseModel):
+    # 실수 방지: 지울 회원의 아이디를 그대로 다시 입력
+    confirm: str
+
+
+def _user_admin_call(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except user_admin.UserAdminError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc))
+
+
+@router.get("/users")
+async def list_users(
+    q: str = "",
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> dict:
+    """회원 목록 + 작업·배치 수 · 활성 세션 · 잠금 여부. 비밀번호 해시는 내보내지 않는다."""
+    rows, total = user_admin.list_users(db, q=q, limit=limit, offset=offset)
+    return {"items": [asdict(row) for row in rows], "total": total, "limit": limit, "offset": offset}
+
+
+@router.post("/users/{user_id}/unlock")
+async def unlock_user(user_id: str, db: Session = Depends(get_db)) -> dict:
+    user = _user_admin_call(user_admin.unlock, db, user_id)
+    return {"id": user.id, "locked": False}
+
+
+@router.post("/users/{user_id}/sessions/revoke")
+async def revoke_user_sessions(user_id: str, db: Session = Depends(get_db)) -> dict:
+    return {"id": user_id, "revoked": _user_admin_call(user_admin.revoke_sessions, db, user_id)}
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    body: DeleteUserRequest,
+    db: Session = Depends(get_db),
+    ldb: Session = Depends(get_learning_db),
+    actor: ConsoleActor = Depends(require_console),
+) -> dict:
+    """계정·작업·배치·영상·파일 삭제 (되돌릴 수 없음). 학습 샘플은 계정 연결만 끊는다."""
+    return _user_admin_call(
+        user_admin.delete_user, db, ldb, user_id, confirm=body.confirm, actor_username=actor.username
+    )

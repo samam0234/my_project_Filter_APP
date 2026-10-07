@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Server,
+  Users,
 } from "lucide-react";
 import type { ConsolePage } from "../types";
 import { useConsoleStore } from "../store/useConsoleStore";
@@ -19,6 +20,7 @@ const items: { id: ConsolePage; label: string; icon: typeof Activity }[] = [
   { id: "dashboard", label: "대시보드", icon: LayoutDashboard },
   { id: "jobs", label: "Job 목록", icon: ListOrdered },
   { id: "batches", label: "배치 현황", icon: Layers },
+  { id: "users", label: "회원 관리", icon: Users },
   { id: "learning", label: "학습 데이터", icon: Database },
   { id: "system", label: "시스템", icon: Server },
   { id: "links", label: "바로가기", icon: ExternalLink },

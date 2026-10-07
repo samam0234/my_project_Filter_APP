@@ -43,6 +43,7 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 | 대시보드 | API/DB 상태, Job 집계, 최근 5건 |
 | Job 목록 | 전체 Job 테이블 (회원 작업 + 로그인 기능 이전의 소유자 없는 작업), after 미리보기 링크 |
 | 배치 현황 | 전체 회원의 배치 목록·진행·실패 수 (`GET /api/v1/console/batches`). 진행 중이면 5초마다 갱신. 회원 사진 보호를 위해 이미지는 보여 주지 않음 |
+| **회원 관리** | 아이디·이메일 검색, 작업·배치 수, 로그인·잠김 상태. 잠금 해제 · 모든 기기 로그아웃 · 계정 삭제 (아래) |
 | **학습 데이터** | 학습 DB `learning_samples` 검수 — 승인 · 정답 고쳐서 승인 · 거절 · 되돌리기 · 삭제 · 선택 일괄 승인/거절 |
 | 시스템 | version, dialect, 포트 메모 |
 | 바로가기 | frontend / swagger / health |
@@ -72,6 +73,18 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
   (`augment_prompts.py` → `train_lora.py` → `eval_parser.py`) — 한 번에: `python scripts/retrain_lora.py`
 - 승인 카드의 `재학습 N/200` = 승인된 사용자 문장 수 / 재학습 기준 (`LORA_RETRAIN_MIN_NEW`)
 
+## 회원 관리
+
+| 동작 | 결과 |
+|------|------|
+| 잠금 해제 | 로그인 실패(`LOGIN_MAX_FAILURES`)로 잠긴 계정을 바로 풀어 줌 |
+| 로그아웃 | 그 회원의 모든 로그인 세션 삭제 — 다음 요청부터 비로그인 (비밀번호 유출 의심 시) |
+| 삭제 | **되돌릴 수 없음.** 아이디를 다시 입력해야 실행. 계정 · 세션 · 작업 · 배치 · 영상 보관본과 결과 파일 삭제. 학습 데이터(검수 문장)는 남기고 계정 연결(`user_id`)만 끊음 — 지울 문장은 "학습 데이터" 화면에서 |
+
+- 관리자(`CONSOLE_ADMINS`) 계정과 지금 로그인한 본인은 삭제할 수 없다 (콘솔에 아무도 못 들어가는 상황 방지)
+- 삭제는 서버 로그에 `회원 삭제 ... by=관리자아이디` 로 남는다
+- 비밀번호는 해시로만 저장돼 콘솔에서도 볼 수 없다 — 회원에게 사용자 앱의 "비밀번호 재설정"을 안내
+
 ## 자동 갱신
 
 30초 간격 + 수동 새로고침 버튼.
@@ -81,6 +94,7 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 | 콘솔 호출 | 백엔드 |
 |-----------|--------|
 | 접근 확인 · 로그인 · 로그아웃 | `GET /api/v1/console/me` · `POST /api/v1/auth/login` · `/auth/logout` |
+| 회원 목록 · 잠금 해제 · 세션 끊기 · 삭제 | `GET /api/v1/console/users` · `POST /users/{id}/unlock` · `POST /users/{id}/sessions/revoke` · `DELETE /users/{id}` |
 | 헬스 | `GET /health` |
 | Job 목록 · 단건 | `GET /api/v1/console/jobs` · `/console/jobs/{id}` |
 | after 링크 | `GET /api/v1/console/files/{id}/after` |

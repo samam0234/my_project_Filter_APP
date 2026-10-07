@@ -6,6 +6,8 @@ import axios from "axios";
 import type {
   BatchSummary,
   ConsoleMe,
+  ConsoleUserList,
+  DeleteUserResult,
   HealthResponse,
   JobResponse,
   LearningSample,
@@ -155,5 +157,32 @@ export function errorMessage(err: unknown): string {
 /** GET /api/v1/console/batches?limit= — 전체 회원 배치 현황 */
 export async function fetchBatches(limit = 50): Promise<BatchSummary[]> {
   const { data } = await api.get<BatchSummary[]>("/api/v1/console/batches", { params: { limit } });
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// 회원 관리
+// ---------------------------------------------------------------------------
+
+/** GET /api/v1/console/users?q=&limit=&offset= */
+export async function fetchUsers(q = "", limit = 50, offset = 0): Promise<ConsoleUserList> {
+  const { data } = await api.get<ConsoleUserList>("/api/v1/console/users", { params: { q: q || undefined, limit, offset } });
+  return data;
+}
+
+/** POST /api/v1/console/users/{id}/unlock — 로그인 실패 잠금 해제 */
+export async function unlockUser(id: string): Promise<void> {
+  await api.post(`/api/v1/console/users/${id}/unlock`);
+}
+
+/** POST /api/v1/console/users/{id}/sessions/revoke — 모든 기기에서 로그아웃 */
+export async function revokeUserSessions(id: string): Promise<number> {
+  const { data } = await api.post<{ revoked: number }>(`/api/v1/console/users/${id}/sessions/revoke`);
+  return data.revoked;
+}
+
+/** DELETE /api/v1/console/users/{id} — confirm 에 아이디를 다시 입력해야 지워진다 (되돌릴 수 없음) */
+export async function deleteUser(id: string, confirm: string): Promise<DeleteUserResult> {
+  const { data } = await api.delete<DeleteUserResult>(`/api/v1/console/users/${id}`, { data: { confirm } });
   return data;
 }

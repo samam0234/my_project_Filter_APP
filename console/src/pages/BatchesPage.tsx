@@ -51,7 +51,7 @@ export function BatchesPage() {
       <div>
         <h2 className="text-xl font-semibold text-white">배치 현황</h2>
         <p className="mt-1 text-sm text-console-muted">
-          `GET /api/v1/console/batches` — 전체 회원의 최근 배치 (이미지는 표시하지 않음 · 서버 PC 에서만 조회 가능)
+          `GET /api/v1/console/batches` — 전체 회원의 최근 배치 (이미지는 표시하지 않음 · 관리자 로그인 또는 서버 PC 에서만 조회 가능)
         </p>
       </div>
 
