@@ -214,6 +214,49 @@ def test_video_route_uses_shared_segmentor(env, monkeypatch, tmp_path):
     assert video_router  # import 확인
 
 
+def _avi_bytes(tmp_path) -> bytes:
+    path = tmp_path / "t.avi"
+    w = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"MJPG"), 10.0, (W, H))
+    for _ in range(2):
+        w.write(np.full((H, W, 3), 90, np.uint8))
+    w.release()
+    return path.read_bytes()
+
+
+@pytest.mark.parametrize("mime", ["video/x-msvideo", "video/avi", "video/msvideo", "application/octet-stream"])
+def test_video_accepts_the_mime_types_browsers_actually_send(env, mime):
+    """.avi 는 브라우저·OS 마다 MIME 이 다르다 — 실제 브라우저가 video/avi 를 보내 모든 avi 가 거절되던 문제 (UI 확인에서 발견)."""
+    r = env["client"].post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), mime)},
+                           data={"prompt": "왼쪽 사람만 남기고 배경 블러"})
+    assert r.status_code == 200, r.text
+
+
+def test_video_rejects_non_video_content_and_mime(env):
+    c = env["client"]
+    fake = c.post("/api/v1/video", files={"file": ("clip.mp4", b"this is not a video at all", "video/mp4")},
+                  data={"prompt": "사람만"})
+    assert fake.status_code == 400 and "영상 파일이 아닙니다" in fake.text
+    wrong_mime = c.post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "image/jpeg")},
+                        data={"prompt": "사람만"})
+    assert wrong_mime.status_code == 400
+    wrong_ext = c.post("/api/v1/video", files={"file": ("clip.gif", _avi_bytes(env["tmp"]), "video/avi")},
+                       data={"prompt": "사람만"})
+    assert wrong_ext.status_code == 400
+
+
+def test_video_signature_formats():
+    from app.core.security import validate_video_signature
+    from app.exceptions import FileValidationError
+
+    assert validate_video_signature(b"RIFF\x00\x00\x00\x00AVI LIST") == "AVI"
+    assert validate_video_signature(b"\x00\x00\x00\x18ftypmp42") == "MP4"
+    assert validate_video_signature(b"\x00\x00\x00\x08moov....") == "MP4"
+    assert validate_video_signature(bytes([0x1A, 0x45, 0xDF, 0xA3]) + b"webm") == "WEBM"
+    for bad in (b"", b"RIFF\x00\x00\x00\x00WAVEfmt ", b"GIF89a", b"plain text file"):
+        with pytest.raises(FileValidationError):
+            validate_video_signature(bad)
+
+
 def test_cors_exposes_video_headers(env):
     r = env["client"].options(
         "/api/v1/video",
@@ -223,3 +266,23 @@ def test_cors_exposes_video_headers(env):
     exposed = r2.headers.get("access-control-expose-headers", "")
     assert "X-Cutnkeep-Frames" in exposed and "Content-Disposition" in exposed
     assert r.status_code in {200, 204}
+
+
+def test_console_lists_all_batches_without_images(env):
+    c = env["client"]
+    _signup(c, "cons_a")
+    job = _batch(c)
+    c.post("/api/v1/auth/logout")
+    _signup(c, "cons_b")
+    _batch(c, n=1)
+    rows = c.get("/api/v1/console/batches").json()  # 콘솔은 소유자 무관 전체
+    assert len(rows) == 2 and {r["status"] for r in rows} == {"done"}
+    mine = next(r for r in rows if r["job_id"] == job)
+    assert (mine["total"], mine["completed"], mine["failed"]) == (2, 2, 0)
+    assert mine["user_id"] and mine["prompt"].startswith("왼쪽")
+    assert "item_results" not in mine and not any("url" in k for k in mine)  # 이미지 주소는 내려주지 않음
+
+
+def test_console_batches_is_local_only(env, monkeypatch):
+    monkeypatch.setattr(get_settings(), "console_allow_remote", False)
+    assert env["client"].get("/api/v1/console/batches").status_code == 403

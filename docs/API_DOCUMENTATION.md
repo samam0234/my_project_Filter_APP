@@ -184,6 +184,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
 프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
 세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 MJPG avi 라 **브라우저에서 바로 재생되지 않고 내려받아 재생**한다.
+업로드 검증: 확장자 + `video/*`(또는 octet-stream) + **내용 시그니처**(AVI·MP4/MOV·WebM/MKV). MIME 은 브라우저·OS 마다 달라(`.avi` → `video/avi`·`video/x-msvideo`) 시그니처가 기준이다.
 비로그인 응답 헤더 `X-Cutnkeep-Frames` · `X-Cutnkeep-Held` 는 CORS `expose_headers` 로 다른 도메인 프론트에서도 읽힌다.
 
 ---
