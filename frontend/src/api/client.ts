@@ -15,6 +15,7 @@ import type {
   JobResponse,
   MessageResponse,
   UploadResponse,
+  VideoFormat,
   VideoResult,
 } from "../types";
 
@@ -152,9 +153,14 @@ export async function listBatches(limit = 30): Promise<BatchSummary[]> {
  * <a href> 직접 링크는 다른 도메인 배포에서 쿠키가 안 가므로 axios(withCredentials)로 받는다.
  */
 export async function downloadFile(url: string, filename: string): Promise<void> {
+  saveBlob(await fetchBlob(url), filename);
+}
+
+/** 인증이 필요한 파일을 Blob 으로 (재생 미리보기·저장 공용) */
+export async function fetchBlob(url: string): Promise<Blob> {
   try {
     const { data } = await api.get<Blob>(url, { responseType: "blob", timeout: 120_000 });
-    saveBlob(data, filename);
+    return data;
   } catch (err) {
     throw await unwrapBlobError(err);
   }
@@ -216,12 +222,19 @@ export async function processVideo(file: File, prompt: string): Promise<VideoRes
   }
   const contentType = String(res.headers["content-type"] ?? "");
   if (contentType.includes("json")) {
-    const body = JSON.parse(await blobText(res.data)) as { job_id: string; url: string; frames: number; held: number };
-    return { kind: "saved", jobId: body.job_id, url: body.url, frames: body.frames, held: body.held };
+    const body = JSON.parse(await blobText(res.data)) as {
+      job_id: string;
+      url: string;
+      format?: VideoFormat;
+      frames: number;
+      held: number;
+    };
+    return { kind: "saved", jobId: body.job_id, url: body.url, format: body.format ?? "avi", frames: body.frames, held: body.held };
   }
   return {
     kind: "download",
     blob: res.data,
+    format: res.headers["x-cutnkeep-format"] === "webm" || contentType.includes("webm") ? "webm" : "avi",
     frames: Number(res.headers["x-cutnkeep-frames"] ?? 0),
     held: Number(res.headers["x-cutnkeep-held"] ?? 0),
   };
