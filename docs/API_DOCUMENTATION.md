@@ -206,6 +206,8 @@ OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) mp4 는 쓰�
 | 엔드포인트 | 설명 |
 |------------|------|
 | `GET /api/v1/console/me` | `{via: "admin"\|"local"\|"open", username}` — 콘솔이 첫 진입에 호출, 401·403 이면 로그인 화면 |
+| `GET /api/v1/console/system` | 런타임 스냅샷: `segmentation`(runtime not_loaded/ultralytics/onnx/stub) · `open_vocab` · `llm` · `batch`(Celery 일 때만 `redis_ok`) · `video` · `console` · `storage`(`areas` jobs/batches/videos 별 files·bytes·oldest_hours·expired_files, `disk`) · `preflight`. 모델을 새로 로드하지 않음 |
+| `POST /api/v1/console/system/cleanup?dry_run=` | `FILE_RETENTION_HOURS` 지난 업로드 파일 삭제(`dry_run` 이면 집계만) → `{removed_files, freed_bytes, removed_dirs, dry_run, retention_hours}` |
 | `GET /api/v1/console/users?q=&limit=&offset=` | 회원 목록 `{items, total, limit, offset}` — 작업·배치 수, 활성 세션, 잠김, `is_admin` (비밀번호 해시 없음) |
 | `POST /api/v1/console/users/{id}/unlock` | 로그인 실패 잠금 해제 |
 | `POST /api/v1/console/users/{id}/sessions/revoke` | 모든 세션 삭제 → `{id, revoked}` |

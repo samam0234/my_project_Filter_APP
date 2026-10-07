@@ -12,6 +12,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
+from loguru import logger
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -32,7 +34,8 @@ from app.schemas.learning import (
     ReviewRequest,
 )
 from app.schemas.response import JobResponse
-from app.services import learning_review, user_admin
+from app.services import learning_review, system_status, user_admin
+from app.services.retention import cleanup_dir
 from app.services.learning_review import resolve_file
 
 router = APIRouter(prefix="/console", tags=["console"], dependencies=[Depends(require_console)])
@@ -240,3 +243,29 @@ async def delete_user(
     return _user_admin_call(
         user_admin.delete_user, db, ldb, user_id, confirm=body.confirm, actor_username=actor.username
     )
+
+
+# ---------------------------------------------------------------------------- 시스템
+
+
+@router.get("/system")
+async def system_snapshot() -> dict:
+    """세그·오픈보캐브·LLM·배치 큐·영상·콘솔 설정, 저장 공간, 배포 설정 점검 결과. 모델을 새로 로드하지 않는다."""
+    return await run_in_threadpool(system_status.snapshot)
+
+
+@router.post("/system/cleanup")
+async def system_cleanup(
+    dry_run: bool = False,
+    actor: ConsoleActor = Depends(require_console),
+) -> dict:
+    """FILE_RETENTION_HOURS 보다 오래된 업로드 파일 정리 (scripts/cleanup.py 와 같은 함수). dry_run 이면 집계만."""
+    settings = get_settings()
+    result = await run_in_threadpool(
+        cleanup_dir, settings.upload_path, settings.file_retention_hours, dry_run=dry_run
+    )
+    if not dry_run:
+        logger.info(
+            "업로드 정리 by={} files={} bytes={}", actor.label, result.removed_files, result.freed_bytes
+        )
+    return result.as_dict() | {"retention_hours": settings.file_retention_hours}
