@@ -58,7 +58,12 @@ async def lifespan(app: FastAPI):
         # 세그 모델(YOLO) 로드 + 첫 추론 초기화는 첫 요청에서 30초 이상 걸린다 → 기동 직후 백그라운드에서 미리.
         # 서버는 바로 요청을 받고, 로드가 끝나기 전 요청은 같은 싱글톤 생성을 기다린다.
         threading.Thread(target=_preload_models, name="preload-models", daemon=True).start()
+    # 주기 작업: 서비스 DB 백업(DB_BACKUP_HOURS) · 보관 기간 지난 업로드 정리(FILE_CLEANUP_MINUTES)
+    from app.services import maintenance
+
+    maintenance.start(settings)
     yield
+    maintenance.stop()
     logger.info("컷앤킵 종료")
 
 

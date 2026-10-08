@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     # 조건: 프론트 ImageUploader maxSize 와 동일하게 맞출 것 (기본 20MB)
     # 기능: 보안 검증 통과 기준. webp 제외 시 프론트 accept 도 같이 수정
     max_upload_size_mb: int = Field(default=20, alias="MAX_UPLOAD_SIZE_MB")
+    # 압축 폭탄 방지 — 파일은 작아도 풀면 수 GB 인 이미지(예: 30000×30000 단색 PNG)를 디코딩 전에 거부한다
+    max_image_pixels: int = Field(default=40_000_000, ge=1_000_000, alias="MAX_IMAGE_PIXELS")
     allowed_mime_types: str = Field(
         default="image/jpeg,image/png,image/webp",
         alias="ALLOWED_MIME_TYPES",
@@ -153,6 +155,9 @@ class Settings(BaseSettings):
     # 【수동·보안】 운영 콘솔 API(/api/v1/console/*)는 인증이 없어 기본적으로 이 PC(loopback)에서만 허용.
     # 원격 허용은 앞단에서 접근 제어(VPN·방화벽·리버스 프록시 인증)를 한 경우에만 true
     console_allow_remote: bool = Field(default=False, alias="CONSOLE_ALLOW_REMOTE")
+    # 이 대역에서 온 요청은 X-Real-IP 를 실제 클라이언트 IP 로 본다 (속도 제한 키). 콤마로 여러 CIDR.
+    # 비우면 연결 주소 그대로. Docker 에서는 compose 가 nginx 컨테이너 대역(172.16.0.0/12)을 넣는다
+    trusted_proxies: str = Field(default="", alias="TRUSTED_PROXIES")
     # 【수동·보안】 운영 콘솔 관리자 아이디 (쉼표 구분). 이 계정으로 로그인하면 어디서든 콘솔 API 사용 가능
     console_admins: str = Field(default="", alias="CONSOLE_ADMINS")
     # 【수동·배포】 true 면 서버 PC(loopback)여도 관리자 로그인 필수. 같은 서버의 리버스 프록시(nginx 등)를 거치면
@@ -232,6 +237,16 @@ class Settings(BaseSettings):
     video_smoothing_weight: float = Field(default=0.3, gt=0.0, lt=0.5, alias="VIDEO_SMOOTHING_WEIGHT")
     # 【수동】 움직이는 GIF (작업실 GIF 탭). 크기는 사진과 같은 MAX_UPLOAD_SIZE_MB. 프레임마다 세그를 돌려 처리 시간이 프레임 수에 비례
     gif_max_frames: int = Field(default=120, ge=1, le=1000, alias="GIF_MAX_FRAMES")
+    # GIF 한 프레임 픽셀 상한 (프레임 × 픽셀이 메모리에 올라간다 — 2000×2000 정도)
+    gif_max_pixels: int = Field(default=4_000_000, ge=100_000, alias="GIF_MAX_PIXELS")
+    # 영상 긴 변 상한 (4K 까지). 넘으면 거부 — 프레임마다 세그·효과라 메모리·시간이 해상도에 비례
+    video_max_side: int = Field(default=3840, ge=320, alias="VIDEO_MAX_SIDE")
+    # 서비스 DB(SQLite) 자동 백업 — N 시간마다 data/backups 에 온라인 백업, 최근 keep 개만 남김. 0 = 끔
+    db_backup_hours: float = Field(default=24.0, ge=0.0, alias="DB_BACKUP_HOURS")
+    db_backup_keep: int = Field(default=7, ge=1, alias="DB_BACKUP_KEEP")
+    # 보관 기간(FILE_RETENTION_HOURS)이 지난 업로드를 백엔드가 직접 정리하는 주기(분). 0 = 끔 (scripts/cleanup.py 를 따로 돌릴 때)
+    # 이게 없으면 "24시간 보관" 이 누군가 정리를 실행할 때까지 지켜지지 않는다
+    file_cleanup_minutes: float = Field(default=60.0, ge=0.0, alias="FILE_CLEANUP_MINUTES")
 
     # 【수동】 CORS_ORIGINS — 프론트(5173)·콘솔(5174) 배포 도메인을 콤마로 추가
     cors_origins: str = Field(

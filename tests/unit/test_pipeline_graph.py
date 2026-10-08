@@ -62,7 +62,9 @@ class FakeProcessor:
 
 
 @pytest.fixture()
-def run(monkeypatch):
+def run(monkeypatch, tmp_path):
+    # 실제 backend/data/uploads 를 건드리지 않게 임시 폴더로
+    monkeypatch.setattr(get_settings(), "upload_dir", str(tmp_path / "uploads"))
     made = []
 
     def _run(plan):

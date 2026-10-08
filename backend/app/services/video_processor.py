@@ -237,6 +237,7 @@ def process_video(
     *,
     max_frames: int = 240,
     max_seconds: float = 20.0,
+    max_side: int = 3840,
     output_format: str = "mp4",
     smoothing: str = "flow",
     smoothing_weight: float = 0.3,
@@ -249,6 +250,11 @@ def process_video(
     capture = cv2.VideoCapture(str(src))
     if not capture.isOpened():
         raise ValueError(f"영상을 열 수 없습니다: {src}")
+    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
+    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
+    if max(width, height) > max_side:
+        capture.release()
+        raise ValueError(f"영상 해상도가 너무 큽니다 ({width}×{height}). 긴 변 {max_side}px 이하로 줄여 주세요.")
     fps = float(capture.get(cv2.CAP_PROP_FPS) or 0.0)
     if fps <= 1 or fps > 120:
         fps = 15.0

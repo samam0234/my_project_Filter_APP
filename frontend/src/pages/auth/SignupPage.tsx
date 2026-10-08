@@ -120,6 +120,14 @@ export function SignupPage() {
           onBlur={blur("confirm")}
           error={show("confirm")}
         />
+        <div className="space-y-1.5 rounded-xl bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-400 ring-1 ring-inset ring-slate-800">
+          <p className="font-medium text-slate-300">가입하면 이렇게 처리돼요</p>
+          <ul className="list-disc space-y-1 pl-4">
+            <li>올린 사진 · 영상 · GIF 와 결과 파일은 서버에 24시간 보관한 뒤 자동으로 지워요.</li>
+            <li>요청 문장과 해석 결과는 운영자가 검수한 뒤 문장 이해 품질을 높이는 학습에 쓰일 수 있어요.</li>
+            <li>계정을 지우면 작업 기록과 파일도 함께 지우고, 학습 후보 문장은 계정과의 연결을 끊어요.</li>
+          </ul>
+        </div>
         {error && <Notice tone="error">{error}</Notice>}
         <Button type="submit" className="w-full py-2.5" disabled={loading}>
           <UserPlus className="h-4 w-4" /> {loading ? "가입 중…" : "가입하기"}

@@ -36,14 +36,20 @@ class GifFrames:
     total: int  # 원본 프레임 수 (잘리기 전)
 
 
-def read_gif(data: bytes, max_frames: int) -> GifFrames:
-    """GIF 바이트 → 합성된 전체 프레임(BGR) 목록. 부분 프레임·처리 방식(disposal)은 Pillow 가 합성한다."""
+def read_gif(data: bytes, max_frames: int, max_pixels: int = 4_000_000) -> GifFrames:
+    """GIF 바이트 → 합성된 전체 프레임(BGR) 목록. 부분 프레임·처리 방식(disposal)은 Pillow 가 합성한다.
+
+    한 프레임이 max_pixels 를 넘으면 거부한다 (프레임 수 × 픽셀이 메모리에 올라감 — 압축 폭탄 방지).
+    """
     try:
         image = Image.open(io.BytesIO(data))
     except Exception as exc:  # Pillow 는 손상 파일에 여러 예외를 낸다
         raise ValueError("GIF 를 열 수 없습니다.") from exc
     if (image.format or "").upper() != "GIF":
         raise ValueError("GIF 파일이 아닙니다.")
+    width, height = image.size
+    if width <= 0 or height <= 0 or width * height > max_pixels:
+        raise ValueError(f"GIF 해상도가 너무 큽니다 ({width}×{height}). 한 프레임 {max_pixels // 1_000_000}MP 이하로 줄여 주세요.")
     frames: list[np.ndarray] = []
     durations: list[int] = []
     total = getattr(image, "n_frames", 1)
@@ -118,6 +124,7 @@ def process_gif(
     segmentor,
     *,
     max_frames: int = 120,
+    max_pixels: int = 4_000_000,
     smoothing: str = "flow",
     smoothing_weight: float = 0.3,
 ) -> dict:
@@ -125,7 +132,7 @@ def process_gif(
 
     반환: data(bytes), frames(처리한 수), total(원본 프레임 수), held, effect, intensity, transparent
     """
-    gif = read_gif(data, max_frames)
+    gif = read_gif(data, max_frames, max_pixels)
     renderer = FrameRenderer(parsed, segmentor, smoothing=smoothing, smoothing_weight=smoothing_weight)
     rendered = [renderer.render(frame) for frame in gif.frames]
     transparent = renderer.effect not in ("blur", "remove_object", "crop", "none")

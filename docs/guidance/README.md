@@ -12,6 +12,7 @@
 | [api-usage.md](./api-usage.md) | 주요 API 사용 |
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
+| [security.md](./security.md) | **배포 전 보안·운영 점검표** — 설정 · 포트 · 보안 헤더 · 업로드 방어 · 자동 정리 · DB 백업 · 개인정보 |
 | [auth.md](./auth.md) | 로그인 · 회원가입 · 아이디/비밀번호 찾기 · 보안 · SMTP |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
 | [learning-loop.md](learning-loop.md) | 새 학습 내용이 RAG · LangChain · LangGraph · LoRA · 세그 모델로 흘러 들어가는 경로, 새 어휘 추가 절차 |

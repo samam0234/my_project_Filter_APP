@@ -23,7 +23,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.config import get_settings
 from app.core.deps import current_user_optional
-from app.core.ratelimit import enforce, upload_limiter
+from app.core.ratelimit import client_ip, enforce, upload_limiter
 from app.core.security import validate_video_signature
 from app.db.learning import get_learning_db
 from app.db.session import get_db
@@ -89,6 +89,7 @@ def _run(src: Path, dst: Path, prompt: str) -> dict:
         nodes._get_processor().segmentor,  # 프로세스 공용 세그 모델 (요청마다 다시 로드하지 않는다)
         max_frames=settings.video_max_frames,
         max_seconds=settings.video_max_seconds,
+        max_side=settings.video_max_side,
         output_format=settings.video_output_format,
         smoothing=settings.video_temporal_smoothing,
         smoothing_weight=settings.video_smoothing_weight,
@@ -111,7 +112,7 @@ async def process_video_upload(
     if user is not None:
         enforce(upload_limiter, f"user:{user.id}", settings.upload_rate_member_per_min, "처리 요청")
     else:
-        ip = request.client.host if request.client else "unknown"
+        ip = client_ip(request)
         enforce(upload_limiter, f"ip:{ip}", settings.upload_rate_guest_per_min, "처리 요청 (비로그인은 분당 제한이 더 낮습니다)")
 
     ext = Path(file.filename or "").suffix.lower()
