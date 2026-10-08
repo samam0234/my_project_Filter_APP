@@ -6,7 +6,7 @@
  */
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload } from "lucide-react";
+import { ImagePlus, RefreshCw } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { formatFileSize } from "../../utils/formatters";
 
@@ -31,7 +31,7 @@ export function ImageUploader() {
   //   maxFiles: Phase1=1, 배치 UI 는 BatchUploader(Phase2)
   // 기능: 잘못된 파일 조기 거부. 여기만 바꾸면 서버에서 또 400 날 수 있음
   // -------------------------------------------------------------------------
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
@@ -41,41 +41,58 @@ export function ImageUploader() {
     maxFiles: 1,
     maxSize: 20 * 1024 * 1024,
   });
+  const rejected = fileRejections[0]?.errors[0]?.code;
 
   return (
-    <div
-      {...getRootProps()}
-      className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 transition ${
-        isDragActive
-          ? "border-brand-500 bg-brand-500/10"
-          : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
-      }`}
-    >
-      <input {...getInputProps()} />
-      <div className="flex flex-col items-center gap-3 text-center">
+    <div className="space-y-2">
+      <div
+        {...getRootProps()}
+        className={`group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed transition ${
+          isDragActive
+            ? "border-brand-400 bg-brand-500/10"
+            : previewUrl
+              ? "border-slate-700 bg-slate-950/60 hover:border-slate-500"
+              : "border-slate-700 bg-slate-900/40 hover:border-brand-500/60 hover:bg-slate-900/70"
+        }`}
+      >
+        <input {...getInputProps()} />
         {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="preview"
-            className="max-h-48 rounded-xl object-contain"
-          />
+          <div className="relative">
+            <img src={previewUrl} alt="preview" className="mx-auto max-h-72 w-full object-contain" />
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 opacity-0 transition group-hover:opacity-100">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs text-slate-100 ring-1 ring-slate-700">
+                <RefreshCw className="h-3.5 w-3.5" /> 다른 사진으로 바꾸기
+              </span>
+            </div>
+          </div>
         ) : (
-          <Upload className="h-10 w-10 text-slate-400" />
+          <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-inset ring-brand-500/25 transition group-hover:scale-105">
+              <ImagePlus className="h-6 w-6 text-brand-400" />
+            </span>
+            <div>
+              <p className="font-medium text-slate-100">
+                {isDragActive ? "여기에 놓으세요" : "이미지 드래그 또는 클릭"}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">JPEG / PNG / WebP · 최대 20MB</p>
+            </div>
+          </div>
         )}
-        <div>
-          <p className="font-medium text-slate-100">
-            {isDragActive ? "여기에 놓으세요" : "이미지 드래그 또는 클릭"}
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            JPEG / PNG / WebP · 최대 20MB
-          </p>
-          {file && (
-            <p className="mt-2 text-xs text-brand-500">
-              {file.name} · {formatFileSize(file.size)}
-            </p>
-          )}
-        </div>
       </div>
+      {file && (
+        <p className="truncate text-xs text-slate-400">
+          <span className="text-brand-300">{file.name}</span> · {formatFileSize(file.size)}
+        </p>
+      )}
+      {rejected && (
+        <p className="text-xs text-rose-300" role="alert">
+          {rejected === "file-too-large"
+            ? "20MB 보다 큰 사진은 올릴 수 없어요."
+            : rejected === "file-invalid-type"
+              ? "JPEG · PNG · WebP 사진만 올릴 수 있어요."
+              : "사진은 한 장만 올릴 수 있어요."}
+        </p>
+      )}
     </div>
   );
 }

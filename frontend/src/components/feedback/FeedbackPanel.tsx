@@ -68,7 +68,7 @@ function toParsed(d: Draft): ParsedPrompt {
 }
 
 const field =
-  "w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-brand-500";
+  "w-full rounded-lg border border-slate-700/80 bg-slate-950/60 px-2.5 py-1.5 text-sm text-slate-100 outline-none transition hover:border-slate-600 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30";
 
 interface Props {
   jobId: string;
@@ -90,7 +90,7 @@ export function FeedbackPanel({ jobId, parsed }: Props) {
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+    <div className="space-y-3 card p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-1 text-sm text-slate-300">결과가 마음에 드나요?</span>
         <Button variant="secondary" disabled={loading} onClick={() => void vote("like")}>

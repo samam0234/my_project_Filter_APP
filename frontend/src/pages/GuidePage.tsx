@@ -54,7 +54,7 @@ export function GuidePage() {
         description="한 문장에 “무엇을” + “어떤 것을” + “어떻게” 를 담으면 됩니다."
       />
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+      <section className="card p-5">
         <p className="text-sm text-slate-300">
           <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-brand-100">맨 앞에 빨간 안전모 쓴</span>{" "}
           <span className="rounded bg-slate-700/60 px-1.5 py-0.5 text-slate-100">남자</span>

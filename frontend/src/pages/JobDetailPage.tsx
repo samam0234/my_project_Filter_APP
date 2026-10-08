@@ -89,7 +89,7 @@ function JobDetail({ jobId }: { jobId: string }) {
         </div>
 
         <aside className="space-y-4">
-          <dl className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-sm">
+          <dl className="space-y-2 card p-4 text-sm">
             <Row label="작업 ID">
               <code className="break-all text-xs text-slate-300">{job.job_id}</code>
             </Row>
@@ -97,7 +97,7 @@ function JobDetail({ jobId }: { jobId: string }) {
             <Row label="서버 메시지">{job.message ?? "-"}</Row>
             <Row label="피드백">{job.feedback_saved ? "저장됨 (학습 데이터 후보)" : "없음"}</Row>
           </dl>
-          <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <div className="space-y-2 card p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-slate-400">해석 JSON</p>
               <button

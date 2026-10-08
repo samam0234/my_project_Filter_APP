@@ -13,7 +13,7 @@ export function JobCard({ job }: { job: JobResponse }) {
   return (
     <Link
       to={`/jobs/${job.job_id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 transition hover:border-brand-600/60 hover:bg-slate-900"
+      className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-brand-600/50 hover:bg-slate-900/80"
     >
       <div className="p-2">
         <ResultImage

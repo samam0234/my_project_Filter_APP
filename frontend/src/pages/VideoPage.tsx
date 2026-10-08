@@ -185,7 +185,7 @@ export function VideoPage() {
         description={`영상 한 개(최대 ${MAX_SECONDS}초 · ${MAX_MB}MB)를 프레임마다 처리해요. 대상이 잠깐 안 보이면 직전 장면의 모양을 유지합니다.`}
       />
 
-      <div className="flex gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-xs text-slate-400">
+      <div className="flex gap-3 card p-4 text-xs text-slate-400">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <ul className="space-y-1">
           <li>
@@ -198,7 +198,7 @@ export function VideoPage() {
             ) : (
               <>
                 로그인하지 않으면 서버에 <b className="text-slate-300">아무것도 남기지 않아요</b> — 이 브라우저에 보관된 결과가 유일한 사본입니다.{" "}
-                <Link to="/login?next=%2Fvideo" className="text-brand-500 hover:text-brand-100">
+                <Link to="/login?next=%2Fvideo" className="text-brand-400 hover:text-brand-200">
                   로그인
                 </Link>
               </>
@@ -212,12 +212,14 @@ export function VideoPage() {
         <section className="space-y-4">
           <div
             {...getRootProps()}
-            className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${
+            className={`group rounded-2xl border-2 border-dashed px-6 py-8 text-center transition ${
               running ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-            } ${isDragActive ? "border-brand-500 bg-brand-500/10" : "border-slate-700 bg-slate-900/60 hover:border-slate-500"}`}
+            } ${isDragActive ? "border-brand-400 bg-brand-500/10" : "border-slate-700 bg-slate-900/40 hover:border-brand-500/60 hover:bg-slate-900/70"}`}
           >
             <input {...getInputProps()} />
-            <Clapperboard className="mx-auto h-8 w-8 text-slate-400" />
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-inset ring-brand-500/25 transition group-hover:scale-105">
+              <Clapperboard className="h-6 w-6 text-brand-400" />
+            </span>
             {file ? (
               <div className="mt-2 flex items-center justify-center gap-2 text-sm text-slate-100">
                 <span className="truncate">{file.name}</span>
@@ -250,7 +252,7 @@ export function VideoPage() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={running}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-brand-500"
+              className="field"
             />
             <span className="block text-xs text-slate-500">블러를 더 세게: "배경 블러 강도 60" 처럼 숫자를 적어 보세요.</span>
           </label>
@@ -277,7 +279,7 @@ export function VideoPage() {
             </div>
           )}
           {shown && (
-            <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
+            <div className="space-y-3 card p-4 text-sm">
               <p className="font-semibold text-white">{shown.restored ? "이 브라우저에 보관된 마지막 결과" : "처리가 끝났어요"}</p>
               <p className="text-xs text-slate-400">
                 {shown.frames}프레임 처리 · 대상이 없어 직전 모양을 유지한 프레임 {shown.held}개

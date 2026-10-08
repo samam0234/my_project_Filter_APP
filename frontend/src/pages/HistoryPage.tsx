@@ -105,7 +105,7 @@ function History() {
         <ErrorBlock message={error} onRetry={reload} />
       ) : jobs.length === 0 ? (
         <EmptyBlock title={data?.length ? "조건에 맞는 작업이 없어요" : "아직 작업이 없어요"}>
-          <Link to="/studio" className="text-brand-500 hover:text-brand-100">
+          <Link to="/studio" className="text-brand-400 hover:text-brand-200">
             작업실로 가기
           </Link>
         </EmptyBlock>

@@ -6,6 +6,7 @@
  * - after 는 투명 PNG 를 위해 체크무늬 배경
  */
 import { Download } from "lucide-react";
+import { buttonClass } from "../common/Button";
 import type { ParsedPrompt } from "../../types";
 import { formatScore } from "../../utils/formatters";
 import { StatusBadge } from "../common/StatusBadge";
@@ -33,10 +34,10 @@ export function BeforeAfterViewer({
 }: Props) {
   const transparent = parsedPrompt?.effect === "remove_bg";
   return (
-    <section className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+    <section className="card animate-fade-up space-y-4 p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-slate-100">결과</h2>
+          <h2 className="text-base font-semibold text-white">결과</h2>
           <StatusBadge status={status} />
           <span className="text-xs text-slate-500">품질 {formatScore(qualityScore)}</span>
         </div>
@@ -44,31 +45,31 @@ export function BeforeAfterViewer({
           <a
             href={afterUrl}
             download={jobId ? `cutnkeep_${jobId}${transparent ? ".png" : ".jpg"}` : undefined}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 hover:border-brand-500"
+            className={buttonClass("primary", "sm")}
           >
             <Download className="h-3.5 w-3.5" /> 결과 저장
           </a>
         )}
       </div>
 
-      <div className="space-y-1">
-        <p className="text-xs text-slate-500">이렇게 이해했어요</p>
+      <div className="space-y-2 rounded-xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800">
+        <p className="text-xs font-medium text-slate-400">이렇게 이해했어요</p>
         <ParsedPromptView parsed={parsedPrompt} />
       </div>
 
       {message && status !== "ok" && (
-        <p className="rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
+        <p className="rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs leading-relaxed text-amber-200">
           {message}
         </p>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <figure className="space-y-2">
-          <figcaption className="text-xs text-slate-400">원본</figcaption>
+          <figcaption className="text-xs font-medium text-slate-400">원본</figcaption>
           <ResultImage src={beforeUrl} alt="원본 이미지" />
         </figure>
         <figure className="space-y-2">
-          <figcaption className="text-xs text-slate-400">결과</figcaption>
+          <figcaption className="text-xs font-medium text-brand-300">결과</figcaption>
           <ResultImage src={afterUrl} alt="처리 결과" checker={transparent} />
         </figure>
       </div>

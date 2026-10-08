@@ -88,7 +88,7 @@ export function FindPasswordPage() {
       }
       footer={
         <span className="inline-flex gap-3">
-          <Link to="/login" className="text-brand-500 hover:text-brand-100">
+          <Link to="/login" className="text-brand-400 hover:text-brand-200">
             로그인
           </Link>
           <span className="text-slate-700">|</span>

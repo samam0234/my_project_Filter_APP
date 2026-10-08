@@ -5,7 +5,8 @@
  * 오른쪽: 결과 (해석 칩 · Before/After · 평가/정답 알려주기)
  * 상태는 useAppStore 에 있어 다른 페이지에 다녀와도 유지된다.
  */
-import { ExternalLink, RotateCcw, Wand2 } from "lucide-react";
+import type { ReactNode } from "react";
+import { ExternalLink, ImageIcon, RotateCcw, Wand2 } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
 import { FeedbackPanel } from "../components/feedback/FeedbackPanel";
@@ -17,6 +18,19 @@ import { useImageProcessing } from "../hooks/useImageProcessing";
 import { Link } from "../router";
 import { useAppStore } from "../store/useAppStore";
 import { useAuthStore } from "../store/useAuthStore";
+
+/** 왼쪽 입력 칸의 단계 머리 (1 사진 · 2 문장 · 3 처리) */
+function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h2 className="flex items-center gap-2.5 text-sm font-semibold text-slate-100">
+        <span className={done ? "step-dot bg-brand-500 text-white ring-brand-400" : "step-dot"}>{n}</span>
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
 
 export function StudioPage() {
   const { process, isProcessing } = useImageProcessing();
@@ -36,21 +50,32 @@ export function StudioPage() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <div className="space-y-5">
-          <ImageUploader />
-          <PromptInput onSubmit={() => canRun && void process()} />
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={() => void process()} disabled={!canRun}>
-              <Wand2 className="h-4 w-4" /> 처리 시작
-            </Button>
-            <Button variant="ghost" onClick={() => reset()} disabled={isProcessing}>
-              <RotateCcw className="h-4 w-4" /> 초기화
-            </Button>
-          </div>
-          <ProcessingStatus />
+        <div className="card space-y-7 p-5 sm:p-6">
+          <Step n={1} title="사진 올리기" done={Boolean(file)}>
+            <ImageUploader />
+          </Step>
+          <Step n={2} title="무엇을 남기거나 지울까요?" done={Boolean(prompt.trim())}>
+            <PromptInput onSubmit={() => canRun && void process()} />
+          </Step>
+          <Step n={3} title="처리하기">
+            <div className="flex flex-wrap gap-2">
+              <Button size="lg" onClick={() => void process()} disabled={!canRun} className="flex-1 sm:flex-none">
+                <Wand2 className="h-4 w-4" /> 처리 시작
+              </Button>
+              <Button variant="ghost" size="lg" onClick={() => reset()} disabled={isProcessing}>
+                <RotateCcw className="h-4 w-4" /> 초기화
+              </Button>
+            </div>
+            {!canRun && !isProcessing && (
+              <p className="text-xs text-slate-500">
+                {!file ? "먼저 사진을 올려 주세요." : "문장을 적으면 시작할 수 있어요."}
+              </p>
+            )}
+            <ProcessingStatus />
+          </Step>
           {guest && (
-            <p className="text-xs text-slate-500">
-              <Link to="/login?next=%2Fstudio" className="text-brand-500 hover:text-brand-100">
+            <p className="border-t border-slate-800 pt-4 text-xs leading-relaxed text-slate-500">
+              <Link to="/login?next=%2Fstudio" className="text-brand-400 hover:text-brand-200">
                 로그인
               </Link>
               하면 처리한 작업이 작업 기록에 저장됩니다. 로그인하지 않으면 결과를 저장하지 않고 다운로드만 할 수 있어요.
@@ -58,7 +83,7 @@ export function StudioPage() {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           {result ? (
             <>
               <BeforeAfterViewer
@@ -75,7 +100,7 @@ export function StudioPage() {
                   <FeedbackPanel key={result.jobId} jobId={result.jobId} parsed={result.parsedPrompt} />
                   <Link
                     to={`/jobs/${result.jobId}`}
-                    className="inline-flex items-center gap-1.5 text-sm text-brand-500 hover:text-brand-100"
+                    className="inline-flex items-center gap-1.5 text-sm text-brand-400 hover:text-brand-200"
                   >
                     작업 상세 보기 <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
@@ -86,7 +111,7 @@ export function StudioPage() {
                   <p className="text-xs text-amber-100/70">
                     로그인하지 않은 작업은 서버에 남기지 않습니다. 필요하면 지금 <b>결과 저장</b>으로 내려받으세요 —
                     페이지를 새로고침하면 사라집니다.{" "}
-                    <Link to="/login?next=%2Fstudio" className="text-brand-500 hover:text-brand-100">
+                    <Link to="/login?next=%2Fstudio" className="text-brand-400 hover:text-brand-200">
                       로그인
                     </Link>
                     하면 작업 기록 · 피드백 · 배치를 쓸 수 있어요.
@@ -95,10 +120,26 @@ export function StudioPage() {
               )}
             </>
           ) : (
-            <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">
-              <Wand2 className="h-6 w-6" />
-              <p>처리 결과가 여기에 표시됩니다.</p>
-              <p className="text-xs">
+            <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-2xl lg:min-h-[420px] border border-dashed border-slate-800 bg-slate-900/20 p-8 text-center text-sm text-slate-500">
+              {isProcessing ? (
+                <>
+                  <span className="relative flex h-14 w-14 items-center justify-center">
+                    <span className="absolute inset-0 animate-ping rounded-2xl bg-brand-500/20" />
+                    <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 ring-1 ring-inset ring-brand-500/40">
+                      <Wand2 className="h-6 w-6 text-brand-300" />
+                    </span>
+                  </span>
+                  <p className="text-slate-300">결과를 만드는 중이에요</p>
+                </>
+              ) : (
+                <>
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/70 ring-1 ring-inset ring-slate-700/60">
+                    <ImageIcon className="h-6 w-6 text-slate-400" />
+                  </span>
+                  <p className="text-slate-300">처리 결과가 여기에 표시됩니다.</p>
+                </>
+              )}
+              <p className="max-w-xs text-xs leading-relaxed">
                 처음 요청은 모델을 불러오느라 30초 이상 걸릴 수 있어요.
               </p>
             </div>

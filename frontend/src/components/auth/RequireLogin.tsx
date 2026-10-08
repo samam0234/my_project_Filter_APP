@@ -27,7 +27,7 @@ export function RequireLogin({ title, reason, children }: Props) {
 
   const next = encodeURIComponent(pathname + search);
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 px-6 py-12 text-center">
+    <div className="mx-auto flex max-w-md flex-col items-center gap-4 card px-6 py-12 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800">
         <Lock className="h-5 w-5 text-brand-500" />
       </span>
@@ -38,7 +38,7 @@ export function RequireLogin({ title, reason, children }: Props) {
       <div className="flex flex-wrap justify-center gap-2">
         <Link
           to={`/login?next=${next}`}
-          className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-500"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-brand-500 to-brand-600 px-5 py-2.5 text-sm font-medium text-white shadow-glow transition hover:from-brand-400 hover:to-brand-500"
         >
           로그인
         </Link>
@@ -51,7 +51,7 @@ export function RequireLogin({ title, reason, children }: Props) {
       </div>
       <p className="text-xs text-slate-500">
         로그인하지 않아도{" "}
-        <Link to="/studio" className="text-brand-500 hover:text-brand-100">
+        <Link to="/studio" className="text-brand-400 hover:text-brand-200">
           작업실
         </Link>
         에서 배경 제거 후 바로 다운로드할 수 있어요.
