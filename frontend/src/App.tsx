@@ -14,6 +14,8 @@
  * | /signup       | 회원가입          |
  * | /find-id      | 아이디 찾기       |
  * | /find-password| 비밀번호 찾기     |
+ * | /privacy      | 개인정보 처리방침 |
+ * | /terms        | 이용약관          |
  *
  * 앱 시작 시 /auth/me 로 로그인 상태를 확인한다 (세션은 HttpOnly 쿠키).
  * 이미 로그인한 사용자가 로그인·가입 화면에 오면 next(또는 홈)로 보낸다.
@@ -34,6 +36,8 @@ import { FindIdPage } from "./pages/auth/FindIdPage";
 import { FindPasswordPage } from "./pages/auth/FindPasswordPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
+import { PrivacyPage } from "./pages/legal/PrivacyPage";
+import { TermsPage } from "./pages/legal/TermsPage";
 import { matchRoute, navigate, usePathname, useSearch } from "./router";
 import { useAuthStore } from "./store/useAuthStore";
 
@@ -48,6 +52,8 @@ const TITLES: Record<string, string> = {
   "/signup": "회원가입",
   "/find-id": "아이디 찾기",
   "/find-password": "비밀번호 찾기",
+  "/privacy": "개인정보 처리방침",
+  "/terms": "이용약관",
 };
 
 /** 로그인 상태면 들어올 필요 없는 화면 */
@@ -64,6 +70,8 @@ function Page({ pathname }: { pathname: string }) {
   if (matchRoute("/signup", pathname)) return <SignupPage />;
   if (matchRoute("/find-id", pathname)) return <FindIdPage />;
   if (matchRoute("/find-password", pathname)) return <FindPasswordPage />;
+  if (matchRoute("/privacy", pathname)) return <PrivacyPage />;
+  if (matchRoute("/terms", pathname)) return <TermsPage />;
   const job = matchRoute("/jobs/:id", pathname);
   if (job) return <JobDetailPage jobId={job.id} />;
   return <NotFoundPage />;

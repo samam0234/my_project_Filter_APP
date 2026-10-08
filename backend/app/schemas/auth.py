@@ -14,6 +14,8 @@ class SignupRequest(BaseModel):
     email: str = Field(..., max_length=255)
     password: str = Field(..., max_length=128)
     display_name: Optional[str] = Field(default=None, max_length=100)
+    # 만 14세 이상 + 이용약관 · 개인정보 처리방침 동의 — true 가 아니면 가입하지 않는다 (동의 시각을 users 에 남긴다)
+    agree_terms: bool = False
 
 
 class LoginRequest(BaseModel):

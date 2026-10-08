@@ -29,13 +29,22 @@ class UserRepository:
     def by_email(self, email: str) -> Optional[User]:
         return self.db.scalar(select(User).where(User.email == email.lower()))
 
-    def create(self, *, username: str, email: str, password_hash: str, display_name: str | None) -> User:
+    def create(
+        self,
+        *,
+        username: str,
+        email: str,
+        password_hash: str,
+        display_name: str | None,
+        terms_agreed_at: datetime | None = None,
+    ) -> User:
         user = User(
             id=uuid4().hex,
             username=username.lower(),
             email=email.lower(),
             password_hash=password_hash,
             display_name=display_name,
+            terms_agreed_at=terms_agreed_at,
         )
         self.db.add(user)
         self.db.commit()

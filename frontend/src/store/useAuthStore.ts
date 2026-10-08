@@ -15,7 +15,7 @@ interface AuthState {
   status: AuthStatus;
   refresh: () => Promise<void>;
   login: (username: string, password: string) => Promise<AuthUser>;
-  signup: (body: { username: string; email: string; password: string; display_name?: string }) => Promise<AuthUser>;
+  signup: (body: { username: string; email: string; password: string; display_name?: string; agree_terms: boolean }) => Promise<AuthUser>;
   logout: () => Promise<void>;
 }
 

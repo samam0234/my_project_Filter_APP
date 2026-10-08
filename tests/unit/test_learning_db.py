@@ -46,7 +46,7 @@ def member(api_env, monkeypatch):
     c = api_env["client"]
     r = c.post(
         "/api/v1/auth/signup",
-        json={"username": "learner_01", "email": "learner@example.com", "password": "Passw0rd!x"},
+        json={"username": "learner_01", "email": "learner@example.com", "password": "Passw0rd!x", "agree_terms": True},
     )
     assert r.status_code == 201, r.text
     user_id = r.json()["id"]

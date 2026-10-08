@@ -342,7 +342,7 @@ with sync_playwright() as p:
         expect(con.get_by_text("운영 콘솔 관리자 계정이 아닙니다.")).to_be_visible(timeout=10_000)
         # 관리자 계정 준비 (가입하면 그 세션이 생기므로 바로 로그아웃) → 화면에서 로그인
         r = con_ctx.request.post(CONSOLE + "/api/v1/auth/signup",
-                                 data={"username": ADMIN, "email": f"{ADMIN}@example.com", "password": ADMIN_PW})
+                                 data={"username": ADMIN, "email": f"{ADMIN}@example.com", "password": ADMIN_PW, "agree_terms": True})
         assert r.status in (201, 409), r.text()
         con_ctx.request.post(CONSOLE + "/api/v1/auth/logout")
         con.get_by_label("아이디").fill(ADMIN)

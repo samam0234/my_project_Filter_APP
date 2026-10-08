@@ -222,6 +222,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Link to="/video" className="hover:text-slate-300">
               영상
             </Link>
+            <Link to="/terms" className="hover:text-slate-300">
+              이용약관
+            </Link>
+            <Link to="/privacy" className="font-medium text-slate-400 hover:text-slate-200">
+              개인정보 처리방침
+            </Link>
           </span>
         </div>
       </footer>

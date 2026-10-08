@@ -80,6 +80,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # 개인정보 처리방침 · 이용약관에 들어갈 운영자 정보 (빌드 때 박힌다 — 바꾸면 다시 빌드)
+      args:
+        VITE_OPERATOR_NAME: ${OPERATOR_NAME:-}
+        VITE_OPERATOR_EMAIL: ${OPERATOR_EMAIL:-}
+        VITE_POLICY_DATE: ${POLICY_DATE:-}
     ports:
       - "80:80"
     depends_on:
@@ -168,6 +173,18 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cutnkeep_net
+
+  # 개발용 메일 받은편지함 — 실제로 밖에 보내지 않고 http://127.0.0.1:8025 에서 본다
+  # 켜기: docker compose -p cut_and_keep --env-file .env --profile mail up -d mailpit
+  # .env: SMTP_HOST=mailpit · SMTP_PORT=1025 · SMTP_STARTTLS=false · SMTP_SSL=false (backend 재시작)
+  mailpit:
+    image: axllent/mailpit:v1.20
+    profiles: ["mail"]
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:8025:8025"
     restart: unless-stopped
     networks:
       - cutnkeep_net

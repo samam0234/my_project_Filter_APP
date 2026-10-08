@@ -35,6 +35,8 @@ data/mariaDB_datas/
 # backend/ = 서비스 런타임 (uploads·SQLite·서빙 모델·앱 로그)
 backend/data/uploads/*
 backend/data/backups/
+# HTTPS(Caddy) 인증서 · 계정 키
+data/caddy/
 backend/data/feedback/
 backend/data/pseudo_labels/
 backend/data/*.db

@@ -12,6 +12,8 @@
 | [api-usage.md](./api-usage.md) | 주요 API 사용 |
 | [console-admin.md](./console-admin.md) | 운영 콘솔 사용법 |
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
+| [https-deploy.md](./https-deploy.md) | **HTTPS 로 공개하기** — Caddy 자동 인증서, 도메인 · DNS · 포트 |
+| [legal.md](./legal.md) | 개인정보 처리방침 · 이용약관 — 운영자 정보 채우기, 실제 동작과의 대응표 |
 | [security.md](./security.md) | **배포 전 보안·운영 점검표** — 설정 · 포트 · 보안 헤더 · 업로드 방어 · 자동 정리 · DB 백업 · 개인정보 |
 | [auth.md](./auth.md) | 로그인 · 회원가입 · 아이디/비밀번호 찾기 · 보안 · SMTP |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |

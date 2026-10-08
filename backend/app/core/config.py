@@ -179,6 +179,8 @@ class Settings(BaseSettings):
     smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
     smtp_from: str = Field(default="Cut & Keep <no-reply@cutnkeep.local>", alias="SMTP_FROM")
     smtp_starttls: bool = Field(default=True, alias="SMTP_STARTTLS")
+    # 465 포트처럼 처음부터 TLS 로 붙는 서버 (켜면 STARTTLS 는 쓰지 않는다)
+    smtp_ssl: bool = Field(default=False, alias="SMTP_SSL")
 
 
     # --- 큐 / 파일 수명 (Phase 2 배치에서 사용) ---

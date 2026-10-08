@@ -85,6 +85,8 @@ export async function signupRequest(body: {
   email: string;
   password: string;
   display_name?: string;
+  /** 만 14세 이상 · 이용약관 · 개인정보 처리방침 동의 — 서버가 true 가 아니면 가입하지 않는다 */
+  agree_terms: boolean;
 }): Promise<AuthUser> {
   const { data } = await api.post<AuthUser>("/api/v1/auth/signup", body);
   return data;

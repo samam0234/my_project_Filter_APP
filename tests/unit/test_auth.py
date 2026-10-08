@@ -30,7 +30,7 @@ def env(api_env):
 def _signup(client, username="tester_01", email="tester@example.com", password=GOOD_PW, name="테스터"):
     return client.post(
         "/api/v1/auth/signup",
-        json={"username": username, "email": email, "password": password, "display_name": name},
+        json={"username": username, "email": email, "password": password, "display_name": name, "agree_terms": True},
     )
 
 
@@ -234,3 +234,20 @@ def test_mine_filter_requires_login(env):
     _signup(c)
     r = c.get("/api/v1/jobs?mine=true")
     assert r.status_code == 200 and r.json() == []
+
+
+def test_signup_requires_terms_agreement_and_records_time(api_env):
+    """만 14세 이상 · 약관 · 개인정보 처리방침 동의 없이는 가입하지 않고, 동의 시각을 남긴다."""
+    from app.models.user import User
+
+    c = api_env["client"]
+    r = c.post("/api/v1/auth/signup", json={"username": "noagree_1", "email": "noagree@example.com", "password": GOOD_PW})
+    assert r.status_code == 400 and "동의" in r.json()["detail"]
+    r = c.post("/api/v1/auth/signup", json={"username": "noagree_1", "email": "noagree@example.com", "password": GOOD_PW,
+                                            "agree_terms": False})
+    assert r.status_code == 400
+    assert _signup(c, username="agree_01", email="agree@example.com").status_code == 201
+    with api_env["Session"]() as db:
+        user = db.query(User).filter(User.username == "agree_01").one()
+        assert user.terms_agreed_at is not None
+        assert db.query(User).filter(User.username == "noagree_1").count() == 0

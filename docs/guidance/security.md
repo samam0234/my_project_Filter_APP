@@ -20,7 +20,7 @@
 | 항목 | 상태 |
 |------|------|
 | 공개 포트 | **frontend :80 만** (nginx). backend :8000 · MariaDB · Redis · Adminer 는 `127.0.0.1` 에만 열린다 (`BIND_HOST`, 기본 127.0.0.1). 다른 기기에서 직접 열어야 할 때만 `BIND_HOST=0.0.0.0` |
-| HTTPS | **수동** — nginx 앞에 TLS(인증서) 를 둔다. HTTPS 가 되면 `SESSION_COOKIE_SECURE=true` → 백엔드가 HSTS 도 붙인다 |
+| HTTPS | `docker-compose.https.yml` — Caddy 가 인증서 자동 발급·갱신, http→https, Secure 쿠키 · HSTS 자동 ([https-deploy.md](./https-deploy.md)). **수동**: 도메인 · DNS · 80/443 개방 |
 | 보안 헤더 | 자동 — nginx: CSP(스크립트 같은 출처만) · `X-Frame-Options: DENY` · `nosniff` · `Referrer-Policy` · `Permissions-Policy`, `server_tokens off` |
 | 비로그인 업로드 한도 | 자동 — 분당 `UPLOAD_RATE_GUEST_PER_MIN`. nginx 뒤에서도 사람(IP)마다 따로 세도록 `TRUSTED_PROXIES`(compose 기본 172.16.0.0/12)에서 온 `X-Real-IP` 를 쓴다. 콘솔의 "이 PC" 판정은 이 헤더를 믿지 않는다 |
 | 로그인 | 자동 — 연속 실패 시 계정 잠금, 세션은 HttpOnly 쿠키 ([auth.md](./auth.md)) |
@@ -45,7 +45,7 @@
 | 이용자 안내 | 회원가입 화면 · 프롬프트 가이드에 보관 기간(24시간)과 학습 이용(운영자 검수 후 문장만)을 안내 |
 | 학습 후보 | 요청 문장 + 해석만 (이미지는 업로드 폴더를 가리키고 24시간 뒤 사라진다). 회원 삭제 시 계정 연결을 끊는다 |
 | 어려운 사례 수집 `HARD_EXAMPLE_CONF` | 기본 꺼짐 — 켜면 이미지가 학습 후보로 더 남으므로 개인정보 처리방침에 적은 뒤 켠다 |
-| 개인정보 처리방침 · 이용약관 문서 | **수동** — 공개 서비스라면 법적 문서가 필요하다 (보관 기간 · 학습 이용 · 삭제 요청 방법) |
+| 개인정보 처리방침 · 이용약관 | 화면 `/privacy` · `/terms`, 가입 시 [필수] 만 14세 · 동의 체크(서버 검사 · 시각 기록). **수동**: 운영자 정보 `OPERATOR_*` 채우기 · 법률 검토 ([legal.md](./legal.md)) |
 
 ## 5. 아직 안 한 것
 

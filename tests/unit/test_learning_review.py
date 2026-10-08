@@ -47,7 +47,7 @@ def env(api_env, monkeypatch):
     monkeypatch.setattr(upload_router, "run_pipeline", fake_pipeline)
     monkeypatch.setattr(get_settings(), "console_allow_remote", True)
     c = api_env["client"]
-    r = c.post("/api/v1/auth/signup", json={"username": "rev_01", "email": "rev@example.com", "password": "cutkeep2026"})
+    r = c.post("/api/v1/auth/signup", json={"username": "rev_01", "email": "rev@example.com", "password": "cutkeep2026", "agree_terms": True})
     assert r.status_code == 201
     api_env["user_id"] = r.json()["id"]
     yield api_env

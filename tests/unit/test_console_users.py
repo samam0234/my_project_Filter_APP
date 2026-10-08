@@ -19,7 +19,7 @@ PW = "cutkeep2026"
 
 
 def _signup(c, name):
-    r = c.post("/api/v1/auth/signup", json={"username": name, "email": f"{name}@example.com", "password": PW})
+    r = c.post("/api/v1/auth/signup", json={"username": name, "email": f"{name}@example.com", "password": PW, "agree_terms": True})
     assert r.status_code == 201, r.text
     return r.json()["id"]
 

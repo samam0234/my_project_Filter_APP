@@ -23,6 +23,7 @@ export function SignupPage() {
   const search = useSearch();
   const signup = useAuthStore((s) => s.signup);
   const [form, setForm] = useState({ username: "", email: "", name: "", password: "", confirm: "" });
+  const [agree, setAgree] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,13 +37,14 @@ export function SignupPage() {
     email: EMAIL_RE.test(form.email.trim()) ? null : "올바른 이메일 주소를 입력해 주세요.",
     password: passwordProblem(form.password),
     confirm: form.confirm === form.password ? null : "비밀번호가 서로 다릅니다.",
+    agree: agree ? null : "가입하려면 동의가 필요해요.",
   };
   const show = (key: keyof typeof problems) => (touched[key] ? problems[key] : null);
   const valid = Object.values(problems).every((p) => p === null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setTouched({ username: true, email: true, password: true, confirm: true });
+    setTouched({ username: true, email: true, password: true, confirm: true, agree: true });
     if (!valid) return;
     setLoading(true);
     setError(null);
@@ -52,6 +54,7 @@ export function SignupPage() {
         email: form.email.trim(),
         password: form.password,
         display_name: form.name.trim() || undefined,
+        agree_terms: agree,
       });
       navigate(safeNext(search), { replace: true });
     } catch (err) {
@@ -127,6 +130,30 @@ export function SignupPage() {
             <li>요청 문장과 해석 결과는 운영자가 검수한 뒤 문장 이해 품질을 높이는 학습에 쓰일 수 있어요.</li>
             <li>계정을 지우면 작업 기록과 파일도 함께 지우고, 학습 후보 문장은 계정과의 연결을 끊어요.</li>
           </ul>
+        </div>
+        <div className="space-y-1">
+          <label className="flex cursor-pointer items-start gap-2.5 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+              onBlur={blur("agree")}
+              aria-invalid={Boolean(show("agree"))}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-950 accent-sky-500"
+            />
+            <span>
+              <b className="text-brand-300">[필수]</b> 만 14세 이상이며,{" "}
+              <Link to="/terms" className="text-brand-400 underline-offset-2 hover:underline">
+                이용약관
+              </Link>
+              과{" "}
+              <Link to="/privacy" className="text-brand-400 underline-offset-2 hover:underline">
+                개인정보 처리방침
+              </Link>
+              에 동의합니다.
+            </span>
+          </label>
+          {show("agree") && <span className="block pl-6 text-xs text-rose-300">{show("agree")}</span>}
         </div>
         {error && <Notice tone="error">{error}</Notice>}
         <Button type="submit" className="w-full py-2.5" disabled={loading}>

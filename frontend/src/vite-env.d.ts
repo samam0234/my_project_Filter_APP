@@ -6,6 +6,10 @@
  */
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  /** 개인정보 처리방침 · 약관의 운영자 정보 (src/data/legal.ts) */
+  readonly VITE_OPERATOR_NAME?: string;
+  readonly VITE_OPERATOR_EMAIL?: string;
+  readonly VITE_POLICY_DATE?: string;
 }
 
 interface ImportMeta {
