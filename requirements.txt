@@ -18,6 +18,8 @@ pydantic-settings==2.5.2
 
 # Image Processing
 opencv-python-headless==4.10.0.84
+# 영상 결과 H.264 mp4 변환용 ffmpeg 바이너리 번들 (없으면 webm → avi 로 내려감)
+imageio-ffmpeg==0.6.0
 numpy==1.26.4
 Pillow==10.4.0
 

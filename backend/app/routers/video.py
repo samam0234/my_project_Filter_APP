@@ -63,7 +63,7 @@ async def process_video_upload(
     prompt: str = Form(default="person blur"),
     user: Optional[User] = Depends(current_user_optional),
 ):
-    """영상 한 개를 프레임 세그 후 webm(브라우저 재생, 인코더가 없으면 avi)으로 돌려준다."""
+    """영상 한 개를 프레임 세그 후 mp4(H.264, ffmpeg 가 없으면 webm → avi)로 돌려준다."""
     settings = get_settings()
     if user is not None:
         enforce(upload_limiter, f"user:{user.id}", settings.upload_rate_member_per_min, "처리 요청")
@@ -109,6 +109,8 @@ async def process_video_upload(
             headers={
                 "Content-Disposition": f"attachment; filename=result{out.suffix}",
                 "X-Cutnkeep-Format": info["format"],
+                "X-Cutnkeep-Effect": info["effect"],
+                "X-Cutnkeep-Intensity": str(info["intensity"]),
                 "X-Cutnkeep-Frames": str(info["frames"]),
                 "X-Cutnkeep-Held": str(info["held"]),
             },
@@ -139,6 +141,8 @@ async def process_video_upload(
         "frames": info["frames"],
         "held": info["held"],
         "format": info["format"],
+        "effect": info["effect"],
+        "intensity": info["intensity"],
         "url": f"/api/v1/video/{job_id}",
         "saved": True,
     }

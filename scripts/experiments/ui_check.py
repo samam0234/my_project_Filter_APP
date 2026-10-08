@@ -20,6 +20,7 @@
 import argparse
 import glob
 import json
+import re
 import shutil
 import sys
 import time
@@ -47,13 +48,13 @@ problems: list[str] = []
 steps: list[str] = []
 
 
-def make_video(path: Path, frames: int = 12) -> Path:
+def make_video(path: Path, frames: int = 12, width: int = 320) -> Path:
     """검증 이미지 한 장을 살짝 이동시키며 짧은 avi 를 만든다 (ffmpeg 불필요)."""
     import cv2
     import numpy as np
 
     base = cv2.imread(IMG)
-    base = cv2.resize(base, (320, int(base.shape[0] * 320 / base.shape[1])))
+    base = cv2.resize(base, (width, int(base.shape[0] * width / base.shape[1])))
     h, w = base.shape[:2]
     writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"MJPG"), 10.0, (w, h))
     for i in range(frames):
@@ -254,10 +255,10 @@ with sync_playwright() as p:
         expect(page.get_by_text("서버에 보관됨")).to_be_visible()
         assert_video_plays(page)
         with page.expect_download() as d:
-            page.get_by_text("결과 저장 (webm)").click()
-        assert d.value.suggested_filename == "cutnkeep_video.webm"
+            page.get_by_text("결과 저장 (mp4)").click()
+        assert d.value.suggested_filename == "clip_cutnkeep.mp4"
         page.screenshot(path=SHOT / "video_member.png", full_page=True)
-    step("회원 영상: 처리 → 페이지에서 재생 → 보관본 webm 받기", member_video)
+    step("회원 영상: 처리 → 페이지에서 재생 → 보관본 mp4 받기", member_video)
 
     def logout():
         page.get_by_role("button", name="로그아웃").click()
@@ -272,15 +273,59 @@ with sync_playwright() as p:
         page.get_by_role("button", name="영상 처리 시작").click()
         expect(page.get_by_text("처리가 끝났어요")).to_be_visible(timeout=300_000)
         expect(page.get_by_text("서버에 저장되지 않았어요")).to_be_visible()
+        expect(page.get_by_test_id("video-applied")).to_contain_text("배경 블러")
         assert_video_plays(page)
         with page.expect_download() as d:
-            page.get_by_text("결과 저장 (webm)").click()
-        assert d.value.suggested_filename == "cutnkeep_video.webm"
+            page.get_by_text("결과 저장 (mp4)").click()
+        assert d.value.suggested_filename == "clip_cutnkeep.mp4"
         import os
-        saved = SHOT / "guest_result.webm"
+        saved = SHOT / "guest_result.mp4"
         d.value.save_as(str(saved))
         assert os.path.getsize(saved) > 1000
-    step("비로그인 영상: 처리 → 페이지에서 재생 → 저장 안 됨 안내 → webm 받기", guest_video)
+        assert saved.read_bytes()[4:8] == b"ftyp"  # 진짜 mp4 컨테이너
+
+        # 새로고침해도 이 브라우저(IndexedDB)에 보관된 결과가 되살아나 다시 재생된다
+        page.reload()
+        expect(page.get_by_text("이 브라우저에 보관된 마지막 결과")).to_be_visible(timeout=15_000)
+        assert_video_plays(page)
+        expect(page.get_by_text("원본 영상을 올려 주세요")).to_be_visible()
+        # 원본을 다시 올리면 "다시 처리"
+        page.locator("input[type=file]").set_input_files(str(clip))
+        page.get_by_role("button", name="다시 처리").click()
+        expect(page.get_by_text("처리가 끝났어요")).to_be_visible(timeout=300_000)
+    step("비로그인 영상: 처리 → 재생 → mp4 받기 → 새로고침 후 보관본 재생 → 다시 처리", guest_video)
+
+    def big_video_blur():
+        """1080p 영상 — 받은 mp4 를 직접 열어 배경이 실제로 흐려졌는지 (예전엔 큰 영상일수록 블러가 안 보였다)."""
+        import cv2
+        import numpy as np
+
+        clip = make_video(SHOT / "clip_1080.avi", frames=6, width=1920)
+        page.goto(APP + "/video")
+        page.locator("input[type=file]").set_input_files(str(clip))
+        # 앞 단계에서 보관된 결과가 되살아나 있으면 버튼 이름이 "다시 처리"다
+        page.get_by_role("button", name=re.compile("영상 처리 시작|다시 처리")).click()
+        expect(page.get_by_text("처리가 끝났어요")).to_be_visible(timeout=300_000)
+        expect(page.get_by_test_id("video-applied")).to_contain_text("배경 블러")
+        with page.expect_download() as d:
+            page.get_by_text("결과 저장 (mp4)").click()
+        saved = SHOT / "big_result.mp4"
+        d.value.save_as(str(saved))
+
+        def first_frame(path):
+            cap = cv2.VideoCapture(str(path))
+            ok, frame = cap.read()
+            cap.release()
+            assert ok, f"{path} 을 열 수 없다"
+            return frame
+
+        sharp = lambda a: cv2.Laplacian(cv2.cvtColor(a, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var()
+        src, out = first_frame(clip), first_frame(saved)
+        assert out.shape[1] == 1920, out.shape
+        ratio = sharp(out) / sharp(src)
+        page.screenshot(path=SHOT / "video_1080.png", full_page=True)
+        assert ratio < 0.5, f"받은 파일의 선명도가 원본의 {ratio:.2f} — 블러가 거의 안 걸렸다"
+    step("1080p 영상: 받은 mp4 를 열어 보니 배경이 흐려져 있다 (선명도 < 원본의 50%)", big_video_blur)
 
     # ---------------- 콘솔 (localhost 쿠키는 포트를 가리지 않아 사용자 앱 로그인과 섞이지 않게 따로 연 브라우저 문맥)
     con_ctx = browser.new_context(viewport={"width": 1280, "height": 860})

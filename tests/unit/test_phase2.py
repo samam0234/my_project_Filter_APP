@@ -70,7 +70,7 @@ def test_video_holds_previous_mask(tmp_path):
     )
     assert info["frames"] == 4
     assert info["held"] == 1
-    assert Path(info["path"]).stat().st_size > 0
+    assert Path(info["path"]).stat().st_size > 0 and info["effect"] == "blur"
     replay = cv2.VideoCapture(info["path"])
     ok, _ = replay.read()
     replay.release()

@@ -206,6 +206,14 @@ export function saveBlob(blob: Blob, filename: string): void {
  * 영상 한 개 처리. 동기 처리라 길게 기다린다 (프레임마다 세그).
  * 비로그인: avi 파일이 응답 본문(저장 없음) / 회원: JSON(보관본 job_id·url).
  */
+/** 응답 헤더 · Content-Type 에서 영상 형식 판별 (헤더가 없는 프록시 대비) */
+function videoFormat(header: string, contentType: string): VideoFormat {
+  if (header === "mp4" || header === "webm" || header === "avi") return header;
+  if (contentType.includes("mp4")) return "mp4";
+  if (contentType.includes("webm")) return "webm";
+  return "avi";
+}
+
 export async function processVideo(file: File, prompt: string): Promise<VideoResult> {
   const form = new FormData();
   form.append("file", file);
@@ -226,15 +234,28 @@ export async function processVideo(file: File, prompt: string): Promise<VideoRes
       job_id: string;
       url: string;
       format?: VideoFormat;
+      effect?: string;
+      intensity?: number;
       frames: number;
       held: number;
     };
-    return { kind: "saved", jobId: body.job_id, url: body.url, format: body.format ?? "avi", frames: body.frames, held: body.held };
+    return {
+      kind: "saved",
+      jobId: body.job_id,
+      url: body.url,
+      format: body.format ?? "avi",
+      effect: body.effect,
+      intensity: body.intensity,
+      frames: body.frames,
+      held: body.held,
+    };
   }
   return {
     kind: "download",
     blob: res.data,
-    format: res.headers["x-cutnkeep-format"] === "webm" || contentType.includes("webm") ? "webm" : "avi",
+    format: videoFormat(String(res.headers["x-cutnkeep-format"] ?? ""), contentType),
+    effect: res.headers["x-cutnkeep-effect"] ? String(res.headers["x-cutnkeep-effect"]) : undefined,
+    intensity: res.headers["x-cutnkeep-intensity"] ? Number(res.headers["x-cutnkeep-intensity"]) : undefined,
     frames: Number(res.headers["x-cutnkeep-frames"] ?? 0),
     held: Number(res.headers["x-cutnkeep-held"] ?? 0),
   };

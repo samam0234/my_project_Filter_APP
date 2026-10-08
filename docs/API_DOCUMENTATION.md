@@ -178,14 +178,19 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 **webm(VP8)**. **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `frames` · `held`) |
+| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 **H.264 mp4**(원본 오디오 포함). **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Effect` · `-Intensity` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `effect` · `intensity` · `frames` · `held`) |
 | `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
 
 검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
 프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
-세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 webm(VP8)이라 **브라우저 `<video>` 로 바로 재생**된다.
-OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) mp4 는 쓰지 않는다. VP8 인코더를 못 열면 MJPG avi(다운로드 전용)로 자동 전환 — `format` 으로 구분.
-`VIDEO_OUTPUT_FORMAT=avi` 로 고정할 수도 있다 (인코딩 약 4배 빠름: 720p 기준 MJPG 56fps · VP8 13fps).
+세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 **H.264 mp4** 라 브라우저 `<video>` 로 바로 재생되고 어디서나 열린다.
+OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) 프레임은 MJPG 임시 avi 로 쓰고 **ffmpeg**(`imageio-ffmpeg` 번들 또는 PATH)로
+libx264 · yuv420p · faststart 로 변환하며 원본의 첫 오디오 트랙을 aac 로 붙인다 (짧은 쪽에 맞춤).
+ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 전용) 순으로 자동 전환 — `format` 으로 구분, 처리 결과는 잃지 않는다.
+`VIDEO_OUTPUT_FORMAT` 으로 시작 형식을 고를 수 있다 (`mp4` 기본 · `webm` · `avi`).
+
+**블러 강도 보정:** 블러 커널은 픽셀 단위인데 사진은 긴 변 1280px 로 줄여 처리하는 반면 영상은 원본 해상도 그대로라, 1080p·4K 일수록 같은 강도가
+거의 안 보였다(3840폭 선명도 6.8→5.4). 영상은 긴 변이 1280px 를 넘으면 그 비율만큼 강도를 키운다 (최대 255) — 응답의 `intensity` 는 요청 강도(보정 전).
 업로드 검증: 확장자 + `video/*`(또는 octet-stream) + **내용 시그니처**(AVI·MP4/MOV·WebM/MKV). MIME 은 브라우저·OS 마다 달라(`.avi` → `video/avi`·`video/x-msvideo`) 시그니처가 기준이다.
 비로그인 응답 헤더 `X-Cutnkeep-Frames` · `X-Cutnkeep-Held` 는 CORS `expose_headers` 로 다른 도메인 프론트에서도 읽힌다.
 

@@ -3,16 +3,23 @@
 프롬프트에 selector(위치·순서·개수·색)가 있으면 프레임마다 같은 규칙으로 인스턴스를 고른다.
 프레임 사이 추적은 하지 않아 사람이 겹치거나 지나가면 선택이 바뀔 수 있다 (광학 흐름·추적은 후속).
 
-출력은 기본 webm(VP8) — 브라우저 <video> 로 바로 재생된다. OpenCV pip 휠에는 H.264 인코더가 없어
-(OpenH264 DLL 별도) mp4 는 쓰지 않는다. VP8 인코더를 못 열면 MJPG avi(다운로드 전용)로 내려간다.
+출력은 기본 mp4(H.264 + 원본 오디오) — 어디서나 재생된다. OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도)
+프레임은 MJPG 임시 avi 로 쓰고 ffmpeg(imageio-ffmpeg 번들 또는 PATH)로 한 번 변환한다.
+ffmpeg 가 없거나 변환이 실패하면 webm(VP8, OpenCV 직접) → 그것도 안 되면 MJPG avi(다운로드 전용)로 내려간다.
+
+블러는 커널 크기가 픽셀 단위라 사진(긴 변 1280px 로 줄여 처리)과 달리 원본 해상도 그대로인 영상에서는
+1080p·4K 일수록 흐려지지 않은 것처럼 보인다 → 프레임 크기에 비례해 강도를 보정한다 (_scaled_intensity).
 """
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from pathlib import Path
 
 import cv2
 import numpy as np
+from loguru import logger
 
 from app.schemas.request import ParsedPrompt
 from app.services.effects import apply_effects
@@ -33,19 +40,64 @@ def _as_bgr(image: np.ndarray, width: int, height: int) -> np.ndarray:
     return image
 
 
-# (확장자, fourcc, MIME) — 앞에서부터 열리는 것을 쓴다
+# 형식 이름 → (확장자, OpenCV fourcc, MIME). mp4 는 fourcc 가 없다 — avi 로 쓴 뒤 ffmpeg 로 변환
 _FORMATS = {
+    "mp4": (".mp4", None, "video/mp4"),
     "webm": (".webm", "VP80", "video/webm"),
     "avi": (".avi", "MJPG", "video/x-msvideo"),
 }
 MEDIA_TYPES = {ext: mime for ext, _cc, mime in _FORMATS.values()}
+BLUR_REFERENCE_SIDE = 1280  # 사진 파이프라인이 처리하는 긴 변 — 이 크기에서 정한 강도를 기준으로 삼는다
+MAX_BLUR_INTENSITY = 255
+
+
+def ffmpeg_exe() -> str | None:
+    """PATH 의 ffmpeg 또는 imageio-ffmpeg 번들. 없으면 None."""
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    try:
+        import imageio_ffmpeg
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+
+
+def _to_mp4(tmp_avi: Path, source: Path, dst: Path, ffmpeg: str) -> bool:
+    """MJPG avi → H.264 mp4 (+ 원본의 첫 오디오 트랙, 짧은 쪽에 맞춤). 성공 여부."""
+    cmd = [
+        ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+        "-i", str(tmp_avi), "-i", str(source),
+        "-map", "0:v:0", "-map", "1:a:0?",
+        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2:out_range=tv",  # yuv420p 는 짝수 크기만, MJPG 의 full range 는 일반 영상 범위로
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart",
+        str(dst),
+    ]
+    try:
+        done = subprocess.run(cmd, capture_output=True, timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        logger.warning("mp4 변환 실패: {}", exc)
+        return False
+    if done.returncode != 0 or not dst.is_file() or dst.stat().st_size == 0:
+        logger.warning("mp4 변환 실패 rc={} {}", done.returncode, done.stderr.decode("utf-8", "replace")[-300:])
+        dst.unlink(missing_ok=True)
+        return False
+    return True
+
+
+def _scaled_intensity(intensity: int, width: int, height: int) -> int:
+    """블러 강도를 프레임 크기에 비례해 키운다 (기준: 긴 변 1280px = 보정 없음, 작은 프레임은 그대로)."""
+    factor = max(1.0, max(width, height) / BLUR_REFERENCE_SIDE)
+    return int(min(MAX_BLUR_INTENSITY, round(intensity * factor)))
 
 
 def _open_writer(stem: Path, prefer: str, fps: float, size: tuple[int, int]):
-    """prefer 형식부터 시도해 열린 (writer, path, 형식) 을 돌려준다."""
+    """prefer 형식부터 시도해 열린 (writer, path, 형식) 을 돌려준다. mp4 는 건너뛴다(별도 변환)."""
     order = [prefer] + [name for name in _FORMATS if name != prefer]
     for name in order:
-        if name not in _FORMATS:
+        if name not in _FORMATS or _FORMATS[name][1] is None:
             continue
         ext, fourcc, _mime = _FORMATS[name]
         path = stem.with_suffix(ext)
@@ -58,7 +110,7 @@ def _open_writer(stem: Path, prefer: str, fps: float, size: tuple[int, int]):
 
 
 def find_result(root: Path) -> Path | None:
-    """보관 폴더의 결과 파일 (webm 우선, 예전 avi 도)."""
+    """보관 폴더의 결과 파일 (mp4 → webm → 예전 avi 순)."""
     for ext, _cc, _mime in _FORMATS.values():
         path = root / f"result{ext}"
         if path.is_file():
@@ -74,11 +126,12 @@ def process_video(
     *,
     max_frames: int = 240,
     max_seconds: float = 20.0,
-    output_format: str = "webm",
+    output_format: str = "mp4",
 ) -> dict:
-    """src 를 읽어 dst 확장자를 바꾼 파일(webm, 안 되면 avi)로 쓴다.
+    """src 를 읽어 dst 확장자를 바꾼 파일(mp4 → 안 되면 webm → avi)로 쓴다.
 
-    반환: frames(처리 프레임 수), held(직전 마스크를 재사용한 프레임 수), fps, path, format, media_type.
+    반환: frames, held(직전 마스크를 재사용한 프레임 수), fps, path, format, media_type,
+    effect · intensity(해석된 효과와 요청 강도 — 화면에 보여 "무엇이 적용됐는지" 확인하게 한다).
     """
     capture = cv2.VideoCapture(str(src))
     if not capture.isOpened():
@@ -91,9 +144,24 @@ def process_video(
         limit = min(limit, max(1, int(fps * max_seconds)))
 
     dst.parent.mkdir(parents=True, exist_ok=True)
+    effect = (parsed.effect or "remove_bg").lower()
+    scaled: dict[tuple[int, int], ParsedPrompt] = {}
+
+    def fx_parsed(width: int, height: int) -> ParsedPrompt:
+        """블러면 프레임 크기에 맞춰 보정한 강도의 ParsedPrompt (크기별 한 번만 만든다)."""
+        if effect != "blur":
+            return parsed
+        key = (width, height)
+        if key not in scaled:
+            scaled[key] = parsed.model_copy(update={"intensity": _scaled_intensity(parsed.intensity, width, height)})
+        return scaled[key]
+
     writer = None
     out_path = dst
-    out_format = output_format
+    ffmpeg = ffmpeg_exe() if output_format == "mp4" else None
+    # mp4 는 MJPG 임시 avi 로 쓰고 끝에서 변환, ffmpeg 가 없으면 webm 부터 시도
+    write_format = "avi" if ffmpeg else ("webm" if output_format == "mp4" else output_format)
+    out_format = write_format
     previous = None
     frames = 0
     held = 0
@@ -117,10 +185,18 @@ def process_video(
                 previous = mask.copy()
             if mask is None:
                 mask = np.zeros(frame.shape[:2], dtype=np.uint8)
-            rendered = _as_bgr(apply_effects(frame, mask, parsed), frame.shape[1], frame.shape[0])
+            rendered = _as_bgr(apply_effects(frame, mask, fx_parsed(frame.shape[1], frame.shape[0])), frame.shape[1], frame.shape[0])
             if writer is None:
                 height, width = rendered.shape[:2]
-                writer, out_path, out_format = _open_writer(dst, output_format, fps, (width, height))
+                writer, out_path, out_format = _open_writer(dst, write_format, fps, (width, height))
+                if ffmpeg and out_format == "avi":
+                    out_path = dst.with_suffix(".tmp.avi")  # 변환 전 임시 파일 — 변환이 실패하면 이게 곧 결과(avi)
+                    writer.release()
+                    out_path.unlink(missing_ok=True)
+                    dst.with_suffix(".avi").unlink(missing_ok=True)
+                    writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"MJPG"), fps, (width, height))
+                    if not writer.isOpened():
+                        raise ValueError("영상 인코더를 열 수 없습니다.")
             writer.write(rendered)
             frames += 1
     finally:
@@ -129,6 +205,15 @@ def process_video(
             writer.release()
     if frames == 0:
         raise ValueError("프레임이 없습니다.")
+    if ffmpeg and out_format == "avi":
+        final = dst.with_suffix(".mp4")
+        if _to_mp4(out_path, src, final, ffmpeg):
+            out_path.unlink(missing_ok=True)
+            out_path, out_format = final, "mp4"
+        else:  # 변환 실패 — 임시 avi 를 결과로 (다운로드 전용)
+            final_avi = dst.with_suffix(".avi")
+            out_path.replace(final_avi)
+            out_path = final_avi
     return {
         "frames": frames,
         "held": held,
@@ -136,4 +221,6 @@ def process_video(
         "path": str(out_path),
         "format": out_format,
         "media_type": MEDIA_TYPES[out_path.suffix],
+        "effect": effect,
+        "intensity": parsed.intensity,
     }
