@@ -49,7 +49,7 @@ copy .env.example .env
 # 필요 시 .env 수정 (OPENAI_API_KEY, DB 등)
 ```
 
-로컬 기본 DB: `DB_DIALECT=sqlite` → `backend/data/cutnkeep.db`  
+로컬 기본 DB: `DB_DIALECT=sqlite` → `backend/data/cutnkeep.host.db` (Docker 는 `cutnkeep.db` — 같은 파일을 둘이 쓰지 않는다)  
 백엔드 로그: `backend/logs/app_YYYY-MM-DD.log`
 
 ---

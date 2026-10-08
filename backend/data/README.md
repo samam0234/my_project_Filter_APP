@@ -6,13 +6,14 @@
 | 경로 | 용도 | 수명 |
 |------|------|------|
 | `uploads/{job_id}/` | before/after 이미지 | `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 삭제 |
-| `cutnkeep.db` | SQLite (`jobs`·`feedbacks`·`batch_jobs`, 로컬 `DB_DIALECT=sqlite`) | 영구 |
+| `cutnkeep.db` | Docker backend 의 서비스 SQLite (`users`·`auth_*`·`jobs`·`batch_jobs`) | 영구 |
+| `cutnkeep.host.db` | 호스트에서 띄운 backend 의 서비스 SQLite — Docker 와 같은 파일을 쓰면 깨진다 | 영구 |
 
 ## 설정 (backend/ 기준 상대 경로)
 
 ```env
 UPLOAD_DIR=data/uploads
-SQLITE_PATH=data/cutnkeep.db
+SQLITE_PATH=data/cutnkeep.host.db
 FILE_RETENTION_HOURS=24
 ```
 

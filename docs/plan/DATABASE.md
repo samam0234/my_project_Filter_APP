@@ -55,7 +55,7 @@ SQLite (local)  |  MariaDB (prod / docker)
 
 | DB | 기본 | 설정 | 직접 URL (최우선) |
 |----|------|------|-------------------|
-| 서비스 DB | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.db` (backend/ 기준) | `DATABASE_URL` |
+| 서비스 DB | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.host.db` (호스트, backend/ 기준) · Docker 는 `data/cutnkeep.db` | `DATABASE_URL` |
 | 학습 DB | MariaDB | `LEARNING_DB_DIALECT=mariadb` + `MARIADB_*` (또는 `sqlite` → `LEARNING_SQLITE_PATH`) | `LEARNING_DATABASE_URL` |
 
 학습 DB 는 MariaDB 가 꺼져 있어도 서비스가 뜨도록 **로컬 SQLite fallback** 이 있다
@@ -67,7 +67,7 @@ Docker 에서는 MariaDB healthy 후에만 backend 가 뜨므로 fallback 을 �
 
 ```env
 DB_DIALECT=sqlite          # 또는 mariadb
-SQLITE_PATH=data/cutnkeep.db   # backend/ 기준 → backend/data/cutnkeep.db
+SQLITE_PATH=data/cutnkeep.host.db   # backend/ 기준 → backend/data/cutnkeep.host.db (Docker 는 compose 가 data/cutnkeep.db 로 덮음)
 
 # --- 호스트 도구(DBeaver) / 로컬 클라이언트 기준 ---
 MARIADB_HOST=localhost
@@ -271,12 +271,12 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 ```bash
 # .env
 DB_DIALECT=sqlite
-SQLITE_PATH=data/cutnkeep.db   # backend/ 기준
+SQLITE_PATH=data/cutnkeep.host.db   # backend/ 기준 (Docker 와 다른 파일)
 
 # 루트에서 venv 활성화 후
 cd backend
 uvicorn app.main:app --reload
-# → backend/data/cutnkeep.db 자동 생성 + 테이블 create
+# → backend/data/cutnkeep.host.db 자동 생성 + 테이블 create
 ```
 
 학습 DB 는 Docker MariaDB 를 쓴다 (`docker compose -p cut_and_keep up -d mariadb`).
@@ -286,8 +286,23 @@ uvicorn app.main:app --reload
 
 ```bash
 docker compose -p cut_and_keep --env-file .env up -d --build
-# backend environment: DB_DIALECT=sqlite, LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb
+# backend environment: DB_DIALECT=sqlite, SQLITE_PATH=${DOCKER_SQLITE_PATH:-data/cutnkeep.db}, LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb
 ```
+
+### 호스트와 Docker 는 다른 SQLite 파일을 쓴다
+
+`backend/data` 가 Docker 에 bind mount 되어 있어, 같은 `SQLITE_PATH` 를 쓰면 호스트 backend 와 Docker backend 가 **한 파일을 번갈아 쓴다**.
+2026-10-08 이 상태에서 `jobs` 루트 페이지가 다른 프로세스의 로그 텍스트(OpenCV 경고)로 덮여 DB 가 깨졌고 업로드가 모두 500 이 됐다.
+그래서 호스트 기본은 `cutnkeep.host.db`, Docker 는 `cutnkeep.db` 로 나눴다. 두 값을 같게 맞추지 않는다.
+
+### 손상 복구
+
+기동 시 `PRAGMA quick_check` 결과가 `ok` 가 아니면 `서비스 DB 손상 감지` 오류 로그가 남는다 (`app/db/session.py:check_sqlite_integrity`).
+
+1. backend(와 worker) 컨테이너를 멈춘다 — `docker stop cut_and_keep-backend-1`
+2. 원본을 지우지 말고 이름을 바꿔 보존한다 — 예: `cutnkeep.corrupt-YYYYMMDD.db` (`*.db` 라 git 에 안 들어간다)
+3. 복사본에서 읽히는 테이블(`users` · `auth_sessions` 등)을 같은 스키마(`sqlite_master.sql`)로 만든 새 파일에 옮긴다. 읽히지 않는 `jobs` 는 보존 기한이 지나면 의미가 없으므로 버려도 된다
+4. 새 파일을 `cutnkeep.db` 로 두고 backend 를 다시 띄운 뒤 업로드 한 번으로 확인한다
 
 ### 분리 이전 데이터
 

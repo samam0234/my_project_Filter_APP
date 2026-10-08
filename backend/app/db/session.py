@@ -125,6 +125,28 @@ def _ensure_columns(eng: Engine) -> None:
         logger.info("DB 컬럼 추가 {}.{}", table, column)
 
 
+def check_sqlite_integrity(eng: Engine) -> str:
+    """SQLite 파일이 깨졌는지 빠르게 확인 (quick_check). 깨졌으면 원인과 조치를 로그로 남기고 결과 문자열을 돌려준다.
+
+    호스트 backend 와 Docker backend 가 같은 파일을 번갈아 쓰다 페이지가 덮여 깨진 적이 있다 (2026-10-08) —
+    그래서 기본 경로를 나눴다 (호스트 data/cutnkeep.host.db, Docker data/cutnkeep.db). 기동은 막지 않는다.
+    """
+    if eng.dialect.name != "sqlite":
+        return "skip"
+    try:
+        with eng.connect() as conn:
+            result = str(conn.execute(text("PRAGMA quick_check")).scalar())
+    except Exception as exc:  # 헤더가 깨지면 PRAGMA 자체가 실패한다
+        result = str(exc)
+    if result != "ok":
+        logger.error(
+            "서비스 DB 손상 감지 ({}): {} — 업로드가 500 으로 실패한다. 백엔드를 멈추고 파일을 백업한 뒤 "
+            "읽을 수 있는 테이블(users 등)을 새 파일로 옮겨 복구한다 (docs/plan/DATABASE.md '손상 복구')",
+            eng.url.database, result[:200],
+        )
+    return result
+
+
 def init_db() -> None:
     """테이블이 없으면 생성하고, 기존 테이블에 빠진 컬럼을 보강한다 (이후 Alembic 선택)."""
     import app.models  # noqa: F401 — 메타데이터 등록
@@ -133,4 +155,5 @@ def init_db() -> None:
     SessionLocal.configure(bind=eng)
     Base.metadata.create_all(bind=eng)
     _ensure_columns(eng)
+    check_sqlite_integrity(eng)
     logger.info("DB 테이블 확인/생성 완료 dialect={}", eng.dialect.name)
