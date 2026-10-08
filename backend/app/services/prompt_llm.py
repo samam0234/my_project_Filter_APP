@@ -158,6 +158,11 @@ def clear_last_llm_provider() -> None:
     _LAST_PROVIDER.set("")
 
 
+def set_last_llm_provider(name: str) -> None:
+    """성공한 provider 이름을 직접 기록한다 — 다른 컨텍스트(LangChain 체인 안)에서 호출됐을 때 호출 측 컨텍스트에 되살린다."""
+    _LAST_PROVIDER.set(name or "")
+
+
 def last_llm_provider() -> str:
     """방금 성공한 provider. 없으면 빈 문자열."""
     return _LAST_PROVIDER.get()
@@ -248,7 +253,10 @@ def parse_prompt_or_heuristic(
     from app.workflows.nodes import parse_prompt_heuristic
 
     try:
-        parsed = parse_prompt_llm(prompt, settings)
+        # 사진 노드와 같은 해석 체인 (PROMPT_CHAIN=langchain 이면 키워드 파서와 갈릴 때 다수결) — 순환 import 를 피해 여기서 가져온다
+        from app.services.prompt_chain import parse_prompt_chain
+
+        parsed = parse_prompt_chain(prompt, settings, ask=lambda p, s, e="": parse_prompt_llm(p, s, e))
         if parsed is not None:
             return parsed
     except Exception as exc:

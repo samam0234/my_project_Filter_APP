@@ -88,6 +88,8 @@ class SegmentationResult:
     backend: str = "stub"
     detected: List[str] = field(default_factory=list)
     instances: List[Instance] = field(default_factory=list)
+    # 요청하지 않았지만 모델이 찾은 다른 인스턴스(다른 클래스·다른 사람) — 대상 마스크에 섞인 조각을 걸러내는 데 쓴다
+    others: List[Instance] = field(default_factory=list)
 
 
 class Segmentor:
@@ -303,14 +305,17 @@ class Segmentor:
         target_set = expand_targets({t.lower() for t in targets})
         keep_all = not target_set or "all" in target_set
         instances: List[Instance] = []
+        others: List[Instance] = []
         detected: List[str] = []
         for cls_id, conf, binary in run_yolo_seg_onnx(self._session, image, threshold):
             label = str(names.get(cls_id, cls_id)).lower()
             detected.append(label)
-            if not keep_all and label not in target_set:
+            if not binary.any():
                 continue
-            if binary.any():
-                instances.append(Instance.from_mask(binary, label, conf))
+            if not keep_all and label not in target_set:
+                others.append(Instance.from_mask(binary, label, conf))
+                continue
+            instances.append(Instance.from_mask(binary, label, conf))
         union = union_mask(instances, (h, w))
         if not union.any():
             logger.info("요청 대상 없음 targets={} detected={}", sorted(target_set), detected)
@@ -321,6 +326,7 @@ class Segmentor:
             backend="onnx",
             detected=detected,
             instances=instances,
+            others=others,
         )
 
     def _predict_yolo(
@@ -346,9 +352,15 @@ class Segmentor:
         # conf 를 넘겨야 재시도의 낮춘 기준이 실제로 적용된다 (Ultralytics 기본 conf=0.25 가 먼저 걸러 버림)
         # retina_masks: 마스크를 원본 해상도로 직접 계산 (기본은 letterbox 크기라 단순 확대하면 경계가 거칠어짐 —
         # 정답 폴리곤 대비 IoU 0.825 → 0.848, 속도 차이 없음. docs/plan/ONNX_INFERENCE.md)
-        results = self._yolo.predict(img, verbose=False, conf=threshold, retina_masks=True)
+        kwargs = {"verbose": False, "conf": threshold, "retina_masks": True}
+        if self.settings.seg_imgsz:
+            kwargs["imgsz"] = self.settings.seg_imgsz
+        if self.settings.seg_nms_iou:
+            kwargs["iou"] = self.settings.seg_nms_iou
+        results = self._yolo.predict(img, **kwargs)
         h, w = img.shape[:2]
         instances: List[Instance] = []
+        others: List[Instance] = []
         detected: List[str] = []
 
         target_set = expand_targets({t.lower() for t in targets})
@@ -366,12 +378,14 @@ class Segmentor:
                 if conf < threshold:
                     continue
                 detected.append(label)
-                if not keep_all and label not in target_set:
-                    continue
                 m_resized = cv2.resize(m, (w, h), interpolation=cv2.INTER_LINEAR)
                 binary = (m_resized > 0.5).astype(np.uint8) * 255
-                if binary.any():
-                    instances.append(Instance.from_mask(binary, label, conf))
+                if not binary.any():
+                    continue
+                if not keep_all and label not in target_set:
+                    others.append(Instance.from_mask(binary, label, conf))
+                    continue
+                instances.append(Instance.from_mask(binary, label, conf))
 
         union = union_mask(instances, (h, w))
         if not union.any():
@@ -384,6 +398,7 @@ class Segmentor:
             backend="yolo",
             detected=detected,
             instances=instances,
+            others=others,
         )
 
     def _stub_mask(

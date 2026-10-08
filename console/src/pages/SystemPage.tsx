@@ -150,6 +150,12 @@ export function SystemPage() {
               <Rows
                 rows={[
                   ["세그 런타임", RUNTIME_LABEL[snap.segmentation.runtime] ?? snap.segmentation.runtime],
+                  [
+                    "대상 마스크 처리",
+                    `겹침 ${snap.mask.exclusive} · GrabCut ${snap.mask.grabcut ? "켬" : "끔"} · CLAHE ${snap.mask.clahe ? "켬" : "끔"}${
+                      snap.mask.hard_example_conf > 0 ? ` · 어려운 사례 수집 <${snap.mask.hard_example_conf}` : ""
+                    }`,
+                  ],
                   ["가중치", `${snap.segmentation.model_file}${snap.segmentation.model_exists ? "" : " (없음!)"}`],
                   ["신뢰도 기준", String(snap.segmentation.min_confidence)],
                   [
@@ -170,6 +176,7 @@ export function SystemPage() {
               <Rows
                 rows={[
                   ["LLM", `${snap.llm.provider} · ${snap.llm.model || "-"} (폴백 ${snap.llm.fallback})`],
+                  ["해석 체인", snap.llm.chain === "langchain" ? `LangChain · 대상이 갈리면 최대 ${snap.llm.votes}번 다수결` : "한 번만 묻기"],
                   ["LoRA 어댑터", snap.llm.lora_adapter ? "사용" : "미사용"],
                   ["RAG 예시", snap.llm.rag_enabled ? `켜짐 (${snap.llm.rag_sources})` : "꺼짐"],
                   [

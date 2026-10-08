@@ -33,7 +33,7 @@ class ImageProcessor:
         self.segmentor = segmentor or Segmentor(self.settings)
 
     def preprocess(self, image: np.ndarray) -> np.ndarray:
-        """리사이즈 + L채널 CLAHE. 항상 복사본 사용.
+        """리사이즈 + L채널 CLAHE. 항상 복사본 사용. (파이프라인 기본 입력은 PREPROCESS_CLAHE 에 따라 이것 또는 리사이즈만)
 
         CLAHE: 대비를 국소적으로 올려 세그가 경계에 유리하게 함.
         """

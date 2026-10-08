@@ -62,7 +62,9 @@ def _get_feedback() -> FeedbackService:
 
 
 # 휴리스틱 키워드 표 — LLM 실패 시 fallback. 규격은 services/prompt_spec.SYSTEM_PROMPT 와 맞춘다.
-_REMOVE_VERBS = ("지워", "지우", "삭제", "없애", "제거", "remove", "erase", "delete")
+_REMOVE_VERBS = ("지워", "지우", "삭제", "없애", "제거", "치워", "치우", "빼줘", "빼 줘", "remove", "erase", "delete", "wipe out")
+_BLUR_WORDS = ("blur", "블러", "흐리", "흐릿", "뿌옇", "흐림", "bokeh", "out of focus")
+_CROP_WORDS = ("crop", "크롭", "잘라", "오려", "trim")
 # 이 표현이 있으면 "대상을 남기는" 요청 (배경 제거·제외하고 지우기)
 _KEEP_HINTS = ("배경", "background", "제외", "빼고", "말고", "남기", "남겨", "만 남", "keep", "except", "only")
 _POSITION_WORDS = [
@@ -163,15 +165,16 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     crop = False
     intensity = 15
 
-    if "blur" in text or "블러" in text:
+    if any(w in text for w in _BLUR_WORDS):
         effect = "blur"
-    if "crop" in text or "크롭" in text or "잘라" in text:
+    if any(w in text for w in _CROP_WORDS):
         effect = "crop"
         crop = True
-    if "크롭" in text or "crop" in text:
-        crop = True
-    # "X 지워줘" = 대상 지우기. 단 "배경 제거"·"X 빼고 지워" 는 대상을 남기는 요청
-    if any(v in text for v in _REMOVE_VERBS) and not any(h in text for h in _KEEP_HINTS):
+    # "X 지워줘" = 대상 지우기. 단 "배경 제거"·"X 빼고 지워" 는 대상을 남기는 요청 (역할 분석으로 판정: heuristic_targets.analyze)
+    from app.services.heuristic_targets import analyze
+
+    detected, erase_intent = analyze(text)
+    if erase_intent or (any(v in text for v in _REMOVE_VERBS) and not any(h in text for h in _KEEP_HINTS)):
         effect = "remove_object"
 
     m = re.search(r"(?:intensity|강도|blur)\s*[:=]?\s*(\d{1,3})", text)
@@ -183,26 +186,8 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     if quoted:
         targets = [q.strip() for q in quoted if q.strip()]
     else:
-        keywords = [
-            ("person", ["person", "사람", "인물", "남자", "여자", "남성", "여성", "아이",
-                        "man", "woman"]),
-            ("dog", ["dog", "강아지", "개"]),
-            ("cat", ["cat", "고양이"]),
-            ("car", ["car", "차", "자동차"]),
-            ("bag", ["bag", "가방"]),
-            # 배경 덩어리 (SegFormer) — "산" 처럼 다른 단어에 섞이는 한 글자 키워드는 뺐다
-            ("building", ["building", "건물", "빌딩", "건축물", "아파트"]),
-            ("sky", ["sky", "하늘"]),
-            ("road", ["road", "도로", "차도"]),
-            ("tree", ["tree", "나무", "가로수"]),
-            ("grass", ["grass", "잔디", "풀밭"]),
-            ("water", ["water", "바다", "호수", "수면"]),
-            ("mountain", ["mountain", "산맥", "언덕"]),
-            ("fence", ["fence", "울타리", "펜스"]),
-        ]
-        for label, keys in keywords:
-            if any(k in text for k in keys):
-                targets.append(label)
+        # 어휘 확장 + 역할("X 말고 Y만") 규칙 — LLM 이 꺼졌을 때의 안전망 (services/heuristic_targets.py)
+        targets = detected
     if not targets:
         targets = ["person"]
 
@@ -255,7 +240,16 @@ def prompt_analyzer(state: GraphState) -> GraphState:
             logger.warning("프롬프트 RAG 검색 실패 job={}: {}", job_id, exc)
     clear_last_llm_provider()
     try:
-        parsed = parse_prompt_llm(prompt, settings, examples=examples)
+        if settings.prompt_chain == "langchain" and settings.prompt_votes > 1:
+            # 키워드 파서와 대상이 다르면 여러 번 물어 다수결 (services/prompt_chain.py, LangChain Core)
+            from app.services.prompt_chain import parse_prompt_chain
+
+            parsed = parse_prompt_chain(
+                prompt, settings, examples=examples,
+                ask=lambda p, s, e="": parse_prompt_llm(p, s, examples=e),  # 이 모듈의 이름을 거쳐야 테스트의 가짜가 적용된다
+            )
+        else:
+            parsed = parse_prompt_llm(prompt, settings, examples=examples)
         if parsed is not None:
             # fallback 이 성공하면 기본 provider 가 아니라 실제 성공한 이름을 남긴다.
             # parse_prompt_llm 이 테스트에서 교체되면 기록이 비어 기본 이름을 쓴다.
@@ -320,8 +314,8 @@ def preprocessor(state: GraphState) -> GraphState:
 
 
 # 【수동·튜닝】 재시도 전략 — 같은 입력으로 다시 돌리면 결과가 같으므로 조건을 바꾼다
-#   1차: CLAHE 전처리 이미지 + 기본 신뢰도 기준
-#   2차: CLAHE 없는 원본 축소 이미지 + 신뢰도 기준 × RETRY_CONFIDENCE_SCALE
+#   1차: 설정(PREPROCESS_CLAHE, 기본 꺼짐)대로의 입력 + 기본 신뢰도 기준
+#   2차: 반대쪽 전처리 입력 + 신뢰도 기준 × RETRY_CONFIDENCE_SCALE
 RETRY_CONFIDENCE_SCALE = 0.6
 
 
@@ -330,17 +324,19 @@ def segmentor(state: GraphState) -> GraphState:
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     retry = int(state.get("retry_count") or 0) > 0
-    pre = cache.get("resized" if retry else "preprocessed")
+    processor = _get_processor()
+    # 기본 입력은 설정 따라 (CLAHE 끔 = 크기만 맞춘 사본), 재시도는 반대쪽 — 한쪽이 못 찾은 것을 다른 쪽이 찾는 경우를 노린다
+    use_clahe = processor.settings.preprocess_clahe != retry
+    pre = cache.get("preprocessed" if use_clahe else "resized")
     if pre is None:
-        pre = cache.get("preprocessed")
+        pre = cache.get("resized") if cache.get("resized") is not None else cache.get("preprocessed")
     if pre is None:
         return {**state, "status": JobStatus.FAILED.value, "error": "전처리 이미지 없음"}
 
     # state 의 dict 를 다시 ParsedPrompt 로
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
-    processor = _get_processor()
     min_conf = processor.settings.min_confidence * RETRY_CONFIDENCE_SCALE if retry else None
-    strategy = "retry_no_clahe_lowconf" if retry else "default"
+    strategy = "retry_alt_preprocess_lowconf" if retry else "default"
     seg = processor.segmentor.predict(pre, targets=parsed.target, min_confidence=min_conf)
     if retry:
         logger.info("segmentor 재시도 job={} strategy={} min_conf={}", job_id, strategy, min_conf)
@@ -348,8 +344,10 @@ def segmentor(state: GraphState) -> GraphState:
     # selector 가 있으면 같은 클래스 인스턴스 중 일부만 고른다 (위치·개수·색)
     mask, labels, confidences = seg.mask, seg.labels, seg.confidences
     selection = None
+    chosen = list(seg.instances)
     if parsed.selector is not None and seg.instances:
         picked = select_instances(seg.instances, parsed.selector, pre)
+        chosen = list(picked.chosen)
         mask = union_mask(picked.chosen, pre.shape[:2])
         labels = [i.label for i in picked.chosen]
         confidences = [i.confidence for i in picked.chosen]
@@ -364,6 +362,17 @@ def segmentor(state: GraphState) -> GraphState:
         }
         logger.info("instance_selector job={} {}", job_id, selection)
 
+    # 지정하지 않은 사람·동물·물체가 대상에 붙어 남지 않게: 다른 인스턴스 몫을 덜어내고(MASK_EXCLUSIVE),
+    # 경계 정제가 되가져오지 못하게 구역을 기록(MASK_FORBID_REFINE)
+    cache["forbid"] = None
+    leak = None
+    if chosen:
+        from app.services.mask_exclusion import finalize_selection, leak_signals
+
+        before = mask
+        mask, cache["forbid"] = finalize_selection(seg, chosen, pre.shape[:2], processor.settings)
+        leak = leak_signals(seg, chosen, before, mask)
+
     # 마스크·세그 메타를 캐시에 저장
     cache["mask"] = mask
     cache["seg"] = seg
@@ -374,6 +383,7 @@ def segmentor(state: GraphState) -> GraphState:
         "labels": labels,
         "detected": seg.detected,
         "selection": selection,
+        "leak": leak,
         "backend": seg.backend,
         "segment_strategy": strategy,
         "message": "segmented",
@@ -412,7 +422,7 @@ def validator_node(state: GraphState) -> GraphState:
 
 _STATUS_RANK = {JobStatus.OK.value: 2, JobStatus.FALLBACK.value: 1, JobStatus.FAILED.value: 0}
 _ATTEMPT_KEYS = ("status", "quality_score", "message", "error", "labels", "confidences",
-                 "detected", "selection", "segment_strategy")
+                 "detected", "selection", "segment_strategy", "leak")
 
 
 def _keep_best_attempt(scored: GraphState, cache: Dict[str, Any], mask: Any) -> GraphState:
@@ -467,7 +477,10 @@ def effect_applier(state: GraphState) -> GraphState:
     if mask.any():
         # remove_object 는 윤곽까지 지워야 해서 GrabCut 정제 없이 원 마스크 사용.
         # 정제는 여기서 한 번만 — apply_effects 가 또 하면 경계가 깎인다(refine=False)
-        refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original)
+        forbid = cache.get("forbid")
+        if forbid is not None and forbid.shape[:2] != original.shape[:2]:
+            forbid = upscale_mask(forbid, (original.shape[1], original.shape[0]))
+        refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original, forbid)  # GrabCut 은 MASK_GRABCUT
         result_img = apply_effects(original, refined, parsed, refine=False)
     else:
         # 대상 없음: 전부 투명/전부 블러 대신 원본 유지 (status 는 failed 그대로)
@@ -526,6 +539,9 @@ def feedback_collector(state: GraphState) -> GraphState:
             "labels": state.get("labels"),
             "detected": state.get("detected"),
             "selection": state.get("selection"),
+            "leak": state.get("leak"),
+            # 처리는 성공했지만 확신이 낮아 모은 사례 — 검수·재학습 때 실패 사례와 구분한다
+            "hard_example": state.get("status") == JobStatus.OK.value,
         },
     )
     return {

@@ -75,7 +75,12 @@ def parse_args() -> argparse.Namespace:
         "--eval-file",
         type=Path,
         nargs="+",
-        default=[_LORA_DIR / "seed" / "eval.jsonl", _LORA_DIR / "seed" / "eval_ext.jsonl"],
+        default=[
+            _LORA_DIR / "seed" / "eval.jsonl",
+            _LORA_DIR / "seed" / "eval_ext.jsonl",
+            _LORA_DIR / "seed" / "eval_distractor.jsonl",
+            _LORA_DIR / "seed" / "eval_holdout.jsonl",
+        ],
         help="평가셋들 — 같은 문장은 학습에서 뺀다 (점수 부풀림 방지)",
     )
     parser.add_argument(
@@ -93,8 +98,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--seed-file",
         type=Path,
-        default=_LORA_DIR / "seed" / "train.jsonl",
-        help="인스턴스 선택 시드 JSONL (없으면 건너뜀)",
+        nargs="+",
+        default=[_LORA_DIR / "seed" / "train.jsonl", _LORA_DIR / "seed" / "train_distractor.jsonl"],
+        help="시드 JSONL 들 (인스턴스 선택 · 방해물 문장 — 없는 파일은 건너뜀)",
     )
     parser.add_argument(
         "--seed-repeat",
@@ -385,7 +391,7 @@ def main() -> None:
     pseudo_cases = discover_pseudo_cases(args.pseudo_dir)
     if args.max_pseudo >= 0 and len(pseudo_cases) > args.max_pseudo:
         pseudo_cases = random.Random(0).sample(pseudo_cases, args.max_pseudo)
-    seed_cases = discover_seed_cases(args.seed_file)
+    seed_cases = [case for f in args.seed_file for case in discover_seed_cases(f)]
     records = to_instruction_records(
         feedback_cases,
         template=instruction_template,
@@ -417,7 +423,7 @@ def main() -> None:
     summary["augment_cases"] = len(augment_cases)
     summary["dropped_eval_leaks"] = leaked
     _print_summary("LoRA train", len(feedback_cases), len(pseudo_cases), summary)
-    print(f"seed_cases     = {len(seed_cases)} x{args.seed_repeat}  ({args.seed_file})")
+    print(f"seed_cases     = {len(seed_cases)} x{args.seed_repeat}  ({', '.join(f.name for f in args.seed_file)})")
     print(f"user source    = {args.feedback_source}"
           + (f" (승인 train {len(feedback_cases)} x{args.approved_repeat})" if feedback_origin == "db" else ""))
     print(f"augment_cases  = {len(augment_cases)}  ({args.augment_file})")

@@ -95,11 +95,23 @@ def test_retry_changes_image_and_confidence_and_keeps_better_attempt(run):
     first, second = proc.segmentor.calls
     assert first["min_confidence"] is None
     assert second["min_confidence"] == pytest.approx(get_settings().min_confidence * nodes.RETRY_CONFIDENCE_SCALE)
-    assert not np.array_equal(first["image"], second["image"])  # CLAHE 사본 → 원본 축소본
+    assert not np.array_equal(first["image"], second["image"])  # 1차(리사이즈만) → 2차(반대쪽 = CLAHE 사본)
     assert result.status == "ok"
     assert result.meta["attempts"] == 2
     assert result.meta["chosen_attempt"] == 2
-    assert result.meta["segment_strategy"] == "retry_no_clahe_lowconf"
+    assert result.meta["segment_strategy"] == "retry_alt_preprocess_lowconf"
+
+
+def test_default_input_has_no_clahe_and_option_turns_it_on(run, monkeypatch):
+    """실험(정답 주석 비교)에서 CLAHE 가 검출·선택을 해쳐 기본을 끔으로 했다 — 설정으로 되돌릴 수 있다."""
+    result, proc = run([("good", 0.9)])
+    plain = proc.segmentor.calls[0]["image"]
+    assert result.status == "ok" and plain.max() <= 255
+    monkeypatch.setattr(get_settings(), "preprocess_clahe", True)
+    _, proc2 = run([("good", 0.9)])
+    boosted = proc2.segmentor.calls[0]["image"]
+    assert not np.array_equal(plain, boosted)  # CLAHE 켠 쪽이 밝기 보정(+20) 사본
+    assert int(boosted.mean()) > int(plain.mean())
 
 
 def test_worse_retry_does_not_replace_first_attempt(run):
@@ -110,3 +122,18 @@ def test_worse_retry_does_not_replace_first_attempt(run):
     assert result.status == "fallback"
     assert result.meta["segment_strategy"] == "default"
     assert result.meta["timings"]["segmentor"] >= 0
+
+
+def test_hard_example_routing_is_opt_in_and_members_only(monkeypatch):
+    """처리는 ok 지만 확신이 낮은 선택은(HARD_EXAMPLE_CONF 를 켰을 때, 로그인 회원만) 학습 후보로도 저장된다."""
+    from app.workflows import edges
+
+    settings = get_settings()
+    state = {"status": "ok", "leak": {"conf_min": 0.3}, "persist": True}
+    assert edges.after_validator(state) == "effect_applier"  # 기본 꺼짐
+    monkeypatch.setattr(settings, "hard_example_conf", 0.5)
+    assert edges.after_validator(state) == "feedback_then_effects"
+    assert edges.after_validator({**state, "persist": False}) == "effect_applier"  # 비로그인은 저장하지 않는다
+    assert edges.after_validator({**state, "leak": {"conf_min": 0.8}}) == "effect_applier"  # 확신이 높으면 그대로
+    assert edges.after_validator({**state, "leak": None}) == "effect_applier"  # 신호가 없으면(선택 없음) 그대로
+    assert edges.after_validator({"status": "fallback", "retry_count": 0}) == "retry_segmentor"  # 기존 분기는 그대로

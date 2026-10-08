@@ -226,5 +226,6 @@ def run_pipeline(
             "chosen_attempt": final.get("chosen_attempt"),
             "timings": final.get("timings"),
             "selection": final.get("selection"),
+            "leak": final.get("leak"),
         },
     )

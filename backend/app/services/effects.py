@@ -22,6 +22,8 @@ from app.schemas.request import ParsedPrompt
 GRABCUT_ROI = True
 GRABCUT_ROI_MARGIN = 0.15  # bbox 크기 대비 여백 (배경 색 모델을 만들 주변부)
 GRABCUT_MAX_SIDE = 800  # ROI 긴 변이 이보다 크면 줄여서 GrabCut 후 원래 크기로 (0 = 끔)
+GRABCUT_BAND_RATIO = 0.015  # GrabCut 결과를 원 마스크 주변 이 두께(긴 변 대비) 안으로 제한 — 클수록 경계를 더 많이 고친다
+GRABCUT_CORE_RATIO = 0.02  # 확실한 전경으로 고정하는 안쪽 핵심부를 만들 때의 침식 두께(긴 변 대비)
 
 
 def _roi(mask: np.ndarray, band: int) -> tuple[int, int, int, int]:
@@ -33,8 +35,16 @@ def _roi(mask: np.ndarray, band: int) -> tuple[int, int, int, int]:
     return max(0, y0 - my), min(h, y1 + my), max(0, x0 - mx), min(w, x1 + mx)
 
 
-def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray:
+def refine_mask(
+    mask: np.ndarray,
+    image: np.ndarray | None = None,
+    forbid: np.ndarray | None = None,
+    use_grabcut: bool | None = None,
+) -> np.ndarray:
     """모폴로지 close + 선택적 GrabCut 정제. 항상 복사본에서 작업.
+
+    forbid: 대상으로 가져오면 안 되는 구역(다른 인스턴스) — GrabCut 에 확실한 배경으로 알리고 결과에서도 뺀다.
+    use_grabcut: None 이면 설정 MASK_GRABCUT (기본 꺼짐 — 켜면 섞임이 늘고 경계가 나빠졌다, 실험 문서 참고).
 
     1) 이진화
     2) MORPH_CLOSE 로 구멍/끊김 보정
@@ -52,26 +62,34 @@ def refine_mask(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarray
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, kernel, iterations=2)
 
+    if use_grabcut is None:
+        from app.core.config import get_settings
+
+        use_grabcut = get_settings().mask_grabcut
+
     # 이미지 있고 마스크 내용 있을 때만 GrabCut
     # (전부 0 이거나 전부 255 면 GrabCut 이득이 거의 없음)
-    if image is not None and m.any() and not np.all(m > 0):
+    if use_grabcut and image is not None and m.any() and not np.all(m > 0):
         try:
             # GrabCut 은 비슷한 색의 떨어진 영역(다른 사람 안전모 등)까지 전경으로 잡는다.
             # 원 마스크 주변 띠 안으로만 허용해 선택하지 않은 인스턴스 조각을 막는다.
             # 【수동·튜닝】 띠 두께 = 긴 변의 1.5% (최소 7px)
-            band = max(7, int(max(m.shape[:2]) * 0.015) // 2 * 2 + 1)
+            band = max(7, int(max(m.shape[:2]) * GRABCUT_BAND_RATIO) // 2 * 2 + 1)
             if GRABCUT_ROI:
                 y0, y1, x0, x1 = _roi(m, band)
                 grab = np.zeros_like(m)
-                grab[y0:y1, x0:x1] = _grabcut_scaled(image[y0:y1, x0:x1], m[y0:y1, x0:x1])
+                fb = forbid[y0:y1, x0:x1] if forbid is not None else None
+                grab[y0:y1, x0:x1] = _grabcut_scaled(image[y0:y1, x0:x1], m[y0:y1, x0:x1], fb)
             else:
-                grab = _grabcut_refine(image.copy(), m)
+                grab = _grabcut_refine(image.copy(), m, forbid)
             allowed = cv2.dilate(
                 m, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (band, band)), iterations=1
             )
             m = cv2.bitwise_and(grab, allowed)
         except Exception:
             pass  # 모폴로지 마스크만 유지
+    if forbid is not None:
+        m = cv2.bitwise_and(m, cv2.bitwise_not(forbid))
     return m
 
 
@@ -109,21 +127,22 @@ def feather_alpha(mask: np.ndarray, image: np.ndarray | None = None) -> np.ndarr
     return (np.clip(soft, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8)
 
 
-def _grabcut_scaled(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def _grabcut_scaled(image: np.ndarray, mask: np.ndarray, forbid: np.ndarray | None = None) -> np.ndarray:
     """긴 변이 GRABCUT_MAX_SIDE 를 넘으면 줄여서 GrabCut → 원래 크기로 되돌림."""
     h, w = mask.shape[:2]
     scale = GRABCUT_MAX_SIDE / max(h, w) if GRABCUT_MAX_SIDE else 1.0
     if scale >= 1.0:
-        return _grabcut_refine(image.copy(), mask)
+        return _grabcut_refine(image.copy(), mask, forbid)
     size = (max(1, int(w * scale)), max(1, int(h * scale)))
     small_img = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
     small_mask = cv2.resize(mask, size, interpolation=cv2.INTER_NEAREST)
-    out = _grabcut_refine(small_img, small_mask)
+    small_forbid = cv2.resize(forbid, size, interpolation=cv2.INTER_NEAREST) if forbid is not None else None
+    out = _grabcut_refine(small_img, small_mask, small_forbid)
     up = cv2.resize(out, (w, h), interpolation=cv2.INTER_LINEAR)
     return np.where(up >= 128, 255, 0).astype(np.uint8)
 
 
-def _grabcut_refine(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def _grabcut_refine(image: np.ndarray, mask: np.ndarray, forbid: np.ndarray | None = None) -> np.ndarray:
     """기존 마스크를 초기값으로 GrabCut 3회 반복.
 
     바깥 GC_PR_BGD / 마스크 GC_PR_FGD / 침식한 안쪽 GC_FGD 로 두고 전경 픽셀만 255 로 반환.
@@ -134,9 +153,12 @@ def _grabcut_refine(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     # 마스크 안쪽 핵심부는 확실한 전경으로 고정 → GrabCut 은 경계만 조정
     # (어두운 옷처럼 배경색과 비슷한 부위가 통째로 잘려 나가는 것 방지)
     # 【수동·튜닝】 경계 띠 = 긴 변의 2% (최소 5px)
-    k = max(5, int(max(h, w) * 0.02) // 2 * 2 + 1)
+    k = max(5, int(max(h, w) * GRABCUT_CORE_RATIO) // 2 * 2 + 1)
     core = cv2.erode(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)), iterations=1)
     gc_mask[core > 0] = cv2.GC_FGD
+    if forbid is not None:
+        # 다른 인스턴스 구역은 확실한 배경 — 색이 비슷한 이웃을 대상으로 끌어오지 못하게 (대상 핵심부는 위에서 이미 확정)
+        gc_mask[(forbid > 0) & (core == 0)] = cv2.GC_BGD
 
     # GrabCut 내부 GMM 모델 버퍼 (1x65)
     bgd = np.zeros((1, 65), np.float64)

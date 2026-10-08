@@ -24,7 +24,7 @@ def _scene(h=120, w=160):
 def test_apply_effects_skips_refine_when_already_refined(monkeypatch):
     """노드가 정제한 마스크를 apply_effects 가 또 정제하지 않는다 (GrabCut 2번 → 경계가 깎이고 시간 2배)."""
     calls = []
-    monkeypatch.setattr(effects, "refine_mask", lambda m, i=None: calls.append(1) or m)
+    monkeypatch.setattr(effects, "refine_mask", lambda m, i=None, f=None: calls.append(1) or m)
     img, mask = _scene()
     apply_effects(img, mask, ParsedPrompt(effect="blur"), refine=False)
     assert calls == []
@@ -38,7 +38,7 @@ def test_effect_node_refines_once(monkeypatch):
 
     calls = []
     real = effects.refine_mask
-    monkeypatch.setattr(effects, "refine_mask", lambda m, i=None: calls.append(1) or real(m, i))
+    monkeypatch.setattr(effects, "refine_mask", lambda m, i=None, f=None: calls.append(1) or real(m, i, f))
     img, mask = _scene()
     job = "edge-once-test"
     nodes._IMAGE_CACHE[job] = {"original": img, "mask": mask}
