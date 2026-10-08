@@ -11,6 +11,7 @@ import type {
   BatchSummary,
   FeedbackRequest,
   FeedbackResponse,
+  GifResponse,
   HealthResponse,
   JobResponse,
   MessageResponse,
@@ -43,6 +44,18 @@ export async function uploadImage(file: File, prompt: string): Promise<UploadRes
   const { data } = await api.post<UploadResponse>("/api/v1/upload", form, {
     headers: { "Content-Type": "multipart/form-data" },
     timeout: 180_000,
+  });
+  return data;
+}
+
+/** 움직이는 GIF 한 개 처리 — 프레임마다 세그라 사진보다 오래 걸린다 */
+export async function processGif(file: File, prompt: string): Promise<GifResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("prompt", prompt);
+  const { data } = await api.post<GifResponse>("/api/v1/gif", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 600_000,
   });
   return data;
 }
@@ -273,7 +286,7 @@ export async function healthCheck(): Promise<HealthResponse> {
  */
 export function resolveAssetUrl(url?: string | null): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith("http")) return url;
+  if (url.startsWith("http") || url.startsWith("data:") || url.startsWith("blob:")) return url;
   if (!baseURL) return url;
   return `${baseURL.replace(/\/$/, "")}${url}`;
 }

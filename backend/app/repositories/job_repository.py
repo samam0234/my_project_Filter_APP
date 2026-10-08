@@ -98,6 +98,40 @@ class JobRepository:
         self.db.refresh(row)
         return row
 
+    def save_media(
+        self,
+        *,
+        job_id: str,
+        kind: str,
+        prompt: str,
+        user_id: str,
+        parsed: dict[str, Any] | None,
+        before_path: str,
+        after_path: str,
+        message: str | None = None,
+    ) -> Job:
+        """영상·GIF 처리 결과를 작업 기록에 남긴다 (사진 파이프라인을 거치지 않아 ProcessResult 가 없다)."""
+        expires = datetime.now(timezone.utc) + timedelta(hours=self.settings.file_retention_hours)
+        row = Job(
+            id=job_id,
+            user_id=user_id,
+            kind=kind,
+            prompt=prompt,
+            status="ok",
+            parsed_prompt=parsed,
+            quality_score=0.0,
+            before_path=before_path,
+            after_path=after_path,
+            backend="yolo",
+            message=message,
+            feedback_saved=0,
+            expires_at=expires,
+        )
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return row
+
     def mark_feedback_saved(self, job_id: str) -> Optional[Job]:
         """피드백이 저장된 뒤 job.feedback_saved = 1."""
         row = self.get(job_id)

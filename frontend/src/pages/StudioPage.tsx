@@ -1,13 +1,16 @@
 /**
- * 작업실 (/studio) — 이미지 업로드 · 프롬프트 · 처리 · 결과 · 평가.
+ * 작업실 (/studio) — 카테고리(사진 · GIF · 영상) · 업로드 · 프롬프트 · 처리 · 결과 · 평가.
  *
- * 왼쪽: 입력 (이미지 · 문장 · 버튼 · 진행 상태)
- * 오른쪽: 결과 (해석 칩 · Before/After · 평가/정답 알려주기)
- * 상태는 useAppStore 에 있어 다른 페이지에 다녀와도 유지된다.
+ * 카테고리는 URL 쿼리 ?type=gif 로 남겨 새로고침·링크(작업 기록의 "다시 작업")에서도 유지한다.
+ * 영상은 처리 방식·보관이 달라 별도 페이지(/video)로 보낸다.
+ * 왼쪽: 입력 (파일 · 문장 · 버튼 · 진행 상태) / 오른쪽: 결과 (해석 칩 · Before/After · 평가/정답 알려주기)
+ * 사진 상태는 useAppStore 에 있어 다른 페이지에 다녀와도 유지된다.
  */
-import type { ReactNode } from "react";
-import { ExternalLink, ImageIcon, RotateCcw, Wand2 } from "lucide-react";
+import { Clapperboard, ExternalLink, Film, ImageIcon, RotateCcw, Wand2 } from "lucide-react";
+import { useMemo } from "react";
+import { GifWorkspace } from "../components/gif/GifWorkspace";
 import { Button } from "../components/common/Button";
+import { Step } from "../components/common/Step";
 import { PageHeader } from "../components/common/PageHeader";
 import { FeedbackPanel } from "../components/feedback/FeedbackPanel";
 import { BeforeAfterViewer } from "../components/image/BeforeAfterViewer";
@@ -15,24 +18,67 @@ import { ImageUploader } from "../components/image/ImageUploader";
 import { ProcessingStatus } from "../components/image/ProcessingStatus";
 import { PromptInput } from "../components/prompt/PromptInput";
 import { useImageProcessing } from "../hooks/useImageProcessing";
-import { Link } from "../router";
+import { Link, navigate, useSearch } from "../router";
 import { useAppStore } from "../store/useAppStore";
 import { useAuthStore } from "../store/useAuthStore";
 
-/** 왼쪽 입력 칸의 단계 머리 (1 사진 · 2 문장 · 3 처리) */
-function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: ReactNode }) {
+type StudioType = "photo" | "gif";
+
+const CATEGORIES = [
+  { id: "photo", label: "사진", icon: ImageIcon, hint: "JPEG · PNG · WebP" },
+  { id: "gif", label: "GIF", icon: Film, hint: "움직이는 GIF" },
+] as const;
+
+export function StudioPage() {
+  const search = useSearch();
+  const type: StudioType = useMemo(() => (new URLSearchParams(search).get("type") === "gif" ? "gif" : "photo"), [search]);
+  const select = (next: StudioType) => navigate(next === "gif" ? "/studio?type=gif" : "/studio", { replace: true });
+
   return (
-    <section className="space-y-3">
-      <h2 className="flex items-center gap-2.5 text-sm font-semibold text-slate-100">
-        <span className={done ? "step-dot bg-brand-500 text-white ring-brand-400" : "step-dot"}>{n}</span>
-        {title}
-      </h2>
-      {children}
-    </section>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="작업실"
+        title={type === "gif" ? "GIF 배경 제거 · 대상 편집" : "이미지 배경 제거 · 대상 편집"}
+        description={
+          type === "gif"
+            ? "움직이는 GIF 를 올리고 원하는 것을 한 문장으로 적어 주세요. 모든 프레임에 같은 요청을 적용해요."
+            : "사진을 올리고 원하는 것을 한 문장으로 적어 주세요."
+        }
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="tablist" aria-label="작업 종류" className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
+          {CATEGORIES.map(({ id, label, icon: Icon, hint }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={type === id}
+              title={hint}
+              onClick={() => select(id)}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                type === id ? "bg-slate-800 text-white shadow-card" : "text-slate-400 hover:text-slate-100"
+              }`}
+            >
+              <Icon className={`h-4 w-4 ${type === id ? "text-brand-400" : ""}`} />
+              {label}
+            </button>
+          ))}
+        </div>
+        <Link
+          to="/video"
+          className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-400 transition hover:bg-slate-900 hover:text-slate-100"
+        >
+          <Clapperboard className="h-4 w-4" /> 영상은 여기에서 →
+        </Link>
+      </div>
+
+      {type === "gif" ? <GifWorkspace /> : <PhotoWorkspace />}
+    </div>
   );
 }
 
-export function StudioPage() {
+function PhotoWorkspace() {
   const { process, isProcessing } = useImageProcessing();
   const reset = useAppStore((s) => s.reset);
   const file = useAppStore((s) => s.file);
@@ -42,13 +88,7 @@ export function StudioPage() {
   const canRun = Boolean(file && prompt.trim()) && !isProcessing;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="작업실"
-        title="이미지 배경 제거 · 대상 편집"
-        description="사진을 올리고 원하는 것을 한 문장으로 적어 주세요."
-      />
-
+    <div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="card space-y-7 p-5 sm:p-6">
           <Step n={1} title="사진 올리기" done={Boolean(file)}>

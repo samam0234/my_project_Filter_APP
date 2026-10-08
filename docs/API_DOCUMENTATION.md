@@ -111,10 +111,11 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 내용 |
 |------------|------|
-| `GET /api/v1/files/{job_id}/before` | 원본 JPEG — **작업 소유자만** (그 외 404) |
-| `GET /api/v1/files/{job_id}/after` | 결과 — `remove_bg` 는 투명 PNG, 나머지는 JPEG — **작업 소유자만** |
+| `GET /api/v1/files/{job_id}/before` | 원본 — 사진 JPEG · 영상 원본 · GIF — **작업 소유자만** (그 외 404) |
+| `GET /api/v1/files/{job_id}/after` | 결과 — 사진은 `remove_bg` 면 투명 PNG, 나머지 JPEG · 영상 mp4 · GIF — **작업 소유자만** |
+| `GET /api/v1/files/{job_id}/thumb` | 작업 기록 썸네일 — 영상은 결과 첫 프레임 JPEG(긴 변 480), 사진·GIF 는 결과 그대로 — **작업 소유자만** |
 
-파일은 `backend/data/uploads/{job_id}/` 에 있으며 `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 지운다.
+파일은 `backend/data/uploads/{job_id}/`(사진 · GIF) · `uploads/videos/{job_id}/`(영상)에 있으며 `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 지운다.
 
 ---
 
@@ -122,7 +123,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `GET /api/v1/jobs?limit=50` | **로그인 사용자 본인** 작업 최근 목록 (상한 200, 최신순) · 비로그인 401 |
+| `GET /api/v1/jobs?limit=50` | **로그인 사용자 본인** 작업 최근 목록 — 사진 · 영상 · GIF (상한 200, 최신순) · 비로그인 401 |
 | `GET /api/v1/jobs/{job_id}` | 본인 작업 단건 · 없거나 남의 작업이면 404 · 비로그인 401 |
 
 ```json
@@ -131,11 +132,12 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
   "parsed_prompt": { "...": "..." }, "quality_score": 0.76,
   "before_url": "/api/v1/files/…/before", "after_url": "/api/v1/files/…/after",
   "backend": "yolo", "message": "ok", "feedback_saved": false,
-  "created_at": "2026-09-30T03:59:10"
+  "created_at": "2026-09-30T03:59:10",
+  "kind": "image", "thumb_url": "/api/v1/files/…/thumb"
 }
 ```
 
-`created_at` 은 UTC (시간대 표기 없음).
+`created_at` 은 UTC (시간대 표기 없음). `kind` = `image` · `video` · `gif` (예전 행은 `image`). 영상 · GIF 는 `quality_score` 가 0 이다 (사진 검증 단계를 거치지 않음).
 
 ---
 
@@ -181,6 +183,9 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 | `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 **H.264 mp4**(원본 오디오 포함). **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Effect` · `-Intensity` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `effect` · `intensity` · `frames` · `held`) |
 | `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
 
+**회원 영상은 작업 기록에도 남는다** — `jobs` 에 `kind=video` 행(원본 · 결과 · 첫 프레임 `thumb.jpg`)이 생겨 `/jobs` · `/files/{job_id}/*` 로 다시 보고 받는다.
+회원 응답 JSON 에는 `parsed_prompt` 도 담긴다. 요청 문장은 사진처럼 학습 데이터 검수 후보(`source=request`)로 모인다.
+
 검출이 없는 프레임은 직전 마스크를 유지한다. 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
 프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
 세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 **H.264 mp4** 라 브라우저 `<video>` 로 바로 재생되고 어디서나 열린다.
@@ -193,6 +198,31 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 거의 안 보였다(3840폭 선명도 6.8→5.4). 영상은 긴 변이 1280px 를 넘으면 그 비율만큼 강도를 키운다 (최대 255) — 응답의 `intensity` 는 요청 강도(보정 전).
 업로드 검증: 확장자 + `video/*`(또는 octet-stream) + **내용 시그니처**(AVI·MP4/MOV·WebM/MKV). MIME 은 브라우저·OS 마다 달라(`.avi` → `video/avi`·`video/x-msvideo`) 시그니처가 기준이다.
 비로그인 응답 헤더 `X-Cutnkeep-Frames` · `X-Cutnkeep-Held` 는 CORS `expose_headers` 로 다른 도메인 프론트에서도 읽힌다.
+
+---
+
+## GIF — 움직이는 GIF (작업실 GIF 탭)
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `POST /api/v1/gif` | `multipart`: `file`(.gif, 최대 `MAX_UPLOAD_SIZE_MB`), `prompt`. 프레임마다 영상과 같은 규칙(selector · 겹침 덜어내기 · 직전 마스크 유지 · 시간 스무딩)으로 처리해 다시 GIF 로 |
+
+```json
+{
+  "job_id": "…", "status": "ok", "parsed_prompt": { "...": "..." },
+  "before_url": "/api/v1/files/…/before", "after_url": "/api/v1/files/…/after",
+  "frames": 120, "total": 300, "held": 2, "effect": "remove_bg", "transparent": true,
+  "message": "프레임이 많아 앞 120개만 처리했어요 (전체 300개) · 검출이 없어 직전 모양을 유지한 프레임 2개",
+  "saved": true
+}
+```
+
+- **비로그인**: 저장하지 않음 — `after_url` 이 `data:image/gif;base64,…`, `before_url` 은 `null`, `saved=false`
+- **회원**: `uploads/{job_id}/before.gif · after.gif` 보관, 작업 기록에 `kind=gif`
+- 프레임 간격(duration) · 반복(loop)은 원본 그대로. 프레임 수는 `GIF_MAX_FRAMES`(기본 120)까지 — 넘으면 앞부분만 처리하고 `message` 로 알린다
+- `remove_bg` 는 **투명 GIF**(1비트 투명, 알파 128 미만을 투명색으로). GIF 는 반투명이 없어 경계가 PNG 보다 거칠다. 그 밖의 효과는 불투명 GIF
+- 검증: 확장자 `.gif` + MIME `image/gif`(또는 octet-stream) + 내용 시그니처(`GIF87a`/`GIF89a`)
+- 처리 시간 참고: 480×360 · 10프레임 약 4초 (Docker, 모델 준비 후)
 
 ---
 
@@ -241,7 +271,7 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 | `DELETE /api/v1/console/users/{id}` | 본문 `{"confirm": "아이디"}`. 계정·세션·작업·배치·영상·파일 삭제, 학습 샘플은 `user_id` 만 비움 → `{jobs, batches, videos, removed_dirs, learning_unlinked}`. 관리자·본인 400, 확인 아이디 불일치 400 |
 | `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
-| `GET /api/v1/console/files/{job_id}/{before\|after}` | 작업 파일 (소유자 무관) |
+| `GET /api/v1/console/files/{job_id}/{before\|after\|thumb}` | 작업 파일 (소유자 무관, 사진 · 영상 · GIF) |
 | `GET /api/v1/console/learning/stats` | 학습 데이터 상태·출처·split 별 건수 + 학습 DB 모드 |
 | `GET /api/v1/console/learning/samples?status=&source=&kind=&q=&limit=&offset=` | 학습 데이터 목록 (기본: 삭제 제외 전체) → `{items, total, limit, offset}` |
 | `POST /api/v1/console/learning/samples/{id}/review` | `{"action": "approve"\|"reject"\|"reset", "answer"?: ParsedPrompt, "note"?}` — 승인 시 정답 수정 가능, 형식 오류 400 |

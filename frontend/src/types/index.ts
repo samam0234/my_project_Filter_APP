@@ -80,6 +80,28 @@ export interface JobResponse {
   feedback_saved: boolean;
   /** UTC ISO 문자열 (시간대 표기 없음) */
   created_at?: string | null;
+  /** image(사진) · video(영상) · gif — 예전 서버 응답에는 없을 수 있다 */
+  kind?: JobKind;
+  /** 작업 기록 썸네일 (영상은 첫 프레임 jpg, GIF 는 움직이는 결과) */
+  thumb_url?: string | null;
+}
+
+export type JobKind = "image" | "video" | "gif";
+
+/** POST /api/v1/gif — 비로그인은 after_url 이 data URL(저장 안 함) */
+export interface GifResponse {
+  job_id: string;
+  status: string;
+  parsed_prompt?: ParsedPrompt | null;
+  before_url?: string | null;
+  after_url?: string | null;
+  frames: number;
+  total: number;
+  held: number;
+  effect: string;
+  transparent: boolean;
+  message?: string | null;
+  saved: boolean;
 }
 
 /** POST /api/v1/feedback 요청 */

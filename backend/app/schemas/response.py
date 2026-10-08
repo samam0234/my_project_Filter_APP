@@ -70,3 +70,6 @@ class JobResponse(BaseModel):
     message: Optional[str] = None
     feedback_saved: bool = False
     created_at: Optional[str] = None
+    # image | video | gif — 작업 기록에서 종류별로 다르게 보여 준다 (영상은 thumb_url 을 썸네일로)
+    kind: str = "image"
+    thumb_url: Optional[str] = None

@@ -46,6 +46,11 @@ export function JobsPage() {
                     <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs">
                       {j.status}
                     </span>
+                    {j.kind && j.kind !== "image" && (
+                      <span className="ml-1 rounded-full bg-sky-900/60 px-2 py-0.5 text-xs text-sky-200">
+                        {j.kind === "video" ? "영상" : "GIF"}
+                      </span>
+                    )}
                   </td>
                   <td className="max-w-xs px-3 py-3 text-slate-300">{j.prompt}</td>
                   <td className="px-3 py-3 text-xs">{j.backend || "-"}</td>

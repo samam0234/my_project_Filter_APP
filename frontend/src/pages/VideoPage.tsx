@@ -35,6 +35,8 @@ interface Shown {
   intensity?: number;
   /** 서버에도 보관됨(회원) */
   onServer: boolean;
+  /** 서버 보관본의 작업 ID — 작업 기록(영상)에서 다시 볼 수 있다 */
+  jobId?: string;
   /** 이 브라우저에 보관됨 */
   inBrowser: boolean;
   /** 보관에서 되살린 결과 — 원본 파일이 없어 다시 처리하려면 영상을 다시 올려야 한다 */
@@ -153,6 +155,7 @@ export function VideoPage() {
         effect: res.effect,
         intensity: res.intensity,
         onServer: res.kind === "saved",
+        jobId: res.kind === "saved" ? res.jobId : undefined,
         inBrowser,
         restored: false,
       });
@@ -285,6 +288,11 @@ export function VideoPage() {
                 {shown.frames}프레임 처리 · 대상이 없어 직전 모양을 유지한 프레임 {shown.held}개
                 {shown.onServer ? " · 서버에 보관됨 (24시간)" : " · 서버에 저장되지 않았어요"}
               </p>
+              {shown.onServer && shown.jobId && (
+                <Link to={`/jobs/${shown.jobId}`} className="inline-flex items-center gap-1 text-xs text-brand-400 hover:text-brand-200">
+                  작업 기록에서 보기 →
+                </Link>
+              )}
               {shown.effect && (
                 <p className="text-xs text-slate-300" data-testid="video-applied">
                   적용된 효과: <b>{effectLabel(shown.effect)}</b>

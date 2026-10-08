@@ -26,6 +26,8 @@ class Job(Base):
         String(32), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    # 작업 종류: image(사진) | video(영상) | gif(움직이는 GIF). 예전 행은 NULL → image 로 본다
+    kind: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, default="image")
     # pending | ok | fallback | failed
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     # ParsedPrompt JSON (target, effect, intensity, crop)
