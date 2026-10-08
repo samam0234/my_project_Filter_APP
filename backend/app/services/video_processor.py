@@ -93,6 +93,59 @@ def _scaled_intensity(intensity: int, width: int, height: int) -> int:
     return int(min(MAX_BLUR_INTENSITY, round(intensity * factor)))
 
 
+class TemporalSmoother:
+    """프레임마다 독립으로 세그한 마스크의 깜빡임(경계 떨림·한두 프레임 빠짐)을 줄인다.
+
+    mode
+      "ema"  : 이전 부드러운 마스크와 지수 평균 (움직임을 보정하지 않아 빠른 움직임에서는 꼬리가 남는다)
+      "flow" : 광학 흐름(Farneback, 긴 변 FLOW_SIDE 로 줄여 계산)으로 이전 마스크를 현재 프레임 위치로 옮긴 뒤 지수 평균
+    장면이 크게 바뀌면(평균 밝기 차 > SCENE_CUT) 기억을 버린다.
+    """
+
+    FLOW_SIDE = 320
+    SCENE_CUT = 40.0
+
+    def __init__(self, mode: str = "flow", weight: float = 0.6) -> None:
+        self.mode = mode
+        self.weight = weight  # 현재 프레임 비중
+        self._soft: np.ndarray | None = None
+        self._gray: np.ndarray | None = None
+
+    def _small_gray(self, frame: np.ndarray) -> np.ndarray:
+        h, w = frame.shape[:2]
+        scale = min(1.0, self.FLOW_SIDE / max(h, w))
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) if frame.ndim == 3 else frame
+        if scale < 1.0:
+            gray = cv2.resize(gray, (max(1, int(w * scale)), max(1, int(h * scale))), interpolation=cv2.INTER_AREA)
+        return gray
+
+    def _warp_previous(self, gray: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+        """현재 프레임 각 픽셀이 이전 프레임 어디서 왔는지(흐름)를 따라 이전 마스크를 옮긴다."""
+        flow = cv2.calcOpticalFlowFarneback(gray, self._gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+        sh, sw = gray.shape[:2]
+        prev_small = cv2.resize(self._soft, (sw, sh), interpolation=cv2.INTER_LINEAR)
+        gx, gy = np.meshgrid(np.arange(sw, dtype=np.float32), np.arange(sh, dtype=np.float32))
+        warped = cv2.remap(prev_small, gx + flow[..., 0], gy + flow[..., 1], cv2.INTER_LINEAR,
+                           borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+        return cv2.resize(warped, size, interpolation=cv2.INTER_LINEAR)
+
+    def update(self, frame: np.ndarray, mask: np.ndarray) -> np.ndarray:
+        """이번 프레임 마스크(0/255) → 부드럽게 한 0/255 마스크."""
+        h, w = mask.shape[:2]
+        cur = (mask > 127).astype(np.float32)
+        gray = self._small_gray(frame) if self.mode == "flow" else None
+        reset = self._soft is None or self._soft.shape != cur.shape
+        if not reset and gray is not None and self._gray is not None:
+            reset = gray.shape != self._gray.shape or float(cv2.absdiff(gray, self._gray).mean()) > self.SCENE_CUT
+        if reset:
+            soft = cur
+        else:
+            prev = self._warp_previous(gray, (w, h)) if self.mode == "flow" else self._soft
+            soft = self.weight * cur + (1.0 - self.weight) * prev
+        self._soft, self._gray = soft, gray
+        return np.where(soft >= 0.5, 255, 0).astype(np.uint8)
+
+
 def _open_writer(stem: Path, prefer: str, fps: float, size: tuple[int, int]):
     """prefer 형식부터 시도해 열린 (writer, path, 형식) 을 돌려준다. mp4 는 건너뛴다(별도 변환)."""
     order = [prefer] + [name for name in _FORMATS if name != prefer]
@@ -127,6 +180,8 @@ def process_video(
     max_frames: int = 240,
     max_seconds: float = 20.0,
     output_format: str = "mp4",
+    smoothing: str = "flow",
+    smoothing_weight: float = 0.3,
 ) -> dict:
     """src 를 읽어 dst 확장자를 바꾼 파일(mp4 → 안 되면 webm → avi)로 쓴다.
 
@@ -146,6 +201,7 @@ def process_video(
     dst.parent.mkdir(parents=True, exist_ok=True)
     effect = (parsed.effect or "remove_bg").lower()
     scaled: dict[tuple[int, int], ParsedPrompt] = {}
+    smoother = TemporalSmoother(smoothing, smoothing_weight) if smoothing in ("flow", "ema") else None
 
     def fx_parsed(width: int, height: int) -> ParsedPrompt:
         """블러면 프레임 크기에 맞춰 보정한 강도의 ParsedPrompt (크기별 한 번만 만든다)."""
@@ -185,6 +241,8 @@ def process_video(
                 previous = mask.copy()
             if mask is None:
                 mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+            if smoother is not None and effect != "remove_object":
+                mask = smoother.update(frame, mask)
             rendered = _as_bgr(apply_effects(frame, mask, fx_parsed(frame.shape[1], frame.shape[0])), frame.shape[1], frame.shape[0])
             if writer is None:
                 height, width = rendered.shape[:2]

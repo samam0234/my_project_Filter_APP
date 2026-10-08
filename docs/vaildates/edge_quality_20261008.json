@@ -1,0 +1,95 @@
+{
+ "model": "yolo26m-seg.pt",
+ "photos": {
+  "x1": {
+   "images": 150,
+   "current": {
+    "iou": 0.7596,
+    "boundary_f": 0.4061,
+    "seconds": 1.183
+   },
+   "once": {
+    "iou": 0.7885,
+    "boundary_f": 0.5062,
+    "seconds": 0.622
+   },
+   "linear": {
+    "iou": 0.7886,
+    "boundary_f": 0.5051,
+    "seconds": 0.606
+   },
+   "feather": {
+    "iou": 0.7888,
+    "boundary_f": 0.5021,
+    "seconds": 0.608,
+    "soft_iou": 0.7856,
+    "soft_iou_hard_mask": 0.7886
+   }
+  },
+  "x3": {
+   "images": 149,
+   "current": {
+    "iou": 0.7578,
+    "boundary_f": 0.4186,
+    "seconds": 2.805
+   },
+   "once": {
+    "iou": 0.7862,
+    "boundary_f": 0.4777,
+    "seconds": 1.509
+   },
+   "linear": {
+    "iou": 0.7864,
+    "boundary_f": 0.4769,
+    "seconds": 1.459
+   },
+   "feather": {
+    "iou": 0.7866,
+    "boundary_f": 0.4742,
+    "seconds": 1.475,
+    "soft_iou": 0.7855,
+    "soft_iou_hard_mask": 0.7864
+   }
+  }
+ },
+ "video": {
+  "clips": 30,
+  "none": {
+   "iou": 0.8046,
+   "jitter": 0.0712,
+   "ms_per_frame": 0.01
+  },
+  "ema_0.4": {
+   "iou": 0.782,
+   "jitter": 0.0504,
+   "ms_per_frame": 1.21
+  },
+  "flow_0.4": {
+   "iou": 0.8102,
+   "jitter": 0.0441,
+   "ms_per_frame": 10.62
+  },
+  "flow_0.3": {
+   "iou": 0.811,
+   "jitter": 0.0357,
+   "ms_per_frame": 10.33
+  }
+ },
+ "note": "photos: 가우시안 경계(feather) 반영 후 재측정 · video: 같은 날 1차 측정 (사진 current/once/linear 수치는 두 번 모두 동일)",
+ "rejected_guided_filter": {
+  "x1": {
+   "iou": 0.7883,
+   "boundary_f": 0.5053,
+   "seconds": 0.609,
+   "soft_iou": 0.7776,
+   "soft_iou_hard_mask": 0.7886
+  },
+  "x3": {
+   "iou": 0.7864,
+   "boundary_f": 0.4761,
+   "seconds": 1.537,
+   "soft_iou": 0.7786,
+   "soft_iou_hard_mask": 0.7864
+  }
+ }
+}

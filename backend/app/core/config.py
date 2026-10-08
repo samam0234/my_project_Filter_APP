@@ -198,6 +198,10 @@ class Settings(BaseSettings):
     video_max_seconds: float = Field(default=20.0, alias="VIDEO_MAX_SECONDS")
     # mp4(H.264+오디오, ffmpeg 필요) | webm(VP8) | avi(MJPG, 다운로드 전용·가장 빠름). 못 만들면 mp4 → webm → avi 순으로 내려간다
     video_output_format: Literal["mp4", "webm", "avi"] = Field(default="mp4", alias="VIDEO_OUTPUT_FORMAT")
+    # 영상 마스크 깜빡임 줄이기 — flow(광학 흐름으로 이전 마스크를 옮겨 섞음) | ema(그냥 섞음, 움직이면 꼬리) | off
+    # 비중 = 현재 프레임 몫. 0.5 이상이면 이진 마스크라 효과가 없다 (docs/vaildates/edge-tuning-20261008.md)
+    video_temporal_smoothing: Literal["flow", "ema", "off"] = Field(default="flow", alias="VIDEO_TEMPORAL_SMOOTHING")
+    video_smoothing_weight: float = Field(default=0.3, gt=0.0, lt=0.5, alias="VIDEO_SMOOTHING_WEIGHT")
 
     # 【수동】 CORS_ORIGINS — 프론트(5173)·콘솔(5174) 배포 도메인을 콤마로 추가
     cors_origins: str = Field(
