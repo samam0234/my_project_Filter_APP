@@ -212,3 +212,98 @@ def test_console_serves_video_and_gif_files(env):
     assert c.get(jobs[vid["job_id"]]["thumb_url"]).headers["content-type"] == "image/jpeg"
     assert c.get("/api/v1/console/files/nope/after").status_code == 404
     assert c.get(f"/api/v1/console/files/{gif['job_id']}/secret").status_code == 404
+
+
+# ---------- 품질: GIF 배경 제거의 WebP · 영상 원본 미리 보기 ----------
+
+
+def test_transparent_gif_also_makes_webp_with_soft_edges():
+    """GIF 는 1비트 투명이라 경계가 0/255 뿐 — 같은 프레임의 WebP 는 반투명 경계를 담는다."""
+    from app.schemas.request import ParsedPrompt
+    from app.services.gif_processor import process_gif
+
+    info = process_gif(_gif_bytes(n=3, duration=70), ParsedPrompt(target=["person"], effect="remove_bg"), TwoPeople(), smoothing="off")
+    gif_alpha = np.unique(np.array(_open_gif(info["data"]).convert("RGBA"))[:, :, 3])
+    assert set(gif_alpha.tolist()) <= {0, 255}
+    webp = Image.open(io.BytesIO(info["webp"]))
+    assert webp.format == "WEBP" and webp.n_frames == 3
+    alpha = np.array(webp.convert("RGBA"))[:, :, 3]
+    assert alpha[32, 30] == 0 and alpha[32, 10] > 200  # 배경 투명 · 사람 남음
+    assert ((alpha > 0) & (alpha < 255)).any()  # 반투명 경계가 남아 있다
+
+    blur = process_gif(_gif_bytes(n=2), ParsedPrompt(target=["person"], effect="blur"), TwoPeople(), smoothing="off")
+    assert blur["webp"] is None  # 불투명 결과는 GIF 로 충분
+
+
+def test_gif_api_returns_webp_for_guest_and_member(env):
+    c = env["client"]
+    guest = c.post("/api/v1/gif", files={"file": ("a.gif", _gif_bytes(), "image/gif")}, data={"prompt": "사람만 남기고 배경 제거"}).json()
+    assert guest["webp_url"].startswith("data:image/webp;base64,")
+    _signup(c, "gif_webp")
+    body = c.post("/api/v1/gif", files={"file": ("a.gif", _gif_bytes(), "image/gif")}, data={"prompt": "사람만 남기고 배경 제거"}).json()
+    assert body["webp_url"] == f"/api/v1/files/{body['job_id']}/webp"
+    got = c.get(body["webp_url"])
+    assert got.status_code == 200 and got.headers["content-type"] == "image/webp"
+    assert c.get("/api/v1/jobs").json()[0]["webp_url"] == body["webp_url"]
+    blur = c.post("/api/v1/gif", files={"file": ("a.gif", _gif_bytes(), "image/gif")}, data={"prompt": "사람만 남기고 배경 블러"}).json()
+    assert blur["webp_url"] is None
+    assert c.get(f"/api/v1/files/{blur['job_id']}/webp").status_code == 404
+
+
+def test_member_avi_original_gets_playable_mp4_preview(env):
+    """avi 원본은 브라우저가 못 연다 — 작업 기록의 원본은 mp4 미리 보기로 (원본 파일은 남긴다)."""
+    c = env["client"]
+    _signup(c, "vid_preview")
+    body = c.post("/api/v1/video", files={"file": ("clip.avi", _avi_bytes(env["tmp"]), "video/avi")}, data={"prompt": "사람 블러"}).json()
+    before = c.get(f"/api/v1/files/{body['job_id']}/before")
+    assert before.status_code == 200 and before.headers["content-type"] == "video/mp4"
+    assert before.content[4:8] == b"ftyp"
+    root = env["tmp"] / "uploads" / "videos" / body["job_id"]
+    assert (root / "in.avi").is_file() and (root / "original.mp4").is_file()
+
+
+# ---------- 품질: 대상 지우기 빈자리 메우기 ----------
+
+
+def test_remove_object_engine_choice_and_fallback(monkeypatch, tmp_path):
+    """LaMa 모델이 없으면 Telea 로 내려가고, 영상·GIF 프레임은 항상 Telea (프레임마다 1초씩 걸리지 않게)."""
+    from app.services import effects, inpaint
+    from app.schemas.request import ParsedPrompt
+    from app.services.video_processor import FrameRenderer
+
+    img = np.full((64, 64, 3), 120, np.uint8)
+    mask = np.zeros((64, 64), np.uint8)
+    mask[20:40, 20:40] = 255
+    calls = []
+    monkeypatch.setattr(inpaint, "lama_inpaint", lambda i, m, settings=None: calls.append("lama") or None)  # 모델 없음 흉내
+    out = effects.apply_remove_object(img, mask, engine="auto")
+    assert calls == ["lama"] and out.shape == img.shape  # LaMa 를 시도했다가 Telea 로
+
+    calls.clear()
+    effects.apply_remove_object(img, mask, engine="telea")
+    assert calls == []
+
+    calls.clear()
+    renderer = FrameRenderer(ParsedPrompt(target=["person"], effect="remove_object"), TwoPeople(), smoothing="off")
+    renderer.render(np.full((H, W, 3), 90, np.uint8))
+    assert calls == []  # 프레임은 Telea
+
+
+def test_lama_inpaint_pastes_only_hole(monkeypatch):
+    """LaMa 결과는 마스크 영역만 원본에 합성한다 (나머지 픽셀은 원본 그대로)."""
+    from app.services import inpaint
+
+    class FakeSession:
+        def get_inputs(self):
+            return [type("I", (), {"name": "image"})(), type("I", (), {"name": "mask"})()]
+
+        def run(self, _out, feeds):
+            return [np.full((1, 3, 512, 512), 200.0, np.float32)]  # 출력 0~255
+
+    monkeypatch.setattr(inpaint, "_session", lambda settings: FakeSession())
+    img = np.full((300, 400, 3), 50, np.uint8)
+    mask = np.zeros((300, 400), np.uint8)
+    mask[100:150, 150:200] = 255
+    out = inpaint.lama_inpaint(img, mask)
+    assert (out[mask > 0] == 200).all()
+    assert (out[mask == 0] == 50).all()

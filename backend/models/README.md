@@ -7,6 +7,7 @@
 |------|------|
 | `yolo26m-seg.pt` | 서빙 중인 YOLO 세그 가중치 (`YOLO_MODEL_PATH` 기본값) |
 | `yolo26m-seg.onnx` | (선택) ONNX Runtime 서빙용 |
+| `lama_fp32.onnx` | (선택) 대상 지우기의 빈자리 메우기 LaMa (Apache-2.0, 208MB). 없으면 OpenCV Telea 로. 받기: `curl -L -o backend/models/lama_fp32.onnx https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx` (`INPAINT_MODEL_PATH`) |
 | `segformer-ade.onnx` · `segformer-ade.labels.json` | (선택) 건물·하늘·도로 같은 배경 덩어리용 SegFormer. `python scripts/export_stuff_onnx.py` 로 만든다 (`STUFF_MODEL_PATH`) |
 
 ## 배포 (교체)

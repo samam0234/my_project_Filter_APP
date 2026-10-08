@@ -29,6 +29,8 @@ interface Props {
   fileExt?: string;
   /** 상태가 ok 여도 보여 줄 안내 (예: GIF 프레임을 일부만 처리) */
   note?: string | null;
+  /** 추가로 내려받을 형식 (예: GIF 의 부드러운 경계 WebP) */
+  extraDownload?: { label: string; href: string; ext: string; title?: string } | null;
 }
 
 function ResultVideo({ src, label }: { src?: string | null; label: string }) {
@@ -69,6 +71,7 @@ export function BeforeAfterViewer({
   media = "image",
   fileExt,
   note,
+  extraDownload,
 }: Props) {
   const transparent = parsedPrompt?.effect === "remove_bg";
   const ext = fileExt ?? (transparent ? ".png" : ".jpg");
@@ -80,15 +83,27 @@ export function BeforeAfterViewer({
           <StatusBadge status={status} />
           {qualityScore != null && <span className="text-xs text-slate-500">품질 {formatScore(qualityScore)}</span>}
         </div>
-        {afterUrl && (
-          <a
-            href={afterUrl}
-            download={jobId ? `cutnkeep_${jobId}${ext}` : undefined}
-            className={buttonClass("primary", "sm")}
-          >
-            <Download className="h-3.5 w-3.5" /> 결과 저장
-          </a>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {extraDownload && (
+            <a
+              href={extraDownload.href}
+              download={jobId ? `cutnkeep_${jobId}${extraDownload.ext}` : undefined}
+              title={extraDownload.title}
+              className={buttonClass("secondary", "sm")}
+            >
+              <Download className="h-3.5 w-3.5" /> {extraDownload.label}
+            </a>
+          )}
+          {afterUrl && (
+            <a
+              href={afterUrl}
+              download={jobId ? `cutnkeep_${jobId}${ext}` : undefined}
+              className={buttonClass("primary", "sm")}
+            >
+              <Download className="h-3.5 w-3.5" /> 결과 저장
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 rounded-xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800">

@@ -83,6 +83,22 @@ describe("GifWorkspace", () => {
     expect(screen.queryByText("이 결과는 저장되지 않아요")).toBeNull();
   });
 
+  it("배경 제거면 부드러운 경계의 WebP 도 내려받을 수 있다 · 블러면 없다", async () => {
+    vi.mocked(client.processGif).mockResolvedValueOnce({ ...BASE, webp_url: "data:image/webp;base64,UklGRg" });
+    const { unmount } = render(<GifWorkspace />);
+    await pickAndRun();
+    const webp = await screen.findByRole("link", { name: /WebP 저장/ });
+    expect(webp.getAttribute("href")).toContain("data:image/webp");
+    expect(webp.getAttribute("download")).toBe("cutnkeep_g1.webp");
+    unmount();
+
+    vi.mocked(client.processGif).mockResolvedValueOnce({ ...BASE, effect: "blur", transparent: false, webp_url: null });
+    render(<GifWorkspace />);
+    await pickAndRun();
+    await screen.findByText(/12프레임 처리/);
+    expect(screen.queryByRole("link", { name: /WebP 저장/ })).toBeNull();
+  });
+
   it("처리 실패는 오류로 보여 주고 다시 시도할 수 있다", async () => {
     vi.mocked(client.processGif).mockRejectedValue(new Error("GIF 형식이 아닙니다."));
     render(<GifWorkspace />);

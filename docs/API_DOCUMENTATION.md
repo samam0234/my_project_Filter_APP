@@ -113,6 +113,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 |------------|------|
 | `GET /api/v1/files/{job_id}/before` | 원본 — 사진 JPEG · 영상 원본 · GIF — **작업 소유자만** (그 외 404) |
 | `GET /api/v1/files/{job_id}/after` | 결과 — 사진은 `remove_bg` 면 투명 PNG, 나머지 JPEG · 영상 mp4 · GIF — **작업 소유자만** |
+| `GET /api/v1/files/{job_id}/webp` | GIF 배경 제거 결과의 **움직이는 WebP**(반투명 경계) — 있을 때만, **작업 소유자만** |
 | `GET /api/v1/files/{job_id}/thumb` | 작업 기록 썸네일 — 영상은 결과 첫 프레임 JPEG(긴 변 480), 사진·GIF 는 결과 그대로 — **작업 소유자만** |
 
 파일은 `backend/data/uploads/{job_id}/`(사진 · GIF) · `uploads/videos/{job_id}/`(영상)에 있으며 `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 지운다.
@@ -137,7 +138,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 }
 ```
 
-`created_at` 은 UTC (시간대 표기 없음). `kind` = `image` · `video` · `gif` (예전 행은 `image`). 영상 · GIF 는 `quality_score` 가 0 이다 (사진 검증 단계를 거치지 않음).
+`created_at` 은 UTC (시간대 표기 없음). `kind` = `image` · `video` · `gif` (예전 행은 `image`). GIF 배경 제거면 `webp_url` 도 있다. 영상 원본이 avi·mkv·mov 면 `before_url` 은 브라우저 재생용 mp4 미리 보기(원본 파일은 보관). 영상 · GIF 는 `quality_score` 가 0 이다 (사진 검증 단계를 거치지 않음).
 
 ---
 
@@ -220,7 +221,8 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 - **비로그인**: 저장하지 않음 — `after_url` 이 `data:image/gif;base64,…`, `before_url` 은 `null`, `saved=false`
 - **회원**: `uploads/{job_id}/before.gif · after.gif` 보관, 작업 기록에 `kind=gif`
 - 프레임 간격(duration) · 반복(loop)은 원본 그대로. 프레임 수는 `GIF_MAX_FRAMES`(기본 120)까지 — 넘으면 앞부분만 처리하고 `message` 로 알린다
-- `remove_bg` 는 **투명 GIF**(1비트 투명, 알파 128 미만을 투명색으로). GIF 는 반투명이 없어 경계가 PNG 보다 거칠다. 그 밖의 효과는 불투명 GIF
+- `remove_bg` 는 **투명 GIF**(1비트 투명, 알파 128 미만을 투명색으로). GIF 는 반투명이 없어 경계가 PNG 보다 거칠어 같은 프레임의
+  **움직이는 WebP**(8비트 알파)도 만든다 → 응답 `webp_url` (비로그인은 `data:image/webp;base64,…`, 회원은 `/files/{id}/webp`). 그 밖의 효과는 불투명 GIF 만
 - 검증: 확장자 `.gif` + MIME `image/gif`(또는 octet-stream) + 내용 시그니처(`GIF87a`/`GIF89a`)
 - 처리 시간 참고: 480×360 · 10프레임 약 4초 (Docker, 모델 준비 후)
 

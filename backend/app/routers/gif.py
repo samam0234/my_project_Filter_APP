@@ -46,6 +46,8 @@ class GifResponse(BaseModel):
     transparent: bool
     message: Optional[str] = None
     saved: bool
+    # 배경 제거일 때만: 반투명 경계를 살린 움직이는 WebP (GIF 는 1비트 투명이라 경계가 거칠다)
+    webp_url: Optional[str] = None
 
 
 def _run(data: bytes, prompt: str) -> dict:
@@ -127,13 +129,16 @@ async def process_gif_upload(
     )
     if user is None:
         after_url = "data:image/gif;base64," + base64.b64encode(info["data"]).decode("ascii")
-        return GifResponse(**common, before_url=None, after_url=after_url, saved=False)
+        webp_url = "data:image/webp;base64," + base64.b64encode(info["webp"]).decode("ascii") if info["webp"] else None
+        return GifResponse(**common, before_url=None, after_url=after_url, webp_url=webp_url, saved=False)
 
     root = settings.upload_path / job_id
     root.mkdir(parents=True, exist_ok=True)
     before, after = root / "before.gif", root / "after.gif"
     before.write_bytes(data)
     after.write_bytes(info["data"])
+    if info["webp"]:
+        (root / "after.webp").write_bytes(info["webp"])
     JobRepository(db).save_media(
         job_id=job_id,
         kind="gif",
@@ -149,5 +154,6 @@ async def process_gif_upload(
         **common,
         before_url=f"/api/v1/files/{job_id}/before",
         after_url=f"/api/v1/files/{job_id}/after",
+        webp_url=f"/api/v1/files/{job_id}/webp" if info["webp"] else None,
         saved=True,
     )

@@ -225,6 +225,10 @@ class Settings(BaseSettings):
     stuff_model_path: str = Field(default="models/segformer-ade.onnx", alias="STUFF_MODEL_PATH")
     stuff_min_prob: float = Field(default=0.5, gt=0.0, lt=1.0, alias="STUFF_MIN_PROB")  # 묶음 확률 임계
     stuff_use_gpu: bool = Field(default=False, alias="STUFF_USE_GPU")  # onnxruntime-gpu 가 있을 때만 의미 있음
+    # 대상 지우기(remove_object) 빈자리 메우기 — auto: LaMa 모델이 있으면 LaMa, 없으면 Telea · lama · telea
+    # LaMa 는 큰 물체를 지워도 주변 무늬를 이어 그린다 (Telea 는 번진 얼룩). 사진에만 — 영상·GIF 는 프레임 수 때문에 Telea
+    inpaint_engine: Literal["auto", "lama", "telea"] = Field(default="auto", alias="INPAINT_ENGINE")
+    inpaint_model_path: str = Field(default="models/lama_fp32.onnx", alias="INPAINT_MODEL_PATH")
     # 【수동】 영상 업로드. 비로그인은 응답으로만 받고 디스크에 남기지 않는다.
     video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
     video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")
@@ -355,6 +359,10 @@ class Settings(BaseSettings):
     @property
     def stuff_model_file(self) -> Path:
         return self.resolve_runtime_path(self.stuff_model_path)
+
+    @property
+    def inpaint_model_file(self) -> Path:
+        return self.resolve_runtime_path(self.inpaint_model_path)
 
     # --- 학습 공유 (저장소 루트) ---
     @property

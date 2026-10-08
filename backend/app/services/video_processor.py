@@ -87,6 +87,38 @@ def _to_mp4(tmp_avi: Path, source: Path, dst: Path, ffmpeg: str) -> bool:
     return True
 
 
+PLAYABLE = {".mp4", ".webm"}  # 브라우저 <video> 가 대부분 재생하는 컨테이너
+
+
+def preview_mp4(src: Path, dst: Path) -> bool:
+    """브라우저가 못 여는 원본(avi · mkv · mov 등)을 작업 기록에서 볼 수 있게 H.264 mp4 로 바꾼다. 성공 여부.
+
+    오디오는 있으면 aac 로. ffmpeg 가 없거나 실패하면 False (원본은 내려받기로만 확인).
+    """
+    ffmpeg = ffmpeg_exe()
+    if ffmpeg is None:
+        return False
+    cmd = [
+        ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+        "-i", str(src),
+        "-map", "0:v:0", "-map", "0:a:0?",
+        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart",
+        str(dst),
+    ]
+    try:
+        done = subprocess.run(cmd, capture_output=True, timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        logger.warning("원본 미리 보기 변환 실패: {}", exc)
+        return False
+    if done.returncode != 0 or not dst.is_file() or dst.stat().st_size == 0:
+        logger.warning("원본 미리 보기 변환 실패 rc={} {}", done.returncode, done.stderr.decode("utf-8", "replace")[-300:])
+        dst.unlink(missing_ok=True)
+        return False
+    return True
+
+
 def _scaled_intensity(intensity: int, width: int, height: int) -> int:
     """블러 강도를 프레임 크기에 비례해 키운다 (기준: 긴 변 1280px = 보정 없음, 작은 프레임은 그대로)."""
     factor = max(1.0, max(width, height) / BLUR_REFERENCE_SIDE)
@@ -201,7 +233,8 @@ class FrameRenderer:
 
     def render(self, frame: np.ndarray) -> np.ndarray:
         """BGR 프레임 → 효과 결과 (BGR, 배경 제거면 BGRA, 크롭이면 크기가 다를 수 있음)."""
-        return apply_effects(frame, self.mask(frame), self._fx_parsed(frame.shape[1], frame.shape[0]))
+        # 지우기는 프레임마다 학습형 인페인팅을 돌리면 너무 느리다(프레임당 CPU 약 1초) — 영상·GIF 는 Telea
+        return apply_effects(frame, self.mask(frame), self._fx_parsed(frame.shape[1], frame.shape[0]), inpaint_engine="telea")
 
 
 def _open_writer(stem: Path, prefer: str, fps: float, size: tuple[int, int]):

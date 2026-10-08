@@ -89,6 +89,7 @@ function JobDetail({ jobId }: { jobId: string }) {
             note={kind === "image" ? null : job.message}
             media={kind === "video" ? "video" : "image"}
             fileExt={kind === "video" ? ".mp4" : kind === "gif" ? ".gif" : undefined}
+            extraDownload={job.webp_url ? { label: "WebP 저장 (부드러운 경계)", href: resolveAssetUrl(job.webp_url) ?? "", ext: ".webp", title: "GIF 는 반투명을 못 담아 경계가 거칠어요. WebP 는 경계를 부드럽게 유지해요 (대부분의 브라우저·메신저에서 재생)" } : null}
           />
           <FeedbackPanel key={job.job_id} jobId={job.job_id} parsed={job.parsed_prompt} />
         </div>

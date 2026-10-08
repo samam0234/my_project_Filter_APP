@@ -41,7 +41,14 @@ def _to_response(row) -> JobResponse:
         created_at=row.created_at.isoformat() if row.created_at else None,
         kind=kind,
         thumb_url=f"/api/v1/files/{row.id}/thumb" if row.after_path else None,
+        webp_url=f"/api/v1/files/{row.id}/webp" if kind == "gif" and _has_webp(row) else None,
     )
+
+
+def _has_webp(row) -> bool:
+    from pathlib import Path
+
+    return bool(row.after_path) and Path(row.after_path).with_suffix(".webp").is_file()
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
