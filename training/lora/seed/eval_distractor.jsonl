@@ -11,7 +11,7 @@
 {"prompt": "버스 앞에 서 있는 사람만 남기고 버스는 지워줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "자전거는 놔두고 사람만 블러 처리 안 하고 배경만 블러", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "사진에서 강아지만 지워줘 사람은 그대로 두고", "parsed_prompt": {"target": ["dog"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
-{"prompt": "자동차는 지우고 사람은 남겨줘", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "자동차만 지워줘 사람은 건드리지 말고", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "의자만 없애줘 나머지는 건드리지 말고", "parsed_prompt": {"target": ["chair"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "고양이만 지워주세요 다른 건 그대로", "parsed_prompt": {"target": ["cat"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "오른쪽에 있는 사람만 지워줘 나머지 사람은 그대로", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "right", "rank": null, "count": 1, "attributes": []}}}
@@ -37,7 +37,7 @@
 {"prompt": "잔디는 그대로 두고 사람만 남겨줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "산이랑 하늘만 남기고 나머지 지워줘", "parsed_prompt": {"target": ["mountain", "sky"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "keep only the dog and remove the people", "parsed_prompt": {"target": ["dog"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
-{"prompt": "remove the car but keep the person", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "remove the car but don't touch the person", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "keep the leftmost person only, erase everyone else", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": null, "count": 1, "attributes": []}}}
 {"prompt": "blur the background but keep the cat sharp, ignore the chairs", "parsed_prompt": {"target": ["cat"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}}
 {"prompt": "사람만 남기고 배경 지워줘 (개는 말고)", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}

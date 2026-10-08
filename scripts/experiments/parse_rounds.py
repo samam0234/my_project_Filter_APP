@@ -13,6 +13,7 @@
   wrong        초과도 누락도 아닌 다른 대상 (예: dog → cat)
   effect_ok / selector_ok  효과 · 위치/순번/개수가 맞다
   stability    같은 문장을 N 번 물었을 때 같은 답이 나온 비율
+  vote         N 번 답의 다수결(대상 · 효과 · 선택자 조합)로 채점한 결과 — 여러 번 묻는 자기일관성이 얼마나 도움이 되나
 
 실행: python scripts/experiments/parse_rounds.py --parsers ollama,ollama_rag --repeat 3 --out docs/vaildates/parse_rounds_20261008.json
 """
@@ -114,6 +115,31 @@ def main() -> None:
                 "by_set": {s: {"n": c["n"], "target_ok": round(c["target_ok"] / max(c["n"], 1), 4), "exact": round(c["exact"] / max(c["n"], 1), 4),
                                "extra": c["extra"], "missing": c["missing"], "wrong": c["wrong"]} for s, c in per_set.items() if c["n"]},
             })
+        # 다수결: 같은 문장의 N 번 답 중 가장 많이 나온 (대상, 효과, 선택자) 조합을 고른다 (동률이면 먼저 나온 것)
+        keyf = lambda p_: json.dumps({k: _flatten(p_)[k] for k in ("target", "effect", "position", "rank", "count")}, sort_keys=True)  # noqa: E731
+        if runs >= 3:
+            vstats, vset = Counter(), {s_: Counter() for s_ in SETS}
+            for i, row in enumerate(rows):
+                parsed = [json.loads(a) for a in answers[i] if a]
+                pick = None
+                if parsed:
+                    top = Counter(keyf(p_) for p_ in parsed).most_common(1)[0][0]
+                    pick = next(p_ for p_ in parsed if keyf(p_) == top)
+                c = classify(pick, row["gold"])
+                for tgt in (vstats, vset[row["set"]]):
+                    tgt["n"] += 1
+                    tgt[c["kind"]] += 1
+                    tgt["target_ok"] += bool(c["target_ok"])
+                    tgt["effect_ok"] += bool(c["effect_ok"])
+            n = vstats["n"]
+            d = vset["distractor"]
+            print(f"{pname:11} 다수결({runs}회) target_ok={vstats['target_ok'] / n:.3f} effect_ok={vstats['effect_ok'] / n:.3f} "
+                  f"초과 {vstats['extra']} 누락 {vstats['missing']} 다른대상 {vstats['wrong']} | 방해물 문장 target_ok={d['target_ok'] / max(d['n'], 1):.3f}", flush=True)
+            report[pname + "_vote"] = {"target_ok": round(vstats["target_ok"] / n, 4), "effect_ok": round(vstats["effect_ok"] / n, 4),
+                                       "extra": vstats["extra"], "missing": vstats["missing"], "wrong": vstats["wrong"],
+                                       "distractor_target_ok": round(d["target_ok"] / max(d["n"], 1), 4)}
+        report[pname + "_answers"] = [{"prompt": rows[i]["prompt"], "set": rows[i]["set"],
+                                       "gold": _flatten(rows[i]["gold"])["target"], "answers": answers[i]} for i in range(len(rows))]
         same = sum(1 for v in answers.values() if len(set(v)) == 1)
         report[pname + "_stability"] = round(same / len(rows), 4)
         print(f"{pname:11} 안정성(같은 문장 {runs}번 같은 답) {same}/{len(rows)} = {same / len(rows):.3f}")

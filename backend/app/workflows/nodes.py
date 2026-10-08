@@ -62,7 +62,9 @@ def _get_feedback() -> FeedbackService:
 
 
 # 휴리스틱 키워드 표 — LLM 실패 시 fallback. 규격은 services/prompt_spec.SYSTEM_PROMPT 와 맞춘다.
-_REMOVE_VERBS = ("지워", "지우", "삭제", "없애", "제거", "remove", "erase", "delete")
+_REMOVE_VERBS = ("지워", "지우", "삭제", "없애", "제거", "치워", "치우", "빼줘", "빼 줘", "remove", "erase", "delete", "wipe out")
+_BLUR_WORDS = ("blur", "블러", "흐리", "흐릿", "뿌옇", "흐림", "bokeh", "out of focus")
+_CROP_WORDS = ("crop", "크롭", "잘라", "오려", "trim")
 # 이 표현이 있으면 "대상을 남기는" 요청 (배경 제거·제외하고 지우기)
 _KEEP_HINTS = ("배경", "background", "제외", "빼고", "말고", "남기", "남겨", "만 남", "keep", "except", "only")
 _POSITION_WORDS = [
@@ -163,15 +165,16 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     crop = False
     intensity = 15
 
-    if "blur" in text or "블러" in text:
+    if any(w in text for w in _BLUR_WORDS):
         effect = "blur"
-    if "crop" in text or "크롭" in text or "잘라" in text:
+    if any(w in text for w in _CROP_WORDS):
         effect = "crop"
         crop = True
-    if "크롭" in text or "crop" in text:
-        crop = True
-    # "X 지워줘" = 대상 지우기. 단 "배경 제거"·"X 빼고 지워" 는 대상을 남기는 요청
-    if any(v in text for v in _REMOVE_VERBS) and not any(h in text for h in _KEEP_HINTS):
+    # "X 지워줘" = 대상 지우기. 단 "배경 제거"·"X 빼고 지워" 는 대상을 남기는 요청 (역할 분석으로 판정: heuristic_targets.analyze)
+    from app.services.heuristic_targets import analyze
+
+    detected, erase_intent = analyze(text)
+    if erase_intent or (any(v in text for v in _REMOVE_VERBS) and not any(h in text for h in _KEEP_HINTS)):
         effect = "remove_object"
 
     m = re.search(r"(?:intensity|강도|blur)\s*[:=]?\s*(\d{1,3})", text)
@@ -183,26 +186,8 @@ def parse_prompt_heuristic(prompt: str) -> ParsedPrompt:
     if quoted:
         targets = [q.strip() for q in quoted if q.strip()]
     else:
-        keywords = [
-            ("person", ["person", "사람", "인물", "남자", "여자", "남성", "여성", "아이",
-                        "man", "woman"]),
-            ("dog", ["dog", "강아지", "개"]),
-            ("cat", ["cat", "고양이"]),
-            ("car", ["car", "차", "자동차"]),
-            ("bag", ["bag", "가방"]),
-            # 배경 덩어리 (SegFormer) — "산" 처럼 다른 단어에 섞이는 한 글자 키워드는 뺐다
-            ("building", ["building", "건물", "빌딩", "건축물", "아파트"]),
-            ("sky", ["sky", "하늘"]),
-            ("road", ["road", "도로", "차도"]),
-            ("tree", ["tree", "나무", "가로수"]),
-            ("grass", ["grass", "잔디", "풀밭"]),
-            ("water", ["water", "바다", "호수", "수면"]),
-            ("mountain", ["mountain", "산맥", "언덕"]),
-            ("fence", ["fence", "울타리", "펜스"]),
-        ]
-        for label, keys in keywords:
-            if any(k in text for k in keys):
-                targets.append(label)
+        # 어휘 확장 + 역할("X 말고 Y만") 규칙 — LLM 이 꺼졌을 때의 안전망 (services/heuristic_targets.py)
+        targets = detected
     if not targets:
         targets = ["person"]
 
