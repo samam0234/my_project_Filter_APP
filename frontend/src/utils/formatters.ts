@@ -59,6 +59,21 @@ export const POSITION_LABELS: Record<Position, string> = {
 /** 자주 쓰는 COCO 클래스 한국어 표기 (없으면 영어 그대로) */
 const CLASS_LABELS: Record<string, string> = {
   person: "사람",
+  // 배경 덩어리 (SegFormer)
+  building: "건물",
+  sky: "하늘",
+  road: "도로",
+  sidewalk: "인도",
+  tree: "나무",
+  grass: "잔디",
+  water: "물",
+  mountain: "산",
+  wall: "벽",
+  floor: "바닥",
+  ceiling: "천장",
+  ground: "땅",
+  bridge: "다리(교량)",
+  fence: "울타리",
   dog: "개",
   cat: "고양이",
   car: "자동차",

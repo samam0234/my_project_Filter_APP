@@ -196,6 +196,21 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 
 ---
 
+## 인식 대상 (target)
+
+| 종류 | 모델 | 대상 |
+|------|------|------|
+| 낱개 물체 | YOLO26m-seg (COCO 80) | person · dog · cat · car · bus · truck · bicycle · chair · bottle · cup · laptop · handbag … |
+| 배경 덩어리 | SegFormer ADE20K (ONNX) | **building · sky · road · sidewalk · tree · grass · water · mountain · wall · floor · ceiling · ground · bridge · fence** |
+| 그 밖 | Grounding DINO + SAM2 (`OPEN_VOCAB_ENABLED`, 로컬 전용) | 자유 문구 |
+
+- 한국어·동의어는 `prompt_spec.TARGET_ALIASES` 로 정규화 (건물·빌딩·집·아파트·house → `building`, 하늘 → `sky` …). LLM·휴리스틱 파서 모두 같은 어휘
+- "건물" 같은 묶음은 소속 클래스(building · house · skyscraper · hovel)의 확률을 합쳐 판정, 연결된 덩어리마다 인스턴스로 내보내
+  `왼쪽 건물` · `가장 큰 건물` 같은 위치·크기 선택이 그대로 동작
+- 낱개와 섞인 요청("사람이랑 건물만 남겨")은 두 모델 결과를 합침 (`backend` = `yolo+segformer`)
+- 모델 파일(`backend/models/segformer-ade.onnx`)이 없으면 이 경로만 꺼지고 기존 동작 (건물은 "찾지 못했습니다")
+- 한계: 건물처럼 큰 영역을 **지우기**(`remove_object`)하면 인페인팅이 번져 보인다 — "남기고 배경 제거/블러"는 깔끔
+
 ## Console — 운영 콘솔 전용
 
 콘솔(:5174)이 전체 작업·회원 데이터를 보는 API. 접근 규칙(`core/access.require_console`):

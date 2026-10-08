@@ -192,6 +192,12 @@ class Settings(BaseSettings):
     # (docs/vaildates/open-vocab-20261007.md — COCO 정답으로 측정해 고른 값).
     open_vocab_box_threshold: float = Field(default=0.35, ge=0.05, le=0.95, alias="OPEN_VOCAB_BOX_THRESHOLD")
     open_vocab_text_threshold: float = Field(default=0.25, ge=0.05, le=0.95, alias="OPEN_VOCAB_TEXT_THRESHOLD")
+    # 【수동】 배경 덩어리(건물·하늘·도로·나무…) 의미 분할 — SegFormer(ADE20K) ONNX. YOLO(COCO)에 없는 대상용.
+    # 파일은 scripts/export_stuff_onnx.py 로 만든다. 없으면 이 경로만 꺼지고 나머지는 그대로 동작한다.
+    stuff_seg_enabled: bool = Field(default=True, alias="STUFF_SEG_ENABLED")
+    stuff_model_path: str = Field(default="models/segformer-ade.onnx", alias="STUFF_MODEL_PATH")
+    stuff_min_prob: float = Field(default=0.5, gt=0.0, lt=1.0, alias="STUFF_MIN_PROB")  # 묶음 확률 임계
+    stuff_use_gpu: bool = Field(default=False, alias="STUFF_USE_GPU")  # onnxruntime-gpu 가 있을 때만 의미 있음
     # 【수동】 영상 업로드. 비로그인은 응답으로만 받고 디스크에 남기지 않는다.
     video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
     video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")
@@ -305,6 +311,10 @@ class Settings(BaseSettings):
     @property
     def yolo_model_file(self) -> Path:
         return self.resolve_runtime_path(self.yolo_model_path)
+
+    @property
+    def stuff_model_file(self) -> Path:
+        return self.resolve_runtime_path(self.stuff_model_path)
 
     # --- 학습 공유 (저장소 루트) ---
     @property

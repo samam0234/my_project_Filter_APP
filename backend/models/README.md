@@ -7,6 +7,7 @@
 |------|------|
 | `yolo26m-seg.pt` | 서빙 중인 YOLO 세그 가중치 (`YOLO_MODEL_PATH` 기본값) |
 | `yolo26m-seg.onnx` | (선택) ONNX Runtime 서빙용 |
+| `segformer-ade.onnx` · `segformer-ade.labels.json` | (선택) 건물·하늘·도로 같은 배경 덩어리용 SegFormer. `python scripts/export_stuff_onnx.py` 로 만든다 (`STUFF_MODEL_PATH`) |
 
 ## 배포 (교체)
 

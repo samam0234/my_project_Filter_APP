@@ -15,6 +15,8 @@ import { EFFECT_LABELS, POSITION_LABELS } from "../../utils/formatters";
 const COMMON_CLASSES = [
   "person", "dog", "cat", "car", "bus", "truck", "bicycle", "motorcycle", "bird", "horse",
   "cup", "bottle", "chair", "laptop", "cell phone", "handbag", "backpack",
+  // 배경 덩어리
+  "building", "sky", "road", "sidewalk", "tree", "grass", "water", "mountain", "wall", "floor",
 ];
 
 interface Draft {
@@ -114,7 +116,7 @@ export function FeedbackPanel({ jobId, parsed }: Props) {
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-xs text-slate-400">
-              대상 (COCO 이름, 쉼표로 여러 개)
+              대상 (영어 이름, 쉼표로 여러 개 — 건물은 building)
               <input
                 className={field}
                 list="coco-classes"
