@@ -17,7 +17,7 @@ PROMPT_CHAIN=legacy 면 이 체인을 건너뛴다.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnablePassthrough
 from loguru import logger
@@ -25,11 +25,12 @@ from loguru import logger
 from app.core.config import Settings, get_settings
 from app.schemas.request import ParsedPrompt
 from app.services.heuristic_targets import detect_targets
-from app.services.prompt_llm import parse_prompt_llm
+from app.services.prompt_llm import last_llm_provider, parse_prompt_llm, set_last_llm_provider
 from app.services.prompt_spec import LLMError
 
 
 class ChainState(TypedDict, total=False):
+    ask: Callable[..., Optional[ParsedPrompt]]  # LLM 한 번 부르는 함수 — 기본은 parse_prompt_llm, 테스트·호출 측이 바꿀 수 있다
     prompt: str
     settings: Settings
     examples: str
@@ -37,6 +38,7 @@ class ChainState(TypedDict, total=False):
     heuristic: List[str]
     parsed: ParsedPrompt
     info: Dict[str, Any]
+    provider: str  # 첫 성공 호출의 실제 provider
 
 
 def _targets(parsed: ParsedPrompt) -> tuple:
@@ -49,10 +51,11 @@ def _init(state: ChainState) -> ChainState:
 
 def _sample(state: ChainState) -> ChainState:
     """LLM 한 번. 첫 호출의 실패는 그대로 올려 호출 측이 키워드 파서로 내려가게 한다 (예전 동작)."""
-    parsed = parse_prompt_llm(state["prompt"], state["settings"], state.get("examples", ""))
+    parsed = state["ask"](state["prompt"], state["settings"], state.get("examples", ""))
     if parsed is None:  # provider 가 LLM 이 아님 (체인을 쓸 이유가 없다)
         raise LLMError("LLM provider 가 꺼져 있음")
-    return {**state, "samples": [*state["samples"], parsed]}
+    # 실제로 성공한 provider(폴백이면 기본과 다름). 체인은 컨텍스트 복사본에서 돌아 ContextVar 가 밖으로 안 보이므로 상태에 담아 둔다
+    return {**state, "samples": [*state["samples"], parsed], "provider": state.get("provider") or last_llm_provider()}
 
 
 def _agrees(state: ChainState) -> bool:
@@ -68,7 +71,7 @@ def _resample(state: ChainState) -> ChainState:
     samples = list(state["samples"])
     while len(samples) < state["settings"].prompt_votes:
         try:
-            more = parse_prompt_llm(state["prompt"], state["settings"], state.get("examples", ""))
+            more = state["ask"](state["prompt"], state["settings"], state.get("examples", ""))
         except LLMError as exc:
             logger.warning("추가 LLM 호출 실패 — 있는 답으로 다수결: {}", exc)
             break
@@ -118,16 +121,21 @@ def parse_prompt_chain(
     prompt: str,
     settings: Optional[Settings] = None,
     examples: str = "",
+    ask: Optional[Callable[..., Optional[ParsedPrompt]]] = None,
 ) -> Optional[ParsedPrompt]:
     """parse_prompt_llm 과 같은 계약 (ParsedPrompt | None, 실패는 LLMError) + 대상 안정화.
 
     PROMPT_CHAIN=legacy 이거나 PROMPT_VOTES<=1 이면 기존 단일 호출 그대로.
+    ask: LLM 한 번 호출하는 함수 (기본 parse_prompt_llm). 파이프라인 노드는 자기 모듈의 parse_prompt_llm 을 넘겨,
+         테스트가 그 이름을 교체하면 체인도 같은 가짜를 쓰게 한다 (테스트가 실제 Ollama 를 부르지 않도록).
     """
     settings = settings or get_settings()
+    ask = ask or parse_prompt_llm
     if settings.prompt_chain != "langchain" or settings.prompt_votes <= 1:
-        return parse_prompt_llm(prompt, settings, examples)
+        return ask(prompt, settings, examples)
     global _CHAIN
     if _CHAIN is None:
         _CHAIN = build_prompt_chain()
-    out = _CHAIN.invoke({"prompt": prompt, "settings": settings, "examples": examples})
+    out = _CHAIN.invoke({"prompt": prompt, "settings": settings, "examples": examples, "ask": ask})
+    set_last_llm_provider(out.get("provider", ""))  # 호출 측(prompt_analyzer)이 last_llm_provider() 로 읽는다
     return out["parsed"]

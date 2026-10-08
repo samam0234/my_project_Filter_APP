@@ -244,7 +244,10 @@ def prompt_analyzer(state: GraphState) -> GraphState:
             # 키워드 파서와 대상이 다르면 여러 번 물어 다수결 (services/prompt_chain.py, LangChain Core)
             from app.services.prompt_chain import parse_prompt_chain
 
-            parsed = parse_prompt_chain(prompt, settings, examples=examples)
+            parsed = parse_prompt_chain(
+                prompt, settings, examples=examples,
+                ask=lambda p, s, e="": parse_prompt_llm(p, s, examples=e),  # 이 모듈의 이름을 거쳐야 테스트의 가짜가 적용된다
+            )
         else:
             parsed = parse_prompt_llm(prompt, settings, examples=examples)
         if parsed is not None:

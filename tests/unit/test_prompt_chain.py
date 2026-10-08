@@ -87,3 +87,16 @@ def test_provider_off_means_no_llm(llm):
     llm.answers = [None]
     with pytest.raises(LLMError):
         prompt_chain.parse_prompt_chain("강아지만", _settings())
+
+
+def test_node_passes_its_own_llm_function_so_tests_never_reach_ollama(monkeypatch):
+    """prompt_analyzer 가 체인을 쓸 때도 nodes.parse_prompt_llm 을 교체하면 그 가짜가 쓰인다 (실제 Ollama 호출 방지)."""
+    from app.core.config import get_settings
+    from app.workflows import nodes
+
+    calls = []
+    monkeypatch.setattr(nodes, "parse_prompt_llm", lambda prompt, settings, **kw: calls.append(prompt) or _p("dog"))
+    monkeypatch.setattr(prompt_chain, "parse_prompt_llm", lambda *a, **k: (_ for _ in ()).throw(AssertionError("실제 LLM 호출")))
+    monkeypatch.setattr(get_settings(), "prompt_chain", "langchain")
+    out = nodes.prompt_analyzer({"prompt": "강아지만 남기고 사람은 지워줘", "job_id": "zz-chain-node"})
+    assert out["parsed_prompt"]["target"] == ["dog"] and calls == ["강아지만 남기고 사람은 지워줘"]

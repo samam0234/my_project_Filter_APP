@@ -51,7 +51,7 @@ python scripts/retrain_lora.py --deploy     # 평가에서 이기면 배포본 �
 
 `PROMPT_CHAIN=langchain` — LLM 한 번 호출 → **키워드 파서(`heuristic_targets`)와 대상이 같으면 그대로 확정**(호출 1번, 지연 없음) →
 다르면 최대 `PROMPT_VOTES` 번 더 물어 **LLM 답들 + 키워드 파서 한 표**로 다수결 (`services/prompt_chain.py`).
-RAG 예시는 모든 호출에 똑같이 붙는다. 기본값(legacy/langchain)은 검증 문서의 평가 결과로 정했다.
+RAG 예시는 모든 호출에 똑같이 붙는다. **기본값은 langchain** — 처음 보는 30문장에서 대상 정확도 86.7% → 96.7%(호출 평균 1.4번). 사진·배치·영상이 같은 체인을 쓴다.
 
 ## ⑤ LangGraph 파이프라인
 

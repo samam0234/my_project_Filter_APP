@@ -128,8 +128,9 @@ class Settings(BaseSettings):
     lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
     # 【수동·튜닝】 프롬프트 해석 RAG — 비슷한 정답 예시(사용자 교정·좋아요·시드)를 LLM 지시문에 붙임
     # (ollama · openai · gemini 에만 적용. lora 는 학습 템플릿이 고정이라 제외)
-    # 프롬프트 해석 체인 (LangChain Core): langchain = 키워드 파서와 대상이 다르면 최대 PROMPT_VOTES 번 물어 다수결, legacy = 한 번만
-    prompt_chain: Literal["legacy", "langchain"] = Field(default="legacy", alias="PROMPT_CHAIN")
+    # 프롬프트 해석 체인 (LangChain Core): langchain(기본) = 키워드 파서와 대상이 다르면 최대 PROMPT_VOTES 번 물어 다수결, legacy = 한 번만
+    # (처음 보는 30문장 대상 정확도 86.7% → 96.7%, 호출 평균 1.4번 — docs/vaildates/leak-diagnosis-20261008.md)
+    prompt_chain: Literal["legacy", "langchain"] = Field(default="langchain", alias="PROMPT_CHAIN")
     prompt_votes: int = Field(default=3, ge=1, le=7, alias="PROMPT_VOTES")
     prompt_rag_enabled: bool = Field(default=True, alias="PROMPT_RAG_ENABLED")
     # 기본은 운영 콘솔에서 승인된 교정·좋아요·회원 요청만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 정확도를 낮춤
