@@ -55,7 +55,7 @@ SQLite (local)  |  MariaDB (prod / docker)
 
 | DB | 기본 | 설정 | 직접 URL (최우선) |
 |----|------|------|-------------------|
-| 서비스 DB | SQLite | `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.host.db` (호스트, backend/ 기준) · Docker 는 `data/cutnkeep.db` | `DATABASE_URL` |
+| 서비스 DB | **Docker: MariaDB** · 호스트 개발: SQLite | Docker `DB_DIALECT=mariadb`(compose 기본, `DOCKER_DB_DIALECT` 로 변경) · 호스트 `DB_DIALECT=sqlite`, `SQLITE_PATH=data/cutnkeep.host.db` | `DATABASE_URL` |
 | 학습 DB | MariaDB | `LEARNING_DB_DIALECT=mariadb` + `MARIADB_*` (또는 `sqlite` → `LEARNING_SQLITE_PATH`) | `LEARNING_DATABASE_URL` |
 
 학습 DB 는 MariaDB 가 꺼져 있어도 서비스가 뜨도록 **로컬 SQLite fallback** 이 있다
@@ -289,8 +289,39 @@ uvicorn app.main:app --reload
 
 ```bash
 docker compose -p cut_and_keep --env-file .env up -d --build
-# backend environment: DB_DIALECT=sqlite, SQLITE_PATH=${DOCKER_SQLITE_PATH:-data/cutnkeep.db}, LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb
+# backend environment: DB_DIALECT=${DOCKER_DB_DIALECT:-mariadb}, LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb
 ```
+
+### 서비스 DB 를 MariaDB 로 (2026-10-09 전환)
+
+Docker 의 서비스 DB(회원 · 세션 · 작업 · 배치)는 **MariaDB** 다 — 학습 DB 와 같은 서버 · 같은 데이터베이스(`MARIADB_DATABASE`), 테이블 이름은 겹치지 않는다.
+SQLite 는 한 파일을 한 프로세스씩 쓰는 구조라 동시 접속이 늘면 잠금 대기가 생기고, 두 프로세스가 같은 파일을 쓰면 깨질 수 있다.
+
+- **처음 바꿀 때 자동으로 옮긴다**: 기동 시 MariaDB 의 회원 · 작업이 비어 있고 옛 SQLite(`SERVICE_DB_IMPORT_FROM`, 기본 `data/cutnkeep.db`)가 있으면
+  users · auth_sessions · auth_codes · jobs · batch_jobs 를 한 번 복사한다 (`app/db/sqlite_import.py`). 이미 쓰는 DB 면 건드리지 않고, 옛 파일은 지우지 않는다
+- 손으로 옮기기: `docker exec cut_and_keep-backend-1 python -m app.db.sqlite_import data/cutnkeep.db` (같은 행은 건너뛰어 여러 번 돌려도 안전)
+- SQLite 로 되돌리기: `.env` 에 `DOCKER_DB_DIALECT=sqlite` → backend 재시작 (그동안 MariaDB 에 쌓인 회원·작업은 SQLite 에 없다)
+- 호스트에서 띄우는 개발 서버는 그대로 SQLite(`cutnkeep.host.db`). MariaDB 를 쓰려면 `.env` 에 `DB_DIALECT=mariadb` + `MARIADB_HOST=127.0.0.1` · `MARIADB_PORT`
+- 검증: API 테스트 전체(398개)를 MariaDB 테스트 DB 로도 돌린다 — `CNK_TEST_SERVICE_DB_URL=mysql+pymysql://…/cutnkeep_test pytest tests` (`tests/unit/conftest.py`)
+
+### MariaDB 백업 · 복구
+
+compose 의 `mariadb-backup` 서비스가 `MARIADB_BACKUP_HOURS`(24)마다 서비스 DB · 학습 DB 를 한 번에 덤프한다 → `data/mariaDB_backups/<DB>-YYYYmmdd-HHMMSS.sql.gz`,
+`MARIADB_BACKUP_KEEP_DAYS`(7)일 지난 것은 지운다. 덤프가 실패하거나 압축이 깨진 파일은 남기지 않는다 (`docker/mariadb/backup/backup.sh`).
+
+```powershell
+docker logs cut_and_keep-mariadb-backup-1            # "백업 완료 /backups/cutnkeep-… (176K)"
+docker restart cut_and_keep-mariadb-backup-1         # 지금 바로 한 번 더 받기
+
+# 복구 — backend 를 멈추고 가장 최근 백업을 그대로 되돌린다 (현재 데이터는 백업 시점으로 바뀐다)
+docker stop cut_and_keep-backend-1
+docker cp data/mariaDB_backups/<파일>.sql.gz cut_and_keep-mariadb-1:/tmp/r.sql.gz
+docker exec cut_and_keep-mariadb-1 sh -c 'gzip -dc /tmp/r.sql.gz | mariadb --skip-ssl -uroot -p"$MYSQL_ROOT_PASSWORD"'
+docker start cut_and_keep-backend-1
+```
+
+다른 데이터베이스로 시험 복구하려면 `USE \`cutnkeep\`;` 줄을 바꾸고 `CREATE DATABASE` 줄을 빼서 넣는다 (2026-10-09 `cutnkeep_test` 로 복구해 행 수가 같음을 확인).
+**백업 파일을 다른 디스크 · 다른 PC 에도 복사해 둔다** — 같은 디스크가 고장 나면 원본과 백업을 함께 잃는다.
 
 ### 호스트와 Docker 는 다른 SQLite 파일을 쓴다
 
@@ -298,7 +329,7 @@ docker compose -p cut_and_keep --env-file .env up -d --build
 2026-10-08 이 상태에서 `jobs` 루트 페이지가 다른 프로세스의 로그 텍스트(OpenCV 경고)로 덮여 DB 가 깨졌고 업로드가 모두 500 이 됐다.
 그래서 호스트 기본은 `cutnkeep.host.db`, Docker 는 `cutnkeep.db` 로 나눴다. 두 값을 같게 맞추지 않는다.
 
-### 자동 백업
+### 자동 백업 (SQLite 일 때)
 
 서비스 DB 가 SQLite 면 백엔드가 기동 직후 + `DB_BACKUP_HOURS`(기본 24)마다 `backend/data/backups/{파일명}-YYYYmmdd-HHMMSS.db` 로
 SQLite 온라인 백업을 만들고 최근 `DB_BACKUP_KEEP`(기본 7)개만 남긴다 (`app/services/db_backup.py`).

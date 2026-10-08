@@ -41,7 +41,7 @@
 |------|------|
 | 업로드 파일 삭제 | **자동** — 백엔드가 `FILE_CLEANUP_MINUTES`(60)마다 `FILE_RETENTION_HOURS`(24)가 지난 파일을 지운다. 예전에는 `scripts/cleanup.py` 를 누가 돌려야 지워졌다 |
 | 서비스 DB 백업 | **자동** — SQLite 면 기동 직후 + `DB_BACKUP_HOURS`(24)마다 `backend/data/backups/` 에 온라인 백업, 최근 `DB_BACKUP_KEEP`(7)개. 깨진 백업은 버린다 ([DATABASE.md](../plan/DATABASE.md)) |
-| 학습 DB(MariaDB) 백업 | **수동** — `docker exec cut_and_keep-mariadb-1 mysqldump -u root -p cutnkeep > backup.sql` 을 정기 실행 |
+| MariaDB 백업 (서비스 + 학습 DB) | **자동** — `mariadb-backup` 서비스, 24시간마다 · 7일 보관, 복구 절차·확인은 [DATABASE.md](../plan/DATABASE.md). **수동**: 백업 파일을 다른 디스크 · PC 로 복사 |
 | 이용자 안내 | 회원가입 화면 · 프롬프트 가이드에 보관 기간(24시간)과 학습 이용(운영자 검수 후 문장만)을 안내 |
 | 학습 후보 | 요청 문장 + 해석만 (이미지는 업로드 폴더를 가리키고 24시간 뒤 사라진다). 회원 삭제 시 계정 연결을 끊는다 |
 | 어려운 사례 수집 `HARD_EXAMPLE_CONF` | 기본 꺼짐 — 켜면 이미지가 학습 후보로 더 남으므로 개인정보 처리방침에 적은 뒤 켠다 |
@@ -51,4 +51,3 @@
 
 - 침투 테스트 · 의존성 취약점 자동 점검(`pip-audit`, `npm audit`) 정기 실행
 - 여러 서버로 늘릴 때 속도 제한을 Redis 로 (지금은 프로세스 메모리)
-- 서비스 DB 를 MariaDB 로 옮기기 (동시 접속이 많아지면)

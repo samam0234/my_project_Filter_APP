@@ -29,7 +29,16 @@ def api_env(monkeypatch, tmp_path):
     from app.main import create_app
     from app.services import auth_service
 
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    import os
+
+    # CNK_TEST_SERVICE_DB_URL 이 있으면 서비스 DB 를 그 DB(예: MariaDB 테스트 DB)로 — 운영과 같은 엔진에서 API 를 검증
+    #   예) mysql+pymysql://user:pw@127.0.0.1:3309/cutnkeep_test?charset=utf8mb4   (매 테스트마다 테이블을 지우고 다시 만든다)
+    service_url = os.environ.get("CNK_TEST_SERVICE_DB_URL")
+    if service_url:
+        engine = create_engine(service_url, pool_pre_ping=True)
+        Base.metadata.drop_all(engine)
+    else:
+        engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     learning_engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
@@ -70,11 +79,13 @@ def api_env(monkeypatch, tmp_path):
     application = create_app()
     application.dependency_overrides[get_db] = _db
     application.dependency_overrides[get_learning_db] = _learning_db
-    yield {
+    env = {
         "app": application,
         "client": TestClient(application),
         "Session": Session,
         "LearningSession": LearningSession,
         "mails": mails,
     }
+    yield env
+    engine.dispose()
 

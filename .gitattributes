@@ -1,0 +1,6 @@
+# 컨테이너(리눅스)에서 실행 · 읽히는 파일은 Windows 에서 받아도 LF 로 — CRLF 면 bash 가 "\r" 에서 깨진다
+*.sh        text eol=lf
+Caddyfile   text eol=lf
+*.conf      text eol=lf
+*.cnf       text eol=lf
+Dockerfile  text eol=lf

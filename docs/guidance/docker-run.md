@@ -21,7 +21,8 @@ docker compose -p cut_and_keep ps
 - 내부 포트는 `BIND_HOST`(기본 `127.0.0.1`)에만 열린다. 다른 기기에서 backend 등에 직접 붙어야 할 때만 `BIND_HOST=0.0.0.0`
 - **호스트에서 `uvicorn --reload` 를 따로 띄워 8000 이 차 있으면** backend 컨테이너가 뜨지 않는다 → `BACKEND_PORT=8001 docker compose -p cut_and_keep --env-file .env up -d`
   (nginx 는 컨테이너끼리 8000 으로 연결하므로 http://localhost 는 그대로)
-- 호스트 backend 와 Docker backend 는 서비스 DB 파일을 따로 쓴다 (`cutnkeep.host.db` / `cutnkeep.db`) — 같은 파일을 쓰면 깨진다
+- Docker 서비스 DB 는 **MariaDB** (호스트 개발 서버는 SQLite `cutnkeep.host.db`). 처음 전환하면 옛 `cutnkeep.db` 의 회원·작업을 자동으로 옮긴다
+- MariaDB 는 `mariadb-backup` 이 매일 `data/mariaDB_backups/` 로 덤프한다 (7일 보관) — 복구는 `docs/plan/DATABASE.md`
 - 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — 없으면 Telea 로 동작 (`backend/models/README.md`, 경로는 `INPAINT_MODEL_PATH`, 엔진은 `INPAINT_ENGINE`)
 - backend 는 기동 시 **서비스 DB 백업**(`backend/data/backups/`)과 **보관 기간 지난 업로드 정리**를 스스로 돌린다
 

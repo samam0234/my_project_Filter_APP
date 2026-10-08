@@ -112,7 +112,9 @@
 | 보안 헤더 | `frontend/nginx.conf` | CSP · X-Frame-Options · nosniff · Referrer · Permissions, 버전 숨김 |
 | 포트 제한 | `BIND_HOST` · `BACKEND_PORT` | 공개는 :80, 나머지는 127.0.0.1 |
 | 자동 정리 | `FILE_RETENTION_HOURS` · `FILE_CLEANUP_MINUTES` | 24시간 지난 업로드를 매시간 삭제 (`.gitkeep` 보호) |
-| 서비스 DB 백업 | `DB_BACKUP_HOURS` · `DB_BACKUP_KEEP` | 온라인 백업, 깨진 백업은 버림 |
+| 서비스 DB | `DOCKER_DB_DIALECT` · `SERVICE_DB_IMPORT_FROM` | Docker 는 MariaDB(처음 전환 시 옛 SQLite 자동 이전), 호스트 개발은 SQLite |
+| MariaDB 백업 | `MARIADB_BACKUP_HOURS` · `MARIADB_BACKUP_KEEP_DAYS` | `mariadb-backup` 서비스가 서비스 + 학습 DB 를 매일 덤프, 7일 보관, 복구 확인됨 |
+| SQLite 백업 (호스트) | `DB_BACKUP_HOURS` · `DB_BACKUP_KEEP` | 온라인 백업, 임시 이름으로 쓰고 끝나면 이름 변경, 깨진 백업은 버림 |
 | DB 손상 감지 | — | 기동 시 `quick_check`, 호스트/Docker DB 파일 분리 |
 | 배포 설정 점검 | `APP_ENV` · `PREFLIGHT_STRICT` | production 에서 위험한 기본값이면 기동 거부 |
 | 로그 | `LOG_DIR` · `LOG_RETENTION_DAYS` | `backend/logs/app_YYYY-MM-DD.log`, 14일 |

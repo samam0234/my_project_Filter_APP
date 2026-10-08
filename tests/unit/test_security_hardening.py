@@ -231,3 +231,21 @@ def test_maintenance_starts_enabled_jobs_only(monkeypatch, tmp_path):
         maintenance.stop()
         for t in maintenance._THREADS:
             t.join(timeout=5)
+
+
+def test_backup_writes_part_then_renames_and_cleans_stale(tmp_path):
+    """백업 도중 끊겨도 반쪽 파일이 목록에 섞이지 않고, 오래된 조각은 다음 백업 때 지운다."""
+    from app.services.db_backup import backup_sqlite
+
+    src = tmp_path / "cutnkeep.db"
+    _make_db(src)
+    out = tmp_path / "backups"
+    out.mkdir()
+    stale = out / "cutnkeep-20260101-000000.db-journal"
+    stale.write_bytes(b"x")
+    old = time.time() - 2 * 3600
+    os.utime(stale, (old, old))
+    dst = backup_sqlite(src, out, keep=3)
+    assert dst is not None and dst.suffix == ".db"
+    assert not stale.exists()
+    assert not list(out.glob("*.part*"))

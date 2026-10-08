@@ -269,6 +269,8 @@ class Settings(BaseSettings):
     database_url_override: str | None = Field(default=None, alias="DATABASE_URL")
     # 호스트 backend 기본 파일. Docker 는 compose 가 data/cutnkeep.db 로 덮는다 — 같은 파일을 둘이 쓰면 깨진다 (2026-10-08)
     sqlite_path: str = Field(default="data/cutnkeep.host.db", alias="SQLITE_PATH")
+    # 서비스 DB 가 MariaDB 이고 비어 있으면, 기동 시 이 옛 SQLite 파일의 회원 · 작업을 한 번 옮긴다 (backend/ 기준, 비우면 끔)
+    service_db_import_from: str = Field(default="data/cutnkeep.db", alias="SERVICE_DB_IMPORT_FROM")
     mariadb_host: str = Field(default="localhost", alias="MARIADB_HOST")
     mariadb_port: int = Field(default=3306, alias="MARIADB_PORT")
     mariadb_user: str = Field(default="cutnkeep", alias="MARIADB_USER")

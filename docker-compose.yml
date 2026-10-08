@@ -40,9 +40,11 @@ services:
       - .env
     environment:
       # 컨테이너 내부 DNS — .env 의 localhost/호스트 포트 무시
-      # 서비스 DB 는 SQLite (볼륨 ./backend/data), 학습 데이터 기록은 MariaDB
-      DB_DIALECT: sqlite
-      # 호스트 backend(.env 의 SQLITE_PATH)와 다른 파일 — 같은 파일을 둘이 쓰면 깨진다
+      # 서비스 DB(회원 · 작업 · 배치)와 학습 DB 모두 MariaDB — 동시 접속에 강하고 백업은 mariadb-backup 서비스가 한다
+      # 처음 바꾸면 옛 SQLite(data/cutnkeep.db)의 회원 · 작업을 기동 시 한 번 옮긴다 (SERVICE_DB_IMPORT_FROM)
+      # SQLite 로 되돌리기: DOCKER_DB_DIALECT=sqlite
+      DB_DIALECT: ${DOCKER_DB_DIALECT:-mariadb}
+      # DOCKER_DB_DIALECT=sqlite 일 때만 — 호스트 backend(.env 의 SQLITE_PATH)와 다른 파일 (같은 파일을 둘이 쓰면 깨진다)
       SQLITE_PATH: ${DOCKER_SQLITE_PATH:-data/cutnkeep.db}
       # nginx(frontend 컨테이너)가 넘기는 X-Real-IP 를 믿는 대역 — 비로그인 속도 제한이 사람마다 따로 걸리게
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
@@ -148,8 +150,14 @@ services:
     env_file:
       - .env
     environment:
-      DB_DIALECT: sqlite
+      DB_DIALECT: ${DOCKER_DB_DIALECT:-mariadb}
       SQLITE_PATH: ${DOCKER_SQLITE_PATH:-data/cutnkeep.db}
+      LEARNING_DB_DIALECT: mariadb
+      MARIADB_HOST: mariadb
+      MARIADB_PORT: "3306"
+      MARIADB_USER: ${MARIADB_USER:-cutnkeep}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-cutnkeep}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-cutnkeep}
       REDIS_URL: redis://redis:6379/0
       BATCH_USE_CELERY: "true"
       LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
@@ -160,6 +168,8 @@ services:
     depends_on:
       redis:
         condition: service_started
+      mariadb:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - cutnkeep_net
@@ -170,6 +180,27 @@ services:
       - "${BIND_HOST:-127.0.0.1}:8081:8080"
     environment:
       ADMINER_DEFAULT_SERVER: mariadb
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cutnkeep_net
+
+  # MariaDB 자동 백업 — 서비스 DB · 학습 DB 를 한 번에 덤프 (docker/mariadb/backup/backup.sh)
+  # MARIADB_BACKUP_HOURS(24)마다 data/mariaDB_backups/<DB>-YYYYmmdd-HHMMSS.sql.gz, MARIADB_BACKUP_KEEP_DAYS(7)일 보관
+  mariadb-backup:
+    image: mariadb:11
+    entrypoint: ["/bin/bash", "/backup.sh"]
+    environment:
+      MARIADB_HOST: mariadb
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-cutnkeep}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      BACKUP_HOURS: ${MARIADB_BACKUP_HOURS:-24}
+      BACKUP_KEEP_DAYS: ${MARIADB_BACKUP_KEEP_DAYS:-7}
+    volumes:
+      - ./docker/mariadb/backup/backup.sh:/backup.sh:ro
+      - ./data/mariaDB_backups:/backups
     depends_on:
       mariadb:
         condition: service_healthy
