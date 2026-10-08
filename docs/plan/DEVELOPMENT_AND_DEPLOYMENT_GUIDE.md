@@ -211,7 +211,7 @@ CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,h
 
 # Database — 로컬 SQLite / Docker·배포 MariaDB
 DB_DIALECT=sqlite
-SQLITE_PATH=data/cutnkeep.db   # backend/ 기준
+SQLITE_PATH=data/cutnkeep.host.db   # backend/ 기준 (Docker 는 data/cutnkeep.db)
 # 호스트 DBeaver: 127.0.0.1 + MARIADB_PORT (예 3309)
 # Docker backend: compose 가 HOST=mariadb PORT=3306 강제
 # MARIADB_HOST=localhost

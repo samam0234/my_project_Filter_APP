@@ -19,7 +19,7 @@
 # ---------- .env 역할 분리 ----------
 # 호스트 도구: MARIADB_HOST=localhost, MARIADB_PORT=3309 등 .env 값 그대로
 # backend 컨테이너: 아래 environment 가 DB/Redis/LLM 주소를 덮어씀
-#   서비스 DB (users·jobs·batch) : DB_DIALECT=sqlite → ./backend/data/cutnkeep.db
+#   서비스 DB (users·jobs·batch) : DB_DIALECT=sqlite → ./backend/data/cutnkeep.db (호스트 backend 는 cutnkeep.host.db)
 #   학습 DB (feedbacks·learning_samples) : LEARNING_DB_DIALECT=mariadb, MARIADB_HOST=mariadb, MARIADB_PORT=3306
 #   REDIS_URL=redis://redis:6379/0
 #   LLM_BASE_URL=host.docker.internal (호스트 Ollama)
@@ -40,6 +40,8 @@ services:
       # 컨테이너 내부 DNS — .env 의 localhost/호스트 포트 무시
       # 서비스 DB 는 SQLite (볼륨 ./backend/data), 학습 데이터 기록은 MariaDB
       DB_DIALECT: sqlite
+      # 호스트 backend(.env 의 SQLITE_PATH)와 다른 파일 — 같은 파일을 둘이 쓰면 깨진다
+      SQLITE_PATH: ${DOCKER_SQLITE_PATH:-data/cutnkeep.db}
       LEARNING_DB_DIALECT: mariadb
       # 컨테이너에서는 MariaDB 가 healthy 일 때만 뜨므로 fallback 없이 실패를 드러낸다
       LEARNING_DB_FALLBACK_SQLITE: "false"
@@ -138,6 +140,7 @@ services:
       - .env
     environment:
       DB_DIALECT: sqlite
+      SQLITE_PATH: ${DOCKER_SQLITE_PATH:-data/cutnkeep.db}
       REDIS_URL: redis://redis:6379/0
       BATCH_USE_CELERY: "true"
       LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
