@@ -128,6 +128,9 @@ class Settings(BaseSettings):
     lora_adapter_path: str = Field(default="models/lora", alias="LORA_ADAPTER_PATH")
     # 【수동·튜닝】 프롬프트 해석 RAG — 비슷한 정답 예시(사용자 교정·좋아요·시드)를 LLM 지시문에 붙임
     # (ollama · openai · gemini 에만 적용. lora 는 학습 템플릿이 고정이라 제외)
+    # 프롬프트 해석 체인 (LangChain Core): langchain = 키워드 파서와 대상이 다르면 최대 PROMPT_VOTES 번 물어 다수결, legacy = 한 번만
+    prompt_chain: Literal["legacy", "langchain"] = Field(default="legacy", alias="PROMPT_CHAIN")
+    prompt_votes: int = Field(default=3, ge=1, le=7, alias="PROMPT_VOTES")
     prompt_rag_enabled: bool = Field(default=True, alias="PROMPT_RAG_ENABLED")
     # 기본은 운영 콘솔에서 승인된 교정·좋아요·회원 요청만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 정확도를 낮춤
     # (eval 40건: 없음 95.0% → 시드 포함 90.0~92.5%, docs/guidance/llm-and-vision.md)
@@ -206,6 +209,10 @@ class Settings(BaseSettings):
     mask_grabcut: bool = Field(default=False, alias="MASK_GRABCUT")
     preprocess_clahe: bool = Field(default=False, alias="PREPROCESS_CLAHE")
     mask_other_min_conf: float = Field(default=0.25, ge=0.0, le=1.0, alias="MASK_OTHER_MIN_CONF")
+    # 어려운 사례 수집 — 처리는 ok 였지만 고른 인스턴스의 최소 신뢰도가 이보다 낮으면(로그인 회원 요청만) 학습 후보로 저장 (0 = 끔).
+    # 정답 주석 실험: conf_min<0.4 는 사진의 10% 를 걸러 그중 31% 가 섞임>5% 또는 오선택 (무작위 13% 의 2.4배).
+    # 재시도로는 개선되지 않았으므로(신뢰도 게이트 실험 — 변화 없음) 자동 보정이 아니라 데이터 수집 용도다.
+    hard_example_conf: float = Field(default=0.0, ge=0.0, le=1.0, alias="HARD_EXAMPLE_CONF")
     # 【수동】 배경 덩어리(건물·하늘·도로·나무…) 의미 분할 — SegFormer(ADE20K) ONNX. YOLO(COCO)에 없는 대상용.
     # 파일은 scripts/export_stuff_onnx.py 로 만든다. 없으면 이 경로만 꺼지고 나머지는 그대로 동작한다.
     stuff_seg_enabled: bool = Field(default=True, alias="STUFF_SEG_ENABLED")

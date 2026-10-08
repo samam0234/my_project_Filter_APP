@@ -68,6 +68,17 @@ def _stuff(settings: Settings) -> dict:
     }
 
 
+def _mask(settings: Settings) -> dict:
+    """대상 마스크 처리 설정 — 지정하지 않은 인물·동물·물체가 섞이는 문제를 다루는 값들 (docs/vaildates/leak-diagnosis-*.md)."""
+    return {
+        "exclusive": settings.mask_exclusive,
+        "grabcut": settings.mask_grabcut,
+        "forbid_refine": settings.mask_forbid_refine,
+        "clahe": settings.preprocess_clahe,
+        "hard_example_conf": settings.hard_example_conf,
+    }
+
+
 def _llm(settings: Settings) -> dict:
     provider = (settings.llm_provider or "").lower()
     model = {
@@ -79,6 +90,8 @@ def _llm(settings: Settings) -> dict:
         "provider": provider,
         "model": model,
         "fallback": settings.llm_fallback,
+        "chain": settings.prompt_chain,
+        "votes": settings.prompt_votes if settings.prompt_chain == "langchain" else 1,
         "lora_adapter": bool(settings.lora_base_model),
         "rag_enabled": settings.prompt_rag_enabled,
         "rag_sources": settings.prompt_rag_sources,
@@ -123,6 +136,7 @@ def snapshot(settings: Settings | None = None) -> dict:
         "segmentation": _segmentation(settings),
         "open_vocab": _open_vocab(settings),
         "stuff_seg": _stuff(settings),
+        "mask": _mask(settings),
         "llm": _llm(settings),
         "batch": _batch(settings),
         "video": {

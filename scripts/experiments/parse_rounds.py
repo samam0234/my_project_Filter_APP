@@ -15,7 +15,14 @@
   stability    같은 문장을 N 번 물었을 때 같은 답이 나온 비율
   vote         N 번 답의 다수결(대상 · 효과 · 선택자 조합)로 채점한 결과 — 여러 번 묻는 자기일관성이 얼마나 도움이 되나
 
-실행: python scripts/experiments/parse_rounds.py --parsers ollama,ollama_rag --repeat 3 --out docs/vaildates/parse_rounds_20261008.json
+파서
+  heuristic        LLM 없이 키워드 파서 (backend/app/workflows/nodes.parse_prompt_heuristic)
+  ollama           서비스 LLM, RAG 없음
+  ollama_rag       서비스와 같은 RAG (학습 DB 의 승인된 샘플) — 학습 DB 가 비어 있으면 ollama 와 같다
+  ollama_rag_seed  RAG 지식 베이스 = 시드 train.jsonl (800문장). 평가 문장은 빼서 정답 누수를 막는다
+  ollama_rag_new   위 + train_distractor.jsonl (방해물 학습 문장 — "새 학습 내용" 이 RAG 로 바로 반영되는지)
+
+실행: python scripts/experiments/parse_rounds.py --parsers ollama,ollama_rag_seed,ollama_rag_new --repeat 3 --out docs/vaildates/parse_rounds_20261008.json
 """
 
 from __future__ import annotations
@@ -34,7 +41,30 @@ sys.path.insert(0, str(ROOT / "backend"))
 from eval_parser import _flatten, load_eval, make_parsers  # noqa: E402
 
 SEEDS = ROOT / "training/lora/seed"
-SETS = {"eval": "eval.jsonl", "ext": "eval_ext.jsonl", "distractor": "eval_distractor.jsonl"}
+SETS = {"eval": "eval.jsonl", "ext": "eval_ext.jsonl", "distractor": "eval_distractor.jsonl", "holdout": "eval_holdout.jsonl"}
+
+
+def make_rag_parser(kind: str, rows):
+    """시드(+방해물 학습 문장) 지식 베이스로 RAG 를 붙인 Ollama 파서. 평가 문장은 지식 베이스에서 뺀다."""
+    from app.core.config import Settings
+    from app.services.prompt_llm import parse_prompt_llm
+    from app.services.prompt_rag import ExampleIndex, format_examples, load_examples
+    from app.services.prompt_spec import parsed_to_json
+
+    s = Settings.model_validate({"LLM_PROVIDER": "ollama", "LLM_TIMEOUT_SECONDS": 120})
+    examples = load_examples(SEEDS / "train.jsonl", None)
+    if kind == "new":
+        examples += load_examples(SEEDS / "train_distractor.jsonl", None)
+    held_out = {" ".join(r["prompt"].lower().split()) for r in rows}
+    examples = [e for e in examples if " ".join(e.prompt.lower().split()) not in held_out]
+    index = ExampleIndex(examples)
+    print(f"(ollama_rag_{kind} 지식 베이스 {len(examples)}건)")
+
+    def _parse(text, s=s, index=index):
+        hits = index.search(text, k=s.prompt_rag_top_k, min_score=s.prompt_rag_min_score)
+        return json.loads(parsed_to_json(parse_prompt_llm(text, s, examples=format_examples(hits))))
+
+    return _parse
 
 
 def classify(pred: dict | None, gold: dict) -> dict:
@@ -80,7 +110,10 @@ def main() -> None:
     args.eval_rows = rows
     args.adapter, args.base_model = None, None
     print(f"평가 문장 {len(rows)}개 ({Counter(r['set'] for r in rows)}) × 반복 {args.repeat}")
-    parsers = make_parsers(args.parsers.split(","), args)
+    names = args.parsers.split(",")
+    custom = {n: make_rag_parser(n.rsplit("_", 1)[1], rows) for n in names if n in ("ollama_rag_seed", "ollama_rag_new")}
+    parsers = make_parsers([n for n in names if n not in custom], args) | custom
+    parsers = {n: parsers[n] for n in names}
 
     report = {}
     for pname, parse in parsers.items():

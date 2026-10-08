@@ -196,6 +196,13 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 
 ---
 
+## 대상 마스크 처리 — 지정하지 않은 것이 섞이지 않게
+
+선택한 인스턴스의 마스크에서 **같은 사진의 다른 인스턴스(다른 사람·개·가방·의자…)가 차지한 픽셀을 덜어낸다**(`MASK_EXCLUSIVE=subtract`).
+경계 정제(GrabCut)와 CLAHE 대비 보정은 정답 주석 실험에서 섞임·경계·검출을 해쳐 기본으로 끈다(`MASK_GRABCUT` · `PREPROCESS_CLAHE`).
+결과의 `meta.leak` 에 위험 신호가 담긴다: `conf_min`(고른 인스턴스의 최소 신뢰도 — 낮을수록 섞임·오선택 가능성이 높다),
+`removed`(덜어낸 비율), `touching`·`crowd`(맞닿은 다른 인스턴스), `big_ratio`. 근거: [leak-diagnosis-20261008.md](vaildates/leak-diagnosis-20261008.md).
+
 ## 인식 대상 (target)
 
 | 종류 | 모델 | 대상 |

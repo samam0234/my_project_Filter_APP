@@ -1,0 +1,1370 @@
+{
+ "D-R0-left": {
+  "scenario": "left",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0587,
+    "leak_case5": 0.12,
+    "leak_case15": 0.1,
+    "iou": 0.7916,
+    "cover": 0.8483,
+    "bf": 0.6229,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0587,
+    "leak_case5": 0.12,
+    "leak_case15": 0.1,
+    "iou": 0.7916,
+    "cover": 0.8483,
+    "bf": 0.6229,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0646,
+    "leak_case5": 0.16,
+    "leak_case15": 0.11,
+    "iou": 0.7794,
+    "cover": 0.8523,
+    "bf": 0.5346,
+    "empty": 0
+   },
+   "pick_ok": 0.89,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.067,
+   "final_leak_pick_ok": 0.0268,
+   "final_leak_case5_pick_ok": 0.112,
+   "n_pick_ok": 89,
+   "seconds": 0.919,
+   "det_recall": 0.941,
+   "merged_cases": 0.08
+  }
+ },
+ "D-R0-rank2": {
+  "scenario": "rank2",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.1119,
+    "leak_case5": 0.194,
+    "leak_case15": 0.145,
+    "iou": 0.7439,
+    "cover": 0.8215,
+    "bf": 0.6183,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.1119,
+    "leak_case5": 0.194,
+    "leak_case15": 0.145,
+    "iou": 0.7439,
+    "cover": 0.8215,
+    "bf": 0.6183,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.1236,
+    "leak_case5": 0.226,
+    "leak_case15": 0.177,
+    "iou": 0.7284,
+    "cover": 0.8367,
+    "bf": 0.5417,
+    "empty": 0
+   },
+   "pick_ok": 0.855,
+   "select_leak_pick_ok": 0.0182,
+   "select_leak_case5_pick_ok": 0.094,
+   "final_leak_pick_ok": 0.0337,
+   "final_leak_case5_pick_ok": 0.132,
+   "n_pick_ok": 53,
+   "seconds": 0.362,
+   "det_recall": 0.935,
+   "merged_cases": 0.065
+  }
+ },
+ "D-R0-touching": {
+  "scenario": "touching",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0419,
+    "leak_case5": 0.141,
+    "leak_case15": 0.081,
+    "iou": 0.806,
+    "cover": 0.8735,
+    "bf": 0.6074,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0419,
+    "leak_case5": 0.141,
+    "leak_case15": 0.081,
+    "iou": 0.806,
+    "cover": 0.8735,
+    "bf": 0.6074,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0503,
+    "leak_case5": 0.182,
+    "leak_case15": 0.081,
+    "iou": 0.7931,
+    "cover": 0.8802,
+    "bf": 0.5195,
+    "empty": 1
+   },
+   "pick_ok": 0.909,
+   "select_leak_pick_ok": 0.0231,
+   "select_leak_case5_pick_ok": 0.111,
+   "final_leak_pick_ok": 0.0327,
+   "final_leak_case5_pick_ok": 0.156,
+   "n_pick_ok": 90,
+   "seconds": 0.516,
+   "det_recall": 0.937,
+   "merged_cases": 0.09
+  }
+ },
+ "D-R0-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0214,
+    "leak_case5": 0.113,
+    "leak_case15": 0.01,
+    "iou": 0.8308,
+    "cover": 0.9118,
+    "bf": 0.6466,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0325,
+    "leak_case5": 0.216,
+    "leak_case15": 0.052,
+    "iou": 0.8086,
+    "cover": 0.9208,
+    "bf": 0.5417,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0325,
+   "final_leak_case5_pick_ok": 0.216,
+   "n_pick_ok": 97,
+   "seconds": 0.751
+  }
+ },
+ "D-R0-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0273,
+    "leak_case5": 0.152,
+    "leak_case15": 0.015,
+    "iou": 0.844,
+    "cover": 0.9186,
+    "bf": 0.629,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.037,
+    "leak_case5": 0.258,
+    "leak_case15": 0.061,
+    "iou": 0.828,
+    "cover": 0.9257,
+    "bf": 0.5579,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.037,
+   "final_leak_case5_pick_ok": 0.258,
+   "n_pick_ok": 66,
+   "seconds": 0.594
+  }
+ },
+ "D-R0-car": {
+  "scenario": "car",
+  "desc": "R0 현재(기준)",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0647,
+    "leak_case5": 0.16,
+    "leak_case15": 0.12,
+    "iou": 0.7355,
+    "cover": 0.835,
+    "bf": 0.577,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.0705,
+    "leak_case5": 0.2,
+    "leak_case15": 0.12,
+    "iou": 0.7113,
+    "cover": 0.8558,
+    "bf": 0.4032,
+    "empty": 2
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0705,
+   "final_leak_case5_pick_ok": 0.2,
+   "n_pick_ok": 25,
+   "seconds": 0.62
+  }
+ },
+ "D-R1-left": {
+  "scenario": "left",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0561,
+    "leak_case5": 0.14,
+    "leak_case15": 0.09,
+    "iou": 0.7944,
+    "cover": 0.865,
+    "bf": 0.5435,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0271,
+   "final_leak_case5_pick_ok": 0.11,
+   "n_pick_ok": 91,
+   "seconds": 0.448,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "D-R1-rank2": {
+  "scenario": "rank2",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0891,
+    "leak_case5": 0.258,
+    "leak_case15": 0.129,
+    "iou": 0.7659,
+    "cover": 0.8784,
+    "bf": 0.5621,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0359,
+   "final_leak_case5_pick_ok": 0.196,
+   "n_pick_ok": 56,
+   "seconds": 0.376,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "D-R1-touching": {
+  "scenario": "touching",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0472,
+    "leak_case5": 0.192,
+    "leak_case15": 0.071,
+    "iou": 0.7985,
+    "cover": 0.8827,
+    "bf": 0.521,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0323,
+   "final_leak_case5_pick_ok": 0.176,
+   "n_pick_ok": 91,
+   "seconds": 0.539,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "D-R1-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0196,
+    "leak_case5": 0.125,
+    "leak_case15": 0.021,
+    "iou": 0.8354,
+    "cover": 0.9146,
+    "bf": 0.6544,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.029,
+    "leak_case5": 0.188,
+    "leak_case15": 0.042,
+    "iou": 0.8137,
+    "cover": 0.9234,
+    "bf": 0.547,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.029,
+   "final_leak_case5_pick_ok": 0.188,
+   "n_pick_ok": 96,
+   "seconds": 0.722
+  }
+ },
+ "D-R1-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0253,
+    "leak_case5": 0.169,
+    "leak_case15": 0.031,
+    "iou": 0.8488,
+    "cover": 0.9229,
+    "bf": 0.6375,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.0329,
+    "leak_case5": 0.231,
+    "leak_case15": 0.046,
+    "iou": 0.8332,
+    "cover": 0.9294,
+    "bf": 0.5642,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0329,
+   "final_leak_case5_pick_ok": 0.231,
+   "n_pick_ok": 65,
+   "seconds": 0.542
+  }
+ },
+ "D-R1-car": {
+  "scenario": "car",
+  "desc": "R1 CLAHE 끔",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0658,
+    "leak_case5": 0.167,
+    "leak_case15": 0.125,
+    "iou": 0.7507,
+    "cover": 0.8429,
+    "bf": 0.5962,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0716,
+    "leak_case5": 0.208,
+    "leak_case15": 0.125,
+    "iou": 0.728,
+    "cover": 0.8654,
+    "bf": 0.4219,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0716,
+   "final_leak_case5_pick_ok": 0.208,
+   "n_pick_ok": 24,
+   "seconds": 0.559
+  }
+ },
+ "D-R2-left": {
+  "scenario": "left",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0503,
+    "leak_case5": 0.12,
+    "leak_case15": 0.08,
+    "iou": 0.8057,
+    "cover": 0.8629,
+    "bf": 0.6075,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0203,
+   "final_leak_case5_pick_ok": 0.088,
+   "n_pick_ok": 91,
+   "seconds": 0.086,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "D-R2-rank2": {
+  "scenario": "rank2",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.784,
+    "cover": 0.8679,
+    "bf": 0.6468,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.02,
+   "final_leak_case5_pick_ok": 0.125,
+   "n_pick_ok": 56,
+   "seconds": 0.101,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "D-R2-touching": {
+  "scenario": "touching",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0394,
+    "leak_case5": 0.141,
+    "leak_case15": 0.071,
+    "iou": 0.8099,
+    "cover": 0.8791,
+    "bf": 0.5825,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0237,
+   "final_leak_case5_pick_ok": 0.121,
+   "n_pick_ok": 91,
+   "seconds": 0.088,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "D-R2-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0196,
+    "leak_case5": 0.125,
+    "leak_case15": 0.021,
+    "iou": 0.8354,
+    "cover": 0.9146,
+    "bf": 0.6544,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.02,
+    "leak_case5": 0.125,
+    "leak_case15": 0.031,
+    "iou": 0.8339,
+    "cover": 0.9192,
+    "bf": 0.6312,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.02,
+   "final_leak_case5_pick_ok": 0.125,
+   "n_pick_ok": 96,
+   "seconds": 0.085
+  }
+ },
+ "D-R2-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0253,
+    "leak_case5": 0.169,
+    "leak_case15": 0.031,
+    "iou": 0.8488,
+    "cover": 0.9229,
+    "bf": 0.6375,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.0257,
+    "leak_case5": 0.169,
+    "leak_case15": 0.046,
+    "iou": 0.8469,
+    "cover": 0.9256,
+    "bf": 0.6241,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0257,
+   "final_leak_case5_pick_ok": 0.169,
+   "n_pick_ok": 65,
+   "seconds": 0.078
+  }
+ },
+ "D-R2-car": {
+  "scenario": "car",
+  "desc": "R2 CLAHE 끔 + GrabCut 끔",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0658,
+    "leak_case5": 0.167,
+    "leak_case15": 0.125,
+    "iou": 0.7507,
+    "cover": 0.8429,
+    "bf": 0.5962,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0654,
+    "leak_case5": 0.167,
+    "leak_case15": 0.125,
+    "iou": 0.7513,
+    "cover": 0.8485,
+    "bf": 0.5575,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0654,
+   "final_leak_case5_pick_ok": 0.167,
+   "n_pick_ok": 24,
+   "seconds": 0.107
+  }
+ },
+ "D-R3-left": {
+  "scenario": "left",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8076,
+    "cover": 0.8566,
+    "bf": 0.6361,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0471,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8057,
+    "cover": 0.8593,
+    "bf": 0.6063,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0167,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.091,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "D-R3-rank2": {
+  "scenario": "rank2",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0724,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7845,
+    "cover": 0.8617,
+    "bf": 0.6451,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0723,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7839,
+    "cover": 0.865,
+    "bf": 0.6477,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.096,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "D-R3-touching": {
+  "scenario": "touching",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0391,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8065,
+    "cover": 0.8606,
+    "bf": 0.6077,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0396,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.8047,
+    "cover": 0.8632,
+    "bf": 0.5788,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0191,
+   "final_leak_case5_pick_ok": 0.099,
+   "n_pick_ok": 91,
+   "seconds": 0.102,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "D-R3-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0115,
+    "leak_case5": 0.052,
+    "leak_case15": 0.01,
+    "iou": 0.8369,
+    "cover": 0.9044,
+    "bf": 0.6532,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.0118,
+    "leak_case5": 0.052,
+    "leak_case15": 0.01,
+    "iou": 0.8361,
+    "cover": 0.9091,
+    "bf": 0.6295,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0118,
+   "final_leak_case5_pick_ok": 0.052,
+   "n_pick_ok": 96,
+   "seconds": 0.076
+  }
+ },
+ "D-R3-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0138,
+    "leak_case5": 0.062,
+    "leak_case15": 0.015,
+    "iou": 0.8545,
+    "cover": 0.9158,
+    "bf": 0.6441,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.014,
+    "leak_case5": 0.062,
+    "leak_case15": 0.015,
+    "iou": 0.853,
+    "cover": 0.9187,
+    "bf": 0.6295,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.014,
+   "final_leak_case5_pick_ok": 0.062,
+   "n_pick_ok": 65,
+   "seconds": 0.092
+  }
+ },
+ "D-R3-car": {
+  "scenario": "car",
+  "desc": "R3 CLAHE 끔 + GrabCut 끔 + 겹침 덜어내기",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0603,
+    "leak_case5": 0.167,
+    "leak_case15": 0.083,
+    "iou": 0.7507,
+    "cover": 0.8359,
+    "bf": 0.595,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0599,
+    "leak_case5": 0.167,
+    "leak_case15": 0.083,
+    "iou": 0.7516,
+    "cover": 0.8413,
+    "bf": 0.5552,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0599,
+   "final_leak_case5_pick_ok": 0.167,
+   "n_pick_ok": 24,
+   "seconds": 0.088
+  }
+ },
+ "D-R4-left": {
+  "scenario": "left",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8076,
+    "cover": 0.8566,
+    "bf": 0.6361,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0461,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.7887,
+    "cover": 0.8429,
+    "bf": 0.5419,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.016,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.338,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "D-R4-rank2": {
+  "scenario": "rank2",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0724,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7845,
+    "cover": 0.8617,
+    "bf": 0.6451,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0704,
+    "leak_case5": 0.177,
+    "leak_case15": 0.065,
+    "iou": 0.7618,
+    "cover": 0.8394,
+    "bf": 0.5793,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0147,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.239,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "D-R4-touching": {
+  "scenario": "touching",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0391,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8065,
+    "cover": 0.8606,
+    "bf": 0.6077,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0389,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.7888,
+    "cover": 0.8461,
+    "bf": 0.5218,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0184,
+   "final_leak_case5_pick_ok": 0.088,
+   "n_pick_ok": 91,
+   "seconds": 0.366,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "D-R4-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0115,
+    "leak_case5": 0.052,
+    "leak_case15": 0.01,
+    "iou": 0.8369,
+    "cover": 0.9044,
+    "bf": 0.6532,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.01,
+    "leak_case5": 0.042,
+    "leak_case15": 0.01,
+    "iou": 0.8173,
+    "cover": 0.8959,
+    "bf": 0.5574,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.01,
+   "final_leak_case5_pick_ok": 0.042,
+   "n_pick_ok": 96,
+   "seconds": 0.473
+  }
+ },
+ "D-R4-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0138,
+    "leak_case5": 0.062,
+    "leak_case15": 0.015,
+    "iou": 0.8545,
+    "cover": 0.9158,
+    "bf": 0.6441,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.0118,
+    "leak_case5": 0.046,
+    "leak_case15": 0.015,
+    "iou": 0.8389,
+    "cover": 0.9069,
+    "bf": 0.5692,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0118,
+   "final_leak_case5_pick_ok": 0.046,
+   "n_pick_ok": 65,
+   "seconds": 0.348
+  }
+ },
+ "D-R4-car": {
+  "scenario": "car",
+  "desc": "R4 CLAHE 끔 + 덜어내기 + 금지 구역(GrabCut 유지)",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0603,
+    "leak_case5": 0.167,
+    "leak_case15": 0.083,
+    "iou": 0.7507,
+    "cover": 0.8359,
+    "bf": 0.595,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0548,
+    "leak_case5": 0.125,
+    "leak_case15": 0.083,
+    "iou": 0.7288,
+    "cover": 0.8383,
+    "bf": 0.4285,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0548,
+   "final_leak_case5_pick_ok": 0.125,
+   "n_pick_ok": 24,
+   "seconds": 0.433
+  }
+ },
+ "D-R5-left": {
+  "scenario": "left",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0363,
+    "leak_case5": 0.09,
+    "leak_case15": 0.06,
+    "iou": 0.8079,
+    "cover": 0.8549,
+    "bf": 0.6426,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0331,
+    "leak_case5": 0.08,
+    "leak_case15": 0.06,
+    "iou": 0.8076,
+    "cover": 0.8512,
+    "bf": 0.6412,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0336,
+    "leak_case5": 0.09,
+    "leak_case15": 0.06,
+    "iou": 0.8056,
+    "cover": 0.8538,
+    "bf": 0.6098,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0198,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0169,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.091,
+   "det_recall": 0.976,
+   "merged_cases": 0.07
+  }
+ },
+ "D-R5-rank2": {
+  "scenario": "rank2",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0824,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7747,
+    "cover": 0.8451,
+    "bf": 0.6359,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0801,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7742,
+    "cover": 0.8417,
+    "bf": 0.6352,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0799,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.774,
+    "cover": 0.8449,
+    "bf": 0.6321,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0198,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0177,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.085,
+   "det_recall": 0.972,
+   "merged_cases": 0.048
+  }
+ },
+ "D-R5-touching": {
+  "scenario": "touching",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0361,
+    "leak_case5": 0.12,
+    "leak_case15": 0.07,
+    "iou": 0.8013,
+    "cover": 0.8609,
+    "bf": 0.6084,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.037,
+    "leak_case5": 0.11,
+    "leak_case15": 0.07,
+    "iou": 0.7961,
+    "cover": 0.8459,
+    "bf": 0.6049,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0375,
+    "leak_case5": 0.12,
+    "leak_case15": 0.07,
+    "iou": 0.7944,
+    "cover": 0.8483,
+    "bf": 0.5769,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0245,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0212,
+   "final_leak_case5_pick_ok": 0.11,
+   "n_pick_ok": 91,
+   "seconds": 0.087,
+   "det_recall": 0.965,
+   "merged_cases": 0.09
+  }
+ },
+ "D-R5-all_persons": {
+  "scenario": "all_persons",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0177,
+    "leak_case5": 0.061,
+    "leak_case15": 0.02,
+    "iou": 0.831,
+    "cover": 0.907,
+    "bf": 0.65,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.018,
+    "leak_case5": 0.061,
+    "leak_case15": 0.02,
+    "iou": 0.8299,
+    "cover": 0.9115,
+    "bf": 0.6259,
+    "empty": 1
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.018,
+   "final_leak_case5_pick_ok": 0.061,
+   "n_pick_ok": 99,
+   "seconds": 0.084
+  }
+ },
+ "D-R5-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0225,
+    "leak_case5": 0.074,
+    "leak_case15": 0.029,
+    "iou": 0.8457,
+    "cover": 0.9142,
+    "bf": 0.6406,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0227,
+    "leak_case5": 0.074,
+    "leak_case15": 0.029,
+    "iou": 0.8442,
+    "cover": 0.9172,
+    "bf": 0.6257,
+    "empty": 1
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0227,
+   "final_leak_case5_pick_ok": 0.074,
+   "n_pick_ok": 68,
+   "seconds": 0.076
+  }
+ },
+ "D-R5-car": {
+  "scenario": "car",
+  "desc": "R5 R3 + 신뢰도 0.15",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0258,
+    "leak_case5": 0.16,
+    "leak_case15": 0.04,
+    "iou": 0.7375,
+    "cover": 0.8404,
+    "bf": 0.5649,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.0254,
+    "leak_case5": 0.16,
+    "leak_case15": 0.04,
+    "iou": 0.7391,
+    "cover": 0.8465,
+    "bf": 0.531,
+    "empty": 2
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0254,
+   "final_leak_case5_pick_ok": 0.16,
+   "n_pick_ok": 25,
+   "seconds": 0.09
+  }
+ }
+}

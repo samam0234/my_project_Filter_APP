@@ -240,7 +240,13 @@ def prompt_analyzer(state: GraphState) -> GraphState:
             logger.warning("프롬프트 RAG 검색 실패 job={}: {}", job_id, exc)
     clear_last_llm_provider()
     try:
-        parsed = parse_prompt_llm(prompt, settings, examples=examples)
+        if settings.prompt_chain == "langchain" and settings.prompt_votes > 1:
+            # 키워드 파서와 대상이 다르면 여러 번 물어 다수결 (services/prompt_chain.py, LangChain Core)
+            from app.services.prompt_chain import parse_prompt_chain
+
+            parsed = parse_prompt_chain(prompt, settings, examples=examples)
+        else:
+            parsed = parse_prompt_llm(prompt, settings, examples=examples)
         if parsed is not None:
             # fallback 이 성공하면 기본 provider 가 아니라 실제 성공한 이름을 남긴다.
             # parse_prompt_llm 이 테스트에서 교체되면 기록이 비어 기본 이름을 쓴다.
@@ -530,6 +536,9 @@ def feedback_collector(state: GraphState) -> GraphState:
             "labels": state.get("labels"),
             "detected": state.get("detected"),
             "selection": state.get("selection"),
+            "leak": state.get("leak"),
+            # 처리는 성공했지만 확신이 낮아 모은 사례 — 검수·재학습 때 실패 사례와 구분한다
+            "hard_example": state.get("status") == JobStatus.OK.value,
         },
     )
     return {

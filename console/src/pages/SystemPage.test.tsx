@@ -16,9 +16,10 @@ const SNAP: SystemSnapshot = {
   app_env: "production",
   production: true,
   segmentation: { runtime: "onnx", model_file: "yolo26m-seg.onnx", model_exists: true, prefer_onnx: true, min_confidence: 0.25 },
+  mask: { exclusive: "subtract", grabcut: false, forbid_refine: false, clahe: false, hard_example_conf: 0 },
   stuff_seg: { enabled: true, model_file: "segformer-ade.onnx", model_exists: true, min_prob: 0.5, loaded: true },
   open_vocab: { enabled: true, dino_model_id: "d", sam2_model_id: "s", box_threshold: 0.35, text_threshold: 0.25, loaded: ["dino", "sam2"] },
-  llm: { provider: "ollama", model: "gemma4:e4b", fallback: "ollama", lora_adapter: false, rag_enabled: true, rag_sources: "correction,like" },
+  llm: { provider: "ollama", model: "gemma4:e4b", fallback: "ollama", chain: "langchain", votes: 3, lora_adapter: false, rag_enabled: true, rag_sources: "correction,like" },
   batch: { use_celery: true, redis_ok: false },
   video: { output_format: "webm", max_seconds: 20, max_frames: 240 },
   console: { require_login: true, admins: 2, allow_remote: false },
@@ -53,6 +54,8 @@ describe("SystemPage", () => {
     expect(keys).toEqual(["SECRET_KEY", "CORS_ORIGINS"]);
     expect(screen.getByText("ONNX Runtime")).toBeTruthy();
     expect(screen.getByText("segformer-ade.onnx · 로드됨")).toBeTruthy();
+    expect(screen.getByText("겹침 subtract · GrabCut 끔 · CLAHE 끔")).toBeTruthy();
+    expect(screen.getByText("LangChain · 대상이 갈리면 최대 3번 다수결")).toBeTruthy();
     expect(screen.getByText(/Redis 연결 안 됨/)).toBeTruthy();
     expect(screen.getByText("dino, sam2")).toBeTruthy();
     expect(screen.getByText("13.5 MB")).toBeTruthy();

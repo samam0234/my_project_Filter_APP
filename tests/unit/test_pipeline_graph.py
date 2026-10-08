@@ -122,3 +122,18 @@ def test_worse_retry_does_not_replace_first_attempt(run):
     assert result.status == "fallback"
     assert result.meta["segment_strategy"] == "default"
     assert result.meta["timings"]["segmentor"] >= 0
+
+
+def test_hard_example_routing_is_opt_in_and_members_only(monkeypatch):
+    """처리는 ok 지만 확신이 낮은 선택은(HARD_EXAMPLE_CONF 를 켰을 때, 로그인 회원만) 학습 후보로도 저장된다."""
+    from app.workflows import edges
+
+    settings = get_settings()
+    state = {"status": "ok", "leak": {"conf_min": 0.3}, "persist": True}
+    assert edges.after_validator(state) == "effect_applier"  # 기본 꺼짐
+    monkeypatch.setattr(settings, "hard_example_conf", 0.5)
+    assert edges.after_validator(state) == "feedback_then_effects"
+    assert edges.after_validator({**state, "persist": False}) == "effect_applier"  # 비로그인은 저장하지 않는다
+    assert edges.after_validator({**state, "leak": {"conf_min": 0.8}}) == "effect_applier"  # 확신이 높으면 그대로
+    assert edges.after_validator({**state, "leak": None}) == "effect_applier"  # 신호가 없으면(선택 없음) 그대로
+    assert edges.after_validator({"status": "fallback", "retry_count": 0}) == "retry_segmentor"  # 기존 분기는 그대로

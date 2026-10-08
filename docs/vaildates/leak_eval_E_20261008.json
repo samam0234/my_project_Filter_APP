@@ -1,0 +1,518 @@
+{
+ "E-s-left": {
+  "scenario": "left",
+  "desc": "모델 yolo26s + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0438,
+    "leak_case5": 0.143,
+    "leak_case15": 0.071,
+    "iou": 0.7801,
+    "cover": 0.8514,
+    "bf": 0.5742,
+    "empty": 2
+   },
+   "refine": {
+    "leak": 0.0371,
+    "leak_case5": 0.122,
+    "leak_case15": 0.061,
+    "iou": 0.7788,
+    "cover": 0.8439,
+    "bf": 0.5751,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.037,
+    "leak_case5": 0.122,
+    "leak_case15": 0.061,
+    "iou": 0.7791,
+    "cover": 0.8472,
+    "bf": 0.5585,
+    "empty": 2
+   },
+   "pick_ok": 0.888,
+   "select_leak_pick_ok": 0.0245,
+   "select_leak_case5_pick_ok": 0.103,
+   "final_leak_pick_ok": 0.0209,
+   "final_leak_case5_pick_ok": 0.08,
+   "n_pick_ok": 87,
+   "seconds": 0.529,
+   "det_recall": 0.9,
+   "merged_cases": 0.1
+  }
+ },
+ "E-s-rank2": {
+  "scenario": "rank2",
+  "desc": "모델 yolo26s + R3 후처리",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.1136,
+    "leak_case5": 0.242,
+    "leak_case15": 0.194,
+    "iou": 0.719,
+    "cover": 0.7818,
+    "bf": 0.5922,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.1096,
+    "leak_case5": 0.242,
+    "leak_case15": 0.161,
+    "iou": 0.711,
+    "cover": 0.7681,
+    "bf": 0.5837,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.1094,
+    "leak_case5": 0.242,
+    "leak_case15": 0.161,
+    "iou": 0.7114,
+    "cover": 0.7704,
+    "bf": 0.5824,
+    "empty": 0
+   },
+   "pick_ok": 0.806,
+   "select_leak_pick_ok": 0.0356,
+   "select_leak_case5_pick_ok": 0.16,
+   "final_leak_pick_ok": 0.031,
+   "final_leak_case5_pick_ok": 0.16,
+   "n_pick_ok": 50,
+   "seconds": 0.497,
+   "det_recall": 0.88,
+   "merged_cases": 0.129
+  }
+ },
+ "E-s-touching": {
+  "scenario": "touching",
+  "desc": "모델 yolo26s + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0661,
+    "leak_case5": 0.194,
+    "leak_case15": 0.122,
+    "iou": 0.758,
+    "cover": 0.8416,
+    "bf": 0.5303,
+    "empty": 2
+   },
+   "refine": {
+    "leak": 0.0588,
+    "leak_case5": 0.173,
+    "leak_case15": 0.112,
+    "iou": 0.7502,
+    "cover": 0.8269,
+    "bf": 0.5224,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.0587,
+    "leak_case5": 0.173,
+    "leak_case15": 0.112,
+    "iou": 0.75,
+    "cover": 0.8289,
+    "bf": 0.507,
+    "empty": 2
+   },
+   "pick_ok": 0.857,
+   "select_leak_pick_ok": 0.032,
+   "select_leak_case5_pick_ok": 0.131,
+   "final_leak_pick_ok": 0.0278,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 84,
+   "seconds": 0.519,
+   "det_recall": 0.884,
+   "merged_cases": 0.14
+  }
+ },
+ "E-m-left": {
+  "scenario": "left",
+  "desc": "모델 yolo26m + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8076,
+    "cover": 0.8566,
+    "bf": 0.6361,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0471,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8057,
+    "cover": 0.8593,
+    "bf": 0.6063,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0167,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.372,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "E-m-rank2": {
+  "scenario": "rank2",
+  "desc": "모델 yolo26m + R3 후처리",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0724,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7845,
+    "cover": 0.8617,
+    "bf": 0.6451,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0723,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7839,
+    "cover": 0.865,
+    "bf": 0.6477,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.372,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "E-m-touching": {
+  "scenario": "touching",
+  "desc": "모델 yolo26m + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0391,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8065,
+    "cover": 0.8606,
+    "bf": 0.6077,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0396,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.8047,
+    "cover": 0.8632,
+    "bf": 0.5788,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0191,
+   "final_leak_case5_pick_ok": 0.099,
+   "n_pick_ok": 91,
+   "seconds": 0.383,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "E-l-left": {
+  "scenario": "left",
+  "desc": "모델 yolo26l + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0519,
+    "leak_case5": 0.11,
+    "leak_case15": 0.09,
+    "iou": 0.8036,
+    "cover": 0.8532,
+    "bf": 0.6382,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0494,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8015,
+    "cover": 0.8477,
+    "bf": 0.6393,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0499,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.7995,
+    "cover": 0.8499,
+    "bf": 0.6097,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0166,
+   "select_leak_case5_pick_ok": 0.066,
+   "final_leak_pick_ok": 0.0142,
+   "final_leak_case5_pick_ok": 0.055,
+   "n_pick_ok": 91,
+   "seconds": 0.708,
+   "det_recall": 0.957,
+   "merged_cases": 0.04
+  }
+ },
+ "E-l-rank2": {
+  "scenario": "rank2",
+  "desc": "모델 yolo26l + R3 후처리",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0642,
+    "leak_case5": 0.177,
+    "leak_case15": 0.065,
+    "iou": 0.7929,
+    "cover": 0.8578,
+    "bf": 0.6509,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0602,
+    "leak_case5": 0.129,
+    "leak_case15": 0.048,
+    "iou": 0.7917,
+    "cover": 0.852,
+    "bf": 0.651,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0599,
+    "leak_case5": 0.145,
+    "leak_case15": 0.048,
+    "iou": 0.7916,
+    "cover": 0.8547,
+    "bf": 0.6517,
+    "empty": 0
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0204,
+   "select_leak_case5_pick_ok": 0.14,
+   "final_leak_pick_ok": 0.0161,
+   "final_leak_case5_pick_ok": 0.105,
+   "n_pick_ok": 57,
+   "seconds": 0.734,
+   "det_recall": 0.968,
+   "merged_cases": 0.032
+  }
+ },
+ "E-l-touching": {
+  "scenario": "touching",
+  "desc": "모델 yolo26l + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0332,
+    "leak_case5": 0.1,
+    "leak_case15": 0.07,
+    "iou": 0.8177,
+    "cover": 0.8769,
+    "bf": 0.6186,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0303,
+    "leak_case5": 0.09,
+    "leak_case15": 0.06,
+    "iou": 0.815,
+    "cover": 0.8703,
+    "bf": 0.6178,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0308,
+    "leak_case5": 0.09,
+    "leak_case15": 0.06,
+    "iou": 0.8137,
+    "cover": 0.8728,
+    "bf": 0.5931,
+    "empty": 0
+   },
+   "pick_ok": 0.94,
+   "select_leak_pick_ok": 0.0222,
+   "select_leak_case5_pick_ok": 0.085,
+   "final_leak_pick_ok": 0.0194,
+   "final_leak_case5_pick_ok": 0.074,
+   "n_pick_ok": 94,
+   "seconds": 0.759,
+   "det_recall": 0.961,
+   "merged_cases": 0.05
+  }
+ },
+ "E-x-left": {
+  "scenario": "left",
+  "desc": "모델 yolo26x + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0461,
+    "leak_case5": 0.09,
+    "leak_case15": 0.07,
+    "iou": 0.7969,
+    "cover": 0.842,
+    "bf": 0.6408,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0439,
+    "leak_case5": 0.08,
+    "leak_case15": 0.06,
+    "iou": 0.7955,
+    "cover": 0.8387,
+    "bf": 0.6404,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0443,
+    "leak_case5": 0.09,
+    "leak_case15": 0.06,
+    "iou": 0.7945,
+    "cover": 0.8415,
+    "bf": 0.6167,
+    "empty": 0
+   },
+   "pick_ok": 0.89,
+   "select_leak_pick_ok": 0.0132,
+   "select_leak_case5_pick_ok": 0.056,
+   "final_leak_pick_ok": 0.0112,
+   "final_leak_case5_pick_ok": 0.056,
+   "n_pick_ok": 89,
+   "seconds": 0.999,
+   "det_recall": 0.957,
+   "merged_cases": 0.05
+  }
+ },
+ "E-x-rank2": {
+  "scenario": "rank2",
+  "desc": "모델 yolo26x + R3 후처리",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0989,
+    "leak_case5": 0.194,
+    "leak_case15": 0.097,
+    "iou": 0.7743,
+    "cover": 0.8432,
+    "bf": 0.6486,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0975,
+    "leak_case5": 0.161,
+    "leak_case15": 0.097,
+    "iou": 0.7716,
+    "cover": 0.8379,
+    "bf": 0.6471,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0973,
+    "leak_case5": 0.161,
+    "leak_case15": 0.097,
+    "iou": 0.7708,
+    "cover": 0.8402,
+    "bf": 0.6449,
+    "empty": 0
+   },
+   "pick_ok": 0.887,
+   "select_leak_pick_ok": 0.0157,
+   "select_leak_case5_pick_ok": 0.109,
+   "final_leak_pick_ok": 0.0136,
+   "final_leak_case5_pick_ok": 0.073,
+   "n_pick_ok": 55,
+   "seconds": 0.979,
+   "det_recall": 0.968,
+   "merged_cases": 0.032
+  }
+ },
+ "E-x-touching": {
+  "scenario": "touching",
+  "desc": "모델 yolo26x + R3 후처리",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0316,
+    "leak_case5": 0.1,
+    "leak_case15": 0.05,
+    "iou": 0.8031,
+    "cover": 0.859,
+    "bf": 0.6216,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0285,
+    "leak_case5": 0.08,
+    "leak_case15": 0.04,
+    "iou": 0.8033,
+    "cover": 0.8563,
+    "bf": 0.6225,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0289,
+    "leak_case5": 0.09,
+    "leak_case15": 0.04,
+    "iou": 0.802,
+    "cover": 0.8585,
+    "bf": 0.5982,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0185,
+   "select_leak_case5_pick_ok": 0.088,
+   "final_leak_pick_ok": 0.0156,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.971,
+   "det_recall": 0.953,
+   "merged_cases": 0.06
+  }
+ }
+}
