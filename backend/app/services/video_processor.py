@@ -230,9 +230,14 @@ def process_video(
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
             seg = segmentor.predict(frame, targets=list(parsed.target or ["person"]))
             mask = seg.mask
-            if parsed.selector is not None and seg.instances:
-                picked = select_instances(seg.instances, parsed.selector, frame)
-                mask = union_mask(picked.chosen, frame.shape[:2])
+            if seg.instances:
+                from app.core.config import get_settings
+                from app.services.mask_exclusion import finalize_selection
+
+                chosen = seg.instances
+                if parsed.selector is not None:
+                    chosen = select_instances(seg.instances, parsed.selector, frame).chosen
+                mask, _forbid = finalize_selection(seg, chosen, frame.shape[:2], get_settings())
             if mask is None or not np.any(mask):
                 if previous is not None:
                     mask = previous

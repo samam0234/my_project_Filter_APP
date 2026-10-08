@@ -320,8 +320,8 @@ def preprocessor(state: GraphState) -> GraphState:
 
 
 # 【수동·튜닝】 재시도 전략 — 같은 입력으로 다시 돌리면 결과가 같으므로 조건을 바꾼다
-#   1차: CLAHE 전처리 이미지 + 기본 신뢰도 기준
-#   2차: CLAHE 없는 원본 축소 이미지 + 신뢰도 기준 × RETRY_CONFIDENCE_SCALE
+#   1차: 설정(PREPROCESS_CLAHE, 기본 꺼짐)대로의 입력 + 기본 신뢰도 기준
+#   2차: 반대쪽 전처리 입력 + 신뢰도 기준 × RETRY_CONFIDENCE_SCALE
 RETRY_CONFIDENCE_SCALE = 0.6
 
 
@@ -330,17 +330,19 @@ def segmentor(state: GraphState) -> GraphState:
     job_id = state["job_id"]
     cache = _IMAGE_CACHE.get(job_id) or {}
     retry = int(state.get("retry_count") or 0) > 0
-    pre = cache.get("resized" if retry else "preprocessed")
+    processor = _get_processor()
+    # 기본 입력은 설정 따라 (CLAHE 끔 = 크기만 맞춘 사본), 재시도는 반대쪽 — 한쪽이 못 찾은 것을 다른 쪽이 찾는 경우를 노린다
+    use_clahe = processor.settings.preprocess_clahe != retry
+    pre = cache.get("preprocessed" if use_clahe else "resized")
     if pre is None:
-        pre = cache.get("preprocessed")
+        pre = cache.get("resized") if cache.get("resized") is not None else cache.get("preprocessed")
     if pre is None:
         return {**state, "status": JobStatus.FAILED.value, "error": "전처리 이미지 없음"}
 
     # state 의 dict 를 다시 ParsedPrompt 로
     parsed = ParsedPrompt(**(state.get("parsed_prompt") or {}))
-    processor = _get_processor()
     min_conf = processor.settings.min_confidence * RETRY_CONFIDENCE_SCALE if retry else None
-    strategy = "retry_no_clahe_lowconf" if retry else "default"
+    strategy = "retry_alt_preprocess_lowconf" if retry else "default"
     seg = processor.segmentor.predict(pre, targets=parsed.target, min_confidence=min_conf)
     if retry:
         logger.info("segmentor 재시도 job={} strategy={} min_conf={}", job_id, strategy, min_conf)
@@ -348,8 +350,10 @@ def segmentor(state: GraphState) -> GraphState:
     # selector 가 있으면 같은 클래스 인스턴스 중 일부만 고른다 (위치·개수·색)
     mask, labels, confidences = seg.mask, seg.labels, seg.confidences
     selection = None
+    chosen = list(seg.instances)
     if parsed.selector is not None and seg.instances:
         picked = select_instances(seg.instances, parsed.selector, pre)
+        chosen = list(picked.chosen)
         mask = union_mask(picked.chosen, pre.shape[:2])
         labels = [i.label for i in picked.chosen]
         confidences = [i.confidence for i in picked.chosen]
@@ -364,6 +368,17 @@ def segmentor(state: GraphState) -> GraphState:
         }
         logger.info("instance_selector job={} {}", job_id, selection)
 
+    # 지정하지 않은 사람·동물·물체가 대상에 붙어 남지 않게: 다른 인스턴스 몫을 덜어내고(MASK_EXCLUSIVE),
+    # 경계 정제가 되가져오지 못하게 구역을 기록(MASK_FORBID_REFINE)
+    cache["forbid"] = None
+    leak = None
+    if chosen:
+        from app.services.mask_exclusion import finalize_selection, leak_signals
+
+        before = mask
+        mask, cache["forbid"] = finalize_selection(seg, chosen, pre.shape[:2], processor.settings)
+        leak = leak_signals(seg, chosen, before, mask)
+
     # 마스크·세그 메타를 캐시에 저장
     cache["mask"] = mask
     cache["seg"] = seg
@@ -374,6 +389,7 @@ def segmentor(state: GraphState) -> GraphState:
         "labels": labels,
         "detected": seg.detected,
         "selection": selection,
+        "leak": leak,
         "backend": seg.backend,
         "segment_strategy": strategy,
         "message": "segmented",
@@ -412,7 +428,7 @@ def validator_node(state: GraphState) -> GraphState:
 
 _STATUS_RANK = {JobStatus.OK.value: 2, JobStatus.FALLBACK.value: 1, JobStatus.FAILED.value: 0}
 _ATTEMPT_KEYS = ("status", "quality_score", "message", "error", "labels", "confidences",
-                 "detected", "selection", "segment_strategy")
+                 "detected", "selection", "segment_strategy", "leak")
 
 
 def _keep_best_attempt(scored: GraphState, cache: Dict[str, Any], mask: Any) -> GraphState:
@@ -467,7 +483,10 @@ def effect_applier(state: GraphState) -> GraphState:
     if mask.any():
         # remove_object 는 윤곽까지 지워야 해서 GrabCut 정제 없이 원 마스크 사용.
         # 정제는 여기서 한 번만 — apply_effects 가 또 하면 경계가 깎인다(refine=False)
-        refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original)
+        forbid = cache.get("forbid")
+        if forbid is not None and forbid.shape[:2] != original.shape[:2]:
+            forbid = upscale_mask(forbid, (original.shape[1], original.shape[0]))
+        refined = mask if parsed.effect == "remove_object" else refine_mask(mask, original, forbid)  # GrabCut 은 MASK_GRABCUT
         result_img = apply_effects(original, refined, parsed, refine=False)
     else:
         # 대상 없음: 전부 투명/전부 블러 대신 원본 유지 (status 는 failed 그대로)

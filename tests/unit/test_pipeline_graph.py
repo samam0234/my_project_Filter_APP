@@ -95,11 +95,23 @@ def test_retry_changes_image_and_confidence_and_keeps_better_attempt(run):
     first, second = proc.segmentor.calls
     assert first["min_confidence"] is None
     assert second["min_confidence"] == pytest.approx(get_settings().min_confidence * nodes.RETRY_CONFIDENCE_SCALE)
-    assert not np.array_equal(first["image"], second["image"])  # CLAHE 사본 → 원본 축소본
+    assert not np.array_equal(first["image"], second["image"])  # 1차(리사이즈만) → 2차(반대쪽 = CLAHE 사본)
     assert result.status == "ok"
     assert result.meta["attempts"] == 2
     assert result.meta["chosen_attempt"] == 2
-    assert result.meta["segment_strategy"] == "retry_no_clahe_lowconf"
+    assert result.meta["segment_strategy"] == "retry_alt_preprocess_lowconf"
+
+
+def test_default_input_has_no_clahe_and_option_turns_it_on(run, monkeypatch):
+    """실험(정답 주석 비교)에서 CLAHE 가 검출·선택을 해쳐 기본을 끔으로 했다 — 설정으로 되돌릴 수 있다."""
+    result, proc = run([("good", 0.9)])
+    plain = proc.segmentor.calls[0]["image"]
+    assert result.status == "ok" and plain.max() <= 255
+    monkeypatch.setattr(get_settings(), "preprocess_clahe", True)
+    _, proc2 = run([("good", 0.9)])
+    boosted = proc2.segmentor.calls[0]["image"]
+    assert not np.array_equal(plain, boosted)  # CLAHE 켠 쪽이 밝기 보정(+20) 사본
+    assert int(boosted.mean()) > int(plain.mean())
 
 
 def test_worse_retry_does_not_replace_first_attempt(run):

@@ -192,6 +192,20 @@ class Settings(BaseSettings):
     # (docs/vaildates/open-vocab-20261007.md — COCO 정답으로 측정해 고른 값).
     open_vocab_box_threshold: float = Field(default=0.35, ge=0.05, le=0.95, alias="OPEN_VOCAB_BOX_THRESHOLD")
     open_vocab_text_threshold: float = Field(default=0.25, ge=0.05, le=0.95, alias="OPEN_VOCAB_TEXT_THRESHOLD")
+    # 【수동·튜닝】 세그 입력 크기·NMS — 0 이면 모델 기본값(640, 0.7). 크게 하면 작은 사람·붙은 사람이 나뉘지만 느려진다
+    seg_imgsz: int = Field(default=0, ge=0, le=2048, alias="SEG_IMGSZ")
+    seg_nms_iou: float = Field(default=0.0, ge=0.0, lt=1.0, alias="SEG_NMS_IOU")
+    # 【수동·튜닝】 지정하지 않은 사람·동물·물체가 대상에 붙어 남는 것을 막는다 (services/mask_exclusion.py, docs/vaildates/leak-*.md)
+    #   MASK_EXCLUSIVE   : off | subtract | conf | front — 다른 인스턴스가 차지한 픽셀을 대상에서 덜어내는 규칙
+    #   MASK_FORBID_REFINE: true 면 경계 정제(GrabCut)가 다른 인스턴스 구역을 대상으로 끌어오지 못하게 한다
+    mask_exclusive: Literal["off", "subtract", "conf", "front"] = Field(default="subtract", alias="MASK_EXCLUSIVE")
+    mask_forbid_refine: bool = Field(default=False, alias="MASK_FORBID_REFINE")
+    # 경계 정제(GrabCut)와 대비 보정(CLAHE) — 정답 주석 비교 실험에서 둘 다 켜면 오히려 손해였다
+    # (섞임 6.3→4.6%, 경계 F 0.52→0.61, IoU 0.77→0.81, 선택 정확 0.89→0.91 — docs/vaildates/leak-diagnosis-20261008.md).
+    # 질감이 가는 머리카락 결은 GrabCut 이 조금 더 선명할 수 있어 옵션으로 남긴다.
+    mask_grabcut: bool = Field(default=False, alias="MASK_GRABCUT")
+    preprocess_clahe: bool = Field(default=False, alias="PREPROCESS_CLAHE")
+    mask_other_min_conf: float = Field(default=0.25, ge=0.0, le=1.0, alias="MASK_OTHER_MIN_CONF")
     # 【수동】 배경 덩어리(건물·하늘·도로·나무…) 의미 분할 — SegFormer(ADE20K) ONNX. YOLO(COCO)에 없는 대상용.
     # 파일은 scripts/export_stuff_onnx.py 로 만든다. 없으면 이 경로만 꺼지고 나머지는 그대로 동작한다.
     stuff_seg_enabled: bool = Field(default=True, alias="STUFF_SEG_ENABLED")
