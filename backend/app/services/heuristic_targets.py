@@ -72,11 +72,13 @@ _ONLY = re.compile(r"^\s*(?:[은는이가을를]\s*)?만(?![가-힣])")
 _KEEP_MARK = re.compile(r"^\s*(?:[은는이가을를]\s*)?(?:만(?![가-힣])|남기|남겨|남길|keep|only)")
 _ERASE_MARK = re.compile(r"(?:지워|지우|없애|없앤|제거|치워|삭제|remove|erase|delete)")
 _EXCEPT_MARK = re.compile(
-    r"^\s*(?:[은는이가을를도]\s*)?(?:말고|빼고|제외|빼\b|그대로|놔두|놔 두|두고|내버려|건드리지|except|excluding|without|ignore|ignoring)"
+    r"^\s*(?:[은는이가을를도]\s*)?(?:말고|빼고|제외|빼\b|그대로|놔두|놔 두|두고|내버려|건드리지|(?:지우|없애|제거하|지워|치우|삭제하)지\s*(?:말|마|않)|except|excluding|without|ignore|ignoring)"
 )
 _PRE_KEEP = re.compile(r"\b(?:keep|retain|preserve|only|just)\b[^,.]*$")
 _PRE_ERASE = re.compile(r"\b(?:remove|erase|delete|get rid of|take out)\b[^,.]*$")
-_PRE_EXCEPT = re.compile(r"\b(?:ignore|ignoring|except|excluding|without|but not|not the|(?:don't|do not|dont) touch|leave)\b[^,.]*$")
+_PRE_EXCEPT = re.compile(
+    r"\b(?:ignore|ignoring|except|excluding|without|but not|not the|(?:don't|do not|dont|never) (?:touch|erase|remove|delete)|leave)\b[^,.]*$"
+)
 _AND_JOIN = re.compile(r"^\s*(?:,|와|과|랑|이랑|하고|및|그리고|and|&|/)\s*(?:the\s+|a\s+|an\s+)?$")
 _KEEP_INTENT = re.compile(r"(?:남기|남겨|남길|keep|only|배경|background|블러|blur|흐리|흐릿|뿌옇|흐림|크롭|crop|잘라|오려)")
 
@@ -164,6 +166,8 @@ def analyze(text: str) -> Tuple[List[str], bool]:
         spans.append(text[e:end])
 
     roles: List[str] = []
+    strong_erase: List[bool] = []  # "Y만 지워줘" — 지울 대상을 명시한 것
+    strong_keep: List[bool] = []  # "Y만 남기고" — 남길 대상을 명시한 것
     prefix_based: List[bool] = []  # 역할이 앞쪽 동사(keep/remove …)에서 왔나 — 영어는 "keep A and B" 로 뒤 언급에 이어진다
     for idx, span in enumerate(spans):
         head = span[:14]  # 언급 바로 뒤 표지만 본다 (뒤 절의 표지를 끌어오지 않게)
@@ -184,6 +188,8 @@ def analyze(text: str) -> Tuple[List[str], bool]:
             role = "neutral"
         roles.append(role)
         prefix_based.append(pre)
+        strong_erase.append(bool(only_erase))
+        strong_keep.append(role == "keep" and bool(_ONLY.match(head)) and not only_erase)
     # 이어진 언급은 뒤 언급의 역할을 물려받는다 ("강아지, 고양이만 남기고")
     for idx in range(len(roles) - 2, -1, -1):
         if roles[idx] == "neutral" and _AND_JOIN.match(spans[idx]):
@@ -201,7 +207,10 @@ def analyze(text: str) -> Tuple[List[str], bool]:
     except_ = [n for n, r in zip(names, roles) if r == "except"]
 
     erase_intent = False
-    if keep:
+    strong_erase_names = [n for n, e in zip(names, strong_erase) if e]
+    if strong_erase_names and not any(strong_keep):
+        picked, erase_intent = strong_erase_names, True  # "트럭이랑 버스는 남겨두고 사람들만 지워줘" — 지울 대상을 명시
+    elif keep:
         picked = keep
     elif erase and not _KEEP_INTENT.search(text):
         picked = erase  # "강아지 지워줘" · "강아지만 지워줘" — 지울 대상이 곧 대상

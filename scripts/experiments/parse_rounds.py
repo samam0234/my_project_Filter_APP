@@ -41,7 +41,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from eval_parser import _flatten, load_eval, make_parsers  # noqa: E402
 
 SEEDS = ROOT / "training/lora/seed"
-SETS = {"eval": "eval.jsonl", "ext": "eval_ext.jsonl", "distractor": "eval_distractor.jsonl", "holdout": "eval_holdout.jsonl"}
+SETS = {"eval": "eval.jsonl", "ext": "eval_ext.jsonl", "distractor": "eval_distractor.jsonl", "holdout": "eval_holdout.jsonl", "fresh": "eval_fresh.jsonl"}
 
 
 def make_rag_parser(kind: str, rows):
