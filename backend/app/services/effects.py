@@ -244,13 +244,13 @@ REMOVE_INPAINT_RADIUS = 7
 REMOVE_WORK_SIDE = 1024  # 이보다 크면 축소해서 메운 뒤 마스크 영역만 원본에 합성
 
 
-def apply_remove_object(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """선택 대상을 지우고 주변 배경으로 메운다 (OpenCV Telea inpaint).
+def apply_remove_object(image: np.ndarray, mask: np.ndarray, *, engine: str | None = None) -> np.ndarray:
+    """선택 대상을 지우고 주변 배경으로 메운다.
 
     - 마스크를 살짝 팽창해 윤곽 잔상(헤일로)을 같이 지움
-    - 큰 이미지는 REMOVE_WORK_SIDE 로 축소해 메운 뒤, 마스크 영역만 업스케일 합성
-      (원본의 나머지 픽셀은 그대로 유지)
-    한계: 큰 물체는 번진 느낌이 남음 → Phase 2 에서 LaMa 등 학습형 inpaint 로 교체 후보
+    - engine: "lama"(학습형, 큰 물체도 무늬를 이어 그림 — services/inpaint) · "telea"(OpenCV, 빠르지만 큰 물체는 번짐)
+      None 이면 설정 INPAINT_ENGINE (auto = LaMa 모델이 있으면 LaMa). LaMa 가 실패하면 Telea 로 내려간다
+    - Telea: 큰 이미지는 REMOVE_WORK_SIDE 로 축소해 메운 뒤, 마스크 영역만 업스케일 합성 (나머지 픽셀은 원본 그대로)
     """
     img = image.copy()
     m = mask.copy()
@@ -266,6 +266,17 @@ def apply_remove_object(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     k = max(3, int(max(h, w) * REMOVE_DILATE_RATIO) // 2 * 2 + 1)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
     m = cv2.dilate(m, kernel, iterations=1)
+
+    if engine is None:
+        from app.core.config import get_settings
+
+        engine = get_settings().inpaint_engine
+    if engine in ("auto", "lama"):
+        from app.services.inpaint import lama_inpaint
+
+        filled = lama_inpaint(img, m)
+        if filled is not None:
+            return filled
 
     scale = min(1.0, REMOVE_WORK_SIDE / float(max(h, w)))
     if scale < 1.0:
@@ -287,6 +298,7 @@ def apply_effects(
     *,
     refine: bool = True,
     feather: bool = True,
+    inpaint_engine: str | None = None,
 ) -> np.ndarray:
     """구조화 프롬프트에 따라 효과 적용.
 
@@ -306,7 +318,7 @@ def apply_effects(
     effect = (parsed.effect or "remove_bg").lower()
     if effect == "remove_object":
         # GrabCut 으로 줄이면 윤곽이 남으므로 원 마스크 + 팽창만 사용
-        return apply_remove_object(image, mask)
+        return apply_remove_object(image, mask, engine=inpaint_engine)
 
     if refine:
         refined = refine_mask(mask, image)

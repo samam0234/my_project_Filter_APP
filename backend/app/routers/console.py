@@ -56,6 +56,8 @@ def _console_view(row) -> JobResponse:
         res.after_url = f"/api/v1/console/files/{row.id}/after"
     if res.thumb_url:
         res.thumb_url = f"/api/v1/console/files/{row.id}/thumb"
+    if res.webp_url:
+        res.webp_url = f"/api/v1/console/files/{row.id}/webp"
     return res
 
 
@@ -99,13 +101,13 @@ async def console_batches(limit: int = 50, db: Session = Depends(get_db)) -> lis
 @router.get("/files/{job_id}/{kind}")
 async def console_file(job_id: str, kind: str, db: Session = Depends(get_db)) -> FileResponse:
     """작업 before/after/thumb 파일 (소유자 무관). 사진 · 영상 · GIF 모두 — 경로 규칙은 routers/upload.job_file."""
-    from app.routers.upload import job_file
+    from app.routers.upload import job_file, media_response
 
-    row = JobRepository(db).get(job_id) if kind in ("before", "after", "thumb") else None
+    row = JobRepository(db).get(job_id) if kind in ("before", "after", "thumb", "webp") else None
     path = job_file(row, kind) if row is not None else None
     if path is None:
         raise HTTPException(status_code=404, detail="파일 없음")
-    return FileResponse(path)
+    return media_response(path)
 
 
 # ------------------------------------------------------------------ 학습 데이터 검수 (학습 DB)

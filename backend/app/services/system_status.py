@@ -76,6 +76,10 @@ def _mask(settings: Settings) -> dict:
         "forbid_refine": settings.mask_forbid_refine,
         "clahe": settings.preprocess_clahe,
         "hard_example_conf": settings.hard_example_conf,
+        # 대상 지우기 빈자리 메우기 — 모델 파일 유무만 본다 (여기서 모델을 로드하지 않음)
+        # 설정이 telea 가 아니고 모델 파일이 있으면 LaMa, 아니면 Telea (lama 로 정해도 파일이 없으면 Telea 로 내려간다)
+        "inpaint": "lama" if settings.inpaint_engine != "telea" and settings.inpaint_model_file.is_file() else "telea",
+        "inpaint_model": settings.inpaint_model_file.is_file(),
     }
 
 

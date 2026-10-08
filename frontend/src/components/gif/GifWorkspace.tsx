@@ -189,6 +189,7 @@ export function GifWorkspace() {
               message={result.message}
               note={result.message}
               fileExt=".gif"
+              extraDownload={result.webp_url ? { label: "WebP 저장 (부드러운 경계)", href: resolveAssetUrl(result.webp_url) ?? "", ext: ".webp", title: "GIF 는 반투명을 못 담아 경계가 거칠어요. WebP 는 경계를 부드럽게 유지해요 (대부분의 브라우저·메신저에서 재생)" } : null}
             />
             <p className="text-xs text-slate-500">
               {result.frames}프레임 처리{result.transparent ? " · 투명 배경" : ""}

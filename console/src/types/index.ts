@@ -147,7 +147,16 @@ export interface SystemSnapshot {
   app_env: string;
   production: boolean;
   segmentation: { runtime: "not_loaded" | "ultralytics" | "onnx" | "stub"; model_file: string; model_exists: boolean; prefer_onnx: boolean; min_confidence: number };
-  mask: { exclusive: string; grabcut: boolean; forbid_refine: boolean; clahe: boolean; hard_example_conf: number };
+  mask: {
+    exclusive: string;
+    grabcut: boolean;
+    forbid_refine: boolean;
+    clahe: boolean;
+    hard_example_conf: number;
+    /** 대상 지우기 빈자리 메우기: lama(학습형) · telea · auto(모델 없음 → telea) */
+    inpaint?: string;
+    inpaint_model?: boolean;
+  };
   stuff_seg: { enabled: boolean; model_file: string; model_exists: boolean; min_prob: number; loaded: boolean };
   open_vocab: { enabled: boolean; dino_model_id: string; sam2_model_id: string; box_threshold: number; text_threshold: number; loaded: string[] };
   llm: { provider: string; model: string; fallback: string; chain: string; votes: number; lora_adapter: boolean; rag_enabled: boolean; rag_sources: string };

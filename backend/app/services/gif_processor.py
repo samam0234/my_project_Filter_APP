@@ -1,7 +1,8 @@
 """움직이는 GIF: 프레임마다 영상과 같은 규칙(FrameRenderer)으로 처리해 다시 GIF 로 묶는다.
 
 - 프레임 간격(duration)·반복(loop)은 원본 그대로 둔다
-- 배경 제거는 GIF 의 투명색(1비트)으로 — 알파가 반 이상인 픽셀만 남긴다. 부드러운 경계는 GIF 로는 표현할 수 없다
+- 배경 제거는 GIF 의 투명색(1비트)으로 — 알파가 반 이상인 픽셀만 남긴다. 부드러운 경계는 GIF 로는 표현할 수 없어
+  같은 프레임으로 움직이는 WebP(8비트 알파, 반투명 경계 유지)도 함께 만든다 — 브라우저·메신저 대부분이 재생한다
 - 그 밖의 효과(블러·지우기·크롭)는 불투명 GIF
 - 프레임 수는 GIF_MAX_FRAMES 로 자른다 (프레임마다 세그를 돌리므로 처리 시간이 프레임 수에 비례)
 """
@@ -118,6 +119,32 @@ def encode_gif(rendered: list[np.ndarray], durations: list[int], loop: int, tran
     return buf.getvalue()
 
 
+def encode_webp(rendered: list[np.ndarray], durations: list[int], loop: int) -> bytes:
+    """프레임 목록(BGRA) → 움직이는 WebP. 반투명 경계(깃털 처리한 알파)를 그대로 담는다."""
+    height, width = rendered[0].shape[:2]
+    frames = []
+    for img in rendered:
+        if img.shape[0] != height or img.shape[1] != width:
+            img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
+        if img.ndim == 3 and img.shape[2] == 4:
+            frames.append(Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA), mode="RGBA"))
+        else:
+            frames.append(Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).convert("RGBA"))
+    buf = io.BytesIO()
+    frames[0].save(
+        buf,
+        format="WEBP",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations[: len(frames)],
+        loop=loop,
+        quality=85,
+        method=4,
+        exact=False,
+    )
+    return buf.getvalue()
+
+
 def process_gif(
     data: bytes,
     parsed: ParsedPrompt,
@@ -130,15 +157,23 @@ def process_gif(
 ) -> dict:
     """GIF 바이트 → 처리된 GIF 바이트와 정보.
 
-    반환: data(bytes), frames(처리한 수), total(원본 프레임 수), held, effect, intensity, transparent
+    반환: data(bytes), webp(배경 제거일 때 부드러운 경계의 움직이는 WebP bytes, 아니면 None),
+          frames(처리한 수), total(원본 프레임 수), held, effect, intensity, transparent
     """
     gif = read_gif(data, max_frames, max_pixels)
     renderer = FrameRenderer(parsed, segmentor, smoothing=smoothing, smoothing_weight=smoothing_weight)
     rendered = [renderer.render(frame) for frame in gif.frames]
     transparent = renderer.effect not in ("blur", "remove_object", "crop", "none")
     out = encode_gif(rendered, gif.durations, gif.loop, transparent)
+    webp = None
+    if transparent:
+        try:
+            webp = encode_webp(rendered, gif.durations, gif.loop)
+        except Exception:  # libwebp 가 없는 Pillow 빌드 — GIF 만으로도 결과는 완전하다
+            webp = None
     return {
         "data": out,
+        "webp": webp,
         "frames": len(rendered),
         "total": gif.total,
         "held": renderer.held,

@@ -32,7 +32,7 @@ from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.services.learning_catalog import record_request
 from app.services.prompt_llm import parse_prompt_or_heuristic
-from app.services.video_processor import MEDIA_TYPES, find_result, process_video
+from app.services.video_processor import MEDIA_TYPES, PLAYABLE, find_result, preview_mp4, process_video
 
 router = APIRouter(tags=["video"])
 
@@ -181,6 +181,10 @@ async def process_video_upload(
     )
     result = Path(info["path"])
     await run_in_threadpool(write_thumb, result, root / "thumb.jpg")
+    # 작업 기록에서 원본도 재생되게 — avi · mkv · mov 는 브라우저가 못 연다 (원본 파일은 그대로 둔다)
+    before = src
+    if src.suffix.lower() not in PLAYABLE and await run_in_threadpool(preview_mp4, src, root / "original.mp4"):
+        before = root / "original.mp4"
     held_note = f"검출이 없어 직전 모양을 유지한 프레임 {info['held']}개" if info["held"] else None
     JobRepository(db).save_media(
         job_id=job_id,
@@ -188,7 +192,7 @@ async def process_video_upload(
         prompt=prompt,
         user_id=user.id,
         parsed=info["parsed"],
-        before_path=str(src),
+        before_path=str(before),
         after_path=str(result),
         message=held_note,
     )

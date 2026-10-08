@@ -73,3 +73,5 @@ class JobResponse(BaseModel):
     # image | video | gif — 작업 기록에서 종류별로 다르게 보여 준다 (영상은 thumb_url 을 썸네일로)
     kind: str = "image"
     thumb_url: Optional[str] = None
+    # GIF 배경 제거일 때 반투명 경계를 살린 움직이는 WebP (있을 때만)
+    webp_url: Optional[str] = None

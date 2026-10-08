@@ -34,7 +34,8 @@ services:
         SEG_RUNTIME: ${SEG_RUNTIME:-ultralytics}
     ports:
       # 백엔드 직접 접근은 이 PC 에서만 (사용자는 frontend :80 의 nginx 를 거친다). 다른 기기에서 열려면 BIND_HOST=0.0.0.0
-      - "${BIND_HOST:-127.0.0.1}:8000:8000"
+      # 호스트에서 uvicorn 을 따로 띄워 8000 이 차 있으면 BACKEND_PORT=8001 처럼 바꾼다 (nginx 는 컨테이너끼리 8000 으로 연결)
+      - "${BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
     env_file:
       - .env
     environment:

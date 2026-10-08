@@ -84,6 +84,8 @@ export interface JobResponse {
   kind?: JobKind;
   /** 작업 기록 썸네일 (영상은 첫 프레임 jpg, GIF 는 움직이는 결과) */
   thumb_url?: string | null;
+  /** GIF 배경 제거: 반투명 경계를 살린 움직이는 WebP */
+  webp_url?: string | null;
 }
 
 export type JobKind = "image" | "video" | "gif";
@@ -102,6 +104,8 @@ export interface GifResponse {
   transparent: boolean;
   message?: string | null;
   saved: boolean;
+  /** 배경 제거일 때만: 반투명 경계를 살린 움직이는 WebP (비로그인은 data URL) */
+  webp_url?: string | null;
 }
 
 /** POST /api/v1/feedback 요청 */

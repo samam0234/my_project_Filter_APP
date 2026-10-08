@@ -5,6 +5,7 @@
   GET  /api/v1/files/{id}/before — 원본 (사진 · 영상 · GIF)
   GET  /api/v1/files/{id}/after  — 결과 (사진 · 영상 · GIF)
   GET  /api/v1/files/{id}/thumb  — 작업 기록 썸네일 (영상은 첫 프레임 jpg, 그 밖에는 결과)
+  GET  /api/v1/files/{id}/webp   — GIF 배경 제거의 움직이는 WebP (반투명 경계)
 """
 
 from __future__ import annotations
@@ -162,7 +163,9 @@ def job_file(row, which: str) -> Optional[Path]:
         base = get_settings().upload_path / row.id
         names = {"before": ("before.jpg",), "after": ("after.png", "after.jpg"), "thumb": ("after.png", "after.jpg")}
         return next((base / name for name in names[which] if (base / name).is_file()), None)
-    if which == "before":
+    if which == "webp":  # GIF 배경 제거의 부드러운 경계 판 (after.gif 옆 after.webp)
+        stored = str(Path(row.after_path).with_suffix(".webp")) if kind == "gif" and row.after_path else None
+    elif which == "before":
         stored = row.before_path
     elif which == "after" or kind == "gif":  # GIF 썸네일은 결과 GIF 그대로 (움직이는 썸네일)
         stored = row.after_path
@@ -174,13 +177,26 @@ def job_file(row, which: str) -> Optional[Path]:
     return path if path.is_file() and _inside_uploads(path) else None
 
 
+# 확장자 → MIME 을 직접 정한다. OS 의 mimetypes 표에 없으면(.webp · .mkv 가 Windows 에서) text/plain 이 되고,
+# nosniff 헤더 때문에 브라우저가 이미지·영상으로 보여 주지 않는다
+MEDIA_TYPES = {
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
+    ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".mkv": "video/x-matroska",
+    ".avi": "video/x-msvideo",
+}
+
+
+def media_response(path: Path) -> FileResponse:
+    return FileResponse(path, media_type=MEDIA_TYPES.get(path.suffix.lower(), "application/octet-stream"))
+
+
 def _serve(job_id: str, which: str, db: Session, user: Optional[User]) -> FileResponse:
     from fastapi import HTTPException
 
     path = job_file(owned_job(db, job_id, user), which)
     if path is None:
         raise HTTPException(status_code=404, detail=f"{which} 파일 없음")
-    return FileResponse(path)
+    return media_response(path)
 
 
 @router.get("/files/{job_id}/before")
@@ -201,6 +217,16 @@ async def get_after(
 ) -> FileResponse:
     """처리 후 결과 — 작업 소유자만. 사진은 PNG(배경제거 알파) 우선, 없으면 JPG."""
     return _serve(job_id, "after", db, user)
+
+
+@router.get("/files/{job_id}/webp")
+async def get_webp(
+    job_id: str,
+    db: Session = Depends(get_db),
+    user: Optional[User] = Depends(current_user_optional),
+) -> FileResponse:
+    """GIF 배경 제거 결과의 움직이는 WebP (반투명 경계) — 작업 소유자만, 없으면 404."""
+    return _serve(job_id, "webp", db, user)
 
 
 @router.get("/files/{job_id}/thumb")

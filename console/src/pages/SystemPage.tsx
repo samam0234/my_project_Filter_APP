@@ -154,7 +154,7 @@ export function SystemPage() {
                     "대상 마스크 처리",
                     `겹침 ${snap.mask.exclusive} · GrabCut ${snap.mask.grabcut ? "켬" : "끔"} · CLAHE ${snap.mask.clahe ? "켬" : "끔"}${
                       snap.mask.hard_example_conf > 0 ? ` · 어려운 사례 수집 <${snap.mask.hard_example_conf}` : ""
-                    }`,
+                    }${snap.mask.inpaint ? ` · 지우기 메우기 ${snap.mask.inpaint === "lama" ? "LaMa" : "Telea"}` : ""}`,
                   ],
                   ["가중치", `${snap.segmentation.model_file}${snap.segmentation.model_exists ? "" : " (없음!)"}`],
                   ["신뢰도 기준", String(snap.segmentation.min_confidence)],
