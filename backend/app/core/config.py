@@ -230,6 +230,8 @@ class Settings(BaseSettings):
     # 비중 = 현재 프레임 몫. 0.5 이상이면 이진 마스크라 효과가 없다 (docs/vaildates/edge-tuning-20261008.md)
     video_temporal_smoothing: Literal["flow", "ema", "off"] = Field(default="flow", alias="VIDEO_TEMPORAL_SMOOTHING")
     video_smoothing_weight: float = Field(default=0.3, gt=0.0, lt=0.5, alias="VIDEO_SMOOTHING_WEIGHT")
+    # 【수동】 움직이는 GIF (작업실 GIF 탭). 크기는 사진과 같은 MAX_UPLOAD_SIZE_MB. 프레임마다 세그를 돌려 처리 시간이 프레임 수에 비례
+    gif_max_frames: int = Field(default=120, ge=1, le=1000, alias="GIF_MAX_FRAMES")
 
     # 【수동】 CORS_ORIGINS — 프론트(5173)·콘솔(5174) 배포 도메인을 콤마로 추가
     cors_origins: str = Field(

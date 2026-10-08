@@ -45,9 +45,11 @@ function JobDetail({ jobId }: { jobId: string }) {
     );
   }
 
+  const kind = job.kind ?? "image";
+  // 같은 문장을 같은 종류의 작업 화면에 채운다 (파일은 다시 올려야 함)
   const retry = () => {
     setPrompt(job.prompt);
-    navigate("/studio");
+    navigate(kind === "video" ? "/video" : kind === "gif" ? "/studio?type=gif" : "/studio");
   };
 
   const copyJson = async () => {
@@ -68,7 +70,7 @@ function JobDetail({ jobId }: { jobId: string }) {
         title={job.prompt}
         description={formatDateTime(job.created_at)}
         actions={
-          <Button variant="secondary" onClick={retry} title="같은 문장이 작업실에 채워집니다 (이미지는 다시 올려야 해요)">
+          <Button variant="secondary" onClick={retry} title="같은 문장이 작업 화면에 채워집니다 (파일은 다시 올려야 해요)">
             <Repeat className="h-4 w-4" /> 이 문장으로 다시 작업
           </Button>
         }
@@ -79,17 +81,21 @@ function JobDetail({ jobId }: { jobId: string }) {
           <BeforeAfterViewer
             jobId={job.job_id}
             status={job.status}
-            qualityScore={job.quality_score}
+            qualityScore={kind === "image" ? job.quality_score : null}
             beforeUrl={resolveAssetUrl(job.before_url)}
             afterUrl={resolveAssetUrl(job.after_url)}
             parsedPrompt={job.parsed_prompt}
             message={job.message}
+            note={kind === "image" ? null : job.message}
+            media={kind === "video" ? "video" : "image"}
+            fileExt={kind === "video" ? ".mp4" : kind === "gif" ? ".gif" : undefined}
           />
           <FeedbackPanel key={job.job_id} jobId={job.job_id} parsed={job.parsed_prompt} />
         </div>
 
         <aside className="space-y-4">
           <dl className="space-y-2 card p-4 text-sm">
+            <Row label="종류">{kind === "video" ? "영상" : kind === "gif" ? "GIF" : "사진"}</Row>
             <Row label="작업 ID">
               <code className="break-all text-xs text-slate-300">{job.job_id}</code>
             </Row>

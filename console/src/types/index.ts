@@ -25,6 +25,9 @@ export interface JobResponse {
   message?: string | null;
   feedback_saved: boolean;
   created_at?: string | null;
+  /** image · video · gif (예전 서버 응답에는 없음 → image) */
+  kind?: "image" | "video" | "gif";
+  thumb_url?: string | null;
 }
 
 /** GET /api/v1/console/batches 항목 (전체 회원, 이미지 주소 없음) */

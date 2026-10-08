@@ -146,6 +146,64 @@ class TemporalSmoother:
         return np.where(soft >= 0.5, 255, 0).astype(np.uint8)
 
 
+class FrameRenderer:
+    """프레임 한 장 → 효과 결과 (영상 · GIF 공용).
+
+    프레임마다 세그 → selector 로 인스턴스 고르기 → 겹침 덜어내기(사진과 같은 규칙) → 검출이 없으면 직전 마스크 유지
+    → 시간 스무딩 → 효과. 블러 강도는 프레임 크기에 맞춰 보정한다.
+    render() 는 apply_effects 결과를 그대로 돌려준다 (배경 제거면 BGRA — GIF 는 알파를 투명색으로 쓴다).
+    """
+
+    def __init__(self, parsed: ParsedPrompt, segmentor, *, smoothing: str = "flow", smoothing_weight: float = 0.3) -> None:
+        self.parsed = parsed
+        self.segmentor = segmentor
+        self.effect = (parsed.effect or "remove_bg").lower()
+        self.smoother = TemporalSmoother(smoothing, smoothing_weight) if smoothing in ("flow", "ema") else None
+        self.held = 0  # 검출이 없어 직전 마스크를 다시 쓴 프레임 수
+        self._previous: np.ndarray | None = None
+        self._scaled: dict[tuple[int, int], ParsedPrompt] = {}
+
+    def _fx_parsed(self, width: int, height: int) -> ParsedPrompt:
+        """블러면 프레임 크기에 맞춰 보정한 강도의 ParsedPrompt (크기별 한 번만 만든다)."""
+        if self.effect != "blur":
+            return self.parsed
+        key = (width, height)
+        if key not in self._scaled:
+            self._scaled[key] = self.parsed.model_copy(
+                update={"intensity": _scaled_intensity(self.parsed.intensity, width, height)}
+            )
+        return self._scaled[key]
+
+    def mask(self, frame: np.ndarray) -> np.ndarray:
+        """이 프레임에서 남기거나 지울 대상의 0/255 마스크."""
+        parsed = self.parsed
+        seg = self.segmentor.predict(frame, targets=list(parsed.target or ["person"]))
+        mask = seg.mask
+        if seg.instances:
+            from app.core.config import get_settings
+            from app.services.mask_exclusion import finalize_selection
+
+            chosen = seg.instances
+            if parsed.selector is not None:
+                chosen = select_instances(seg.instances, parsed.selector, frame).chosen
+            mask, _forbid = finalize_selection(seg, chosen, frame.shape[:2], get_settings())
+        if mask is None or not np.any(mask):
+            if self._previous is not None:
+                mask = self._previous
+                self.held += 1
+        else:
+            self._previous = mask.copy()
+        if mask is None:
+            mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+        if self.smoother is not None and self.effect != "remove_object":
+            mask = self.smoother.update(frame, mask)
+        return mask
+
+    def render(self, frame: np.ndarray) -> np.ndarray:
+        """BGR 프레임 → 효과 결과 (BGR, 배경 제거면 BGRA, 크롭이면 크기가 다를 수 있음)."""
+        return apply_effects(frame, self.mask(frame), self._fx_parsed(frame.shape[1], frame.shape[0]))
+
+
 def _open_writer(stem: Path, prefer: str, fps: float, size: tuple[int, int]):
     """prefer 형식부터 시도해 열린 (writer, path, 형식) 을 돌려준다. mp4 는 건너뛴다(별도 변환)."""
     order = [prefer] + [name for name in _FORMATS if name != prefer]
@@ -199,18 +257,8 @@ def process_video(
         limit = min(limit, max(1, int(fps * max_seconds)))
 
     dst.parent.mkdir(parents=True, exist_ok=True)
-    effect = (parsed.effect or "remove_bg").lower()
-    scaled: dict[tuple[int, int], ParsedPrompt] = {}
-    smoother = TemporalSmoother(smoothing, smoothing_weight) if smoothing in ("flow", "ema") else None
-
-    def fx_parsed(width: int, height: int) -> ParsedPrompt:
-        """블러면 프레임 크기에 맞춰 보정한 강도의 ParsedPrompt (크기별 한 번만 만든다)."""
-        if effect != "blur":
-            return parsed
-        key = (width, height)
-        if key not in scaled:
-            scaled[key] = parsed.model_copy(update={"intensity": _scaled_intensity(parsed.intensity, width, height)})
-        return scaled[key]
+    renderer = FrameRenderer(parsed, segmentor, smoothing=smoothing, smoothing_weight=smoothing_weight)
+    effect = renderer.effect
 
     writer = None
     out_path = dst
@@ -218,9 +266,7 @@ def process_video(
     # mp4 는 MJPG 임시 avi 로 쓰고 끝에서 변환, ffmpeg 가 없으면 webm 부터 시도
     write_format = "avi" if ffmpeg else ("webm" if output_format == "mp4" else output_format)
     out_format = write_format
-    previous = None
     frames = 0
-    held = 0
     try:
         while frames < limit:
             ok, frame = capture.read()
@@ -228,27 +274,7 @@ def process_video(
                 break
             if frame.ndim == 2:
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-            seg = segmentor.predict(frame, targets=list(parsed.target or ["person"]))
-            mask = seg.mask
-            if seg.instances:
-                from app.core.config import get_settings
-                from app.services.mask_exclusion import finalize_selection
-
-                chosen = seg.instances
-                if parsed.selector is not None:
-                    chosen = select_instances(seg.instances, parsed.selector, frame).chosen
-                mask, _forbid = finalize_selection(seg, chosen, frame.shape[:2], get_settings())
-            if mask is None or not np.any(mask):
-                if previous is not None:
-                    mask = previous
-                    held += 1
-            else:
-                previous = mask.copy()
-            if mask is None:
-                mask = np.zeros(frame.shape[:2], dtype=np.uint8)
-            if smoother is not None and effect != "remove_object":
-                mask = smoother.update(frame, mask)
-            rendered = _as_bgr(apply_effects(frame, mask, fx_parsed(frame.shape[1], frame.shape[0])), frame.shape[1], frame.shape[0])
+            rendered = _as_bgr(renderer.render(frame), frame.shape[1], frame.shape[0])
             if writer is None:
                 height, width = rendered.shape[:2]
                 writer, out_path, out_format = _open_writer(dst, write_format, fps, (width, height))
@@ -279,7 +305,7 @@ def process_video(
             out_path = final_avi
     return {
         "frames": frames,
-        "held": held,
+        "held": renderer.held,
         "fps": fps,
         "path": str(out_path),
         "format": out_format,

@@ -2,8 +2,9 @@
 
 엔드포인트:
   POST /api/v1/upload          — multipart 파일 + prompt → 파이프라인 실행
-  GET  /api/v1/files/{id}/before — 원본 미리보기
-  GET  /api/v1/files/{id}/after  — 결과 이미지
+  GET  /api/v1/files/{id}/before — 원본 (사진 · 영상 · GIF)
+  GET  /api/v1/files/{id}/after  — 결과 (사진 · 영상 · GIF)
+  GET  /api/v1/files/{id}/thumb  — 작업 기록 썸네일 (영상은 첫 프레임 jpg, 그 밖에는 결과)
 """
 
 from __future__ import annotations
@@ -143,20 +144,53 @@ def _guest_response(result) -> UploadResponse:
     )
 
 
+def _inside_uploads(path: Path) -> bool:
+    try:
+        path.resolve().relative_to(get_settings().upload_path.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def job_file(row, which: str) -> Optional[Path]:
+    """작업의 before/after/thumb 파일 경로. 없거나(보관 기간 경과) 업로드 폴더 밖이면 None.
+
+    사진은 예전부터 고정 이름(before.jpg · after.png|jpg)이고, 영상·GIF 는 DB 에 적힌 경로를 쓴다.
+    """
+    kind = getattr(row, "kind", None) or "image"
+    if kind == "image":
+        base = get_settings().upload_path / row.id
+        names = {"before": ("before.jpg",), "after": ("after.png", "after.jpg"), "thumb": ("after.png", "after.jpg")}
+        return next((base / name for name in names[which] if (base / name).is_file()), None)
+    if which == "before":
+        stored = row.before_path
+    elif which == "after" or kind == "gif":  # GIF 썸네일은 결과 GIF 그대로 (움직이는 썸네일)
+        stored = row.after_path
+    else:  # 영상 썸네일: 처리할 때 만든 첫 프레임
+        stored = str(Path(row.after_path).parent / "thumb.jpg") if row.after_path else None
+    if not stored:
+        return None
+    path = Path(stored)
+    return path if path.is_file() and _inside_uploads(path) else None
+
+
+def _serve(job_id: str, which: str, db: Session, user: Optional[User]) -> FileResponse:
+    from fastapi import HTTPException
+
+    path = job_file(owned_job(db, job_id, user), which)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"{which} 파일 없음")
+    return FileResponse(path)
+
+
 @router.get("/files/{job_id}/before")
 async def get_before(
     job_id: str,
     db: Session = Depends(get_db),
     user: Optional[User] = Depends(current_user_optional),
 ) -> FileResponse:
-    """처리 전 원본(before.jpg) — 작업 소유자만."""
-    from fastapi import HTTPException
-
-    owned_job(db, job_id, user)
-    path = get_settings().upload_path / job_id / "before.jpg"
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="before 이미지 없음")
-    return FileResponse(path)
+    """처리 전 원본 — 작업 소유자만."""
+    return _serve(job_id, "before", db, user)
 
 
 @router.get("/files/{job_id}/after")
@@ -165,13 +199,15 @@ async def get_after(
     db: Session = Depends(get_db),
     user: Optional[User] = Depends(current_user_optional),
 ) -> FileResponse:
-    """처리 후 결과 — 작업 소유자만. PNG(배경제거 알파) 우선, 없으면 JPG."""
-    from fastapi import HTTPException
+    """처리 후 결과 — 작업 소유자만. 사진은 PNG(배경제거 알파) 우선, 없으면 JPG."""
+    return _serve(job_id, "after", db, user)
 
-    owned_job(db, job_id, user)
-    base = get_settings().upload_path / job_id
-    for name in ("after.png", "after.jpg"):
-        path = base / name
-        if path.exists():
-            return FileResponse(path)
-    raise HTTPException(status_code=404, detail="after 이미지 없음")
+
+@router.get("/files/{job_id}/thumb")
+async def get_thumb(
+    job_id: str,
+    db: Session = Depends(get_db),
+    user: Optional[User] = Depends(current_user_optional),
+) -> FileResponse:
+    """작업 기록 썸네일 — 영상은 첫 프레임 jpg, 사진·GIF 는 결과 그대로."""
+    return _serve(job_id, "thumb", db, user)

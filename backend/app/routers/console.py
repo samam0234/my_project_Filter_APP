@@ -54,6 +54,8 @@ def _console_view(row) -> JobResponse:
         res.before_url = f"/api/v1/console/files/{row.id}/before"
     if res.after_url:
         res.after_url = f"/api/v1/console/files/{row.id}/after"
+    if res.thumb_url:
+        res.thumb_url = f"/api/v1/console/files/{row.id}/thumb"
     return res
 
 
@@ -95,17 +97,15 @@ async def console_batches(limit: int = 50, db: Session = Depends(get_db)) -> lis
 
 
 @router.get("/files/{job_id}/{kind}")
-async def console_file(job_id: str, kind: str) -> FileResponse:
-    """작업 before/after 파일 (소유자 무관)."""
-    base = get_settings().upload_path / job_id
-    names = {"before": ("before.jpg",), "after": ("after.png", "after.jpg")}.get(kind)
-    if names is None or "/" in job_id or "\\" in job_id or ".." in job_id:
+async def console_file(job_id: str, kind: str, db: Session = Depends(get_db)) -> FileResponse:
+    """작업 before/after/thumb 파일 (소유자 무관). 사진 · 영상 · GIF 모두 — 경로 규칙은 routers/upload.job_file."""
+    from app.routers.upload import job_file
+
+    row = JobRepository(db).get(job_id) if kind in ("before", "after", "thumb") else None
+    path = job_file(row, kind) if row is not None else None
+    if path is None:
         raise HTTPException(status_code=404, detail="파일 없음")
-    for name in names:
-        path = base / name
-        if path.exists():
-            return FileResponse(path)
-    raise HTTPException(status_code=404, detail="파일 없음")
+    return FileResponse(path)
 
 
 # ------------------------------------------------------------------ 학습 데이터 검수 (학습 DB)

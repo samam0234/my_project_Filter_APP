@@ -1,7 +1,7 @@
 /**
- * 작업 기록 (/history) — 로그인 회원 전용, 본인 작업만. 상태 필터 · 검색.
+ * 작업 기록 (/history) — 로그인 회원 전용, 본인 작업만 (사진 · 영상 · GIF). 종류 · 상태 필터 · 검색.
  *
- * 필터는 URL 쿼리(?status=failed&q=사람)에 남겨 새로고침해도 유지한다.
+ * 필터는 URL 쿼리(?kind=video&status=failed&q=사람)에 남겨 새로고침해도 유지한다.
  */
 import { useMemo } from "react";
 import { RefreshCw, Search } from "lucide-react";
@@ -15,6 +15,12 @@ import { Link, navigate, useSearch } from "../router";
 import { statusLabel } from "../utils/formatters";
 
 const FILTERS = ["all", "ok", "fallback", "failed"] as const;
+const KINDS = [
+  { id: "all", label: "전체" },
+  { id: "image", label: "사진" },
+  { id: "video", label: "영상" },
+  { id: "gif", label: "GIF" },
+] as const;
 
 // 【수동】 한 번에 불러올 개수 (백엔드 상한 200)
 const LIMIT = 120;
@@ -31,6 +37,7 @@ function History() {
   const search = useSearch();
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const status = params.get("status") ?? "all";
+  const kind = params.get("kind") ?? "all";
   const q = params.get("q") ?? "";
   const { data, error, loading, reload } = useJobs(LIMIT);
 
@@ -43,21 +50,28 @@ function History() {
   };
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: data?.length ?? 0, ok: 0, fallback: 0, failed: 0 };
+    // 상태 개수는 고른 종류 안에서, 종류 개수는 전체에서 센다
+    const c: Record<string, number> = { all: 0, ok: 0, fallback: 0, failed: 0 };
+    const k: Record<string, number> = { all: data?.length ?? 0, image: 0, video: 0, gif: 0 };
     data?.forEach((j) => {
+      const jk = j.kind ?? "image";
+      k[jk] = (k[jk] ?? 0) + 1;
+      if (kind !== "all" && jk !== kind) return;
+      c.all += 1;
       c[j.status] = (c[j.status] ?? 0) + 1;
     });
-    return c;
-  }, [data]);
+    return { status: c, kind: k };
+  }, [data, kind]);
 
   const jobs = useMemo(
     () =>
       (data ?? []).filter(
         (j) =>
+          (kind === "all" || (j.kind ?? "image") === kind) &&
           (status === "all" || j.status === status) &&
           (!q.trim() || j.prompt.toLowerCase().includes(q.trim().toLowerCase())),
       ),
-    [data, status, q],
+    [data, kind, status, q],
   );
 
   return (
@@ -65,7 +79,7 @@ function History() {
       <PageHeader
         eyebrow="작업 기록"
         title="내 작업 기록"
-        description={`내가 로그인해서 처리한 작업을 최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
+        description={`내가 로그인해서 처리한 사진 · 영상 · GIF 를 최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
         actions={
           <Button variant="secondary" onClick={reload} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
@@ -74,6 +88,22 @@ function History() {
       />
 
       <div className="flex flex-wrap items-center gap-3">
+        <div role="tablist" aria-label="작업 종류" className="flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
+          {KINDS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={kind === id}
+              onClick={() => setQuery("kind", id)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                kind === id ? "bg-slate-800 text-white shadow-card" : "text-slate-400 hover:text-slate-100"
+              }`}
+            >
+              {label} <span className="text-slate-500">{counts.kind[id] ?? 0}</span>
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-1 rounded-xl border border-slate-800 p-1">
           {FILTERS.map((f) => (
             <button
@@ -84,7 +114,7 @@ function History() {
                 status === f ? "bg-slate-800 text-white" : "text-slate-400 hover:text-slate-100"
               }`}
             >
-              {f === "all" ? "전체" : statusLabel(f)} <span className="text-slate-500">{counts[f] ?? 0}</span>
+              {f === "all" ? "모든 상태" : statusLabel(f)} <span className="text-slate-500">{counts.status[f] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -94,7 +124,7 @@ function History() {
             value={q}
             onChange={(e) => setQuery("q", e.target.value)}
             placeholder="프롬프트 검색"
-            className="w-full rounded-xl border border-slate-800 bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-brand-500"
+            className="field py-2 pl-9"
           />
         </label>
       </div>

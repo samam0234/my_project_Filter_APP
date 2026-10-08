@@ -26,6 +26,7 @@ def _to_response(row) -> JobResponse:
 
     before/after 는 파일 다운로드 엔드포인트 URL 로 변환한다.
     """
+    kind = getattr(row, "kind", None) or "image"
     return JobResponse(
         job_id=row.id,
         prompt=row.prompt,
@@ -38,6 +39,8 @@ def _to_response(row) -> JobResponse:
         message=row.message,
         feedback_saved=bool(row.feedback_saved),
         created_at=row.created_at.isoformat() if row.created_at else None,
+        kind=kind,
+        thumb_url=f"/api/v1/files/{row.id}/thumb" if row.after_path else None,
     )
 
 

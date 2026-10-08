@@ -108,6 +108,7 @@ def get_db() -> Generator[Session, None, None]:
 _ADDED_COLUMNS: list[tuple[str, str, str]] = [
     ("jobs", "user_id", "VARCHAR(32)"),
     ("batch_jobs", "user_id", "VARCHAR(32)"),
+    ("jobs", "kind", "VARCHAR(16)"),
 ]
 
 
