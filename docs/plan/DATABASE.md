@@ -295,11 +295,19 @@ docker compose -p cut_and_keep --env-file .env up -d --build
 2026-10-08 이 상태에서 `jobs` 루트 페이지가 다른 프로세스의 로그 텍스트(OpenCV 경고)로 덮여 DB 가 깨졌고 업로드가 모두 500 이 됐다.
 그래서 호스트 기본은 `cutnkeep.host.db`, Docker 는 `cutnkeep.db` 로 나눴다. 두 값을 같게 맞추지 않는다.
 
+### 자동 백업
+
+서비스 DB 가 SQLite 면 백엔드가 기동 직후 + `DB_BACKUP_HOURS`(기본 24)마다 `backend/data/backups/{파일명}-YYYYmmdd-HHMMSS.db` 로
+SQLite 온라인 백업을 만들고 최근 `DB_BACKUP_KEEP`(기본 7)개만 남긴다 (`app/services/db_backup.py`).
+백업본도 `quick_check` 로 확인해 원본이 이미 깨졌으면 그 백업은 버린다 — 좋은 백업이 밀려나지 않게.
+아래 복구 절차에서 **가장 최근 백업을 `cutnkeep.db` 로 두는 것**이 첫 번째 방법이다.
+
 ### 손상 복구
 
 기동 시 `PRAGMA quick_check` 결과가 `ok` 가 아니면 `서비스 DB 손상 감지` 오류 로그가 남는다 (`app/db/session.py:check_sqlite_integrity`).
 
 1. backend(와 worker) 컨테이너를 멈춘다 — `docker stop cut_and_keep-backend-1`
+   - 백업이 있으면: 원본을 이름 바꿔 보존하고 `backend/data/backups/` 의 가장 최근 파일을 `cutnkeep.db` 로 복사한 뒤 4번으로
 2. 원본을 지우지 말고 이름을 바꿔 보존한다 — 예: `cutnkeep.corrupt-YYYYMMDD.db` (`*.db` 라 git 에 안 들어간다)
 3. 복사본에서 읽히는 테이블(`users` · `auth_sessions` 등)을 같은 스키마(`sqlite_master.sql`)로 만든 새 파일에 옮긴다. 읽히지 않는 `jobs` 는 보존 기한이 지나면 의미가 없으므로 버려도 된다
 4. 새 파일을 `cutnkeep.db` 로 두고 backend 를 다시 띄운 뒤 업로드 한 번으로 확인한다

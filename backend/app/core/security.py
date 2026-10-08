@@ -4,6 +4,7 @@
 실패 시 FileValidationError → HTTP 400 으로 변환.
 """
 
+import io
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -58,6 +59,29 @@ def validate_image_signature(data: bytes) -> str:
     raise FileValidationError("이미지 파일이 아닙니다 (JPEG · PNG · WebP 만 가능).")
 
 
+def validate_image_pixels(data: bytes, max_pixels: int) -> tuple[int, int]:
+    """디코딩하지 않고 머리말만 읽어 가로×세로가 max_pixels 이하인지 확인. 반환: (가로, 세로), 못 읽으면 (0, 0).
+
+    파일 크기 제한(20MB)만으로는 압축 폭탄을 못 막는다 — 단색 30000×30000 PNG 는 수백 KB 지만 풀면 2.7GB.
+    """
+    from PIL import Image
+
+    try:
+        with Image.open(io.BytesIO(data)) as im:  # 지연 로드: 크기만 읽는다
+            width, height = im.size
+    except Image.DecompressionBombError as exc:
+        raise FileValidationError("이미지 해상도가 너무 큽니다.") from exc
+    except Exception:
+        # 머리말을 못 읽는 손상 파일은 여기서 막지 않는다 — 이후 디코딩 단계가 "읽을 수 없음"으로 처리한다
+        # (배치는 그 한 장만 실패로 두고 나머지를 계속 처리해야 한다)
+        return 0, 0
+    if width * height > max_pixels:
+        raise FileValidationError(
+            f"이미지 해상도가 너무 큽니다 ({width}×{height}). {max_pixels // 1_000_000}MP 이하로 줄여 주세요."
+        )
+    return width, height
+
+
 _MP4_BOXES = (b"ftyp", b"moov", b"mdat", b"wide", b"free", b"skip")  # MP4 · MOV 의 첫 박스
 
 
@@ -92,4 +116,5 @@ async def validate_upload_file(
             f"파일이 최대 크기를 초과합니다: {settings.max_upload_size_mb}MB."
         )
     validate_image_signature(data)
+    validate_image_pixels(data, settings.max_image_pixels)
     return data
