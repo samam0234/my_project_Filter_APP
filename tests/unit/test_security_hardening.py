@@ -204,6 +204,17 @@ def test_cleanup_uploads_removes_only_expired(tmp_path, monkeypatch):
     assert not old.parent.exists()  # 빈 폴더도 정리
 
 
+def test_cleanup_keeps_placeholder_files(tmp_path):
+    """자동 정리가 저장소의 .gitkeep 을 지우면 git 에 삭제로 잡힌다 — 숨김 파일은 건드리지 않는다."""
+    from app.services.retention import cleanup_dir
+
+    keep = tmp_path / ".gitkeep"
+    keep.write_text("")
+    stamp = time.time() - 48 * 3600
+    os.utime(keep, (stamp, stamp))
+    assert cleanup_dir(tmp_path, 24).removed_files == 0 and keep.exists()
+
+
 def test_maintenance_starts_enabled_jobs_only(monkeypatch, tmp_path):
     from app.services import maintenance
 

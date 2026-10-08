@@ -36,6 +36,8 @@ def cleanup_dir(path: Path, max_age_hours: float, *, dry_run: bool = False) -> C
     # topdown=False: 하위부터 순회해 빈 폴더 rmdir 이 가능하도록
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
+            if name.startswith("."):  # .gitkeep 같은 자리표시 파일은 지우지 않는다 (저장소가 폴더를 기억하게 둔 것)
+                continue
             fp = Path(root) / name
             try:
                 stat = fp.stat()
