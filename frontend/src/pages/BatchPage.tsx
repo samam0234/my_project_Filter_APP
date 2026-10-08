@@ -69,7 +69,7 @@ function ProgressCard({ status }: { status: BatchStatus }) {
   const progress = Math.round((status.progress ?? 0) * 100);
   const running = !FINISHED.has(status.status);
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
+    <div className="space-y-3 card p-4 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <code className="break-all text-xs text-slate-400">{status.job_id}</code>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-200">
@@ -216,18 +216,20 @@ function Batch() {
         <section className="space-y-4 lg:col-span-2">
           <div
             {...getRootProps()}
-            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition ${
-              isDragActive ? "border-brand-500 bg-brand-500/10" : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
+            className={`group cursor-pointer rounded-2xl border-2 border-dashed px-6 py-8 text-center transition ${
+              isDragActive ? "border-brand-400 bg-brand-500/10" : "border-slate-700 bg-slate-900/40 hover:border-brand-500/60 hover:bg-slate-900/70"
             }`}
           >
             <input {...getInputProps()} />
-            <Layers className="mx-auto h-8 w-8 text-slate-400" />
-            <p className="mt-2 text-sm text-slate-100">이미지 여러 장을 드래그하거나 클릭</p>
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-inset ring-brand-500/25 transition group-hover:scale-105">
+              <Layers className="h-6 w-6 text-brand-400" />
+            </span>
+            <p className="mt-3 text-sm font-medium text-slate-100">이미지 여러 장을 드래그하거나 클릭</p>
             <p className="text-xs text-slate-500">JPEG / PNG / WebP · 장당 20MB · 최대 {MAX_FILES}장</p>
           </div>
 
           {files.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-slate-800 p-3">
+            <div className="card space-y-2 p-3">
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>
                   {files.length}장 · {formatFileSize(totalSize)}
@@ -260,7 +262,7 @@ function Batch() {
             <input
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-brand-500"
+              className="field"
             />
           </label>
           <Button onClick={() => void submit()} disabled={submitting || !files.length || !prompt.trim()}>

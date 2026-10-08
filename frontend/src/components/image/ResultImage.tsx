@@ -17,7 +17,7 @@ export function ResultImage({ src, alt, checker = false, className = "" }: Props
   if (!src || broken) {
     return (
       <div
-        className={`flex aspect-[4/3] items-center justify-center rounded-xl bg-slate-800/60 px-2 text-center text-xs text-slate-500 ${className}`}
+        className={`flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-slate-800 bg-slate-900/60 px-4 text-center text-xs text-slate-500 ${className}`}
       >
         {src ? "이미지를 불러오지 못했어요 (보관 기간이 지났을 수 있어요)" : "이미지 없음"}
       </div>
@@ -29,7 +29,7 @@ export function ResultImage({ src, alt, checker = false, className = "" }: Props
       alt={alt}
       loading="lazy"
       onError={() => setBroken(true)}
-      className={`w-full rounded-xl border border-slate-800 object-contain ${
+      className={`w-full rounded-xl border border-slate-800/80 object-contain ${
         checker ? "bg-checker" : "bg-slate-900"
       } ${className}`}
     />

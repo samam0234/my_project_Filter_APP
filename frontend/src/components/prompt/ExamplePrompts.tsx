@@ -18,7 +18,7 @@ export function ExamplePrompts({ onPick, limit }: Props) {
           type="button"
           title={ex.point}
           onClick={() => onPick(ex.text)}
-          className="max-w-full rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-left text-xs text-slate-300 transition hover:border-brand-500 hover:text-white"
+          className="max-w-full rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-left text-xs text-slate-300 transition hover:-translate-y-px hover:border-brand-500/60 hover:bg-brand-500/10 hover:text-white"
         >
           {ex.text}
         </button>

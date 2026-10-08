@@ -17,7 +17,7 @@ export function AuthCard({
 }) {
   return (
     <div className="mx-auto w-full max-w-md py-6">
-      <div className="space-y-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl shadow-black/20 sm:p-8">
+      <div className="space-y-6 card p-6 shadow-xl shadow-black/30 sm:p-8">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-white">{title}</h1>
           {description && <p className="text-sm text-slate-400">{description}</p>}
@@ -36,7 +36,7 @@ interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/40 aria-[invalid=true]:border-rose-600";
+  "field aria-[invalid=true]:border-rose-600 aria-[invalid=true]:focus:ring-rose-500/30";
 
 export function Field({ label, hint, error, id, ...rest }: FieldProps) {
   const auto = useId();
