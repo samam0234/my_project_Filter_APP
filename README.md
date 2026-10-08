@@ -2,6 +2,21 @@
 
 프롬프트로 원하는 대상만 남기고 배경을 제거하는 지능형 필터 앱
 
+## 할 수 있는 것
+
+| 기능 | 예시 문장 | 결과 |
+|------|-----------|------|
+| 원하는 것만 남기기 | "강아지만 남기고 배경 제거" | 투명 PNG (배경 블러 · 크롭도) |
+| 특정 한 명·하나 고르기 | "맨 앞 빨간 안전모 쓴 사람만", "왼쪽에서 두 번째 사람" | 위치 · 순서 · 개수 · 색으로 고름 |
+| 필요 없는 것 지우기 | "오른쪽 사람 지워줘" | 학습형 인페인팅(**LaMa**)으로 주변 무늬를 이어 그려 메움 |
+| 배경 덩어리 | "건물만 남기고 하늘 블러" | 건물 · 하늘 · 도로 등 14종 (SegFormer) |
+| **움직이는 GIF** | 작업실 GIF 탭 | 프레임마다 처리, 투명 GIF + 부드러운 경계 WebP |
+| **짧은 영상** | 영상 화면 (최대 20초) | H.264 mp4, 프레임 사이 흔들림 보정 |
+| 배치 (회원) | 같은 문장으로 최대 500장 | zip 으로 받기 |
+| 작업 기록 (회원) | 사진 · 영상 · GIF 를 모아 보기 · 다시 받기 · 평가/정답 알려주기 | 교정 문장은 검수 후 학습(RAG · LoRA) |
+
+비로그인도 바로 처리·다운로드할 수 있고(서버에 남기지 않음), 회원 파일은 서버에 24시간 보관 후 자동으로 지워진다.
+
 ## 문서
 
 | 문서 | 설명 |
@@ -15,6 +30,9 @@
 | [docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md](docs/plan/DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md) | 환경·실행·배포 |
 | [training/README.md](training/README.md) | YOLO 학습 · 실행 전 설정 |
 | [RUN.md](./RUN.md) | 로컬 3터미널 + Docker 실행 |
+| [docs/guidance/security.md](docs/guidance/security.md) | **배포 전 보안·운영 점검표** |
+| [docs/guidance/learning-loop.md](docs/guidance/learning-loop.md) | 새 학습 내용이 RAG · LangChain · LangGraph · LoRA 로 들어가는 경로 |
+| [docs/vaildates/README.md](docs/vaildates/README.md) | 검증·실험 결과 모음 (수치 근거) |
 
 ## 빠른 시작 (Phase 1)
 
@@ -30,7 +48,7 @@ python -m venv .venv
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000   # 다른 기기에서 열 때만 0.0.0.0
 
 # Frontend (사용자 앱)
 cd ../frontend
@@ -49,6 +67,15 @@ npm run dev
 | Frontend (사용자) | http://localhost:5173 |
 | **Console (운영)** | http://localhost:5174 |
 
+**Docker** (사용자 앱은 nginx 로 http://localhost) — 자세히는 [docs/guidance/docker-run.md](docs/guidance/docker-run.md)
+
+```bash
+docker compose -p cut_and_keep --env-file .env up -d --build
+# 호스트에서 uvicorn 을 따로 띄워 8000 이 차 있으면: BACKEND_PORT=8001 docker compose -p cut_and_keep --env-file .env up -d
+```
+
+backend · MariaDB · Redis · Adminer 포트는 이 PC(127.0.0.1)에만 열린다 (`BIND_HOST`). 공개는 :80 하나.
+
 문서 허브: [docs/README.md](docs/README.md)  
 실행 가이드: [RUN.md](./RUN.md)  
 테스트: [tests/README.md](./tests/README.md) · [docs/plan/TESTING.md](./docs/plan/TESTING.md)  
@@ -66,7 +93,7 @@ npm run dev
 | [backend/](./backend/README.md) | ✅ | FastAPI API · 파이프라인 · DB |
 | [frontend/](./frontend/README.md) | ✅ | 사용자 웹 앱 (:5173) |
 | [console/](./console/README.md) | ✅ | 운영 콘솔 (:5174) |
-| [scripts/](./scripts/README.md) | ✅ | ONNX 변환, cleanup 등 |
+| [scripts/](./scripts/README.md) | ✅ | ONNX 변환, 정리, LoRA 재학습, 실험 평가 |
 | [training/](./training/README.md) | ✅ | **YOLO detect/seg · LoRA 학습 구역** |
 | [tests/](./tests/README.md) | ✅ | **pytest 실행 전 검증** |
 | [data/](./data/README.md) | ✅ | 업로드·피드백·SQLite |
@@ -81,12 +108,13 @@ npm run dev
 ## 아키텍처 요약
 
 ```
-frontend(:5173) ─┐
-console(:5174)  ─┼→ backend(:8000) → Repositories → SQLite | MariaDB
-                 └→ files: backend/data/uploads (런타임) · data/feedback (학습 공유)
+frontend(:5173 · Docker :80 nginx) ─┐
+console(:5174)                       ─┼→ backend(:8000) → Repositories → 서비스 DB SQLite (+ 자동 백업)
+                                      │                                 → 학습 DB MariaDB
+                                      └→ files: backend/data/uploads (24시간 뒤 자동 정리) · data/feedback (학습 공유)
 ```
 
-처리 파이프라인: **보안 검증 → 프롬프트 분석 → 전처리 → 세그멘테이션 → 효과 → 검증 → DB 저장 / 피드백**
+처리 파이프라인 (LangGraph): **보안 검증 → 프롬프트 분석(LLM + 키워드 파서 다수결, LangChain) → 전처리 → 세그멘테이션(YOLO26m-seg · SegFormer, 겹침 덜어내기) → 검증·재시도 → 효과(배경 제거 · 블러 · 크롭 · LaMa 지우기) → DB 저장 / 피드백**
 
 계층: `schemas` · `routers` · `repositories` · `models`(ORM) · `db`  
 DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)  
@@ -98,9 +126,9 @@ DB 설계: [docs/plan/DATABASE.md](docs/plan/DATABASE.md)
 
 | Phase | 범위 |
 |-------|------|
-| **1 (현재)** | 단일 이미지, YOLO-seg, LangGraph, LLM 프롬프트 분석(Ollama · LoRA), **특정 인스턴스 선택 · 물체 지우기**, 피드백 UI |
-| **2** | 배치 500장(처리·결과 받기·화면 ✅), 영상(프레임 세그·직전 마스크 유지·화면 ✅), Grounding DINO + SAM2(코드 있음·가중치 필요), 학습형 inpaint(LaMa), LoRA 고도화(승인 데이터 재학습 루프 ✅) |
-| **3** | 영상 프레임 간 추적(광학 흐름·LSTM) + Temporal Smoothing, Docker 배포 고도화 |
+| **1** ✅ | 단일 이미지, YOLO-seg, LangGraph, LLM 프롬프트 분석(Ollama · LoRA), 특정 인스턴스 선택 · 물체 지우기, 피드백 UI |
+| **2** ✅ | 배치 500장, 영상(mp4 · 작업 기록), **GIF**(투명 GIF + WebP), 배경 덩어리(SegFormer), 학습형 지우기(**LaMa**), 해석 체인(LangChain 다수결), LoRA 재학습 루프, Grounding DINO + SAM2(코드 있음·가중치 필요) |
+| **3** (진행) | 영상 프레임 간 흐름 보정(✅ 광학 흐름 스무딩) · 추적(LSTM 등), 배포(HTTPS · SMTP · 개인정보 처리방침 — [security.md](docs/guidance/security.md)), YOLO 재학습(승인 데이터가 쌓이면) |
 
 ## 라이선스
 

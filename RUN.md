@@ -88,7 +88,7 @@ pip install -r requirements.txt
 # 가벼운 Docker와 비슷하게: pip install -r requirements.docker.txt
 
 cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000   # 다른 기기에서 열 때만 0.0.0.0
 ```
 
 확인:
@@ -135,11 +135,14 @@ docker compose -p cut_and_keep ps
 
 | 컨테이너 | 포트 |
 |----------|------|
-| backend | http://localhost:8000 |
-| frontend | http://localhost (80) |
-| mariadb | localhost:**MARIADB_PORT** (예 3309) → 3306 |
-| redis | localhost:6380 → 6379 |
-| adminer | http://localhost:8081 |
+| frontend | http://localhost (80) — **유일한 공개 포트** |
+| backend | http://127.0.0.1:8000 (`BACKEND_PORT`) |
+| mariadb | 127.0.0.1:**MARIADB_PORT** (예 3309) → 3306 |
+| redis | 127.0.0.1:6380 → 6379 |
+| adminer | http://127.0.0.1:8081 |
+
+- 위 실행(로컬 uvicorn)을 켜 둔 채 Docker 를 올리면 8000 이 겹쳐 backend 컨테이너가 뜨지 않는다 → `BACKEND_PORT=8001` 을 앞에 붙인다
+- 로컬 uvicorn 은 `backend/data/cutnkeep.host.db`, Docker 는 `cutnkeep.db` 를 쓴다 (같은 파일을 쓰면 깨짐)
 
 로그:
 

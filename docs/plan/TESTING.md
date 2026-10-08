@@ -68,18 +68,26 @@ push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 
 | console | frontend 와 같음 |
 
 - 모델(ultralytics·torch)이 필요한 테스트는 `importorskip` 으로 건너뛰고 세그는 stub 마스크로 동작
-- 로컬에서 CI 와 같은 조건 확인 (2026-10-06, 깨끗한 venv · `.env` 없이 204 passed):
+- 로컬 전체: 2026-10-09 기준 **백엔드 405 · 프론트 50 · 콘솔 21** 통과
+- 로컬에서 CI 와 같은 조건 확인 (2026-10-06, 깨끗한 venv · `.env` 없이 204 passed — 이후 테스트가 늘었다):
   `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 `.env` 가 없는 폴더에서 pytest
 - 아직 원격에 push 하지 않아 실제 Actions 실행은 확인 전
 
 ### 프론트 · 콘솔 테스트 (vitest + Testing Library, jsdom)
 
 ```powershell
-cd frontend; npm test      # 16건 — 회원 전용 화면 잠금, 로그인 상태, 라우터, 프롬프트 입력, 포맷
-cd console;  npm test      # 4건 — 학습 데이터 검수 (목록·승인·정답 수정 JSON 검증·삭제 확인)
+cd frontend; npm test      # 50건 — 회원 전용 화면, 로그인, 라우터, 프롬프트 입력, 배치, 영상, GIF 탭, 작업 기록(종류 필터), 포맷
+cd console;  npm test      # 21건 — 학습 데이터 검수, 회원 관리, 시스템·정리, 로그인
 ```
 
 테스트 파일(`*.test.ts[x]`)은 `tsconfig.app.json` 에서 빼 프로덕션 빌드와 분리한다.
+
+### 테스트가 실제 데이터를 건드리지 않게
+
+- API 테스트는 `tests/unit/conftest.py` 의 `api_env` — 메모리 SQLite, 업로드·피드백 폴더를 임시 폴더로
+- 업로드를 만드는 서비스 테스트도 `monkeypatch.setattr(get_settings(), "upload_dir", tmp)` 로 (실제 `backend/data/uploads` 금지)
+- 설정 기본값을 검사하는 테스트는 로컬 `.env` 에 흔들리지 않게 값을 직접 넣는다 (`test_preflight.py` 의 `DEV_DEFAULTS`)
+- 호스트에서 `uvicorn --reload` 가 떠 있으면 코드를 고칠 때마다 재시작하며 기동 작업(자동 정리 · 백업)이 실제 `backend/data` 에서 돈다 — 테스트와 무관하지만 헷갈리지 말 것
 
 ---
 

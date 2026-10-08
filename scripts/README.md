@@ -7,7 +7,8 @@
 | 스크립트 | 용도 |
 |----------|------|
 | `convert_to_onnx.py` | YOLO 가중치 → ONNX 변환 |
-| `cleanup.py` | 오래된 업로드 임시 파일 삭제 (보관 시간) |
+| `cleanup.py` | 오래된 업로드 파일 삭제 (보관 시간). **백엔드가 매시간 자동으로 같은 정리를 한다** — 손으로 돌릴 때만 |
+| `export_stuff_onnx.py` | 배경 덩어리용 SegFormer → ONNX (`backend/models/segformer-ade.onnx`) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
 | `retrain_lora.py` | 승인 사용자 문장이 기준 이상 쌓이면 증강·학습·평가·배포본 비교 (`--deploy` 로 교체) |
 | `fine_tune_lora.py` | Phase 2 LoRA 주간 배치 래퍼 (`training/lora/train_lora.py` 호출) |
@@ -18,6 +19,12 @@
 | `experiments/seg_model_compare.py` | 세그 모델 공정 비교 (COCO val2017, 검출률·오검출·선택 정확도) — `docs/plan/YOLO26M_DEFAULT.md` |
 | `experiments/ui_check.py` | 브라우저 직접 확인 9개 흐름 (Playwright, 테스트 계정 자동 정리) — `docs/vaildates/ui-check-20261006.md` |
 | `experiments/load_test.py` | 동시 업로드 부하 (실서버 필요) — 결과는 `docs/vaildates/experiments-20261006.md` |
+| `experiments/leak_eval.py` | 지정하지 않은 대상이 섞이는 정도 (COCO 정답 주석) — `docs/vaildates/leak-diagnosis-20261008.md` |
+| `experiments/parse_rounds.py` | 문장 해석 평가 (파서별 · 라운드별 · 다수결) |
+| `experiments/edge_quality.py` | 경계 품질 · 영상 흔들림 — `docs/vaildates/edge-tuning-20261008.md` |
+| `experiments/stuff_seg_compare.py` | SegFormer 크기 비교 — `docs/vaildates/stuff-segmentation-20261008.md` |
+| `experiments/dino_threshold.py` | 오픈 보캐브 박스 임계값 — `docs/vaildates/open-vocab-20261007.md` |
+| `experiments/inpaint_eval.py` | 지우기 메우기 Telea vs LaMa (정답 있는 구멍) — `docs/vaildates/inpaint-20261009.md` |
 
 ## 사용 예
 
@@ -31,7 +38,7 @@ python scripts/convert_to_onnx.py --weights models/yolo26m-seg.pt --out models/y
 python scripts/cleanup.py
 ```
 
-환경변수 `FILE_RETENTION_HOURS` 는 cleanup 에 영향 (기본 24).
+환경변수 `FILE_RETENTION_HOURS` 는 cleanup 에 영향 (기본 24). 자동 정리 주기는 `FILE_CLEANUP_MINUTES`(백엔드).
 
 ## 주의
 

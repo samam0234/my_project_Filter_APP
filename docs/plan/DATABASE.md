@@ -6,7 +6,7 @@ DB 가 둘이다. **서비스 DB (SQLite)** = 계정·작업 기록, **학습 DB
 
 | DB | 테이블 | 기본 엔진 | 엔진 코드 |
 |----|--------|-----------|-----------|
-| 서비스 DB | `users` · `auth_sessions` · `auth_codes` · `jobs` · `batch_jobs` | SQLite `backend/data/cutnkeep.db` | `app/db/session.py` (`Base`) |
+| 서비스 DB | `users` · `auth_sessions` · `auth_codes` · `jobs` · `batch_jobs` | SQLite `backend/data/cutnkeep.db`(Docker) · `cutnkeep.host.db`(호스트) | `app/db/session.py` (`Base`) |
 | 학습 DB | `feedbacks` · `learning_samples` | MariaDB (`MARIADB_*`) | `app/db/learning.py` (`LearningBase`) |
 
 왜 나눴나: 서비스 데이터는 작고 요청마다 읽혀서 파일 하나짜리 SQLite 가 단순·빠르다.
@@ -136,6 +136,7 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 
 ┌──────────────── jobs ────────────────┐
 │ id (PK), user_id (FK, NULL 허용)     │
+│ kind (image | video | gif)           │
 │ prompt, status, parsed_prompt(JSON)  │
 │ quality_score, before_path, after_path│
 │ backend, labels, confidences, message│
@@ -182,11 +183,12 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 |------|------|------|
 | id | str(64) PK | job UUID |
 | user_id | str(32) NULL | 로그인 상태로 처리한 작업의 소유자 (비로그인 NULL) |
+| kind | str(16) NULL | **image**(사진) · **video**(영상) · **gif** — NULL 인 예전 행은 image. 기동 시 `ALTER TABLE` 로 추가됨 |
 | prompt | text | 사용자 프롬프트 |
-| status | str | pending / ok / fallback / failed |
+| status | str | pending / ok / fallback / failed (영상·GIF 는 ok) |
 | parsed_prompt | JSON | 구조화 프롬프트 |
 | quality_score | float | 검증 점수 |
-| before_path / after_path | str | 디스크 경로 |
+| before_path / after_path | str | 디스크 경로 — 사진 `uploads/{id}/before.jpg · after.png|jpg`, GIF `uploads/{id}/before.gif · after.gif`(+ `after.webp`), 영상 `uploads/videos/{id}/in.* · result.mp4`(+ `thumb.jpg`, avi 등은 `original.mp4` 미리 보기) |
 | backend | str | yolo / stub 등 |
 | labels / confidences | JSON | 세그 결과 메타 |
 | feedback_saved | int 0/1 | 피드백 존재 여부 |

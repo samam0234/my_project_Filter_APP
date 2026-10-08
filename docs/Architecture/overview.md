@@ -24,6 +24,6 @@
 
 | Phase | 초점 |
 |-------|------|
-| 1 (현재) | 단일 이미지, 계층 구조, DB, Docker, Console |
-| 2 | SAM2, 배치 500, LoRA |
-| 3 | 영상, Temporal Smoothing, 고도 배포 |
+| 1 ✅ | 단일 이미지, 계층 구조, DB, Docker, Console |
+| 2 ✅ | 배치 500, 영상 · GIF, 배경 덩어리(SegFormer), LaMa 지우기, 해석 체인, LoRA 재학습, SAM2(코드) |
+| 3 (진행) | 영상 흐름 보정(✅) · 추적, 배포(HTTPS · SMTP · 처리방침), YOLO 재학습 |

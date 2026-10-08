@@ -1,5 +1,7 @@
 # Pre-deploy Checklist
 
+> 설정 · 네트워크 · 업로드 방어 · 자동 정리 · 백업 · 개인정보를 한 장에 모은 점검표: [`docs/guidance/security.md`](../guidance/security.md)
+
 **먼저 자동 점검**: `cd backend && APP_ENV=production python -m app.core.preflight` — 아래 항목 대부분을 검사한다.
 `APP_ENV=production` 이면 서버도 기동 시 같은 점검을 하고, error 가 있으면 **뜨지 않는다** (`PREFLIGHT_STRICT=false` 로 경고만).
 
@@ -22,14 +24,18 @@
 - [ ] 로그 접근 권한 제한 (`backend/logs`)
 - [ ] 서비스 DB `DB_DIALECT=sqlite` (볼륨 백업) · 학습 DB `LEARNING_DB_DIALECT=mariadb` 호스트 확인, `/health` 의 `learning_db` 가 `mysql`
 - [ ] 업로드 속도 제한 `UPLOAD_RATE_GUEST_PER_MIN`(6) · `UPLOAD_RATE_MEMBER_PER_MIN`(20) 검토.
-      reverse proxy 뒤면 `uvicorn --proxy-headers --forwarded-allow-ips=<프록시 IP>` (안 하면 모든 사용자가 프록시 IP 하나로 묶임)
+      reverse proxy 뒤면 `TRUSTED_PROXIES=<프록시 대역>` (Docker compose 는 172.16.0.0/12 기본) — 안 하면 모든 비로그인 사용자가 프록시 IP 하나로 묶인다
 - [ ] uvicorn 워커 1개 기준 (속도 제한·모델이 프로세스 메모리) — 늘리려면 속도 제한을 Redis 로
-- [ ] 업로드 파일 정리 `scripts/cleanup.py` 를 cron/작업 스케줄러에 등록 (`FILE_RETENTION_HOURS`)
+- [x] 업로드 파일 정리 — 백엔드가 `FILE_CLEANUP_MINUTES`(60)마다 자동 (`FILE_RETENTION_HOURS` 24). 별도 cron 불필요 (끄려면 0)
 - [ ] CI 통과 (`.github/workflows/ci.yml`)
 - [ ] 프론트 개발 도구 취약점: 배포 번들은 0건. `npm audit`(dev 포함) 은 2026-10-06 vite 7 · vitest 5 로 올려 10건(치명 2) → 7건(높음 5 · 중간 2)
       — 남은 건 전부 **tailwindcss 3** 계열(braces·chokidar·postcss-selector-parser, 빌드 시점) → tailwind 4 마이그레이션 별도 작업.
       dev 서버(`npm run dev`)를 외부망에 열지 말 것
 - [ ] 이미지 빌드 성공 (`backend`, `frontend`)
 - [ ] 포트 충돌 없음 (`ports-inventory.md`)
-- [ ] 콘솔 외부 노출 여부 결정 (기본 비권장/내부망). 콘솔 API 는 기본 loopback 전용 — 원격은 앞단 인증 후 `CONSOLE_ALLOW_REMOTE=true`
-- [ ] 백업: MariaDB 볼륨 / 피드백 데이터
+- [ ] 콘솔 외부 노출 여부 결정 (기본 비권장/내부망). 원격은 `CONSOLE_ADMINS` 관리자 로그인 + `CONSOLE_REQUIRE_LOGIN=true` ([console-admin.md](../guidance/console-admin.md))
+- [x] 서비스 DB(SQLite) 백업 — 자동 (`DB_BACKUP_HOURS` 24, 최근 7개, `backend/data/backups/`)
+- [ ] 백업: MariaDB(학습 DB) `mysqldump` 정기 실행 / 피드백 데이터(`data/feedback`)
+- [ ] 내부 포트 127.0.0.1 바인딩 확인 (`docker ps` 의 PORTS 가 `127.0.0.1:` 로 시작) — 공개는 :80
+- [ ] 대상 지우기 LaMa 모델 배치 (`backend/models/lama_fp32.onnx`) — 없으면 Telea
+- [ ] 개인정보 처리방침 · 이용약관 (보관 24시간 · 요청 문장 학습 이용 · 삭제 요청 방법)
