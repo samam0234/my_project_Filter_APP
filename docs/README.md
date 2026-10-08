@@ -26,6 +26,7 @@
 
 ## 빠른 링크
 
+- **전체 기능 목록 (화면 · API · 설정 · 코드 · 문서):** [FEATURES.md](./FEATURES.md)
 - **현재 스택 스냅샷 (포트·DB·Docker):** [plan/CURRENT_STACK.md](./plan/CURRENT_STACK.md)
 - **실행 · 서버:** [../RUN.md](../RUN.md) · [guidance/docker-run.md](./guidance/docker-run.md)
 - **AI 모델 전략:** [plan/AI_MODEL_STRATEGY.md](./plan/AI_MODEL_STRATEGY.md) · **YOLO s→m:** [plan/YOLO26M_DEFAULT.md](./plan/YOLO26M_DEFAULT.md)

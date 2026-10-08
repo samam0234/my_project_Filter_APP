@@ -82,6 +82,11 @@ cd console;  npm test      # 21건 — 학습 데이터 검수, 회원 관리, �
 
 테스트 파일(`*.test.ts[x]`)은 `tsconfig.app.json` 에서 빼 프로덕션 빌드와 분리한다.
 
+### 문서 등록 검사
+
+`tests/structure/test_docs_coverage.py` — 엔드포인트는 `API_DOCUMENTATION.md` 에, 설정은 `.env.example` 과 문서에, 화면은 사용자 가이드와 `docs/FEATURES.md` 에 있어야 한다.
+새 기능을 넣고 이 테스트가 실패하면 메시지에 나온 항목을 문서에 적는다.
+
 ### 테스트가 실제 데이터를 건드리지 않게
 
 - API 테스트는 `tests/unit/conftest.py` 의 `api_env` — 메모리 SQLite, 업로드·피드백 폴더를 임시 폴더로

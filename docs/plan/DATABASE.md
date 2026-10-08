@@ -61,6 +61,7 @@ SQLite (local)  |  MariaDB (prod / docker)
 학습 DB 는 MariaDB 가 꺼져 있어도 서비스가 뜨도록 **로컬 SQLite fallback** 이 있다
 (`LEARNING_DB_FALLBACK_SQLITE=true`, `backend/data/learning.db`, 경고 로그 · `/health` 의 `learning_db: "sqlite(fallback)"`).
 MariaDB 를 다시 켜고 재기동하면 사이드카 파일에서 빠진 기록이 MariaDB 로 동기화된다.
+MariaDB 접속을 기다리는 시간은 `LEARNING_DB_CONNECT_TIMEOUT`(기본 3초) — 꺼져 있을 때 기동이 오래 멈추지 않게 짧게 둔다.
 Docker 에서는 MariaDB healthy 후에만 backend 가 뜨므로 fallback 을 끈다.
 
 ### 2.1 환경변수

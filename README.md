@@ -21,6 +21,7 @@
 
 | 문서 | 설명 |
 |------|------|
+| [docs/FEATURES.md](docs/FEATURES.md) | **전체 기능 목록** — 화면 · API · 설정 · 코드 · 문서 |
 | [docs/plan/CURRENT_STACK.md](docs/plan/CURRENT_STACK.md) | **현재 포트·DB·Docker 스냅샷** |
 | [docs/plan/LOGIC_STRUCTURE.md](docs/plan/LOGIC_STRUCTURE.md) | 통합 로직 구조 |
 | [docs/plan/AI_MODEL_STRATEGY.md](docs/plan/AI_MODEL_STRATEGY.md) | **yolo26m-seg · Ollama E4B · OpenAI/Gemini** |

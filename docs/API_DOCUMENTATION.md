@@ -235,13 +235,22 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 결과의 `meta.leak` 에 위험 신호가 담긴다: `conf_min`(고른 인스턴스의 최소 신뢰도 — 낮을수록 섞임·오선택 가능성이 높다),
 `removed`(덜어낸 비율), `touching`·`crowd`(맞닿은 다른 인스턴스), `big_ratio`. 근거: [leak-diagnosis-20261008.md](vaildates/leak-diagnosis-20261008.md).
 
+| 설정 | 기본 | 뜻 |
+|------|------|-----|
+| `MASK_EXCLUSIVE` | `subtract` | 다른 인스턴스 몫을 덜어내는 규칙 — `off` · `subtract` · `conf`(신뢰도 높은 쪽 소유) · `front`(앞사람 소유) |
+| `MASK_OTHER_MIN_CONF` | 0.25 | 이보다 낮은 신뢰도로 잡힌 "다른 인스턴스"는 덜어내지 않는다 (헛검출 때문에 대상이 깎이지 않게) |
+| `MASK_GRABCUT` | false | 경계 정제(GrabCut) — 켜면 이웃 조각을 끌어와 섞임이 늘었다 |
+| `MASK_FORBID_REFINE` | false | GrabCut 을 켤 때 다른 인스턴스 구역을 금지 구역으로 둬 끌어오지 못하게 |
+| `PREPROCESS_CLAHE` | false | 대비 보정 입력 — 켜면 검출·선택이 나빠졌다. 재시도는 반대쪽 입력 |
+| `HARD_EXAMPLE_CONF` | 0 (끔) | 고른 인스턴스 최소 신뢰도가 이 값 미만이면 회원 요청을 학습 후보로 저장 |
+
 ## 인식 대상 (target)
 
 | 종류 | 모델 | 대상 |
 |------|------|------|
 | 낱개 물체 | YOLO26m-seg (COCO 80) | person · dog · cat · car · bus · truck · bicycle · chair · bottle · cup · laptop · handbag … |
 | 배경 덩어리 | SegFormer ADE20K (ONNX) | **building · sky · road · sidewalk · tree · grass · water · mountain · wall · floor · ceiling · ground · bridge · fence** |
-| 그 밖 | Grounding DINO + SAM2 (`OPEN_VOCAB_ENABLED`, 로컬 전용) | 자유 문구 |
+| 그 밖 | Grounding DINO + SAM2 (`OPEN_VOCAB_ENABLED`, 로컬 전용 — 모델 `DINO_MODEL_ID`=IDEA-Research/grounding-dino-tiny · `SAM2_MODEL_ID`=facebook/sam2-hiera-tiny, 임계 `OPEN_VOCAB_BOX_THRESHOLD` 0.35 · `OPEN_VOCAB_TEXT_THRESHOLD` 0.25) | 자유 문구 |
 
 - 한국어·동의어는 `prompt_spec.TARGET_ALIASES` 로 정규화 (건물·빌딩·집·아파트·house → `building`, 하늘 → `sky` …). LLM·휴리스틱 파서 모두 같은 어휘
 - "건물" 같은 묶음은 소속 클래스(building · house · skyscraper · hovel)의 확률을 합쳐 판정, 연결된 덩어리마다 인스턴스로 내보내
@@ -271,9 +280,10 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 | `POST /api/v1/console/users/{id}/unlock` | 로그인 실패 잠금 해제 |
 | `POST /api/v1/console/users/{id}/sessions/revoke` | 모든 세션 삭제 → `{id, revoked}` |
 | `DELETE /api/v1/console/users/{id}` | 본문 `{"confirm": "아이디"}`. 계정·세션·작업·배치·영상·파일 삭제, 학습 샘플은 `user_id` 만 비움 → `{jobs, batches, videos, removed_dirs, learning_unlinked}`. 관리자·본인 400, 확인 아이디 불일치 400 |
-| `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) |
+| `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) — `kind` · `thumb_url` · `webp_url` 포함 |
+| `GET /api/v1/console/batches?limit=50` | 전체 회원 배치 최근 목록 (상한 200) → `[{job_id, user_id, status, progress, total, completed, failed, message, prompt, created_at}]`. 회원 사진 보호를 위해 이미지 주소는 없다 |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
-| `GET /api/v1/console/files/{job_id}/{before\|after\|thumb}` | 작업 파일 (소유자 무관, 사진 · 영상 · GIF) |
+| `GET /api/v1/console/files/{job_id}/{before\|after\|thumb\|webp}` | 작업 파일 (소유자 무관, 사진 · 영상 · GIF) |
 | `GET /api/v1/console/learning/stats` | 학습 데이터 상태·출처·split 별 건수 + 학습 DB 모드 |
 | `GET /api/v1/console/learning/samples?status=&source=&kind=&q=&limit=&offset=` | 학습 데이터 목록 (기본: 삭제 제외 전체) → `{items, total, limit, offset}` |
 | `POST /api/v1/console/learning/samples/{id}/review` | `{"action": "approve"\|"reject"\|"reset", "answer"?: ParsedPrompt, "note"?}` — 승인 시 정답 수정 가능, 형식 오류 400 |

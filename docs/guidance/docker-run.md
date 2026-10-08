@@ -22,7 +22,7 @@ docker compose -p cut_and_keep ps
 - **호스트에서 `uvicorn --reload` 를 따로 띄워 8000 이 차 있으면** backend 컨테이너가 뜨지 않는다 → `BACKEND_PORT=8001 docker compose -p cut_and_keep --env-file .env up -d`
   (nginx 는 컨테이너끼리 8000 으로 연결하므로 http://localhost 는 그대로)
 - 호스트 backend 와 Docker backend 는 서비스 DB 파일을 따로 쓴다 (`cutnkeep.host.db` / `cutnkeep.db`) — 같은 파일을 쓰면 깨진다
-- 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — 없으면 Telea 로 동작 (`backend/models/README.md`)
+- 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — 없으면 Telea 로 동작 (`backend/models/README.md`, 경로는 `INPAINT_MODEL_PATH`, 엔진은 `INPAINT_ENGINE`)
 - backend 는 기동 시 **서비스 DB 백업**(`backend/data/backups/`)과 **보관 기간 지난 업로드 정리**를 스스로 돌린다
 
 ## 인증 · DB
