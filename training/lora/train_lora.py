@@ -80,6 +80,7 @@ def parse_args() -> argparse.Namespace:
             _LORA_DIR / "seed" / "eval_ext.jsonl",
             _LORA_DIR / "seed" / "eval_distractor.jsonl",
             _LORA_DIR / "seed" / "eval_holdout.jsonl",
+            _LORA_DIR / "seed" / "eval_fresh.jsonl",
         ],
         help="평가셋들 — 같은 문장은 학습에서 뺀다 (점수 부풀림 방지)",
     )

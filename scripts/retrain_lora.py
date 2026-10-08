@@ -6,7 +6,7 @@
   1. 학습 DB 의 승인된 문장(train split) 중 지난 재학습 이후 새로 승인된 수를 센다
   2. 기준(--min-new, 기본 LORA_RETRAIN_MIN_NEW=200) 미만이면 "대기" 만 알리고 끝 (--force 로 강제)
   3. 증강(training/lora/augment_prompts.py) → 학습(scripts/fine_tune_lora.py) → 평가(eval_parser)
-     평가셋: seed/eval.jsonl(40) · eval_ext.jsonl(56) · eval_distractor.jsonl(47) · eval_holdout.jsonl(40) · 승인 val split(있으면)
+     평가셋: seed/eval.jsonl(40) · eval_ext(56) · eval_distractor(47) · eval_holdout(40) · eval_fresh(30) · 승인 val split(있으면)
   4. 지금 배포된 어댑터(backend/models/lora)와 같은 평가셋으로 비교 → 보고서 md
   5. --deploy 이고 후보가 이기면 배포본을 backend/models/lora_prev_<시각> 로 옮기고 교체 (백엔드 재시작 필요)
 
@@ -43,6 +43,8 @@ EVAL_SETS = {
     # 지정하지 않은 물체·사람이 같이 언급되는 문장 — 여기서 악화되면 채택하지 않는다 (docs/vaildates/leak-diagnosis-20261008.md)
     "eval_distractor": LORA / "seed" / "eval_distractor.jsonl",
     "eval_holdout": LORA / "seed" / "eval_holdout.jsonl",
+    # 규칙·체인을 만든 뒤 처음 쓴 30문장 — LoRA 학습에는 들어가지 않는다
+    "eval_fresh": LORA / "seed" / "eval_fresh.jsonl",
 }
 
 
