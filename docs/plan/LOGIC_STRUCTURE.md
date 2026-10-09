@@ -108,20 +108,22 @@ DB 상세·ERD: **`DATABASE.md`**
         │
         ▼
 [3] OpenCV Preprocessing
-    · imread, resize(종횡비 유지), CLAHE(clipLimit=2.0, tile=8×8)
+    · imread, resize(종횡비 유지), CLAHE(clipLimit=2.0, tile=8×8) — **기본 끔**(`PREPROCESS_CLAHE=false`, 검출·선택을 해쳐서). 재시도에서 반대쪽 입력으로 한 번 더
     · 색공간 변환 · 모든 단계 .copy()로 원본 보존
         │
         ▼
 [4] Segmentation
-    · P1: **YOLO26m-seg** (.pt / ONNX)
+    · P1: **YOLO26m-seg** (.pt / ONNX) + 배경 덩어리 SegFormer(건물 · 하늘 · 도로 등)
+    · 고른 인스턴스에서 **다른 인스턴스 몫 덜어내기** (`MASK_EXCLUSIVE=subtract`, `services/mask_exclusion.py`)
     · P2: Grounding DINO + SAM2 (오픈보캐브 대상)
     · 프롬프트 분석 LLM: 기본 Ollama gemma4:e4b → 고도화 OpenAI/Gemini
       (docs/plan/AI_MODEL_STRATEGY.md)
         │
         ▼
 [5] Mask Refinement + Effect
-    · GrabCut + morphologyEx(MORPH_CLOSE)
+    · 경계 다듬기(업스케일 · 안티앨리어싱 · 깃털 알파). GrabCut 은 **기본 끔**(`MASK_GRABCUT=false`, 이웃 조각을 끌어와서)
     · GaussianBlur + bitwise_and (배경 블러)
+    · 대상 지우기(remove_object): 사진은 학습형 **LaMa**(ONNX) · 영상/GIF 는 OpenCV Telea (`services/inpaint.py`)
     · boundingRect + crop / 알파 합성 / addWeighted
         │
         ▼
@@ -337,12 +339,20 @@ POST /batch (회원) → 파일 저장 + status=queued
 ### 8.2 영상
 ```
 POST /video → frames
-  per frame: 기존 segmentor + effects
-  검출 없는 프레임: 직전 마스크 유지
-  → MJPG avi
+  per frame: FrameRenderer (세그 → selector → 겹침 덜어내기 → 직전 마스크 유지 → 광학 흐름 스무딩 → 효과)
+  → MJPG 임시 avi → ffmpeg H.264 mp4 (+ 원본 오디오), 실패 시 webm → avi
+  회원: uploads/videos/{id} 보관 + jobs(kind=video) + 첫 프레임 thumb.jpg
 ```
 - 비로그인은 응답으로만 받고 저장하지 않는다
-- 광학 흐름·LSTM 은 아직 없다
+- 프레임 간 추적(LSTM 등)은 아직 없다 — 사람이 겹치면 고른 대상이 바뀔 수 있다
+
+### 8.3 GIF
+```
+POST /gif → Pillow 로 프레임 합성(disposal 처리) → FrameRenderer(영상과 같은 규칙)
+  → 투명 GIF (배경 제거, 1비트 투명) + 움직이는 WebP (8비트 알파, 부드러운 경계)
+  → 프레임 간격 · 반복 유지, GIF_MAX_FRAMES(120) · GIF_MAX_PIXELS(4MP)
+  회원: uploads/{id}/before.gif · after.gif(.webp) + jobs(kind=gif) / 비로그인: data URL 응답
+```
 
 ---
 

@@ -4,8 +4,8 @@
 
 | 포트 | 용도 | 비고 |
 |------|------|------|
-| 80 | cut_and_keep frontend (nginx) | Docker |
-| 8000 | backend API | Docker / local |
+| 80 | cut_and_keep frontend (nginx) | Docker — **유일한 공개 포트** |
+| 8000 | backend API | Docker(127.0.0.1, `BACKEND_PORT` 로 변경) / local uvicorn |
 | 5173 | frontend dev | local Vite |
 | 5174 | console dev | local Vite · Compose 없음 |
 | **3309** (예) | MariaDB **호스트** 발행 | `.env` `MARIADB_PORT` — 컨테이너 내부는 3306 |
@@ -13,6 +13,8 @@
 | 6379 | 타 프로젝트 Redis 등 | 점유 시 cut_and_keep 은 6380 |
 | **6380** | cut_and_keep Redis 호스트 맵 | → 컨테이너 6379 |
 | **8081** | **Adminer** | Server=`mariadb` |
+
+Docker 의 backend · MariaDB · Redis · Adminer 는 모두 `BIND_HOST`(기본 **127.0.0.1**)에만 열린다 — 같은 네트워크의 다른 기기는 :80 만 볼 수 있다.
 
 ## 주의
 

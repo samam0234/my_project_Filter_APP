@@ -26,12 +26,26 @@ tests/
 │   ├── test_learning_review.py    # 학습 데이터 검수 콘솔 · 회원 요청 후보
 │   ├── test_prompt_rag.py         # 승인 샘플 RAG
 │   ├── test_preflight.py          # 배포 설정 점검 · 보안 헤더
-│   └── test_ratelimit.py          # 업로드 속도 제한
+│   ├── test_ratelimit.py          # 업로드 속도 제한
+│   ├── test_batch_api.py          # 배치 · 영상 API (가짜 세그 — 사람 2명)
+│   ├── test_media_history.py      # 영상·GIF 작업 기록 · GIF 처리(투명 · WebP) · LaMa/Telea 선택 · 콘솔 파일
+│   ├── test_security_hardening.py # 압축 폭탄 · 프록시 뒤 IP · 자동 백업 · 자동 정리(.gitkeep 보호)
+│   ├── test_sqlite_integrity.py   # 서비스 DB 손상 감지 · 호스트/Docker 파일 분리
+│   ├── test_mask_exclusion.py     # 겹침 덜어내기 · 금지 구역
+│   ├── test_heuristic_targets.py  # 키워드 파서 역할 규칙
+│   ├── test_prompt_chain.py       # 해석 체인 다수결
+│   ├── test_pipeline_graph.py     # LangGraph 재시도 · 어려운 사례 · 기본값
+│   ├── test_stuff_segmentation.py # 배경 덩어리 SegFormer
+│   ├── test_edge_tuning.py        # 경계 다듬기 · 영상 흐름 스무딩
+│   ├── test_console_system.py · test_console_users.py  # 운영 콘솔 시스템 · 회원 관리
+│   └── test_onnx_inference.py · test_phase2.py         # ONNX 추론 · 영상/배치 보조
 ├── structure/               # 폴더·문서·스크립트 존재 검사
 │   └── test_project_layout.py
 └── smoke/                   # 가벼운 import 스모크
     └── test_imports.py
 ```
+
+2026-10-09 기준 **405 passed** (모델이 필요한 테스트는 `importorskip` 으로 건너뜀). 테스트는 실제 `backend/data` 를 건드리지 않는다 — 업로드 폴더는 임시 폴더로.
 
 ## 실행 방법
 

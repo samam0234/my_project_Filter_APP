@@ -1,9 +1,13 @@
 ---
 name: cutnkeep
-description: "컷앤킵(CutNKeep) 프로젝트 규칙. 커밋 시 docs/branchs/commits 에 md 기록 필수(docs/commits 금지), 제목 요약 한국어(type/scope 영어), feature 브랜치, develop·main --no-ff, YOLO26m-seg·Ollama E4B. 트리거: commit, branchs, commits, console, backend, cutnkeep, ollama, yolo."
+description: "컷앤킵(CutNKeep) 프로젝트 규칙. 한국어로 말하는 사용자에게는 지시가 없는 한 모든 응답(중간 안내 포함)을 한국어로. 커밋 시 docs/branchs/commits 에 md 기록 필수(docs/commits 금지), 제목 요약 한국어(type/scope 영어), feature 브랜치, develop·main --no-ff, YOLO26m-seg·Ollama E4B. 트리거: commit, branchs, commits, console, backend, cutnkeep, ollama, yolo."
 ---
 
 # 컷앤킵 프로젝트 스킬
+
+## 대화 언어 (필수)
+
+사용자가 한국어로 말하면 **모든 응답을 한국어로만** — 작업 중 중간 안내 · 진행 상황 · 질문 · 최종 보고 모두. 다른 언어로 말해 달라는 지시가 있을 때만 바꾼다. 코드 식별자 · 명령어 · 파일 경로 · 로그 원문은 그대로 둔다.
 
 ## 프로젝트
 

@@ -23,10 +23,10 @@ User (frontend)
 ## 운영 콘솔 조회
 
 ```
-Console (백엔드와 같은 PC)
+Console (관리자 로그인 또는 서버 PC)
   → GET /health
-  → GET /api/v1/console/jobs          (loopback 만 허용, 전체 작업)
-  → GET /api/v1/console/files/{id}/after
+  → GET /api/v1/console/jobs          (전체 작업 — 사진 · 영상 · GIF)
+  → GET /api/v1/console/files/{id}/{before|after|thumb|webp}
   → 대시보드 집계 (클라이언트 사이드)
 ```
 

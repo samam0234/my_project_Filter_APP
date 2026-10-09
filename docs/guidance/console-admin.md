@@ -87,16 +87,22 @@ Backend(`8000`)가 떠 있어야 Job/헬스 데이터가 채워진다.
 - 삭제는 서버 로그에 `회원 삭제 ... by=관리자아이디` 로 남는다
 - 비밀번호는 해시로만 저장돼 콘솔에서도 볼 수 없다 — 회원에게 사용자 앱의 "비밀번호 재설정"을 안내
 
+## 작업 목록
+
+전체 회원의 작업(소유자 무관). 영상 · GIF 작업은 상태 옆에 "영상" · "GIF" 표시, `after` 링크는 mp4 · GIF 를 새 탭에서 연다.
+
 ## 시스템 · 저장 공간 정리
 
 - **배포 설정 점검**: `python -m app.core.preflight` 와 같은 결과. production 에서 `error` 가 있으면 백엔드가 뜨지 않는다
 - **런타임**: 화면을 연다고 모델을 로드하지 않는다 — 첫 요청 전이면 세그 런타임이 "로드 전"
-- **대상 마스크 처리 · 해석 체인**: 겹침 규칙(`MASK_EXCLUSIVE`), GrabCut·CLAHE 켬/끔, 어려운 사례 수집 기준, LangChain 다수결 여부 — 지정하지 않은 물체가 섞이는 문제의 설정값을 한눈에
+- **대상 마스크 처리 · 해석 체인**: 겹침 규칙(`MASK_EXCLUSIVE`), GrabCut·CLAHE 켬/끔, 어려운 사례 수집 기준, **지우기 메우기 엔진(LaMa/Telea)**, LangChain 다수결 여부 — 지정하지 않은 물체가 섞이는 문제의 설정값을 한눈에
 - **배치 큐**: `BATCH_USE_CELERY=true` 일 때만 Redis 를 1초 ping. 연결 안 됨이면 배치는 API 프로세스에서 처리된다
 - **저장 공간**: 단일 작업 · 배치 · 영상 별 용량, `FILE_RETENTION_HOURS` 가 지난 파일 수, 디스크 남은 공간(10% 미만이면 빨강)
 - **정리**: "정리 미리 보기"로 지울 파일 수·용량을 먼저 보고 "지금 정리". `scripts/cleanup.py` 와 같은 함수
   (`app/services/retention.py`). 작업 기록(DB 행)은 남는다. 정리 실행은 서버 로그에 관리자 이름과 함께 남는다
-- 정기 실행: `python scripts/cleanup.py` (`--dry-run` 으로 집계만) — 서버 cron/작업 스케줄러에 등록
+- **자동 정리**: 백엔드가 `FILE_CLEANUP_MINUTES`(기본 60)마다 같은 함수로 스스로 지운다 — 이 버튼은 바로 지우고 싶을 때만.
+  `.gitkeep` 처럼 점(.)으로 시작하는 파일은 건드리지 않는다. 손으로 돌릴 때: `python scripts/cleanup.py` (`--dry-run` 으로 집계만)
+- **서비스 DB 백업**: SQLite 면 기동 직후 + 하루마다 `backend/data/backups/` (최근 7개) — 복구는 [`DATABASE.md`](../plan/DATABASE.md)
 
 ## 자동 갱신
 

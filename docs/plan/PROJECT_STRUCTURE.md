@@ -70,21 +70,26 @@ backend/
 │   │   └── batch_repository.py
 │   ├── routers/                     # HTTP 라우터 계층
 │   │   ├── router.py                # /api/v1 집합
-│   │   ├── upload.py
+│   │   ├── upload.py                # 사진 처리 · /files/{id}/{before,after,thumb,webp}
+│   │   ├── gif.py                   # 움직이는 GIF
+│   │   ├── video.py                 # 영상
 │   │   ├── feedback.py
-│   │   ├── jobs.py                  # job 조회
-│   │   └── batch.py
+│   │   ├── jobs.py                  # job 조회 (kind=image·video·gif)
+│   │   ├── batch.py
+│   │   ├── auth.py                  # 회원
+│   │   └── console.py               # 운영 콘솔
 │   ├── workflows/                   # LangGraph
 │   │   ├── state.py
 │   │   ├── nodes.py
 │   │   ├── edges.py
 │   │   └── graph.py
-│   ├── services/
-│   │   ├── image_processor.py
-│   │   ├── segmentation.py
-│   │   ├── effects.py
-│   │   ├── validator.py
-│   │   └── feedback_service.py      # DB repo + 파일 사이드카
+│   ├── services/                    # 전체 목록·역할: backend/README.md
+│   │   ├── prompt_spec.py · prompt_llm.py · prompt_chain.py · heuristic_targets.py · prompt_rag.py
+│   │   ├── image_processor.py · segmentation.py · stuff_segmentation.py · mask_exclusion.py · instance_selector.py
+│   │   ├── effects.py · inpaint.py(LaMa) · validator.py
+│   │   ├── video_processor.py · gif_processor.py
+│   │   ├── feedback_service.py · learning_catalog.py · learning_review.py
+│   │   └── retention.py · maintenance.py · db_backup.py · user_admin.py · system_status.py
 │   ├── tasks/
 │   │   └── batch_tasks.py
 │   ├── utils/
@@ -100,7 +105,7 @@ backend/
 **계층 규칙**: `routers` → `services`/`workflows` → `repositories` → `models`/`db`  
 API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
 
-**DB**: 로컬 `SQLite` (`backend/data/cutnkeep.db`) / 배포 `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
+**DB**: 서비스 DB `SQLite` (Docker `backend/data/cutnkeep.db` · 호스트 `cutnkeep.host.db`, 자동 백업 `backend/data/backups/`) / 학습 DB `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
 **AI 모델**: yolo26m-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
 **테스트**: 루트 `tests/` + `pytest.ini` — `docs/plan/TESTING.md`
 
@@ -150,7 +155,9 @@ scripts/
 ├── convert_to_onnx.py
 ├── pseudo_labeling.py
 ├── evaluate_model.py
-└── cleanup.py                       # 24시간 후 임시 파일 삭제
+├── cleanup.py                       # 24시간 지난 업로드 삭제 (백엔드가 매시간 자동으로도 함)
+├── retrain_lora.py                  # 승인 문장으로 LoRA 재학습 · 판정 · 배포
+└── experiments/                     # 정답 주석 기반 평가 (섞임 · 문장 해석 · 경계 · 지우기 등)
 
 docs/
 ├── plan/

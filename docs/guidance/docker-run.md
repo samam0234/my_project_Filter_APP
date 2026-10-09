@@ -9,14 +9,21 @@ docker compose -p cut_and_keep --env-file .env up -d --build
 docker compose -p cut_and_keep ps
 ```
 
-| 서비스 | URL / 포트 |
-|--------|------------|
-| frontend (nginx) | http://localhost |
-| backend API | http://localhost:8000 |
-| Swagger | http://localhost:8000/docs |
-| **Adminer** | http://localhost:8081 · Server=`mariadb` |
-| MariaDB (호스트) | `127.0.0.1` + `.env` **`MARIADB_PORT`** (예: 3309) |
-| Redis (호스트) | localhost:**6380** |
+| 서비스 | URL / 포트 | 열린 곳 |
+|--------|------------|---------|
+| frontend (nginx) | http://localhost | **공개** (유일) |
+| backend API | http://127.0.0.1:8000 (`BACKEND_PORT`) | 이 PC 만 |
+| Swagger | http://127.0.0.1:8000/docs | 이 PC 만 |
+| **Adminer** | http://127.0.0.1:8081 · Server=`mariadb` | 이 PC 만 |
+| MariaDB (호스트) | `127.0.0.1` + `.env` **`MARIADB_PORT`** (예: 3309) | 이 PC 만 |
+| Redis (호스트) | 127.0.0.1:**6380** | 이 PC 만 |
+
+- 내부 포트는 `BIND_HOST`(기본 `127.0.0.1`)에만 열린다. 다른 기기에서 backend 등에 직접 붙어야 할 때만 `BIND_HOST=0.0.0.0`
+- **호스트에서 `uvicorn --reload` 를 따로 띄워 8000 이 차 있으면** backend 컨테이너가 뜨지 않는다 → `BACKEND_PORT=8001 docker compose -p cut_and_keep --env-file .env up -d`
+  (nginx 는 컨테이너끼리 8000 으로 연결하므로 http://localhost 는 그대로)
+- 호스트 backend 와 Docker backend 는 서비스 DB 파일을 따로 쓴다 (`cutnkeep.host.db` / `cutnkeep.db`) — 같은 파일을 쓰면 깨진다
+- 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — 없으면 Telea 로 동작 (`backend/models/README.md`, 경로는 `INPAINT_MODEL_PATH`, 엔진은 `INPAINT_ENGINE`)
+- backend 는 기동 시 **서비스 DB 백업**(`backend/data/backups/`)과 **보관 기간 지난 업로드 정리**를 스스로 돌린다
 
 ## 인증 · DB
 

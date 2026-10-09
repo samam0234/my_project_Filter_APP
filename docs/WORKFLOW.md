@@ -11,11 +11,11 @@ prompt_analyzer → preprocessor → segmentor → validator
 
 | 노드 | 하는 일 | 주요 코드 |
 |------|---------|-----------|
-| `prompt_analyzer` | 문장 → `ParsedPrompt` (target·effect·selector). **RAG** 로 비슷한 문장의 사용자 교정을 예시로 붙임. LLM 실패 시 키워드 파서 | `services/prompt_llm.py`, `prompt_rag.py`, `prompt_lora.py`, `prompt_spec.py` |
-| `preprocessor` | 긴 변 1280 리사이즈 + CLAHE | `services/image_processor.py` |
-| `segmentor` | YOLO-seg 인스턴스 → 요청 라벨만 → **selector 로 인스턴스 선택**. 재시도면 조건을 바꿈 (아래) | `services/segmentation.py`, `instance_selector.py` |
+| `prompt_analyzer` | 문장 → `ParsedPrompt` (target·effect·selector). **RAG** 로 비슷한 문장의 사용자 교정을 예시로 붙임. **해석 체인**(LangChain): LLM 답과 키워드 파서가 다르면 다시 물어 다수결. LLM 실패 시 키워드 파서 | `services/prompt_chain.py`, `prompt_llm.py`, `heuristic_targets.py`, `prompt_rag.py`, `prompt_lora.py`, `prompt_spec.py` |
+| `preprocessor` | 긴 변 1280 리사이즈 (+ CLAHE, **기본 끔**) | `services/image_processor.py` |
+| `segmentor` | YOLO-seg(+ SegFormer 배경 덩어리) 인스턴스 → 요청 라벨만 → **selector 로 인스턴스 선택** → **다른 인스턴스 몫 덜어내기**. 재시도면 조건을 바꿈 (아래) | `services/segmentation.py`, `instance_selector.py`, `mask_exclusion.py` |
 | `validator` | 마스크 면적·confidence 로 ok / fallback / failed. 빈 마스크면 "요청 대상을 찾지 못함" 안내. 재시도 뒤에는 **더 나은 시도 채택** | `services/validator.py`, `nodes._keep_best_attempt` |
-| `effect_applier` | 마스크를 원본 해상도로 맞춘 뒤 GrabCut 정제 + 효과. `remove_object` 는 inpaint | `services/effects.py` |
+| `effect_applier` | 마스크를 원본 해상도로 맞춘 뒤 경계 다듬기(GrabCut 은 기본 끔) + 효과. `remove_object` 는 **LaMa** 인페인팅(없으면 Telea) | `services/effects.py`, `inpaint.py` |
 | `feedback_collector` | 실패 케이스를 DB + `data/feedback/` 에 저장 (학습 재료). **비로그인(`persist=False`)은 저장하지 않음** | `services/feedback_service.py` |
 
 ## 재시도 (fallback → segmentor)
@@ -24,8 +24,8 @@ prompt_analyzer → preprocessor → segmentor → validator
 
 | 시도 | 입력 이미지 | 신뢰도 기준 | `segment_strategy` |
 |------|-------------|-------------|--------------------|
-| 1차 | CLAHE 전처리 | `min_confidence` (0.25) | `default` |
-| 2차 | CLAHE 없는 원본 축소본 | × 0.6 (0.15) | `retry_no_clahe_lowconf` |
+| 1차 | 원본 축소본 (`PREPROCESS_CLAHE=false` 기본) | `min_confidence` (0.25) | `default` |
+| 2차 | **반대쪽** 입력 (CLAHE 켬 ↔ 끔) | × 0.6 (0.15) | `retry_alt_preprocess_lowconf` |
 
 두 시도 중 (상태 ok > fallback > failed, 품질 점수) 가 더 나은 쪽을 채택한다 — 완화한 조건이 더 나쁜 마스크를 만들면 1차를 유지.
 

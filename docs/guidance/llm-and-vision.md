@@ -158,7 +158,7 @@ ollama · openai · gemini 에만 적용 (lora 는 학습 템플릿이 고정이
 
 ```env
 PROMPT_RAG_ENABLED=true
-PROMPT_RAG_SOURCES=correction,like,request   # seed 를 넣으면 training/lora/seed/train.jsonl 도 사용 (비권장, 아래)
+PROMPT_RAG_SOURCES=correction,like,request   # seed 를 넣으면 PROMPT_RAG_SEED_FILE(기본 training/lora/seed/train.jsonl)도 사용 (비권장, 아래)
 PROMPT_RAG_TOP_K=3
 PROMPT_RAG_MIN_SCORE=0.6             # 같은 뜻의 다른 표현 0.62~0.73 / 틀만 같은 문장 0.3~0.46
 ```
