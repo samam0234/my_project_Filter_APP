@@ -68,7 +68,7 @@
 | 대상 지우기 메우기 | `services/inpaint.py` | `INPAINT_ENGINE` · `INPAINT_MODEL_PATH` | LaMa ONNX(없으면 Telea) — [`vaildates/inpaint-20261009.md`](vaildates/inpaint-20261009.md) |
 | 모델 자동 받기 | `services/model_fetch.py` · `scripts/fetch_models.py` | `MODEL_AUTO_DOWNLOAD` | 없는 LaMa 를 기동 시 백그라운드로 받고 SHA-256 확인, 생기면 바로 LaMa 로 |
 | 영상 | `services/video_processor.py` | `VIDEO_*` | 프레임마다 같은 규칙(`FrameRenderer`), 광학 흐름 스무딩, mp4 변환, avi 등 원본 미리 보기 |
-| 영상 · GIF 지우기 | `services/video_inpaint.py` | `VIDEO_REMOVE_MODE` | 다른 프레임에서 보인 배경판으로 메우고 안 보인 곳만 LaMa 한 번 (고정 카메라), 아니면 프레임마다 Telea — [`vaildates/video-removal-20261009.md`](vaildates/video-removal-20261009.md) |
+| 영상 · GIF 지우기 | `services/video_inpaint.py` | `VIDEO_REMOVE_MODE` | 다른 프레임에서 보인 배경판으로 메우고 안 보인 곳만 LaMa 한 번 (고정 카메라 · 카메라가 움직이면 프레임 맞춤), 맞출 수 없으면 프레임마다 Telea — [`vaildates/video-removal-20261009.md`](vaildates/video-removal-20261009.md) · [`video-removal-pan-20261009.md`](vaildates/video-removal-pan-20261009.md) |
 | 영상 · GIF 대상 추적 | `services/instance_tracker.py` | `VIDEO_TRACK_INSTANCES` | "왼쪽 사람"처럼 위치 · 순서 · 개수로 고른 대상을 첫 프레임에서 고른 그 사람으로 끝까지 — 서로 지나가도 유지 — [`vaildates/video-tracking-20261009.md`](vaildates/video-tracking-20261009.md) |
 | GIF | `services/gif_processor.py` | `GIF_MAX_FRAMES` · `GIF_MAX_PIXELS` | 투명 GIF + 움직이는 WebP |
 | 배치 | `routers/batch.py` · `tasks/batch_tasks.py` | `BATCH_USE_CELERY` | 최대 500장, 한 장씩 처리, Celery 는 선택 |
