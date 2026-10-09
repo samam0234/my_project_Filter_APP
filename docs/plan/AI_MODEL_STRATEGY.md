@@ -139,7 +139,7 @@ OLLAMA_MODEL=gemma4:e4b
 
 ```text
 Phase 1 개발:  LLM_PROVIDER=ollama  (gemma4:e4b)          ← 기본, 평가 92.5%
-빠른 로컬:     LLM_PROVIDER=lora    (Qwen2.5-1.5B + LoRA) ← 평가 87.5%, 요청당 1~2 s
+빠른 로컬:     LLM_PROVIDER=lora    (Qwen2.5-1.5B + LoRA) ← 2026-10-09 조합형 재학습 후 283문장 94.7% (Ollama 체인 85.2%), GPU 문장당 약 1 s — GPU 서버 기본 (docker-compose.gpu.yml)
 데모 고품질:   LLM_PROVIDER=openai  (OPENAI_API_KEY)
 비용 실험:    LLM_PROVIDER=gemini  (GEMINI_API_KEY)
 실패 시:      heuristic 파서 fallback (nodes.parse_prompt_heuristic, 평가 35%)

@@ -6,7 +6,7 @@
 - 엔드포인트가 API 문서에 있는지
 - 설정이 `.env.example` 과 문서에 있는지
 
-기준일: 2026-10-09 (`develop`) · 포트·DB·Docker 는 [`plan/CURRENT_STACK.md`](plan/CURRENT_STACK.md) · API 상세는 [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md)
+기준일: 2026-10-10 (`develop`) · 포트·DB·Docker 는 [`plan/CURRENT_STACK.md`](plan/CURRENT_STACK.md) · API 상세는 [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md)
 
 ---
 
@@ -83,7 +83,9 @@
 | 어려운 사례 수집 | LangGraph `feedback_collector` | `HARD_EXAMPLE_CONF` (기본 꺼짐) |
 | 콘솔 검수 | 콘솔 "학습 데이터" | 승인 · 정답 고쳐서 승인 · 거절 · 일괄 |
 | GPU 서버 (CUDA) | `docker-compose.gpu.yml` · `backend/Dockerfile` | `TORCH_INDEX` · `LLM_LORA` · `GPU_LLM_PROVIDER` · `GPU_LLM_FALLBACK` · `LORA_BASE_DIR` | CUDA torch 이미지, 문장 해석 LoRA(문장당 1.85초 GPU) · 세그 GPU — [`guidance/gpu-deploy.md`](guidance/gpu-deploy.md) |
-| 배포 리허설 | `scripts/deploy_check.py` · `scripts/models_bundle.py` | — | 실서버를 밖 · 안에서 점검(실패 시 종료 코드 1), git 밖 모델을 묶어 옮기고 체크섬 대조 — [`guidance/https-deploy.md`](guidance/https-deploy.md) |
+| 운영 `.env` 만들기 | `scripts/make_prod_env.py` | `CNK_SMTP_PASSWORD`(환경 변수) | 운영 값 · 새 비밀 값(SECRET_KEY · DB 비밀번호)을 채운 `.env.production` + 기동 전 점검 — [`DEPLOYMENT.md`](DEPLOYMENT.md) |
+| 배포 리허설 | `scripts/deploy_check.py` · `scripts/models_bundle.py` | — | 실서버를 밖 · 안에서 점검(실패 시 종료 코드 1, `--gpu` · `--env-file`), git 밖 모델을 묶어 옮기고 체크섬 대조 — [`DEPLOYMENT.md`](DEPLOYMENT.md) |
+| 의존성 취약점 점검 | `.github/workflows/ci.yml` | — | push 마다 · 매주 월요일 `pip-audit`, 프론트 · 콘솔 `npm audit --omit=dev` — [`guidance/security.md`](guidance/security.md) 5절 |
 | 실패 사진 보관 기간 | `services/feedback_images.py` | `FEEDBACK_IMAGE_RETENTION_DAYS` | 처리 실패 · 인식 불확실한 회원 요청의 원본 사진을 기간 뒤 자동 삭제, 계정 삭제 시 바로 삭제 · 기록은 익명 — 처리방침에 같은 일수 표시 |
 | 세그 실패 사진 라벨링 | `scripts/seg_labeling.py` | `HARD_EXAMPLE_CONF` (수집) | 실패 · 싫어요 사진을 큰 모델 초벌 라벨과 함께 Label Studio 용으로 내보내고, 고친 라벨을 학습 전에 검사 |
 | 세그 모델 재학습 | `scripts/retrain_yolo.py` | 어려운 사례 수집 · 이어 학습 · 섞임 평가 + mAP 판정 · 배포 (`--deploy`, `--extra` 직접 라벨링 사진) — [`vaildates/yolo-retrain-20261009.md`](vaildates/yolo-retrain-20261009.md) (COCO 만으로는 불채택) |

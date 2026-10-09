@@ -11,7 +11,7 @@
         ┌───────────────────┼─────────────────────────┐
         ▼                   ▼                         ▼
    ① RAG 색인(30초)     ② LoRA 재학습 시드          ③ 승인 val → 재학습 판정(eval)
-   LLM 지시문에 예시      scripts/retrain_lora.py     eval · ext · distractor · holdout · fresh
+   LLM 지시문에 예시      scripts/retrain_lora.py     eval · ext · distractor · holdout · fresh · fresh2 · fresh3
         │
         ▼
    ④ 해석 체인(LangChain) ─► ⑤ LangGraph 파이프라인 ─► 마스크(겹침 덜어내기) ─► 결과

@@ -1,5 +1,7 @@
 # Docker Run (`cut_and_keep`)
 
+> 공개 서버(HTTPS · GPU · 운영 `.env` · 점검)는 [../DEPLOYMENT.md](../DEPLOYMENT.md) — 이 문서는 개발 PC 의 Docker 실행이다.
+
 현재 구성 요약: [`docs/plan/CURRENT_STACK.md`](../plan/CURRENT_STACK.md)
 
 ```powershell

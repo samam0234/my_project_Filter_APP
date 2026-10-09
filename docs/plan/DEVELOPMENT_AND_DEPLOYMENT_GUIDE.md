@@ -26,39 +26,21 @@
 
 ## 2. Backend 의존성 (Python)
 
-### 2.1 핵심 패키지 (Phase 1 필수)
+### 2.1 핵심 패키지
 
-```txt
-# requirements.txt (Phase 1 기준)
+> **버전의 기준은 저장소 루트 `requirements.txt`(로컬 전체) · `requirements.docker.txt`(Docker) 다.** 이 문서는 버전을 따로 적지 않는다
+> (예전 Phase 1 목록이 실제 파일과 어긋났다). 2026-10-10 의존성 취약점 점검 후 올린 주요 판:
+> FastAPI 0.143 · starlette 1.7 · uvicorn 0.54 · python-multipart 0.0.32 · pydantic 2.14 · Pillow 12.3 · LangGraph 1.2 · langchain-core 1.6 ·
+> cryptography 50.0 — `pip-audit` 0건 ([`../guidance/security.md`](../guidance/security.md) 5절).
 
-# Web Framework
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-python-multipart==0.0.9
-pydantic==2.9.2
-pydantic-settings==2.5.2
-
-# Image Processing
-opencv-python-headless==4.10.0.84
-numpy==1.26.4
-Pillow==10.4.0
-
-# YOLO & ONNX
-ultralytics==8.3.0
-onnxruntime==1.19.2          # CPU
-# onnxruntime-gpu==1.19.2    # GPU 사용 시
-
-# LangGraph / LangChain
-langchain==0.3.1
-langchain-core==0.3.6
-langgraph==0.2.28
-langchain-openai==0.2.1      # 또는 langchain-community (로컬 LLM용)
-
-# Utils
-python-dotenv==1.0.1
-aiofiles==24.1.0
-loguru==0.7.2
-```
+| 묶음 | 패키지 |
+|------|--------|
+| 웹 | fastapi · uvicorn · python-multipart · pydantic · pydantic-settings |
+| 이미지 · 영상 | opencv-python-headless · numpy · Pillow · imageio-ffmpeg |
+| 세그 · 지우기 | ultralytics(+ torch, Docker 는 빌드 인자 `SEG_RUNTIME`) · onnxruntime (SegFormer · LaMa · ONNX YOLO) |
+| 파이프라인 | langgraph · langchain-core (백엔드는 이 둘만 import — LLM 호출은 urllib) |
+| DB | SQLAlchemy · PyMySQL · cryptography |
+| 기타 | python-dotenv · aiofiles · loguru |
 
 ### 2.2 Phase 2 추가 패키지
 
