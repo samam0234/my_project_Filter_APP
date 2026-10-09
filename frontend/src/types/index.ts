@@ -106,7 +106,12 @@ export interface GifResponse {
   saved: boolean;
   /** 배경 제거일 때만: 반투명 경계를 살린 움직이는 WebP (비로그인은 data URL) */
   webp_url?: string | null;
+  /** 경계를 미리 섞은 배경색 (배경 제거일 때만 의미) */
+  matte?: GifMatte;
 }
+
+/** GIF 배경 제거 경계를 미리 섞을 배경: none · light(밝은 배경용) · dark(어두운 배경용) */
+export type GifMatte = "none" | "light" | "dark";
 
 /** POST /api/v1/feedback 요청 */
 export interface FeedbackRequest {

@@ -46,11 +46,13 @@ class GifResponse(BaseModel):
     transparent: bool
     message: Optional[str] = None
     saved: bool
+    # 배경 제거 GIF 경계를 미리 섞은 배경색: none(경계를 잘라냄) · light(밝은 배경용) · dark(어두운 배경용)
+    matte: str = "none"
     # 배경 제거일 때만: 반투명 경계를 살린 움직이는 WebP (GIF 는 1비트 투명이라 경계가 거칠다)
     webp_url: Optional[str] = None
 
 
-def _run(data: bytes, prompt: str) -> dict:
+def _run(data: bytes, prompt: str, matte: str = "none") -> dict:
     from app.workflows import nodes
 
     settings = get_settings()
@@ -64,6 +66,7 @@ def _run(data: bytes, prompt: str) -> dict:
         smoothing=settings.video_temporal_smoothing,
         smoothing_weight=settings.video_smoothing_weight,
         remove_mode=settings.video_remove_mode,
+        matte=matte,
     )
     info["parsed"] = parsed.model_dump()
     return info
@@ -83,6 +86,7 @@ async def process_gif_upload(
     request: Request,
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
+    matte: str = Form(default="none"),
     db: Session = Depends(get_db),
     ldb: Session = Depends(get_learning_db),
     user: Optional[User] = Depends(current_user_optional),
@@ -95,6 +99,8 @@ async def process_gif_upload(
         ip = client_ip(request)
         enforce(upload_limiter, f"ip:{ip}", settings.upload_rate_guest_per_min, "처리 요청 (비로그인은 분당 제한이 더 낮습니다)")
 
+    if matte not in ("none", "light", "dark"):
+        raise HTTPException(status_code=400, detail="matte 는 none · light · dark 중 하나예요.")
     name = (file.filename or "").lower()
     mime = (file.content_type or "").split(";")[0].strip().lower()
     if not name.endswith(".gif") or mime not in GIF_MIMES:
@@ -108,7 +114,7 @@ async def process_gif_upload(
         raise HTTPException(status_code=400, detail="GIF 형식이 아닙니다.")
 
     try:
-        info = await run_in_threadpool(_run, data, prompt)
+        info = await run_in_threadpool(_run, data, prompt, matte)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -126,6 +132,7 @@ async def process_gif_upload(
         held=info["held"],
         effect=info["effect"],
         transparent=info["transparent"],
+        matte=info["matte"],
         message=message,
     )
     if user is None:

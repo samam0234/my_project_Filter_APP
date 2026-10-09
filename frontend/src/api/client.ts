@@ -11,6 +11,7 @@ import type {
   BatchSummary,
   FeedbackRequest,
   FeedbackResponse,
+  GifMatte,
   GifResponse,
   HealthResponse,
   JobResponse,
@@ -49,10 +50,11 @@ export async function uploadImage(file: File, prompt: string): Promise<UploadRes
 }
 
 /** 움직이는 GIF 한 개 처리 — 프레임마다 세그라 사진보다 오래 걸린다 */
-export async function processGif(file: File, prompt: string): Promise<GifResponse> {
+export async function processGif(file: File, prompt: string, matte: GifMatte = "none"): Promise<GifResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("prompt", prompt);
+  form.append("matte", matte);
   const { data } = await api.post<GifResponse>("/api/v1/gif", form, {
     headers: { "Content-Type": "multipart/form-data" },
     timeout: 600_000,
