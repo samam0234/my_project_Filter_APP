@@ -47,7 +47,8 @@ LoRA 는 greedy 생성이라 같은 문장에 늘 같은 답을 낸다. 지금 �
 
 - **평가 문장이 LoRA 학습 설계에 영향을 줬다.** 조합형 학습 문장은 fresh 의 오답 유형을 보고 만들었다. fresh2 도 같은 작성자가 같은 정답 규칙으로 썼다
   - 실제 사용자 문장(운영 콘솔에서 승인된 val)은 아직 1개뿐이다
-- **Docker 이미지에서는 LoRA 를 못 돌린다.** 백엔드 이미지는 CPU 전용 torch 에 transformers · peft 가 없다
+- **Docker 이미지에서는 실사용이 어렵다.** 백엔드 이미지는 CPU 전용 torch 이고 transformers · peft 는 빌드 인자 `LLM_LORA=1` 일 때만 들어간다.
+  CPU 컨테이너에서 재 보니 첫 호출 699초, 문장당 평균 23.2초였다(2026-10-09, `--cpus=4`, 학습과 동시 실행)
   - 위 시간은 GPU 기준이다. CPU 에서 1.5B 모델은 문장당 수 초~십수 초가 걸린다
 - GPU 하나에서 Ollama(gemma4:e4b 약 9.6GB)와 LoRA(1.5B bf16 가중치만 약 3GB)를 같이 올리면 12GB 카드에서는 빠듯하다
 
@@ -65,4 +66,4 @@ PROMPT_VOTES=2
 ## 다음
 
 - 승인된 실제 사용자 문장이 쌓이면(val) 같은 스크립트로 다시 비교한다. 혼합이 계속 앞서면 GPU 서버의 기본값으로 바꾼다
-- Docker 에서 쓰려면 백엔드 이미지에 GPU torch + transformers + peft 를 넣는 선택형 빌드가 필요하다
+- Docker 에서 쓰려면 CPU 빌드(`LLM_LORA=1`, 측정상 실사용 불가)가 아니라 GPU torch + NVIDIA 컨테이너 런타임이 필요하다
