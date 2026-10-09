@@ -34,6 +34,7 @@
 | `effects.py` | 경계 다듬기, 배경 제거·블러·크롭, `remove_object`(LaMa → 실패 시 Telea) |
 | `inpaint.py` | 학습형 인페인팅 LaMa ONNX (`backend/models/lama_fp32.onnx`) |
 | `video_processor.py` | 영상 프레임 처리(`FrameRenderer` — GIF 와 공용) · 광학 흐름 스무딩 · mp4 변환 · 원본 미리 보기 |
+| `instance_tracker.py` | 영상 · GIF 에서 위치 · 순서 · 개수로 고른 대상을 프레임 사이로 따라가기 (다른 사람도 같이 추적, 가려짐 대비) |
 | `gif_processor.py` | 움직이는 GIF 읽기 · 처리 · 투명 GIF / WebP 쓰기 |
 | `image_processor.py` | 전처리 (리사이즈 + CLAHE, CLAHE 기본 끔) |
 | `retention.py` · `maintenance.py` · `db_backup.py` | 보관 기간 정리 · 주기 작업(자동 정리 · 서비스 DB 백업) |

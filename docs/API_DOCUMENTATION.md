@@ -188,7 +188,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 회원 응답 JSON 에는 `parsed_prompt` 도 담긴다. 요청 문장은 사진처럼 학습 데이터 검수 후보(`source=request`)로 모인다.
 
 검출이 없는 프레임은 직전 마스크를 유지한다. **대상 지우기**는 영상을 두 번 읽어 다른 프레임에서 보인 배경판으로 메운다 (고정 카메라일 때, `VIDEO_REMOVE_MODE` — [video-removal-20261009.md](vaildates/video-removal-20261009.md)). 상한은 `VIDEO_MAX_FRAMES` · `VIDEO_MAX_SECONDS`.
-프레임마다 selector(위치·순서·개수·색)로 인스턴스를 고른다 — 프레임 사이 추적은 없어 사람이 겹치거나 지나가면 선택이 바뀔 수 있다.
+위치·순서·개수로 고르는 대상("왼쪽 사람" · "맨 앞 사람")은 첫 프레임에서 selector 로 고른 인스턴스를 **이후 프레임에서 따라간다** — 사람이 서로 지나가도 대상이 바뀌지 않는다 (`VIDEO_TRACK_INSTANCES` — [video-tracking-20261009.md](vaildates/video-tracking-20261009.md)). 색만으로 고른 "빨간 옷 입은 사람들"처럼 개수가 정해지지 않은 조건은 새로 들어온 사람도 포함하도록 프레임마다 다시 고른다.
 세그 모델은 프로세스 공용(요청마다 다시 로드하지 않음). 결과는 **H.264 mp4** 라 브라우저 `<video>` 로 바로 재생되고 어디서나 열린다.
 OpenCV pip 휠에는 H.264 인코더가 없어(OpenH264 DLL 별도) 프레임은 MJPG 임시 avi 로 쓰고 **ffmpeg**(`imageio-ffmpeg` 번들 또는 PATH)로
 libx264 · yuv420p · faststart 로 변환하며 원본의 첫 오디오 트랙을 aac 로 붙인다 (짧은 쪽에 맞춤).
