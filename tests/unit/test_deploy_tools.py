@@ -92,6 +92,9 @@ def test_set_replaces_value_or_uncomments_example():
 
 def test_prod_env_passes_preflight_and_keeps_secrets_out_of_args(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("CNK_SMTP_PASSWORD", "from-env-only")
+    weights = tmp_path / "yolo.pt"  # 가중치가 없는 환경(CI)에서도 preflight 의 모델 항목이 통과하게
+    weights.write_bytes(b"w")
+    monkeypatch.setenv("YOLO_MODEL_PATH", str(weights))
     out = tmp_path / ".env.production"
     monkeypatch.setattr("sys.argv", ["x", "--out", str(out), "--domain", "a.example", "--acme-email", "o@a.example",
                                      "--smtp-host", "smtp.a.example", "--smtp-port", "465", "--smtp-user", "m@a.example",
