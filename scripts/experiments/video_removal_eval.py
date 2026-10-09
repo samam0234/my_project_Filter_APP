@@ -7,7 +7,8 @@
 시나리오
   moving : 사람이 화면을 가로질러 움직인다 (배경이 다른 프레임에서 보인다) — 일반적인 고정 카메라 영상
   still  : 사람이 제자리에 서 있다 (배경이 한 번도 안 보인다 → 배경판도 결국 LaMa 한 번)
-  pan    : 카메라가 옆으로 움직인다 (배경판을 쓰면 안 된다 — 고정 카메라 판정이 맞는지)
+  pan    : 카메라가 옆으로 움직인다 — 프레임을 맞춰(aligned) 모은 배경판을 쓰는지
+  zoom   : 카메라가 천천히 확대된다 (호모그래피로 맞출 수 있는 움직임)
 지표 (구멍 안): L1 · PSNR, 깜빡임(연속 프레임 사이 결과 차이 — 정답은 0), 처리 시간, 고정 카메라 판정
 
 실행: python scripts/experiments/video_removal_eval.py --n 20 --out docs/vaildates/video_removal_eval_20261009.json
@@ -57,6 +58,11 @@ def make_clip(bg: np.ndarray, donor_img: np.ndarray, donor_mask: np.ndarray, fra
         elif mode == "still":
             x = (w - sw) // 2
             base = bg
+        elif mode == "zoom":  # 가운데를 기준으로 프레임마다 1% 씩 확대, 사람은 가운데에서 조금씩 오른쪽으로
+            z = 1.0 + 0.012 * t
+            M = cv2.getRotationMatrix2D((w / 2, h / 2), 0, z)
+            base = cv2.warpAffine(bg, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            x = int((w - sw) * (0.3 + 0.4 * t / (FRAMES - 1)))
         else:  # pan: 카메라가 움직여 배경이 프레임마다 밀린다, 사람은 화면 가운데
             off = int(2 * pad * t / (FRAMES - 1))
             base = wide[:, off: off + w]
@@ -102,7 +108,7 @@ def main() -> None:
     persons = [(gt, i) for gt in pool for i in gt.instances if i["cat"] == "person" and i["area"] > 0.04 * gt.shape[0] * gt.shape[1]]
     rows = []
     for k, gt in enumerate(pool):
-        if len(rows) >= args.n * 3:
+        if len(rows) >= args.n * 4:
             break
         bg = cv2.imread(str(gt.path))
         if bg is None or any(i["cat"] == "person" for i in gt.instances):
@@ -112,7 +118,7 @@ def main() -> None:
         dgt, inst = persons[int(rng.integers(len(persons)))]
         dimg = cv2.imread(str(dgt.path))
         frac = float(rng.choice([0.08, 0.18]))
-        for mode in ("moving", "still", "pan"):
+        for mode in ("moving", "still", "pan", "zoom"):
             frames, masks, truth = make_clip(bg, dimg, inst["mask"], frac, mode, rng)
             t0 = time.perf_counter()
             old = [apply_remove_object(f, m, engine="telea") for f, m in zip(frames, masks)]
@@ -122,7 +128,7 @@ def main() -> None:
             plan = video_inpaint.build_plan(frames, lambda f: next(it))
             new = [video_inpaint.render(f, i, plan) for i, f in enumerate(frames)]
             t_new = time.perf_counter() - t0
-            row = {"image": gt.path.name, "mode": mode, "frac": frac, "static": plan.static, "seen_ratio": plan.seen_ratio,
+            row = {"image": gt.path.name, "mode": mode, "frac": frac, "static": plan.static, "plan_mode": plan.mode, "seen_ratio": plan.seen_ratio,
                    "old_s": t_old, "new_s": t_new}
             row.update({f"old_{a}": b for a, b in score(old, masks, truth).items()})
             row.update({f"new_{a}": b for a, b in score(new, masks, truth).items()})
@@ -135,11 +141,12 @@ def main() -> None:
 
     rng2 = np.random.default_rng(0)
     report = {}
-    for mode in ("moving", "still", "pan"):
+    for mode in ("moving", "still", "pan", "zoom"):
         sel = [r for r in rows if r["mode"] == mode]
         if not sel:
             continue
-        out = {"n": len(sel), "static_detected": float(np.mean([r["static"] for r in sel])), "seen_ratio": float(np.mean([r["seen_ratio"] for r in sel]))}
+        out = {"n": len(sel), "static_detected": float(np.mean([r["static"] for r in sel])), "seen_ratio": float(np.mean([r["seen_ratio"] for r in sel])),
+               "plan_modes": {m: sum(1 for r in sel if r["plan_mode"] == m) for m in ("static", "aligned", "frame")}}
         for m in ("l1", "psnr", "flicker"):
             d = np.array([r[f"new_{m}"] - r[f"old_{m}"] for r in sel])
             boots = [rng2.choice(d, len(d)).mean() for _ in range(2000)]
@@ -147,7 +154,7 @@ def main() -> None:
                       "diff_ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]}
         out["time_s"] = {"old": float(np.mean([r["old_s"] for r in sel])), "new": float(np.mean([r["new_s"] for r in sel]))}
         report[mode] = out
-        print(f"{mode:7} n={out['n']:2} 고정판정 {out['static_detected']*100:.0f}% 보인비율 {out['seen_ratio']*100:.0f}% | "
+        print(f"{mode:7} n={out['n']:2} 방식 {out['plan_modes']} 배경판 {out['static_detected']*100:.0f}% 보인비율 {out['seen_ratio']*100:.0f}% | "
               f"L1 {out['l1']['old']:.1f}→{out['l1']['new']:.1f} {np.round(out['l1']['diff_ci95'],1)} | "
               f"PSNR {out['psnr']['old']:.1f}→{out['psnr']['new']:.1f} | 깜빡임 {out['flicker']['old']:.1f}→{out['flicker']['new']:.1f} | "
               f"{out['time_s']['old']:.2f}→{out['time_s']['new']:.2f}s/{FRAMES}프레임")

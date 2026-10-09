@@ -391,5 +391,5 @@ def process_video(
         "effect": effect,
         "intensity": parsed.intensity,
         # 지우기: 고정 카메라로 보고 배경판을 썼는지 · 지울 자리 중 다른 프레임에서 실제로 보인 비율
-        "removal": {"static": plan.static, "seen_ratio": round(plan.seen_ratio, 3)} if plan is not None else None,
+        "removal": {"mode": plan.mode, "static": plan.static, "seen_ratio": round(plan.seen_ratio, 3)} if plan is not None else None,
     }
