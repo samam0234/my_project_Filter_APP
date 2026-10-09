@@ -42,7 +42,7 @@
 | 남기고 배경 제거 `remove_bg` | "강아지만 남기고 배경 제거" | 투명 PNG · GIF/WebP |
 | 배경 블러 `blur` (+ 강도) | "사람만 남기고 배경 블러 강도 40" | 대상 선명, 배경 흐림 (영상은 해상도에 맞춰 강도 보정) |
 | 크롭 `crop` | "고양이만 크롭해줘" | 대상 주변으로 자름 |
-| 대상 지우기 `remove_object` | "오른쪽 사람 지워줘" | 사진은 **LaMa** 로 주변 무늬를 이어 그림, 영상·GIF 는 Telea |
+| 대상 지우기 `remove_object` | "오른쪽 사람 지워줘" | 사진은 **LaMa** 로 주변 무늬를 이어 그림, 영상·GIF 는 다른 프레임에서 보인 **실제 배경**으로 메움(고정 카메라) |
 | 특정 대상 고르기 `selector` | "맨 앞 빨간 안전모 쓴 사람", "왼쪽에서 두 번째", "사람 2명", "가장 큰 개" | 위치 · 순서 · 개수 · 크기 · 색/부위 |
 | 대상 어휘 | 사람 · 동물 · 탈것 · 물건 등 COCO 80종 + 건물 · 하늘 · 도로 · 나무 등 14종 (+ 자유 문구는 오픈 보캐브) | 한국어 · 동의어 별칭 |
 
@@ -68,6 +68,7 @@
 | 대상 지우기 메우기 | `services/inpaint.py` | `INPAINT_ENGINE` · `INPAINT_MODEL_PATH` | LaMa ONNX(없으면 Telea) — [`vaildates/inpaint-20261009.md`](vaildates/inpaint-20261009.md) |
 | 모델 자동 받기 | `services/model_fetch.py` · `scripts/fetch_models.py` | `MODEL_AUTO_DOWNLOAD` | 없는 LaMa 를 기동 시 백그라운드로 받고 SHA-256 확인, 생기면 바로 LaMa 로 |
 | 영상 | `services/video_processor.py` | `VIDEO_*` | 프레임마다 같은 규칙(`FrameRenderer`), 광학 흐름 스무딩, mp4 변환, avi 등 원본 미리 보기 |
+| 영상 · GIF 지우기 | `services/video_inpaint.py` | `VIDEO_REMOVE_MODE` | 다른 프레임에서 보인 배경판으로 메우고 안 보인 곳만 LaMa 한 번 (고정 카메라), 아니면 프레임마다 Telea — [`vaildates/video-removal-20261009.md`](vaildates/video-removal-20261009.md) |
 | GIF | `services/gif_processor.py` | `GIF_MAX_FRAMES` · `GIF_MAX_PIXELS` | 투명 GIF + 움직이는 WebP |
 | 배치 | `routers/batch.py` · `tasks/batch_tasks.py` | `BATCH_USE_CELERY` | 최대 500장, 한 장씩 처리, Celery 는 선택 |
 

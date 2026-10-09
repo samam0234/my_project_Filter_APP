@@ -89,6 +89,11 @@ def lama_inpaint(image: np.ndarray, mask: np.ndarray, settings: Settings | None 
         ch, cw = crop.shape[:2]
         rgb = cv2.cvtColor(cv2.resize(crop, (LAMA_SIZE, LAMA_SIZE), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB)
         m = cv2.resize(crop_m, (LAMA_SIZE, LAMA_SIZE), interpolation=cv2.INTER_NEAREST)
+        # 구멍을 모델 해상도에서 몇 픽셀 넓히고, 그 안은 지워서 넣는다 (원 LaMa 의 img * (1 - mask)).
+        # 이 ONNX 판은 구멍 안 내용을 그대로 참고하고, 축소할 때 구멍 테두리 1~2픽셀에 안쪽 색이 섞여 들어간다 —
+        # 넓히지 않으면 지울 대상의 색(또는 빈 검정)이 테두리로 새어 메운 자리가 그 색으로 물든다 (2026-10-09 확인)
+        m = cv2.dilate((m > 127).astype(np.uint8) * 255, np.ones((5, 5), np.uint8))
+        rgb[m > 127] = 0
         img_in = (rgb.astype(np.float32) / 255.0).transpose(2, 0, 1)[None]
         mask_in = (m > 127).astype(np.float32)[None, None]
         inputs = session.get_inputs()

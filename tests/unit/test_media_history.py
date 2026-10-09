@@ -307,3 +307,27 @@ def test_lama_inpaint_pastes_only_hole(monkeypatch):
     out = inpaint.lama_inpaint(img, mask)
     assert (out[mask > 0] == 200).all()
     assert (out[mask == 0] == 50).all()
+
+
+def test_lama_input_hides_hole_pixels(monkeypatch):
+    """LaMa 에 넣는 이미지의 구멍 자리는 0 — 지울 대상의 픽셀을 모델이 참고해 다시 그리지 않게."""
+    from app.services import inpaint
+
+    seen = {}
+
+    class Spy:
+        def get_inputs(self):
+            return [type("I", (), {"name": "image"})(), type("I", (), {"name": "mask"})()]
+
+        def run(self, _out, feeds):
+            seen["image"], seen["mask"] = feeds["image"], feeds["mask"]
+            return [np.full((1, 3, 512, 512), 100.0, np.float32)]
+
+    monkeypatch.setattr(inpaint, "_session", lambda settings: Spy())
+    img = np.full((300, 300, 3), 200, np.uint8)
+    mask = np.zeros((300, 300), np.uint8)
+    mask[100:200, 100:200] = 255
+    inpaint.lama_inpaint(img, mask)
+    hole = seen["mask"][0, 0] > 0.5
+    assert hole.any() and (seen["image"][0][:, hole] == 0).all()
+    assert (seen["image"][0][:, ~hole] > 0.7).all()  # 구멍 밖은 원래 값 (200/255)
