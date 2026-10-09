@@ -10,18 +10,18 @@
 # 학습 전용은 training/requirements-training.txt 를 사용한다.
 
 # Web Framework
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-python-multipart==0.0.9
-pydantic==2.9.2
-pydantic-settings==2.5.2
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+pydantic==2.14.0
+pydantic-settings==2.15.0
 
 # Image Processing
 opencv-python-headless==4.10.0.84
 # 영상 결과 H.264 mp4 변환용 ffmpeg 바이너리 번들 (없으면 webm → avi 로 내려감)
 imageio-ffmpeg==0.6.0
 numpy==1.26.4
-Pillow==10.4.0
+Pillow==12.3.0
 
 # YOLO & ONNX
 ultralytics>=8.4.0
@@ -29,20 +29,20 @@ onnxruntime==1.19.2
 # onnxruntime-gpu==1.19.2  # GPU 사용 시
 
 # LangGraph / LangChain
-langchain==0.3.1
-langchain-core==0.3.6
-langgraph==0.2.28
-langchain-openai==0.2.1
+langchain==1.4.4
+langchain-core==1.6.9
+langgraph==1.2.14
+langchain-openai==1.7.0
 
 # Utils
-python-dotenv==1.0.1
+python-dotenv==1.2.4
 aiofiles==24.1.0
 loguru==0.7.2
 
 # Database (local SQLite / prod MariaDB)
 SQLAlchemy==2.0.35
 PyMySQL==1.1.1
-cryptography==43.0.1
+cryptography==50.0.2
 
 # (선택) LLM_PROVIDER=lora — training/lora 어댑터를 백엔드 프로세스에서 서빙
 # torch 는 ultralytics 가 함께 설치한다. 없으면 휴리스틱으로 fallback.
