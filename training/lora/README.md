@@ -12,6 +12,7 @@ selector(위치·순서·개수·색 속성)를 **문장에서 정확히 뽑는 
 
 ```text
 seed/build_seed.py ──→ seed/train.jsonl   (인스턴스 선택·물체 지우기 시드, 결정적 생성)
+seed/build_compositional.py ──→ seed/train_compositional.jsonl (대상 둘 · 방해물 · 관계 표현 · 자르기 말 · COCO+배경 어휘 거의 전부, 결정적 생성)
 서비스 사용 ──→ 학습 DB learning_samples   (회원 요청 · 사용자 교정 · 좋아요)
         ↓  운영 콘솔 "학습 데이터" 검수 (승인 · 정답 고쳐서 승인 · 거절)
 승인 문장 (train split) ──→ augment_prompts.py → outputs/lora/augment/approved_aug.jsonl
@@ -90,6 +91,7 @@ python scripts/retrain_lora.py --deploy     # 후보가 이기면 backend/models
 training\.venv\Scripts\Activate.ps1
 
 python training/lora/seed/build_seed.py                # 시드 재생성 (선택)
+python training/lora/seed/build_compositional.py       # 조합형 시드 재생성 (선택, 평가셋 문장은 자동 제외)
 python training/lora/train_lora.py --dry-run
 python training/lora/augment_prompts.py --per-sample 8      # 승인 문장 증강 (Ollama 필요, 문장당 약 1분)
 python training/lora/train_lora.py --base-model training/models/qwen2.5-1.5b-instruct --name instance_v1

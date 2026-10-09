@@ -57,7 +57,7 @@
 | 키워드 파서 | `services/heuristic_targets.py` | — | LLM 이 꺼져도 동작, 역할 규칙(남길 것 · 뺄 것 · 지울 것) |
 | 해석 체인 (LangChain) | `services/prompt_chain.py` | `PROMPT_CHAIN=langchain` · `PROMPT_VOTES` | LLM 답과 키워드 파서가 다르면 다수결 — 처음 본 문장 86.7→96.7% |
 | RAG 예시 | `services/prompt_rag.py` | `PROMPT_RAG_*` | 승인된 교정 문장을 LLM 예시로, 30초 안에 반영 |
-| LoRA 해석 모델 | `services/prompt_lora.py` · `training/lora/` | `LLM_PROVIDER=lora` | Qwen2.5-1.5B 어댑터 — [`vaildates/lora-retrain-20261008.md`](vaildates/lora-retrain-20261008.md) |
+| LoRA 해석 모델 | `services/prompt_lora.py` · `training/lora/` | `LLM_PROVIDER=lora` | Qwen2.5-1.5B 어댑터 — [`vaildates/lora-compositional-20261009.md`](vaildates/lora-compositional-20261009.md) (조합형 문장, 새 40문장 87.5%) |
 | 낱개 물체 세그 | `services/segmentation.py` | `YOLO_MODEL_PATH` · `SEG_PREFER_ONNX` · `SEG_IMGSZ` · `SEG_NMS_IOU` (Docker 빌드 인자 `SEG_RUNTIME`) | YOLO26m-seg (.pt / ONNX) |
 | 배경 덩어리 세그 | `services/stuff_segmentation.py` | `STUFF_*` | SegFormer ADE20K ONNX — [`vaildates/stuff-segmentation-20261008.md`](vaildates/stuff-segmentation-20261008.md) |
 | 오픈 보캐브 | Grounding DINO + SAM2 | `OPEN_VOCAB_*` · `DINO_MODEL_ID` · `SAM2_MODEL_ID` | 기본 꺼짐, 로컬 가중치 — [`vaildates/open-vocab-20261007.md`](vaildates/open-vocab-20261007.md) |
@@ -81,7 +81,7 @@
 | 회원 요청 후보 | 사진 · 영상 · GIF 처리 시 | 요청 문장 + 해석을 검수 후보로 (`LEARNING_COLLECT_REQUESTS`) |
 | 어려운 사례 수집 | LangGraph `feedback_collector` | `HARD_EXAMPLE_CONF` (기본 꺼짐) |
 | 콘솔 검수 | 콘솔 "학습 데이터" | 승인 · 정답 고쳐서 승인 · 거절 · 일괄 |
-| LoRA 재학습 | `scripts/retrain_lora.py` | 증강 · 학습 · 다섯 평가셋 판정 · 배포 (`--deploy`) |
+| LoRA 재학습 | `scripts/retrain_lora.py` | 증강 · 학습 · 평가셋 7개(승인 val 포함) 판정 · 배포 (`--deploy`), 조합형 시드 `training/lora/seed/build_compositional.py` |
 | YOLO 학습 | `training/` | 데이터 · 학습 · `apply_best.py` 로 배포 |
 | 의사 라벨 | `scripts/pseudo_labeling.py` | 오픈 보캐브로 라벨 후보 |
 

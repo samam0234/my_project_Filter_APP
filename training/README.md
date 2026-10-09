@@ -391,7 +391,7 @@ python training/lora/eval_parser.py --adapter training/outputs/lora/instance_v2/
 
 | 인자 | 기본 | 의미 |
 |------|------|------|
-| `--seed-file` | `lora/seed/train.jsonl` | 인스턴스 선택·지우기 시드 (`seed/build_seed.py`) |
+| `--seed-file` | `lora/seed/train.jsonl` · `train_distractor.jsonl` · `train_compositional.jsonl` | 인스턴스 선택·지우기 시드 (`seed/build_seed.py`) · 방해물 문장 · 조합형 문장 (`seed/build_compositional.py`) |
 | `--seed-repeat` | 2 | 시드 반복 |
 | `--max-pseudo` | 600 | 의사 라벨 샘플 수 |
 | `--rank` · `--lr` | 16 · 2e-4 | LoRA r · 학습률 |
