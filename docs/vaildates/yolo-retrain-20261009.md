@@ -64,9 +64,9 @@
 1. **COCO 밖 실패 사진 모으기**: `HARD_EXAMPLE_CONF=0.4` 를 켜면 신뢰도가 낮은 회원 요청이 학습 후보로 모인다(`learning-loop.md` ⑥)
    - 0.4 기준이면 사진의 약 10% 가 걸리고, 그중 31% 가 실제 섞임이나 오선택이다
    - 다만 회원 이미지를 더 저장하게 되므로 개인정보 안내와 함께 결정해야 한다
-2. **라벨 달기**: 모인 사진을 CVAT · Label Studio 등에서 YOLO-seg 폴리곤으로 내보낸다. 폴더 구조는 `images/` · `labels/` 다
+2. **라벨 달기**: `python scripts/seg_labeling.py export` 가 모인 사진에 큰 모델(yolo26x) 초벌 폴리곤을 붙여 Label Studio 가져오기 파일을 만든다. 사람이 고쳐 YOLO 로 내보낸 뒤 `seg_labeling.py check` 로 검사한다 (2026-10-09 추가)
 3. **돌리기**: `python scripts/retrain_yolo.py --skip-collect --extra <라벨 폴더>`
    - COCO 어려운 사례와 일반 사진에 실패 사진이 더해진다
    - 판정 규칙은 그대로다
    - 수백 장 단위가 모였을 때 의미가 있다
-4. 평가셋이 시나리오당 48장이라, 2%p 기준은 1장 차이다. 실제 개선을 가르려면 평가 사진도 늘려야 한다(`leak_eval.py --download`)
+4. 평가셋이 시나리오당 48장이라, 2%p 기준은 1장 차이다. → 2026-10-09: 맞닿은 사람 사진 90장을 더 받고(`leak_eval.py --download-touching`) 판정 기본값을 시나리오당 150장까지로 올렸다 ([`leak-baseline-20261009.md`](./leak-baseline-20261009.md))

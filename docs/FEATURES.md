@@ -82,6 +82,7 @@
 | 회원 요청 후보 | 사진 · 영상 · GIF 처리 시 | 요청 문장 + 해석을 검수 후보로 (`LEARNING_COLLECT_REQUESTS`) |
 | 어려운 사례 수집 | LangGraph `feedback_collector` | `HARD_EXAMPLE_CONF` (기본 꺼짐) |
 | 콘솔 검수 | 콘솔 "학습 데이터" | 승인 · 정답 고쳐서 승인 · 거절 · 일괄 |
+| 세그 실패 사진 라벨링 | `scripts/seg_labeling.py` | `HARD_EXAMPLE_CONF` (수집) | 실패 · 싫어요 사진을 큰 모델 초벌 라벨과 함께 Label Studio 용으로 내보내고, 고친 라벨을 학습 전에 검사 |
 | 세그 모델 재학습 | `scripts/retrain_yolo.py` | 어려운 사례 수집 · 이어 학습 · 섞임 평가 + mAP 판정 · 배포 (`--deploy`, `--extra` 직접 라벨링 사진) — [`vaildates/yolo-retrain-20261009.md`](vaildates/yolo-retrain-20261009.md) (COCO 만으로는 불채택) |
 | LoRA 재학습 | `scripts/retrain_lora.py` | 증강 · 학습 · 평가셋 7개(승인 val 포함) 판정 · 배포 (`--deploy`), 조합형 시드 `training/lora/seed/build_compositional.py` |
 | YOLO 학습 | `training/` | 데이터 · 학습 · `apply_best.py` 로 배포 |

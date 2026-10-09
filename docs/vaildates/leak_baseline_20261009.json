@@ -1,0 +1,71 @@
+{
+ "left": {
+  "n": 150,
+  "pick_ok": 0.9,
+  "pick_ci": [
+   0.853,
+   0.947
+  ],
+  "leak_case5": 0.16,
+  "leak_case5_ci": [
+   0.107,
+   0.22
+  ],
+  "leak": 0.0608,
+  "iou": 0.7788
+ },
+ "rank2": {
+  "n": 100,
+  "pick_ok": 0.88,
+  "pick_ci": [
+   0.81,
+   0.94
+  ],
+  "leak_case5": 0.17,
+  "leak_case5_ci": [
+   0.1,
+   0.24
+  ],
+  "leak": 0.1024,
+  "iou": 0.7685
+ },
+ "touching": {
+  "n": 150,
+  "pick_ok": 0.88,
+  "pick_ci": [
+   0.827,
+   0.927
+  ],
+  "leak_case5": 0.16,
+  "leak_case5_ci": [
+   0.107,
+   0.22
+  ],
+  "leak": 0.0604,
+  "iou": 0.7667
+ },
+ "all_persons": {
+  "n": 150,
+  "pick_ok": null,
+  "pick_ci": null,
+  "leak_case5": 0.054,
+  "leak_case5_ci": [
+   0.02,
+   0.095
+  ],
+  "leak": 0.0106,
+  "iou": 0.8523
+ },
+ "dog": {
+  "n": 32,
+  "pick_ok": null,
+  "pick_ci": null,
+  "leak_case5": 0.069,
+  "leak_case5_ci": [
+   0.0,
+   0.172
+  ],
+  "leak": 0.0198,
+  "iou": 0.8572
+ }
+}
