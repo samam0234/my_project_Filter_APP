@@ -12,6 +12,8 @@
 | `send_test_mail.py` | 지금 SMTP 설정으로 테스트 메일 한 통 |
 | `export_stuff_onnx.py` | 배경 덩어리용 SegFormer → ONNX (`backend/models/segformer-ade.onnx`) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
+| `deploy_check.py` | 배포 리허설 점검: `remote URL`(인증서 · 리디렉트 · 보안 헤더 · /health · 인증 · CORS · 약관) · `server`(.env 운영 값 · 모델 · 체크섬 · 백업 · Docker) |
+| `models_bundle.py` | 설정이 쓰는 모델만 tar 로 묶고 SHA-256 목록 (`pack`), 서버에서 대조 (`verify`) |
 | `seg_labeling.py` | 세그 실패 사진 라벨링 묶음: `export`(실패 · 싫어요 사진 + yolo26x 초벌 폴리곤 + Label Studio 가져오기 파일) · `check`(고친 라벨 검사, 클래스 순서 `--fix`) → `retrain_yolo.py --extra` |
 | `retrain_yolo.py` | 세그 모델 재학습 루프: COCO 어려운 사례(맞닿은 인스턴스) + 일반 사진 수집 → 이어 학습 → 섞임 평가 · mask mAP 로 배포 모델과 비교 → 판정 (`--deploy` 로 교체, `--extra` 로 직접 라벨링한 사진 추가) |
 | `retrain_lora.py` | 승인 사용자 문장이 기준 이상 쌓이면 증강·학습·평가·배포본 비교 (`--deploy` 로 교체) |
