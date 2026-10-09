@@ -2,6 +2,7 @@
 """배포 서버로 옮길 모델 파일 묶기 · 확인 — 모델은 git 에 없다 (backend/models/, 수백 MB).
 
   pack     지금 .env 설정이 실제로 쓰는 모델만 골라 tar 로 묶고, 파일마다 SHA-256 목록(models.sha256.json)을 만든다
+           --gpu: GPU 서버용 — LoRA 어댑터 + 베이스 모델(training/models/qwen2.5-1.5b-instruct, 약 3GB)도
            YOLO_MODEL_PATH · STUFF_MODEL_PATH · INPAINT_MODEL_PATH (+ LLM_PROVIDER/LLM_FALLBACK 이 lora 면 LoRA 어댑터 폴더)
            실험용 · 백업(lora_prev_* · 다른 크기 YOLO)은 넣지 않는다
   verify   서버에서 풀어 놓은 파일을 목록과 대조 (scripts/deploy_check.py server --models-manifest 도 같은 일을 한다)
@@ -37,7 +38,10 @@ def _env() -> dict[str, str]:
     return out
 
 
-def wanted_files(env: dict[str, str]) -> list[Path]:
+GPU_BASE = ROOT / "training" / "models" / "qwen2.5-1.5b-instruct"  # docker-compose.gpu.yml 의 LORA_BASE_DIR 기본값
+
+
+def wanted_files(env: dict[str, str], gpu: bool = False) -> list[Path]:
     """설정이 쓰는 모델 파일 (저장소 루트 기준 상대 경로가 되도록 backend/ 안의 절대 경로)."""
     rels = [
         env.get("YOLO_MODEL_PATH", "models/yolo26m-seg.pt"),
@@ -50,9 +54,14 @@ def wanted_files(env: dict[str, str]) -> list[Path]:
         files.append(p)
         if rel.endswith("segformer-ade.onnx"):
             files.append(p.with_name("segformer-ade.labels.json"))  # 클래스 이름 (함께 있어야 한다)
-    if "lora" in (env.get("LLM_PROVIDER", ""), env.get("LLM_FALLBACK", "")):
+    if gpu or "lora" in (env.get("LLM_PROVIDER", ""), env.get("LLM_FALLBACK", "")):
         adapter = BACKEND / env.get("LORA_ADAPTER_PATH", "models/lora")
         files += sorted(p for p in adapter.glob("*") if p.is_file())
+    if gpu:
+        # GPU 오버레이는 compose 가 LLM_PROVIDER=lora 를 켜고 베이스 모델 폴더를 붙인다 — 같이 옮겨야 한다 (약 3GB)
+        base = Path(env.get("LORA_BASE_DIR") or GPU_BASE)
+        base = base if base.is_absolute() else ROOT / base
+        files += sorted(p for p in base.glob("*") if p.is_file())
     return files
 
 
@@ -66,7 +75,7 @@ def sha256(path: Path) -> str:
 
 def pack(args) -> int:
     env = _env()
-    files = wanted_files(env)
+    files = wanted_files(env, args.gpu)
     missing = [p for p in files if not p.is_file()]
     for p in missing:
         print(f"  ✗ 없음: {p.relative_to(ROOT)}")
@@ -114,6 +123,7 @@ def main() -> int:
     p = sub.add_parser("pack")
     p.add_argument("--out", type=Path, default=ROOT / "dist" / "models.tar")
     p.add_argument("--allow-missing", action="store_true")
+    p.add_argument("--gpu", action="store_true", help="GPU 서버(docker-compose.gpu.yml)용 — LoRA 어댑터 + 베이스 모델(약 3GB)도 묶는다")
     v = sub.add_parser("verify")
     v.add_argument("manifest")
     args = ap.parse_args()

@@ -60,3 +60,20 @@ def test_bundle_verify_detects_changed_file(monkeypatch, tmp_path):
     assert models_bundle.verify(args) == 0
     f.write_bytes(b"model-v2")
     assert models_bundle.verify(args) == 1
+
+
+def test_gpu_bundle_adds_lora_adapter_and_base_model(monkeypatch, tmp_path):
+    backend = tmp_path / "backend"
+    (backend / "models" / "lora").mkdir(parents=True)
+    (backend / "models" / "lora" / "adapter_model.safetensors").write_bytes(b"a")
+    base = tmp_path / "training" / "models" / "qwen2.5-1.5b-instruct"
+    base.mkdir(parents=True)
+    (base / "model.safetensors").write_bytes(b"b")
+    (base / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(models_bundle, "BACKEND", backend)
+    monkeypatch.setattr(models_bundle, "ROOT", tmp_path)
+    monkeypatch.setattr(models_bundle, "GPU_BASE", base)
+    cpu = [p.name for p in models_bundle.wanted_files({})]
+    gpu = [p.name for p in models_bundle.wanted_files({}, gpu=True)]
+    assert "adapter_model.safetensors" not in cpu and "model.safetensors" not in cpu
+    assert {"adapter_model.safetensors", "model.safetensors", "config.json"} <= set(gpu)  # GPU 오버레이는 compose 가 lora 를 켠다
