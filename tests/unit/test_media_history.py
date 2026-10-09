@@ -331,3 +331,24 @@ def test_lama_input_hides_hole_pixels(monkeypatch):
     hole = seen["mask"][0, 0] > 0.5
     assert hole.any() and (seen["image"][0][:, hole] == 0).all()
     assert (seen["image"][0][:, ~hole] > 0.7).all()  # 구멍 밖은 원래 값 (200/255)
+
+
+def test_gif_matte_blends_soft_edges_with_chosen_background(env):
+    """경계 매트: 반투명 경계를 고른 배경색과 섞어 불투명하게 남긴다 — 잘못된 값은 400."""
+    from app.services.gif_processor import MATTES, encode_gif
+
+    bgra = np.zeros((H, W, 4), np.uint8)
+    bgra[:, :, :3] = (0, 0, 200)  # 빨강(BGR)
+    bgra[:, 20:40, 3] = 255
+    bgra[:, 40:44, 3] = 100  # 반투명 경계
+    plain = np.array(_open_gif(encode_gif([bgra], [100], 0, True)).convert("RGBA"))
+    light = np.array(_open_gif(encode_gif([bgra], [100], 0, True, MATTES["light"])).convert("RGBA"))
+    assert plain[10, 41, 3] == 0  # 매트 없음: 반투명 경계는 잘려 나감
+    assert light[10, 41, 3] == 255 and light[10, 41, 1] > 100  # 매트: 남고 흰색과 섞임 (G 가 올라감)
+    assert light[10, 5, 3] == 0  # 완전 투명한 곳은 그대로 투명
+
+    c = env["client"]
+    r = c.post("/api/v1/gif", files={"file": ("a.gif", _gif_bytes(), "image/gif")}, data={"prompt": "사람만 남기고 배경 제거", "matte": "light"})
+    assert r.status_code == 200 and r.json()["matte"] == "light"
+    bad = c.post("/api/v1/gif", files={"file": ("a.gif", _gif_bytes(), "image/gif")}, data={"prompt": "사람만 남기고 배경 제거", "matte": "pink"})
+    assert bad.status_code == 400

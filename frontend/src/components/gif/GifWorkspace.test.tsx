@@ -57,7 +57,7 @@ describe("GifWorkspace", () => {
     render(<GifWorkspace />);
     await pickAndRun();
     expect(await screen.findByText(/12프레임 처리 · 투명 배경/)).toBeTruthy();
-    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거");
+    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "none");
     expect((screen.getByAltText("처리 결과") as HTMLImageElement).src).toContain("data:image/gif");
     expect((screen.getByAltText("원본 이미지") as HTMLImageElement).src).toContain("blob:gif-preview");
     expect(screen.getByText("이 결과는 저장되지 않아요")).toBeTruthy();
@@ -97,6 +97,17 @@ describe("GifWorkspace", () => {
     await pickAndRun();
     await screen.findByText(/12프레임 처리/);
     expect(screen.queryByRole("link", { name: /WebP 저장/ })).toBeNull();
+  });
+
+  it("경계 맞출 배경을 고르면 요청에 실린다 (기본은 정하지 않음)", async () => {
+    vi.mocked(client.processGif).mockResolvedValue({ ...BASE, matte: "light" });
+    render(<GifWorkspace />);
+    expect(screen.getByRole("radio", { name: "정하지 않음" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(screen.getByRole("radio", { name: "밝은 배경" }));
+    expect(screen.getByText(/반대 배경에 올리면 테두리가 보이니/)).toBeTruthy();
+    await pickAndRun();
+    await screen.findByText(/12프레임 처리/);
+    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "light");
   });
 
   it("처리 실패는 오류로 보여 주고 다시 시도할 수 있다", async () => {

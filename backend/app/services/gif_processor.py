@@ -22,6 +22,9 @@ from app.services.video_processor import FrameRenderer
 GIF_SIGNATURES = (b"GIF87a", b"GIF89a")
 TRANSPARENT_INDEX = 255  # 투명색 자리 — 나머지 255색에 프레임 색을 줄여 담는다
 ALPHA_CUTOFF = 128
+# 경계 매트 — 결과를 올릴 배경색과 반투명 경계를 미리 섞어 불투명하게 남긴다 (GIF 는 반투명이 없어서)
+MATTES = {"light": (255, 255, 255), "dark": (15, 23, 42)}
+MATTE_CUTOFF = 24  # 매트를 쓰면 이보다 옅은 픽셀만 투명 (나머지 경계는 매트 색과 섞여 남는다)
 MIN_DURATION_MS = 20  # 0·10ms 프레임은 브라우저가 100ms 로 늘려 재생하므로 원본 속도를 지키려 하한만 둔다
 
 
@@ -69,13 +72,19 @@ def read_gif(data: bytes, max_frames: int, max_pixels: int = 4_000_000) -> GifFr
     return GifFrames(frames=frames, durations=durations, loop=loop, total=int(total))
 
 
-def _to_palette(rendered: np.ndarray, transparent: bool) -> Image.Image:
-    """효과 결과(BGR · BGRA) → GIF 프레임(P 모드). transparent 면 알파가 낮은 픽셀을 투명색으로."""
+def _to_palette(rendered: np.ndarray, transparent: bool, matte: tuple[int, int, int] | None = None) -> Image.Image:
+    """효과 결과(BGR · BGRA) → GIF 프레임(P 모드). transparent 면 알파가 낮은 픽셀을 투명색으로.
+
+    matte(RGB): 반투명 경계를 그 색과 미리 섞어 불투명하게 남기고, 아주 옅은 곳만 투명 — 그 색 배경 위에서 경계가 부드럽다.
+    """
     if rendered.ndim == 2:
         rendered = cv2.cvtColor(rendered, cv2.COLOR_GRAY2BGR)
     if rendered.shape[2] == 4:
         rgb = cv2.cvtColor(rendered[:, :, :3], cv2.COLOR_BGR2RGB)
         alpha = rendered[:, :, 3]
+        if transparent and matte is not None:
+            a = alpha.astype(np.float32)[..., None] / 255.0
+            rgb = np.clip(rgb.astype(np.float32) * a + np.array(matte, np.float32) * (1 - a), 0, 255).astype(np.uint8)
     else:
         rgb = cv2.cvtColor(rendered, cv2.COLOR_BGR2RGB)
         alpha = None
@@ -85,7 +94,7 @@ def _to_palette(rendered: np.ndarray, transparent: bool) -> Image.Image:
         return quantized
     index = np.array(quantized, dtype=np.uint8)
     if alpha is not None:
-        index[alpha < ALPHA_CUTOFF] = TRANSPARENT_INDEX
+        index[alpha < (MATTE_CUTOFF if matte is not None else ALPHA_CUTOFF)] = TRANSPARENT_INDEX
     palette = (quantized.getpalette() or [])[: TRANSPARENT_INDEX * 3]
     palette += [0] * (768 - len(palette))
     out = Image.fromarray(index, mode="P")
@@ -94,7 +103,9 @@ def _to_palette(rendered: np.ndarray, transparent: bool) -> Image.Image:
     return out
 
 
-def encode_gif(rendered: list[np.ndarray], durations: list[int], loop: int, transparent: bool) -> bytes:
+def encode_gif(
+    rendered: list[np.ndarray], durations: list[int], loop: int, transparent: bool, matte: tuple[int, int, int] | None = None
+) -> bytes:
     """프레임 목록 → 움직이는 GIF 바이트. 크기가 다른 프레임(크롭)은 첫 프레임 크기에 맞춘다."""
     if not rendered:
         raise ValueError("프레임이 없습니다.")
@@ -103,7 +114,7 @@ def encode_gif(rendered: list[np.ndarray], durations: list[int], loop: int, tran
     for img in rendered:
         if img.shape[0] != height or img.shape[1] != width:
             img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
-        frames.append(_to_palette(img, transparent))
+        frames.append(_to_palette(img, transparent, matte))
     buf = io.BytesIO()
     options = {
         "save_all": True,
@@ -155,6 +166,7 @@ def process_gif(
     smoothing: str = "flow",
     smoothing_weight: float = 0.3,
     remove_mode: str = "propagate",
+    matte: str = "none",
 ) -> dict:
     """GIF 바이트 → 처리된 GIF 바이트와 정보.
 
@@ -172,7 +184,7 @@ def process_gif(
     else:
         rendered = [renderer.render(frame) for frame in gif.frames]
     transparent = renderer.effect not in ("blur", "remove_object", "crop", "none")
-    out = encode_gif(rendered, gif.durations, gif.loop, transparent)
+    out = encode_gif(rendered, gif.durations, gif.loop, transparent, MATTES.get(matte))
     webp = None
     if transparent:
         try:
@@ -188,4 +200,5 @@ def process_gif(
         "effect": renderer.effect,
         "intensity": parsed.intensity,
         "transparent": transparent,
+        "matte": matte if transparent and matte in MATTES else "none",
     }

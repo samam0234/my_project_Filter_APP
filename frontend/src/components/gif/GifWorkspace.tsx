@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { ExternalLink, Film, Loader2, RefreshCw, RotateCcw, Wand2 } from "lucide-react";
 import { errorMessage, processGif, resolveAssetUrl } from "../../api/client";
-import type { GifResponse } from "../../types";
+import type { GifMatte, GifResponse } from "../../types";
 import { Link } from "../../router";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -30,6 +30,7 @@ export function GifWorkspace() {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<GifResponse | null>(null);
   const [busy, setBusy] = useState(false);
+  const [matte, setMatte] = useState<GifMatte>("none");
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
@@ -66,7 +67,7 @@ export function GifWorkspace() {
     setError(null);
     setResult(null);
     try {
-      setResult(await processGif(file, prompt.trim()));
+      setResult(await processGif(file, prompt.trim(), matte));
     } catch (err) {
       setError(errorMessage(err, "GIF 를 처리하지 못했어요."));
     } finally {
@@ -137,6 +138,36 @@ export function GifWorkspace() {
         </Step>
 
         <Step n={3} title="처리하기">
+          <fieldset className="space-y-2">
+            <legend className="text-xs font-medium text-slate-300">배경 제거 GIF 를 어디에 올리나요? (경계 다듬기)</legend>
+            <div role="radiogroup" aria-label="경계 맞출 배경" className="flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
+              {(
+                [
+                  ["none", "정하지 않음"],
+                  ["light", "밝은 배경"],
+                  ["dark", "어두운 배경"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={matte === value}
+                  onClick={() => setMatte(value)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    matte === value ? "bg-slate-800 text-white shadow-card" : "text-slate-400 hover:text-slate-100"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs leading-relaxed text-slate-500">
+              {matte === "none"
+                ? "GIF 는 반투명이 없어 경계가 계단처럼 보일 수 있어요. 올릴 곳의 배경을 고르면 경계를 그 색에 맞춰 부드럽게 만들어요."
+                : `${matte === "light" ? "흰색 · 밝은" : "검정 · 어두운"} 배경 위에서 경계가 부드러워요. 반대 배경에 올리면 테두리가 보이니 주의하세요.`}
+            </p>
+          </fieldset>
           <div className="flex flex-wrap gap-2">
             <Button size="lg" onClick={() => void run()} disabled={!canRun} className="flex-1 sm:flex-none">
               <Wand2 className="h-4 w-4" /> GIF 처리 시작

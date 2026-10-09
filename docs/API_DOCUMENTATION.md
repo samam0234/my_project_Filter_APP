@@ -206,7 +206,7 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/gif` | `multipart`: `file`(.gif, 최대 `MAX_UPLOAD_SIZE_MB`), `prompt`. 프레임마다 영상과 같은 규칙(selector · 겹침 덜어내기 · 직전 마스크 유지 · 시간 스무딩)으로 처리해 다시 GIF 로 |
+| `POST /api/v1/gif` | `multipart`: `file`(.gif, 최대 `MAX_UPLOAD_SIZE_MB`), `prompt`, `matte`(선택: `none` 기본 · `light` · `dark` — 배경 제거 경계를 그 배경색과 미리 섞음, 응답에도 `matte`). 프레임마다 영상과 같은 규칙(selector · 겹침 덜어내기 · 직전 마스크 유지 · 시간 스무딩)으로 처리해 다시 GIF 로 |
 
 ```json
 {
