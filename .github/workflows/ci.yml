@@ -10,6 +10,8 @@ on:
     branches: [main, develop, "feature/**", "fix/**"]
   pull_request:
     branches: [main, develop]
+  schedule:
+    - cron: "0 0 * * 1"  # 매주 월요일 — 코드가 안 바뀌어도 새로 알려진 의존성 취약점을 잡는다
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -35,6 +37,8 @@ jobs:
         run: pip install -r requirements.docker.txt -r tests/requirements-test.txt
       - name: pytest
         run: python -m pytest tests
+      - name: 의존성 취약점 (pip-audit)
+        run: pip install pip-audit && pip-audit -r requirements.docker.txt
       - name: 배포 설정 점검 (안전한 production 값이면 통과해야 함)
         working-directory: backend
         env:
