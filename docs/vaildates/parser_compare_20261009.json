@@ -1,0 +1,3364 @@
+{
+ "sets": {
+  "eval": {
+   "heuristic": {
+    "n": 40,
+    "exact": 0.7,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 0.000254754998604767,
+    "calls": {
+     "lora": 0
+    },
+    "misses": [
+     {
+      "prompt": "하얀 승합차 말고 검은 차만 남겨",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white",
+         "black"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "배경 날리고 고양이 두 마리만 남겨",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "가운데 서있는 여자분 빼고 다 흐리게 해주세요 강도는 50",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "뒤에 조그맣게 찍힌 사람 한 명 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "노란 우비 입은 아이 빼고 배경 전부 삭제",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "앞줄 맨 앞 사람만 남기고 크롭까지 해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "검은 모자 쓴 남자 두 명만 남기고 배경 흐림 30",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "black hat"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep just the woman in the red jacket, make the background transparent",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red jacket"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "blur the background but keep the two dogs sharp",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "앞에 있는 차 한 대만 선명하게 나머진 블러 40",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "회색 후드티 입은 사람 지워",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "gray"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 세 명만 남기고 배경 없애",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "lora": {
+    "n": 40,
+    "exact": 0.95,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 2.9739603750000243,
+    "calls": {
+     "lora": 40
+    },
+    "misses": [
+     {
+      "prompt": "앞줄 맨 앞 사람만 남기고 크롭까지 해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.95,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 3.1176586425019197,
+    "calls": {
+     "lora": 40
+    },
+    "misses": [
+     {
+      "prompt": "앞줄 맨 앞 사람만 남기고 크롭까지 해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 40,
+    "exact": 0.875,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 4.993933777499478,
+    "calls": {
+     "lora": 0,
+     "ollama": 40
+    },
+    "misses": [
+     {
+      "prompt": "노란 우비 입은 아이 빼고 배경 전부 삭제",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "yellow raincoat"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "앞줄 맨 앞 사람만 남기고 크롭까지 해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "제일 작은 새 한 마리만 남겨",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep just the woman in the red jacket, make the background transparent",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "red jacket"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "초록 모자 쓴 아이만 남기고 배경 지우기",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "green hat"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   }
+  },
+  "ext": {
+   "heuristic": {
+    "n": 56,
+    "exact": 0.7857142857142857,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 0.0001388249989499205,
+    "calls": {
+     "lora": 0,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "차 두 대만 남기고 나머지 지워",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "말 세 마리만 남기고 배경 날려줘",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사진에 찍힌 고양이 두 마리 지워줘",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "강아지 빼고 배경 블러 80",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "가운데 커플 두 명만 남기고 뒤는 블러",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "가운데 사람만 남기고 크롭까지 부탁해요",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "뒤에 버스 좀 지워봐",
+      "pred": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep only the cat and remove the background",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "blur everything except the two kids, strength 60",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "person 만 남기고 background 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "lora": {
+    "n": 56,
+    "exact": 0.9107142857142857,
+    "target": 0.9821428571428571,
+    "extra": 0,
+    "sec": 2.694361126784185,
+    "calls": {
+     "lora": 56,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "가운데 사람만 남기고 크롭까지 부탁해요",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "강쥐만 남겨줘",
+      "pred": {
+       "target": [
+        "rat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 56,
+    "exact": 0.9285714285714286,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 2.841471016072319,
+    "calls": {
+     "lora": 56,
+     "ollama": 1
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "가운데 사람만 남기고 크롭까지 부탁해요",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 56,
+    "exact": 0.875,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 4.618382883929631,
+    "calls": {
+     "lora": 0,
+     "ollama": 56
+    },
+    "misses": [
+     {
+      "prompt": "제일 큰 곰인형만 남겨줘",
+      "pred": {
+       "target": [
+        "teddy bear"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "largest"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사진 속 쓰레기통 옆 자전거 좀 없애줄래",
+      "pred": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "제일 큰 피자 조각만 오려줘",
+      "pred": {
+       "target": [
+        "pizza"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "largest"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "가운데 사람만 남기고 크롭까지 부탁해요",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "빨간 차만 크롭해 줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "red car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep the man in the blue jacket",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "blue jacket"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "distractor": {
+   "heuristic": {
+    "n": 47,
+    "exact": 0.8936170212765957,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 0.00013652978900899278,
+    "calls": {
+     "lora": 0,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "오른쪽 두 사람만 남기고 나머지는 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "blur the background but keep the cat sharp, ignore the chairs",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "lora": {
+    "n": 47,
+    "exact": 0.9148936170212766,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 2.4173832468074212,
+    "calls": {
+     "lora": 47,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "오른쪽 두 사람만 남기고 나머지는 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red person"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue handbag"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 47,
+    "exact": 0.9148936170212766,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 2.460812995745305,
+    "calls": {
+     "lora": 47,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "오른쪽 두 사람만 남기고 나머지는 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red person"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue handbag"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 47,
+    "exact": 0.8723404255319149,
+    "target": 0.9787234042553191,
+    "extra": 1,
+    "sec": 6.879282646810021,
+    "calls": {
+     "lora": 0,
+     "ollama": 49
+    },
+    "misses": [
+     {
+      "prompt": "남자 옆에 있는 개만 남기고 나머지 투명하게",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "버스 앞에 서 있는 사람만 남기고 버스는 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "자전거는 놔두고 사람만 블러 처리 안 하고 배경만 블러",
+      "pred": {
+       "target": [
+        "bicycle",
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "extra",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red clothes"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue bag"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   }
+  },
+  "holdout": {
+   "heuristic": {
+    "n": 40,
+    "exact": 0.85,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 0.0001384150004014373,
+    "calls": {
+     "lora": 0,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "고양이와 강아지는 놔두고 나머지를 지워주세요",
+      "pred": {
+       "target": [
+        "cat",
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "노트북이랑 휴대폰만 선명하게 두고 배경 블러 40",
+      "pred": {
+       "target": [
+        "laptop",
+        "cell phone"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "the dog should stay, wipe out the rest",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the umbrella and keep everything else",
+      "pred": {
+       "target": [
+        "umbrella"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "make the background transparent but not the horse",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "차 한 대만 남겨줘 제일 가까운 차",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "lora": {
+    "n": 40,
+    "exact": 0.875,
+    "target": 0.975,
+    "extra": 0,
+    "sec": 2.2997646375006298,
+    "calls": {
+     "lora": 40,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "강아지 두 마리 중 왼쪽 강아지만 남겨줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "고양이와 강아지는 놔두고 나머지를 지워주세요",
+      "pred": {
+       "target": [
+        "cat",
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "우산 쓴 사람은 빼고 우산만 크롭",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "umbrella person"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "차 한 대만 남겨줘 제일 가까운 차",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "여기서 강아지 말고 다른 건 다 지워줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.9,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 2.4696991050004726,
+    "calls": {
+     "lora": 40,
+     "ollama": 1
+    },
+    "misses": [
+     {
+      "prompt": "강아지 두 마리 중 왼쪽 강아지만 남겨줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "고양이와 강아지는 놔두고 나머지를 지워주세요",
+      "pred": {
+       "target": [
+        "cat",
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "차 한 대만 남겨줘 제일 가까운 차",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "여기서 강아지 말고 다른 건 다 지워줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 40,
+    "exact": 0.975,
+    "target": 0.975,
+    "extra": 0,
+    "sec": 6.829107907501748,
+    "calls": {
+     "lora": 0,
+     "ollama": 44
+    },
+    "misses": [
+     {
+      "prompt": "나무는 놔두고 건물을 흐리게",
+      "pred": {
+       "target": [
+        "tree"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "fresh": {
+   "heuristic": {
+    "n": 30,
+    "exact": 0.8,
+    "target": 0.9333333333333333,
+    "extra": 0,
+    "sec": 0.00015613999761020144,
+    "calls": {
+     "lora": 0,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "배경은 필요 없고 고양이 한 마리만 있으면 돼",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep the umbrella and the person, drop the background",
+      "pred": {
+       "target": [
+        "umbrella",
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "take out the bus only",
+      "pred": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "하늘이랑 나무는 살리고 건물은 지워줘",
+      "pred": {
+       "target": [
+        "building"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 둘만 남겨줘 가방은 빼고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "remove the dog, keep the bench and the people",
+      "pred": {
+       "target": [
+        "bench",
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "lora": {
+    "n": 30,
+    "exact": 0.9,
+    "target": 0.9666666666666667,
+    "extra": 0,
+    "sec": 2.3887405633344314,
+    "calls": {
+     "lora": 30,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "blur it all except for the biggest dog",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "big dog"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "강아지 옆의 아이는 지우지 말고 강아지만 지워줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "오토바이는 지워줘 헬멧 쓴 사람은 그대로",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "helmet"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 30,
+    "exact": 0.8666666666666667,
+    "target": 0.9333333333333333,
+    "extra": 0,
+    "sec": 3.193152709999898,
+    "calls": {
+     "lora": 30,
+     "ollama": 3
+    },
+    "misses": [
+     {
+      "prompt": "blur it all except for the biggest dog",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "big dog"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "하늘이랑 나무는 살리고 건물은 지워줘",
+      "pred": {
+       "target": [
+        "building"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "강아지 옆의 아이는 지우지 말고 강아지만 지워줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the dog, keep the bench and the people",
+      "pred": {
+       "target": [
+        "bench",
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 30,
+    "exact": 0.8,
+    "target": 0.9,
+    "extra": 0,
+    "sec": 9.647460703334461,
+    "calls": {
+     "lora": 0,
+     "ollama": 38
+    },
+    "misses": [
+     {
+      "prompt": "제일 오른쪽 사람만 뽑아내 줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "건물 앞에 서 있는 사람만 남기고 나머지는 모두 날려줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "하늘이랑 나무는 살리고 건물은 지워줘",
+      "pred": {
+       "target": [
+        "building"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "산이랑 호수만 선명하게 사람은 흐리게 처리해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the dog, keep the bench and the people",
+      "pred": {
+       "target": [
+        "bench",
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "everything but the car should go",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "fresh2": {
+   "heuristic": {
+    "n": 40,
+    "exact": 0.625,
+    "target": 0.775,
+    "extra": 1,
+    "sec": 0.00014146000030450522,
+    "calls": {
+     "lora": 0,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "기린 옆에 서 있는 얼룩말만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "케이크랑 접시는 두고 포크만 지워줘",
+      "pred": {
+       "target": [
+        "cake"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "바다랑 모래사장만 남기고 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "water"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "missing",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "냉장고 앞에 있는 의자 좀 지워줄래",
+      "pred": {
+       "target": [
+        "chair"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "pred": {
+       "target": [
+        "train"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "missing",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "도로는 두고 차들만 지워줘",
+      "pred": {
+       "target": [
+        "road"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "erase the umbrella but keep the people",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "crop the dog that is next to the bench",
+      "pred": {
+       "target": [
+        "dog",
+        "bench"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "extra",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the background, keep the horse and the rider",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "missing",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "오른쪽 개 두 마리만 남겨줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 세 명만 남기고 나머지는 블러 강도 50",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 50,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "새 두 마리 중에 큰 새만 남겨",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "핸드폰 들고 있는 여자만 남기고 크롭까지",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "강 위의 배만 남기고 배경 날려줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     }
+    ]
+   },
+   "lora": {
+    "n": 40,
+    "exact": 0.875,
+    "target": 0.95,
+    "extra": 0,
+    "sec": 2.3757524575019486,
+    "calls": {
+     "lora": 40,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "하늘 빼고 나머지 전부 투명하게 해줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "pred": {
+       "target": [
+        "train",
+        "horse"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "오른쪽 개 두 마리만 남겨줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "새 두 마리 중에 큰 새만 남겨",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "large bird"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.9,
+    "target": 0.975,
+    "extra": 0,
+    "sec": 4.246706110000377,
+    "calls": {
+     "lora": 40,
+     "ollama": 10
+    },
+    "misses": [
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "pred": {
+       "target": [
+        "train",
+        "horse"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "오른쪽 개 두 마리만 남겨줘",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "새 두 마리 중에 큰 새만 남겨",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "large bird"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 40,
+    "exact": 0.7,
+    "target": 0.925,
+    "extra": 1,
+    "sec": 10.281136824999702,
+    "calls": {
+     "lora": 0,
+     "ollama": 66
+    },
+    "misses": [
+     {
+      "prompt": "기린 옆에 서 있는 얼룩말만 남겨줘",
+      "pred": {
+       "target": [
+        "zebra"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "코끼리는 그대로 두고 사람들만 없애 주세요",
+      "pred": {
+       "target": [
+        "elephant"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "시계만 오려내서 보내줘",
+      "pred": {
+       "target": [
+        "watch"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "냉장고 앞에 있는 의자 좀 지워줄래",
+      "pred": {
+       "target": [
+        "chair"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "스케이트보드 탄 아이만 남겨 줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "skateboard"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "곰인형만 크롭해 줘 옆에 고양이는 빼고",
+      "pred": {
+       "target": [
+        "teddy bear",
+        "cat"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "extra",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "crop the dog that is next to the bench",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "가장 작은 컵만 오려줘",
+      "pred": {
+       "target": [
+        "cup"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "smallest"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "새 두 마리 중에 큰 새만 남겨",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "largest"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "트럭 뒤의 건물만 흐리게 처리해줘",
+      "pred": {
+       "target": [
+        "building"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "behind truck"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "핸드폰 들고 있는 여자만 남기고 크롭까지",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "cell phone"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": false
+     }
+    ]
+   }
+  }
+ },
+ "parsers": [
+  "heuristic",
+  "lora",
+  "chain_hybrid",
+  "chain_ollama"
+ ],
+ "total": {
+  "heuristic": {
+   "n": 253,
+   "exact": 0.7786561264822134,
+   "target": 0.9565217391304348,
+   "sec": 0.0001591324107721448
+  },
+  "lora": {
+   "n": 253,
+   "exact": 0.9051383399209486,
+   "target": 0.9802371541501976,
+   "sec": 2.5381128513834
+  },
+  "chain_hybrid": {
+   "n": 253,
+   "exact": 0.9130434782608695,
+   "target": 0.9881422924901185,
+   "sec": 3.019516692886114
+  },
+  "chain_ollama": {
+   "n": 253,
+   "exact": 0.8537549407114624,
+   "target": 0.9683794466403162,
+   "sec": 6.938919713044274
+  }
+ }
+}
