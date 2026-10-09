@@ -72,6 +72,17 @@ RAG 예시는 모든 호출에 똑같이 붙는다. **기본값은 langchain** �
 - 0.4 기준으로 사진의 약 10% 가 걸리고 그중 약 31% 가 실제 섞임/오선택 (무작위의 2.4배) — 데이터 수집 효율이 2배 이상
 - **회원 이미지가 더 저장되는 일**이라 기본은 꺼져 있다 (개인정보 안내·보관 기간 `FILE_RETENTION_HOURS` 와 함께 결정)
 
+모인 사진에 YOLO-seg 폴리곤 라벨을 달면(CVAT · Label Studio 등, `images/` · `labels/`) 재학습 루프에 넣는다:
+
+```bash
+python scripts/retrain_yolo.py --collect-only                  # COCO 어려운 사례 + 일반 사진 준비 (한 번)
+python scripts/retrain_yolo.py --skip-collect --extra <라벨 폴더> # 이어 학습 → 섞임 평가 · mAP → 판정
+python scripts/retrain_yolo.py --skip-collect --extra <라벨 폴더> --deploy   # 채택이면 backend/models 교체 (백업)
+```
+
+COCO 만으로 돌린 첫 실행은 두 번 다 불채택이었다 — 서비스 모델이 이미 COCO 로 학습돼 새 정보가 없다
+([`yolo-retrain-20261009.md`](../vaildates/yolo-retrain-20261009.md)). **COCO 밖 실패 사진**이 수백 장 모였을 때 의미가 있다.
+
 ## 무엇이 효과 없었나 (다시 시도하지 않도록)
 
 | 시도 | 결과 |

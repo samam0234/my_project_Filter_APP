@@ -10,6 +10,7 @@
 | `prepare_coco5k_seg.py` | COCO train2017 → ~5000장 5클래스 + LoRA JSON |
 | `apply_best.py` | best.pt → `models/yolo26s-seg.pt` + 샘플 추론 |
 | `export_onnx.py` | `.pt` → `.onnx` |
+| `../../scripts/retrain_yolo.py` | **재학습 루프** — 어려운 사례 수집 → 서비스 모델(80클래스)에서 이어 학습 → 섞임 평가 · mAP 판정 → 배포 |
 
 ## 실행 전 최소 체크
 

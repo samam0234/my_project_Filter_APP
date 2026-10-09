@@ -1,0 +1,255 @@
+{
+ "hard_261009_1103": {
+  "run": "hard_261009_1103",
+  "model": "yolo26m-seg.pt",
+  "win": false,
+  "why": "일반 성능 하락: mask mAP 0.4277 → 0.3883",
+  "base": {
+   "left": {
+    "n": 48,
+    "pick_ok": 0.938,
+    "leak": 0.0438,
+    "leak_case5": 0.125,
+    "iou": 0.8119,
+    "cover": 0.8736
+   },
+   "rank2": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0816,
+    "leak_case5": 0.208,
+    "iou": 0.7784,
+    "cover": 0.8464
+   },
+   "touching": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0519,
+    "leak_case5": 0.167,
+    "iou": 0.7926,
+    "cover": 0.8633
+   },
+   "all_persons": {
+    "n": 48,
+    "pick_ok": null,
+    "leak": 0.0176,
+    "leak_case5": 0.109,
+    "iou": 0.822,
+    "cover": 0.9026
+   },
+   "dog": {
+    "n": 32,
+    "pick_ok": null,
+    "leak": 0.0198,
+    "leak_case5": 0.069,
+    "iou": 0.8572,
+    "cover": 0.9207
+   }
+  },
+  "candidate": {
+   "left": {
+    "n": 48,
+    "pick_ok": 0.812,
+    "leak": 0.0584,
+    "leak_case5": 0.146,
+    "iou": 0.7348,
+    "cover": 0.7894
+   },
+   "rank2": {
+    "n": 48,
+    "pick_ok": 0.833,
+    "leak": 0.1402,
+    "leak_case5": 0.25,
+    "iou": 0.6983,
+    "cover": 0.763
+   },
+   "touching": {
+    "n": 48,
+    "pick_ok": 0.833,
+    "leak": 0.0622,
+    "leak_case5": 0.146,
+    "iou": 0.7574,
+    "cover": 0.8276
+   },
+   "all_persons": {
+    "n": 48,
+    "pick_ok": null,
+    "leak": 0.0524,
+    "leak_case5": 0.156,
+    "iou": 0.7773,
+    "cover": 0.8857
+   },
+   "dog": {
+    "n": 32,
+    "pick_ok": null,
+    "leak": 0.0263,
+    "leak_case5": 0.148,
+    "iou": 0.8382,
+    "cover": 0.9137
+   }
+  },
+  "base_map": 0.42765392281983705,
+  "candidate_map": 0.38828681262247866,
+  "args": {
+   "model": "yolo26m-seg.pt",
+   "hard": "1500",
+   "replay": "1500",
+   "val": "500",
+   "extra": "None",
+   "epochs": "8",
+   "lr0": "0.0005",
+   "freeze": "10",
+   "batch": "8",
+   "device": "0",
+   "workers": "16",
+   "train_workers": "2",
+   "seed": "0",
+   "n_eval": "48",
+   "skip_collect": "True",
+   "collect_only": "False",
+   "skip_train": "False",
+   "candidate": "None",
+   "deploy": "False"
+  },
+  "epochs_mask_map": [
+   0.33383,
+   0.34493,
+   0.35174,
+   0.3655,
+   0.37479,
+   0.38062,
+   0.38713,
+   0.39048
+  ]
+ },
+ "hard_261009_1118": {
+  "run": "hard_261009_1118",
+  "model": "yolo26m-seg.pt",
+  "win": false,
+  "why": "left 선택 정확 하락 0.938 → 0.917",
+  "base": {
+   "left": {
+    "n": 48,
+    "pick_ok": 0.938,
+    "leak": 0.0438,
+    "leak_case5": 0.125,
+    "iou": 0.8119,
+    "cover": 0.8736
+   },
+   "rank2": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0816,
+    "leak_case5": 0.208,
+    "iou": 0.7784,
+    "cover": 0.8464
+   },
+   "touching": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0519,
+    "leak_case5": 0.167,
+    "iou": 0.7926,
+    "cover": 0.8633
+   },
+   "all_persons": {
+    "n": 48,
+    "pick_ok": null,
+    "leak": 0.0176,
+    "leak_case5": 0.109,
+    "iou": 0.822,
+    "cover": 0.9026
+   },
+   "dog": {
+    "n": 32,
+    "pick_ok": null,
+    "leak": 0.0198,
+    "leak_case5": 0.069,
+    "iou": 0.8572,
+    "cover": 0.9207
+   }
+  },
+  "candidate": {
+   "left": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0529,
+    "leak_case5": 0.104,
+    "iou": 0.8068,
+    "cover": 0.8573
+   },
+   "rank2": {
+    "n": 48,
+    "pick_ok": 0.833,
+    "leak": 0.1416,
+    "leak_case5": 0.229,
+    "iou": 0.7161,
+    "cover": 0.7784
+   },
+   "touching": {
+    "n": 48,
+    "pick_ok": 0.917,
+    "leak": 0.0617,
+    "leak_case5": 0.146,
+    "iou": 0.8067,
+    "cover": 0.8684
+   },
+   "all_persons": {
+    "n": 48,
+    "pick_ok": null,
+    "leak": 0.0186,
+    "leak_case5": 0.085,
+    "iou": 0.8088,
+    "cover": 0.9014
+   },
+   "dog": {
+    "n": 32,
+    "pick_ok": null,
+    "leak": 0.0166,
+    "leak_case5": 0.069,
+    "iou": 0.8606,
+    "cover": 0.9232
+   }
+  },
+  "base_map": 0.42765392281983705,
+  "candidate_map": 0.43049089445954863,
+  "args": {
+   "model": "yolo26m-seg.pt",
+   "hard": "1500",
+   "replay": "1500",
+   "val": "500",
+   "extra": "None",
+   "epochs": "6",
+   "lr0": "0.0001",
+   "freeze": "23",
+   "warmup_epochs": "0.0",
+   "mosaic": "0.5",
+   "batch": "8",
+   "device": "0",
+   "workers": "16",
+   "train_workers": "2",
+   "seed": "0",
+   "n_eval": "48",
+   "skip_collect": "True",
+   "collect_only": "False",
+   "skip_train": "False",
+   "candidate": "None",
+   "deploy": "False"
+  },
+  "epochs_mask_map": [
+   0.43484,
+   0.43239,
+   0.42889,
+   0.43379,
+   0.43279,
+   0.43092
+  ]
+ },
+ "data": {
+  "hard": 1500,
+  "replay": 1500,
+  "train": 3000,
+  "val": 500,
+  "seed": 0
+ }
+}
