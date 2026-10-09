@@ -21,6 +21,8 @@ npm-debug.log*
 # Env & secrets
 .env
 .env.local
+.env.production
+.env.*.local
 *.pem
 
 # Runtime data / models (keep directories via .gitkeep)

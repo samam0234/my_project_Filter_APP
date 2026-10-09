@@ -77,3 +77,32 @@ def test_gpu_bundle_adds_lora_adapter_and_base_model(monkeypatch, tmp_path):
     gpu = [p.name for p in models_bundle.wanted_files({}, gpu=True)]
     assert "adapter_model.safetensors" not in cpu and "model.safetensors" not in cpu
     assert {"adapter_model.safetensors", "model.safetensors", "config.json"} <= set(gpu)  # GPU 오버레이는 compose 가 lora 를 켠다
+
+
+make_prod_env = _load("make_prod_env")
+
+
+def test_set_replaces_value_or_uncomments_example():
+    lines = ["APP_ENV=development", "# DOMAIN=cnk.example.com", "X=1"]
+    lines = make_prod_env._set(lines, "APP_ENV", "production")
+    lines = make_prod_env._set(lines, "DOMAIN", "a.example")
+    lines = make_prod_env._set(lines, "NEW", "v")
+    assert lines == ["APP_ENV=production", "# DOMAIN=cnk.example.com", "DOMAIN=a.example", "X=1", "NEW=v"]
+
+
+def test_prod_env_passes_preflight_and_keeps_secrets_out_of_args(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("CNK_SMTP_PASSWORD", "from-env-only")
+    out = tmp_path / ".env.production"
+    monkeypatch.setattr("sys.argv", ["x", "--out", str(out), "--domain", "a.example", "--acme-email", "o@a.example",
+                                     "--smtp-host", "smtp.a.example", "--smtp-port", "465", "--smtp-user", "m@a.example",
+                                     "--console-admins", "admin"])
+    assert make_prod_env.main() == 0
+    env = deploy_check._env(out)
+    assert env["APP_ENV"] == "production" and env["DEBUG"] == "false" and env["SESSION_COOKIE_SECURE"] == "true"
+    assert env["CORS_ORIGINS"] == "https://a.example" and env["SMTP_SSL"] == "true" and env["SMTP_STARTTLS"] == "false"
+    assert env["SMTP_PASSWORD"] == "from-env-only" and len(env["SECRET_KEY"]) >= 32
+    assert env["MARIADB_PASSWORD"] not in ("change-me-db-password", "") and env["LEARNING_DB_FALLBACK_SQLITE"] == "false"
+    assert "오류 0" in capsys.readouterr().out
+    monkeypatch.setattr("sys.argv", ["x", "--out", str(out), "--domain", "a.example", "--acme-email", "o@a.example",
+                                     "--smtp-host", "smtp.a.example"])
+    assert make_prod_env.main() == 1  # 있으면 덮어쓰지 않는다 (비밀 값이 바뀌므로)
