@@ -174,8 +174,9 @@ def server(args) -> Report:
     import hashlib
 
     rep = Report()
-    env = _env(ROOT / ".env")
-    print(f"[server] {ROOT}")
+    env_path = Path(args.env_file) if args.env_file else ROOT / ".env"
+    env = _env(env_path if env_path.is_absolute() else ROOT / env_path)
+    print(f"[server] {ROOT} · {env_path.name}")
 
     print(".env")
     if not env:
@@ -276,6 +277,7 @@ def main() -> int:
     r.add_argument("--insecure", action="store_true", help="인증서 검증 실패를 경고로 (로컬 자체 서명 리허설)")
     s = sub.add_parser("server")
     s.add_argument("--models-manifest", help="scripts/models_bundle.py 가 만든 체크섬 목록")
+    s.add_argument("--env-file", help="점검할 env 파일 (기본 .env — 예: .env.production)")
     s.add_argument("--gpu", action="store_true", help="GPU 서버(docker-compose.gpu.yml) — LoRA 베이스 · 어댑터 · 컨테이너 CUDA 확인")
     args = ap.parse_args()
     rep = remote(args.url, args.insecure) if args.cmd == "remote" else server(args)

@@ -29,6 +29,18 @@ OPERATOR_NAME=... · OPERATOR_EMAIL=... · POLICY_DATE=...   # 개인정보 처�
 
 `SESSION_COOKIE_SECURE=true` 는 https compose 가 backend 에 자동으로 넣는다.
 
+**손으로 고치지 않고 만들기** — `scripts/make_prod_env.py` 가 `.env.example` 을 바탕으로 위 값을 채우고, `SECRET_KEY` · MariaDB 비밀번호를
+새 난수로 만든 뒤 기동 전 점검(preflight)까지 돌린다. 메일 비밀번호는 명령줄이 아니라 환경 변수(`CNK_SMTP_PASSWORD`)로 넘긴다.
+
+```bash
+CNK_SMTP_PASSWORD='...' python scripts/make_prod_env.py --domain cutnkeep.example.com --acme-email you@example.com     --smtp-host smtp.gmail.com --smtp-port 587 --smtp-user you@gmail.com     --operator-name 홍길동 --operator-email privacy@example.com --console-admins admin
+#   → .env.production (git 제외, 덮어쓰지 않음) · "[preflight] 오류 0" 이면 기동 거부 항목 없음
+python scripts/make_prod_env.py --check .env.production    # 고친 뒤 다시 점검
+python scripts/deploy_check.py server --env-file .env.production
+```
+
+MariaDB 비밀번호는 DB 를 처음 만들 때만 적용된다 — 새 서버에서 쓴다 (이미 데이터가 있으면 `docs/DATABASE.md` 의 백업 · 복구 순서).
+
 ## 2. 띄우기
 
 ```powershell
