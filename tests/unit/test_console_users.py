@@ -108,13 +108,23 @@ def test_delete_member_removes_rows_and_files(env):
     c = env["client"]
     member = _signup(c, "member_04")
     job_dir, batch_dir, video_dir = _give_member_data(env, member)
+    # 처리 실패로 남은 이 회원의 원본 사진 (피드백 폴더) — 계정 삭제 때 같이 지워져야 한다
+    import json as _json
+
+    from app.core.config import get_settings
+
+    fb = get_settings().feedback_path
+    fb.mkdir(parents=True, exist_ok=True)
+    (fb / "case1.jpg").write_bytes(b"photo")
+    (fb / "case1.json").write_text(_json.dumps({"case_id": "case1", "user_id": member, "image": "case1.jpg"}), encoding="utf-8")
     _login(c, "boss")
     wrong = c.request("DELETE", f"/api/v1/console/users/{member}", json={"confirm": "member_4"})
     assert wrong.status_code == 400 and job_dir.exists()
     r = c.request("DELETE", f"/api/v1/console/users/{member}", json={"confirm": "MEMBER_04"})
     assert r.status_code == 200, r.text
     assert r.json() | {"id": None} == {"id": None, "username": "member_04", "jobs": 1, "batches": 1, "videos": 1,
-                                         "removed_dirs": 3, "learning_unlinked": 1}
+                                         "removed_dirs": 3, "learning_unlinked": 1, "feedback_images_removed": 1}
+    assert not (fb / "case1.jpg").exists() and _json.loads((fb / "case1.json").read_text(encoding="utf-8"))["user_id"] is None
     assert not job_dir.exists() and not batch_dir.exists() and not video_dir.exists()
     with env["Session"]() as db:
         assert db.query(Job).count() == 0 and db.query(BatchJob).count() == 0

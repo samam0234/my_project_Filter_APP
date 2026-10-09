@@ -263,11 +263,15 @@ async def system_cleanup(
 ) -> dict:
     """FILE_RETENTION_HOURS 보다 오래된 업로드 파일 정리 (scripts/cleanup.py 와 같은 함수). dry_run 이면 집계만."""
     settings = get_settings()
+    from app.services.feedback_images import purge_expired
+
     result = await run_in_threadpool(
         cleanup_dir, settings.upload_path, settings.file_retention_hours, dry_run=dry_run
     )
+    feedback = await run_in_threadpool(purge_expired, settings, dry_run=dry_run)
     if not dry_run:
         logger.info(
-            "업로드 정리 by={} files={} bytes={}", actor.label, result.removed_files, result.freed_bytes
+            "업로드 정리 by={} files={} bytes={} feedback_images={}", actor.label, result.removed_files, result.freed_bytes,
+            feedback["removed_files"],
         )
-    return result.as_dict() | {"retention_hours": settings.file_retention_hours}
+    return result.as_dict() | {"retention_hours": settings.file_retention_hours, "feedback_images": feedback}

@@ -83,6 +83,7 @@
 | 어려운 사례 수집 | LangGraph `feedback_collector` | `HARD_EXAMPLE_CONF` (기본 꺼짐) |
 | 콘솔 검수 | 콘솔 "학습 데이터" | 승인 · 정답 고쳐서 승인 · 거절 · 일괄 |
 | 배포 리허설 | `scripts/deploy_check.py` · `scripts/models_bundle.py` | — | 실서버를 밖 · 안에서 점검(실패 시 종료 코드 1), git 밖 모델을 묶어 옮기고 체크섬 대조 — [`guidance/https-deploy.md`](guidance/https-deploy.md) |
+| 실패 사진 보관 기간 | `services/feedback_images.py` | `FEEDBACK_IMAGE_RETENTION_DAYS` | 처리 실패 · 인식 불확실한 회원 요청의 원본 사진을 기간 뒤 자동 삭제, 계정 삭제 시 바로 삭제 · 기록은 익명 — 처리방침에 같은 일수 표시 |
 | 세그 실패 사진 라벨링 | `scripts/seg_labeling.py` | `HARD_EXAMPLE_CONF` (수집) | 실패 · 싫어요 사진을 큰 모델 초벌 라벨과 함께 Label Studio 용으로 내보내고, 고친 라벨을 학습 전에 검사 |
 | 세그 모델 재학습 | `scripts/retrain_yolo.py` | 어려운 사례 수집 · 이어 학습 · 섞임 평가 + mAP 판정 · 배포 (`--deploy`, `--extra` 직접 라벨링 사진) — [`vaildates/yolo-retrain-20261009.md`](vaildates/yolo-retrain-20261009.md) (COCO 만으로는 불채택) |
 | LoRA 재학습 | `scripts/retrain_lora.py` | 증강 · 학습 · 평가셋 7개(승인 val 포함) 판정 · 배포 (`--deploy`), 조합형 시드 `training/lora/seed/build_compositional.py` |

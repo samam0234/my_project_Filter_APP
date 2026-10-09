@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_OPERATOR_NAME?: string;
   readonly VITE_OPERATOR_EMAIL?: string;
   readonly VITE_POLICY_DATE?: string;
+  readonly VITE_FEEDBACK_IMAGE_DAYS?: string;
 }
 
 interface ImportMeta {

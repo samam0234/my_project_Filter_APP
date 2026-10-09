@@ -70,7 +70,7 @@ RAG 예시는 모든 호출에 똑같이 붙는다. **기본값은 langchain** �
 의사 라벨(`scripts/pseudo_labeling.py`)·YOLO 미세 조정의 재료가 된다.
 
 - 0.4 기준으로 사진의 약 10% 가 걸리고 그중 약 31% 가 실제 섞임/오선택 (무작위의 2.4배) — 데이터 수집 효율이 2배 이상
-- **회원 이미지가 더 저장되는 일**이라 기본은 꺼져 있다 (개인정보 안내·보관 기간 `FILE_RETENTION_HOURS` 와 함께 결정)
+- **회원 이미지가 더 저장되는 일**이라 기본은 꺼져 있다. 저장된 사진은 `FEEDBACK_IMAGE_RETENTION_DAYS`(기본 30일) 뒤 자동 삭제, 계정 삭제 시 바로 삭제되고 개인정보 처리방침에 이미 적혀 있다 (2026-10-09, [`legal.md`](./legal.md)) — 켤지는 운영자가 정한다
 
 모인 사진에 YOLO-seg 폴리곤 라벨을 달면(CVAT · Label Studio 등, `images/` · `labels/`) 재학습 루프에 넣는다.
 `scripts/seg_labeling.py` 가 이 과정을 준비한다:

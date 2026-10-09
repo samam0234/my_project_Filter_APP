@@ -17,8 +17,10 @@ export const OPERATOR = {
 };
 
 // 백엔드 기본값과 같게 유지 (FILE_RETENTION_HOURS · LOG_RETENTION_DAYS · DB_BACKUP_KEEP · DB_BACKUP_HOURS)
+// feedbackImageDays 는 백엔드 FEEDBACK_IMAGE_RETENTION_DAYS — Docker 는 같은 값을 빌드 인자로 넣는다
 export const RETENTION = {
   fileHours: 24,
   logDays: 14,
   backupDays: 7,
+  feedbackImageDays: Number(import.meta.env.VITE_FEEDBACK_IMAGE_DAYS || 30),
 };
