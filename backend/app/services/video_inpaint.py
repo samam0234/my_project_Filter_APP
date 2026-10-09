@@ -31,6 +31,8 @@ from app.services.effects import REMOVE_DILATE_RATIO, apply_remove_object
 MOTION_SIDE = 160  # 카메라 움직임 판정용 축소 크기 (긴 변)
 STATIC_MEDIAN = 6.0  # 마스크 밖 프레임 간 평균 밝기 차의 중앙값이 이 아래면 고정 카메라 (0~255)
 STATIC_P90 = 14.0  # 그리고 90 백분위수가 이 아래 (가끔 흔들리는 정도는 허용)
+RING_MAX = 18.0  # 밝기를 맞춘 뒤에도 구멍 바깥 띠가 이만큼(채널 평균 차) 다르면 그 프레임은 예전처럼 Telea
+LIGHT_MAX = 40.0  # 밝기 맞춤 상한 (채널값) — 띠에 다른 물체가 걸려 크게 틀린 보정을 막는다
 BLEND_PX = 2  # 메운 자리 경계를 부드럽게 (배경판과 현재 프레임의 밝기 차가 이음새로 보이지 않게)
 
 ALIGN_SIDE = 640  # 특징점 찾기용 축소 크기 (긴 변)
@@ -40,6 +42,7 @@ ALIGN_MAX_FAIL = 0.1  # 맞추기 실패 프레임이 이 비율을 넘으면 al
 ALIGNED_MEDIAN = 6.0  # 맞춘 뒤 남는 프레임 간 차이 — 고정 카메라와 같은 기준 (시차가 크면 여기서 걸린다)
 ALIGNED_P90 = 14.0
 ALIGNED_GAIN = 0.6  # 고정 기준을 넘어도 맞춘 뒤 차이가 맞추기 전의 이 비율 아래면 맞춤 방식 (진짜 고정 카메라는 둘이 비슷하다)
+PLATE_SAMPLES = 9  # 배경판을 중앙값으로 만들 때 고르게 남기는 프레임 표본 수 (원래 영상 속 지나가는 물체가 평균에 섞여 유령처럼 남지 않게)
 CANVAS_PAD = 0.25  # 기준 프레임 둘레로 넓히는 캔버스 여백 (긴 변 비율, 한쪽) — 팬으로 화면 밖에서 들어오는 배경용
 ALIGN_MAX_PIXELS = 1920 * 1088  # 이보다 큰 프레임은 맞춤 방식을 쓰지 않는다 (캔버스 누적 메모리: 1080p 약 100MB)
 
@@ -55,6 +58,7 @@ class RemovalPlan:
     aligned_motion: list[float] = field(default_factory=list)  # 맞춘 뒤 남는 프레임 간 차이
     homographies: list[np.ndarray] = field(default_factory=list)  # 프레임 → 캔버스 (aligned 일 때)
     align_failures: int = 0
+    fallback_frames: int = 0  # 배경판이 그 프레임과 맞지 않아 Telea 로 메운 프레임 수 (render 에서 센다)
 
     @property
     def static(self) -> bool:
@@ -132,6 +136,8 @@ def build_plan(
     to_canvas = None  # 지금 프레임 → 캔버스
     canvas_size = None
     prev_gray = prev_small_mask = None
+    samples = _Samples()  # (프레임, 보인 자리) 표본 — 고정 카메라용
+    csamples = _Samples()  # 캔버스 좌표 표본 — 맞춤용
     for frame in frames:
         raw = mask_fn(frame) > 127
         mask = _dilate(raw.astype(np.uint8) * 255)  # 윤곽 잔상까지 지우도록 넓힌 자리
@@ -151,6 +157,7 @@ def build_plan(
         keep = ~mask
         sums[keep] += frame[keep]
         counts[keep] += 1
+        samples.add(frame, keep)
 
         gray = _small_gray(frame)
         small_mask = cv2.resize(mask.astype(np.uint8), (gray.shape[1], gray.shape[0]), interpolation=cv2.INTER_NEAREST) > 0
@@ -167,6 +174,7 @@ def build_plan(
             wk = cv2.warpPerspective(keep.astype(np.uint8), to_canvas, canvas_size, flags=cv2.INTER_NEAREST) > 0
             csums[wk] += wf[wk]
             ccounts[wk] += 1
+            csamples.add(wf, wk)
         if prev_gray is not None:
             valid = ~(small_mask | prev_small_mask)
             if valid.mean() > 0.2:
@@ -211,23 +219,66 @@ def build_plan(
         union = np.zeros(plan.shape, bool)
         for i in range(len(plan.masks)):
             union |= _dilate(plan.mask(i).astype(np.uint8) * 255)
-        plan.plate, plan.seen_ratio = _finish_plate(sums, counts, union, fill)
+        plan.plate, plan.seen_ratio = _finish_plate(sums, counts, union, fill, samples)
     elif plan.mode == "aligned":
         union = np.zeros((canvas_size[1], canvas_size[0]), bool)
         for i, H in enumerate(plan.homographies):
             hole = _dilate(plan.mask(i).astype(np.uint8) * 255).astype(np.uint8)
             union |= cv2.warpPerspective(hole, H, canvas_size, flags=cv2.INTER_NEAREST) > 0
-        plan.plate, plan.seen_ratio = _finish_plate(csums, ccounts, union, fill)
+        plan.plate, plan.seen_ratio = _finish_plate(csums, ccounts, union, fill, csamples)
     else:
         plan.homographies = []
     return plan
 
 
-def _finish_plate(sums, counts, union, fill) -> tuple[np.ndarray, float]:
-    """누적한 배경 → 배경판. 지울 자리 중 한 번도 안 보인 곳만 메운다."""
+class _Samples:
+    """한 번 훑으며 프레임을 고르게 최대 PLATE_SAMPLES 장 남긴다 — 차면 하나 걸러 버리고 간격을 두 배로 (전체 길이를 몰라도 고르게)."""
+
+    def __init__(self) -> None:
+        self.items: list[tuple[np.ndarray, np.ndarray]] = []
+        self.stride = 1
+        self.seen = 0
+
+    def add(self, frame: np.ndarray, keep: np.ndarray) -> None:
+        if self.seen % self.stride == 0:
+            self.items.append((frame.copy(), keep.copy()))
+            if len(self.items) > PLATE_SAMPLES:
+                self.items = self.items[::2]
+                self.stride *= 2
+        self.seen += 1
+
+
+def _median_plate(plate: np.ndarray, samples: _Samples, rows: int = 128) -> np.ndarray:
+    """표본 3장 이상에서 보인 픽셀은 시간 중앙값으로 — 잠깐 지나간 물체에 휘둘리지 않는다. 나머지는 평균 그대로."""
+    if len(samples.items) < 3:
+        return plate
+    out = plate.copy()
+    h = plate.shape[0]
+    for y in range(0, h, rows):
+        stack = np.stack([f[y: y + rows].astype(np.float32) for f, _ in samples.items])
+        valid = np.stack([k[y: y + rows] for _, k in samples.items])
+        enough = valid.sum(axis=0) >= 3
+        if not enough.any():
+            continue
+        stack[~valid] = np.nan
+        with np.errstate(all="ignore"):
+            import warnings
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)  # 전부 NaN 인 픽셀 (enough 밖) — 쓰지 않는다
+                med = np.nanmedian(stack, axis=0)
+        block = out[y: y + rows]
+        block[enough] = np.clip(med[enough], 0, 255).astype(np.uint8)
+    return out
+
+
+def _finish_plate(sums, counts, union, fill, samples: _Samples | None = None) -> tuple[np.ndarray, float]:
+    """누적한 배경 → 배경판 (표본 3장 이상 보인 곳은 중앙값, 아니면 평균). 지울 자리 중 한 번도 안 보인 곳만 메운다."""
     seen = counts > 0
     plate = np.zeros(sums.shape, np.uint8)
     plate[seen] = np.clip(sums[seen] / counts[seen][:, None], 0, 255).astype(np.uint8)
+    if samples is not None:
+        plate = _median_plate(plate, samples)
     seen_ratio = float((union & seen).sum() / max(1, union.sum()))
     unseen = union & ~seen
     if unseen.any():
@@ -245,6 +296,24 @@ def _fill_unseen(plate: np.ndarray, hole: np.ndarray) -> np.ndarray:
     return apply_remove_object(plate, hole, engine="telea")
 
 
+def _match_light(frame: np.ndarray, plate: np.ndarray, hole: np.ndarray) -> np.ndarray | None:
+    """구멍 바로 바깥 띠에서 지금 프레임과 배경판의 채널별 평균 차를 재 배경판을 맞춘다 — 다른 시점의 배경이라
+    조명 · 노출이 바뀐 영상(공연 조명 · 자동 노출)에서 메운 자리가 밝거나 어둡게 튀지 않게. 띠가 좁으면 그대로."""
+    h, w = hole.shape
+    k = max(5, int(max(h, w) * 0.02) // 2 * 2 + 1)
+    ring = (cv2.dilate(hole.astype(np.uint8), np.ones((k, k), np.uint8)) > 0) & ~hole
+    if ring.sum() < 50:
+        return plate
+    diff = frame[ring].astype(np.float32).mean(axis=0) - plate[ring].astype(np.float32).mean(axis=0)
+    diff = np.clip(diff, -LIGHT_MAX, LIGHT_MAX)
+    matched = np.clip(plate.astype(np.float32) + diff, 0, 255)
+    # 밝기를 맞춰도 띠가 크게 다르면 그 시점의 배경이 지금과 다르다 (조명 · 군중이 계속 바뀌는 장면) — 이 프레임은 배경판을 쓰지 않는다
+    residual = float(np.abs(frame[ring].astype(np.float32) - matched[ring]).mean())
+    if residual > RING_MAX:
+        return None
+    return matched.astype(np.uint8)
+
+
 def render(frame: np.ndarray, index: int, plan: RemovalPlan) -> np.ndarray:
     """2단계. 배경판이 있으면 배경판으로, 없으면 그 프레임만 Telea 로 메운다."""
     raw = plan.mask(index)
@@ -258,6 +327,10 @@ def render(frame: np.ndarray, index: int, plan: RemovalPlan) -> np.ndarray:
         plate = cv2.warpPerspective(plan.plate, np.linalg.inv(plan.homographies[index]), (w, h), flags=cv2.INTER_LINEAR)
     else:
         plate = plan.plate
+    plate = _match_light(frame, plate, mask)
+    if plate is None:
+        plan.fallback_frames += 1
+        return apply_remove_object(frame, raw.astype(np.uint8) * 255, engine="telea")
     # 경계는 살짝 섞어 배경판과 현재 프레임의 밝기 차가 이음새로 보이지 않게
     alpha = cv2.GaussianBlur(mask.astype(np.float32), (0, 0), BLEND_PX)
     alpha = np.maximum(alpha, mask.astype(np.float32))[..., None]

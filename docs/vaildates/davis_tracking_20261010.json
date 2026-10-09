@@ -1,0 +1,185 @@
+{
+ "rows": [
+  {
+   "seq": "boxing-fisheye",
+   "frames": 87,
+   "persons": 3,
+   "frame_correct": 0.3058823529411765,
+   "frame_after": 0.0,
+   "frame_iou": 0.2660697629253621,
+   "track_correct": 0.9764705882352941,
+   "track_after": 1.0,
+   "track_iou": 0.5904176416495029,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 1
+  },
+  {
+   "seq": "crossing",
+   "frames": 52,
+   "persons": 2,
+   "frame_correct": 0.8461538461538461,
+   "frame_after": 0.5555555555555556,
+   "frame_iou": 0.7399435288192531,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.8763887460018096,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "disc-jockey",
+   "frames": 76,
+   "persons": 2,
+   "frame_correct": 0.618421052631579,
+   "frame_after": 0.5769230769230769,
+   "frame_iou": 0.518174258454299,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.68235528227292,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "drone",
+   "frames": 91,
+   "persons": 2,
+   "frame_correct": 0.9066666666666666,
+   "frame_after": 0.8888888888888888,
+   "frame_iou": 0.7463826046458154,
+   "track_correct": 0.9333333333333333,
+   "track_after": 1.0,
+   "track_iou": 0.6408685589673119,
+   "reselected": 2,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "lab-coat",
+   "frames": 47,
+   "persons": 3,
+   "frame_correct": 1.0,
+   "frame_after": 1.0,
+   "frame_iou": 0.8740370183285772,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.8740370183285772,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "lindy-hop",
+   "frames": 73,
+   "persons": 8,
+   "frame_correct": 0.29577464788732394,
+   "frame_after": 0.0,
+   "frame_iou": 0.251963265312167,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.8468969652307808,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "loading",
+   "frames": 50,
+   "persons": 2,
+   "frame_correct": 0.86,
+   "frame_after": 0.5882352941176471,
+   "frame_iou": 0.7191253873742487,
+   "track_correct": 0.88,
+   "track_after": 0.6470588235294118,
+   "track_iou": 0.776144242531762,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "schoolgirls",
+   "frames": 80,
+   "persons": 4,
+   "frame_correct": 0.2125,
+   "frame_after": 0.0,
+   "frame_iou": 0.16590931983720575,
+   "track_correct": 0.3375,
+   "track_after": 0.0,
+   "track_iou": 0.2157879005008511,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 1
+  },
+  {
+   "seq": "tuk-tuk",
+   "frames": 59,
+   "persons": 3,
+   "frame_correct": 1.0,
+   "frame_after": 1.0,
+   "frame_iou": 0.913104346469605,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.913104346469605,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 0
+  },
+  {
+   "seq": "upside-down",
+   "frames": 65,
+   "persons": 2,
+   "frame_correct": 0.9846153846153847,
+   "frame_after": 1.0,
+   "frame_iou": 0.7966761970110651,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.6584111282982988,
+   "reselected": 1,
+   "reidentified": 0,
+   "reacquired": 1
+  },
+  {
+   "seq": "walking",
+   "frames": 72,
+   "persons": 2,
+   "frame_correct": 0.9811320754716981,
+   "frame_after": 1.0,
+   "frame_iou": 0.8363903559656618,
+   "track_correct": 1.0,
+   "track_after": 1.0,
+   "track_iou": 0.8486722797807233,
+   "reselected": 1,
+   "reidentified": 1,
+   "reacquired": 0
+  }
+ ],
+ "summary": {
+  "n": 11,
+  "correct": {
+   "frame": 0.7282860023970613,
+   "track": 0.9206639928698753,
+   "diff_ci95": [
+    0.05918108554801704,
+    0.3547372837739448
+   ]
+  },
+  "after": {
+   "frame": 0.6008729832259244,
+   "track": 0.8770053475935828,
+   "diff_ci95": [
+    0.07469148498560264,
+    0.5056446821152704
+   ]
+  },
+  "iou": {
+   "frame": 0.6207069131948417,
+   "track": 0.7202803736392857,
+   "diff_ci95": [
+    -0.004453534059500442,
+    0.21786009028553072
+   ]
+  }
+ }
+}
