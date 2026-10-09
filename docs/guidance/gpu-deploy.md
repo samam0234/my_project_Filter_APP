@@ -50,6 +50,21 @@ python scripts/deploy_check.py server --gpu      # 베이스 모델 · 어댑터
 - `deploy_check.py remote https://localhost --insecure`: 실패 0 · 경고 1(자체 서명)
 - `server --gpu`: GPU 항목 모두 통과. 운영 값(APP_ENV · SMTP · DOMAIN)은 로컬이라 실패로 나왔다
 
+## 4. CUDA 판 고르기 (`GPU_TORCH_INDEX`)
+
+컨테이너는 **자기 CUDA 런타임**(PyTorch 휠 안에 들어 있다)을 쓰고, 호스트에서는 **NVIDIA 드라이버만** 빌린다.
+그래서 호스트에 설치된 CUDA Toolkit 버전(예: 13.3)은 상관없다. 드라이버가 지원하는 CUDA(`nvidia-smi` 오른쪽 위)가 컨테이너 판 이상이면 된다.
+
+| `GPU_TORCH_INDEX` | 컨테이너 CUDA | 필요한 드라이버 | 이미지 | 2026-10-10 측정 (RTX 4070 SUPER, 드라이버 591.86 = CUDA 13.1) |
+|-------------------|---------------|-----------------|--------|---------------------------------------------------------------|
+| `cu128` (기본) | 12.8 | 525 이상 (CUDA 12 마이너 호환) | 13.1GB | GPU 인식 · LoRA 정상 |
+| `cu130` | 13.0 | 580 이상 | 9.7GB | GPU 인식 · LoRA 정상 |
+
+- 속도 차이는 없었다. 문장당 0.5~1.9초로 측정마다 흔들렸고, 순서를 바꾸면 결과도 뒤집혔다(GPU 클럭 등 시스템 상태 영향)
+- PyTorch 는 cu130 · cu132 휠을 내고, cu133 휠은 없다(2026-10). 그래서 Toolkit 13.3 에 맞춘 판은 없다
+- **기본을 cu128 로 둔 이유**: 드라이버가 더 오래된 서버에서도 돈다. 서버 드라이버가 580 이상이면 `GPU_TORCH_INDEX=cu130` 으로 이미지를 줄여도 된다
+- 바꾸면 다시 빌드한다(`up -d --build`). `python scripts/deploy_check.py server --gpu` 가 컨테이너의 CUDA 판을 보여 준다
+
 ## 주의
 
 - **첫 요청이 느리다.** 모델 로드에 Linux 서버는 수 초~수십 초가 걸리고, Windows 바인드 마운트는 약 50초가 걸린다

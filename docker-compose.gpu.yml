@@ -6,7 +6,7 @@
 # 필요한 것: NVIDIA 드라이버 + NVIDIA Container Toolkit (Linux) 또는 Docker Desktop WSL2 GPU (Windows)
 #   확인: docker run --rm --gpus all python:3.11-slim nvidia-smi  (드라이버가 nvidia-smi 를 넣어 준다)
 # 바뀌는 것:
-#   - backend 이미지를 CUDA torch(cu128) + LoRA 패키지로 따로 빌드 (이미지 이름 cut_and_keep-backend-gpu — CPU 이미지와 섞이지 않음)
+#   - backend 이미지를 CUDA torch(GPU_TORCH_INDEX — cu128 기본 · cu130) + LoRA 패키지로 따로 빌드 (이미지 이름 cut_and_keep-backend-gpu — CPU 이미지와 섞이지 않음)
 #   - 컨테이너가 GPU 를 쓴다: YOLO 세그(ultralytics 가 cuda 자동 선택) · LoRA 문장 해석
 #   - 문장 해석 기본을 LoRA 로 (LLM_PROVIDER=lora) — 283문장 94.7% · 문장당 약 1초 (Ollama 체인 85.2% · 약 7초)
 #     실패하면 키워드 파서 (LLM_FALLBACK=heuristic — Ollama 를 같은 GPU 에 또 올리지 않게. Ollama 를 쓰려면 .env 에서 GPU_LLM_FALLBACK=ollama)
@@ -29,7 +29,7 @@ services:
     image: cut_and_keep-backend-gpu
     build:
       args:
-        TORCH_INDEX: cu128
+        TORCH_INDEX: ${GPU_TORCH_INDEX:-cu128}
         LLM_LORA: "1"
     environment:
       LLM_PROVIDER: ${GPU_LLM_PROVIDER:-lora}
@@ -44,7 +44,7 @@ services:
     image: cut_and_keep-backend-gpu
     build:
       args:
-        TORCH_INDEX: cu128
+        TORCH_INDEX: ${GPU_TORCH_INDEX:-cu128}
         LLM_LORA: "1"
     environment:
       LLM_PROVIDER: ${GPU_LLM_PROVIDER:-lora}
