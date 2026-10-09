@@ -47,6 +47,8 @@ EVAL_SETS = {
     "eval_fresh": LORA / "seed" / "eval_fresh.jsonl",
     # 조합형 시드(build_compositional.py)를 만들기 전에 쓴 40문장 — 다른 말투 · selector · 영어 포함
     "eval_fresh2": LORA / "seed" / "eval_fresh2.jsonl",
+    # 개수 + 위치 선택자 30문장 — 선택자 조합 문장을 생성기에 넣기 전에 작성
+    "eval_fresh3": LORA / "seed" / "eval_fresh3.jsonl",
 }
 
 

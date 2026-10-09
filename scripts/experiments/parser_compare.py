@@ -33,7 +33,8 @@ from parse_rounds import classify  # noqa: E402
 
 SEEDS = ROOT / "training/lora/seed"
 SETS = {"eval": "eval.jsonl", "ext": "eval_ext.jsonl", "distractor": "eval_distractor.jsonl",
-        "holdout": "eval_holdout.jsonl", "fresh": "eval_fresh.jsonl", "fresh2": "eval_fresh2.jsonl"}
+        "holdout": "eval_holdout.jsonl", "fresh": "eval_fresh.jsonl", "fresh2": "eval_fresh2.jsonl",
+        "fresh3": "eval_fresh3.jsonl"}
 
 
 def make(names: list[str], adapter: str | None):

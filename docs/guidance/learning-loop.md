@@ -34,13 +34,14 @@ python scripts/retrain_lora.py --force      # 기준 무시하고 한 바퀴 (�
 python scripts/retrain_lora.py --deploy     # 평가에서 이기면 배포본 교체
 ```
 
-- 시드: `seed/train.jsonl`(800) + `seed/train_distractor.jsonl`(180) + `seed/train_compositional.jsonl`(899, `build_compositional.py`) 이 자동으로 들어간다 (`train_lora.py --seed-file` 여러 개)
-- 평가셋 6개 = `eval`(40) · `eval_ext`(56) · `eval_distractor`(47, 방해물 문장) · `eval_holdout`(40, 규칙을 만든 뒤 처음 본 문장) · `eval_fresh`(30) · `eval_fresh2`(40, 조합형 시드를 만들기 전에 쓴 문장).
+- 시드: `seed/train.jsonl`(800) + `seed/train_distractor.jsonl`(180) + `seed/train_compositional.jsonl`(1,100 — 선택자 218 포함, `build_compositional.py`) 이 자동으로 들어간다 (`train_lora.py --seed-file` 여러 개)
+- 평가셋 7개 = `eval`(40) · `eval_ext`(56) · `eval_distractor`(47, 방해물 문장) · `eval_holdout`(40, 규칙을 만든 뒤 처음 본 문장) · `eval_fresh`(30) · `eval_fresh2`(40, 조합형 시드를 만들기 전에 쓴 문장) · `eval_fresh3`(30, 선택자 조합을 넣기 전에 쓴 개수 + 위치 문장).
   **어느 평가셋에서도 1문항보다 더 떨어지면 채택하지 않는다** — 방해물 문장에서 악화되면 배포되지 않는다
 - 같은 문장이 학습과 평가에 동시에 있으면 평가에서 빼지 않고 **학습에서 뺀다** (`drop_eval_leaks`, 점수 부풀림 방지)
 - 새 어휘(건물·하늘…)를 LoRA 가 모르면 낱개 물체로 잘못 해석한다 → 어휘를 늘렸다면 재학습
 - 2026-10-08 재학습 결과(방해물 문장 78.7→95.7%, 처음 본 문장 73.3%): [`lora-retrain-20261008.md`](../vaildates/lora-retrain-20261008.md)
-- 2026-10-09 조합형 문장 재학습(새 40문장 전 항목 일치 50.0→87.5%, Ollama 첫 답 75.0%): [`lora-compositional-20261009.md`](../vaildates/lora-compositional-20261009.md). 체인 + LoRA 조합은 아직 재지 않아 기본 provider 는 ollama
+- 2026-10-09 조합형 문장 재학습(새 40문장 전 항목 일치 50.0→87.5%, Ollama 첫 답 75.0%): [`lora-compositional-20261009.md`](../vaildates/lora-compositional-20261009.md)
+- 2026-10-09 선택자 조합 재학습(선택자 새 30문장 33.3→96.7%): [`lora-selector-20261009.md`](../vaildates/lora-selector-20261009.md). 283문장 비교에서 LoRA 94.7% · Ollama 체인 85.2% ([`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)) — GPU 서버라면 `LLM_PROVIDER=lora` 를 검토, 기본 provider 는 아직 ollama
 
 ## ③ 새 어휘를 추가하는 방법 (예: "가로등")
 

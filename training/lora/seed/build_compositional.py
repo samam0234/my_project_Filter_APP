@@ -7,6 +7,8 @@
   3) 관계 표현 ("R 옆의 T", "R 앞에 서 있는 T", "R 위의 T", "R 탄 T") — 위치 selector 로 오해 → selector 없음이 정답
   4) "오려내 · 잘라내" = 자르기, "남기고 크롭까지" = 배경 제거 + crop
   5) 어휘 — COCO · 배경 덩어리 거의 전부를 한국어 · 영어 이름으로
+  6) 개수 + 위치 선택자 (2026-10-09 추가) — "오른쪽 개 두 마리만" = right · count 2, "두 마리 중 큰 새" = largest · count 1,
+     "가장 가까운 차" = front (rank 를 붙이거나 속성 "large bird" 로 답하던 오답)
 
 정답 규칙은 기존 시드 · 평가셋과 같다 (build_seed.py · eval*.jsonl):
   남기고 · 빼고 전부 · 투명하게 · 날려 → remove_bg [남길 것]
@@ -131,8 +133,33 @@ def j(word: str, pair: str) -> str:
     return word + (a if _batchim(word) else b)
 
 
-def P(target, effect="remove_bg", crop=False):
-    return {"target": list(target), "effect": effect, "intensity": 15, "crop": crop, "selector": None}
+def P(target, effect="remove_bg", crop=False, selector=None):
+    return {"target": list(target), "effect": effect, "intensity": 15, "crop": crop, "selector": selector}
+
+
+def S(position=None, rank=None, count=None):
+    return {"position": position, "rank": rank, "count": count, "attributes": []}
+
+
+# 셀 때 단위 (없으면 "개")
+UNITS = {
+    **dict.fromkeys(["person"], "명"),
+    **dict.fromkeys(["dog", "cat", "bird", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe"], "마리"),
+    **dict.fromkeys(["car", "bus", "truck", "motorcycle", "bicycle", "train", "airplane", "boat", "laptop", "cell phone",
+                     "tv", "refrigerator", "microwave", "oven"], "대"),
+}
+NUMS = [(2, "두"), (3, "세"), (4, "네"), (2, "2"), (3, "3")]
+# 위치 말 → position (앞 = 카메라에 가까운 쪽)
+POS_KO = {
+    "left": ["왼쪽", "왼쪽에 있는", "왼편"], "right": ["오른쪽", "오른쪽에 있는", "오른편"],
+    "front": ["맨 앞", "앞쪽", "제일 앞에 있는", "가장 가까운"], "back": ["맨 뒤", "뒤쪽", "제일 뒤에 있는", "가장 먼"],
+    "center": ["가운데", "가운데 있는"], "largest": ["가장 큰", "제일 큰"], "smallest": ["가장 작은", "제일 작은"],
+}
+# "N 마리 중에 ___" 비교 말
+CMP_KO = {"largest": ["큰", "더 큰", "제일 큰"], "smallest": ["작은", "더 작은"], "left": ["왼쪽", "왼쪽에 있는"],
+          "right": ["오른쪽", "오른쪽에 있는"], "front": ["앞에 있는", "가까운", "제일 가까운"], "back": ["뒤에 있는", "먼"]}
+SEL_TAILS = [("만 남겨줘", "remove_bg", False), ("만 남기고 배경 지워줘", "remove_bg", False), ("만 남기고 나머지 투명하게", "remove_bg", False),
+             ("만 지워줘", "remove_object", False), ("만 잘라줘", "crop", True), ("만 선명하게 하고 나머지 흐리게", "blur", False)]
 
 
 def build(n: int, seed: int = 7) -> list[dict]:
@@ -251,7 +278,37 @@ def build(n: int, seed: int = 7) -> list[dict]:
             (f"remove the {E(t)}", P([t], "remove_object")),
         ])
 
-    makers = [(multi, 0.26), (distractor, 0.24), (relation, 0.16), (rider, 0.04), (crop_words, 0.12), (vocab, 0.18)]
+    def selector():
+        """개수와 위치가 섞인 말 — "오른쪽 개 두 마리만"(right, count 2) · "두 마리 중 큰 새"(largest, count 1) · "가장 가까운 차"(front)."""
+        t = rng.choice([x for x in labels if x not in ("sky", "road", "sidewalk", "grass", "water", "mountain", "wall", "floor",
+                                                         "ground", "fence", "building", "tree")])
+        kt, unit = K(t), UNITS.get(t, "개")
+        tail, effect, crop = rng.choice(SEL_TAILS)
+        n, nw = rng.choice(NUMS)
+        nw_unit = f"{nw} {unit}" if not nw.isdigit() else f"{nw}{unit}"
+        kind = rng.random()
+        if kind < 0.35:
+            pos = rng.choice(["left", "right", "front", "back", "center"])
+            return f"{rng.choice(POS_KO[pos])} {kt} {nw_unit}{tail}", P([t], effect, crop, S(pos, None, n))
+        if kind < 0.7:
+            pos = rng.choice(list(CMP_KO))
+            return (f"{kt} {nw_unit} 중에 {rng.choice(CMP_KO[pos])} {kt}{tail}", P([t], effect, crop, S(pos, None, 1)))
+        if kind < 0.85:
+            pos = rng.choice(list(POS_KO))
+            return f"{rng.choice(POS_KO[pos])} {kt} 하나{tail}" if unit == "개" else f"{rng.choice(POS_KO[pos])} {kt} 한 {unit}{tail}", P([t], effect, crop, S(pos, None, 1))
+        e = E(t)
+        plural = e + ("es" if e.endswith(("s", "sh", "ch")) else "s")
+        side = rng.choice(["left", "right"])
+        return rng.choice([
+            (f"keep the {n} {plural} on the {side}", P([t], selector=S(side, None, n))),
+            (f"remove the bigger of the {n} {plural}", P([t], "remove_object", selector=S("largest", None, 1))),
+            (f"keep only the smaller {e}", P([t], selector=S("smallest", None, 1))),
+            (f"crop the closest {e}", P([t], "crop", True, S("front", None, 1))),
+            (f"erase the {e} farthest away", P([t], "remove_object", selector=S("back", None, 1))),
+            (f"blur everything except the {n} {plural} on the {side}", P([t], "blur", selector=S(side, None, n))),
+        ])
+
+    makers = [(multi, 0.22), (distractor, 0.2), (relation, 0.13), (rider, 0.03), (crop_words, 0.1), (vocab, 0.14), (selector, 0.18)]
     out, seen = [], set()
     while len(out) < n:
         maker = rng.choices([m for m, _ in makers], [w for _, w in makers])[0]
@@ -266,7 +323,7 @@ def build(n: int, seed: int = 7) -> list[dict]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=900)
+    ap.add_argument("--n", type=int, default=1100)
     ap.add_argument("--out", type=Path, default=HERE / "train_compositional.jsonl")
     args = ap.parse_args()
     rows = build(args.n)
