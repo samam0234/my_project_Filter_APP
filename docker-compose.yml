@@ -89,6 +89,8 @@ services:
         VITE_OPERATOR_NAME: ${OPERATOR_NAME:-}
         VITE_OPERATOR_EMAIL: ${OPERATOR_EMAIL:-}
         VITE_POLICY_DATE: ${POLICY_DATE:-}
+        # 처리방침에 적는 실패 · 확신 낮은 요청 사진 보관 일수 — 백엔드 FEEDBACK_IMAGE_RETENTION_DAYS 와 같은 값 (바꾸면 frontend 다시 빌드)
+        VITE_FEEDBACK_IMAGE_DAYS: ${FEEDBACK_IMAGE_RETENTION_DAYS:-30}
     ports:
       - "80:80"
     depends_on:

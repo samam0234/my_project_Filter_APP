@@ -196,6 +196,10 @@ class Settings(BaseSettings):
     # 기본 false: API 프로세스의 BackgroundTasks 가 한 장씩 처리 (compose 기본 up 과 동일).
     batch_use_celery: bool = Field(default=False, alias="BATCH_USE_CELERY")
     file_retention_hours: int = Field(default=24, alias="FILE_RETENTION_HOURS")
+    # 【수동·개인정보】 FEEDBACK_IMAGE_RETENTION_DAYS — 처리 실패 · 확신 낮은(HARD_EXAMPLE_CONF) 회원 요청의 원본 사진(FEEDBACK_DIR) 보관 일수.
+    # 원인 분석 · 세그 모델 개선(라벨링)에 쓴다. 지나면 주기 정리가 지우고, 계정을 지우면 바로 지운다 (services/feedback_images).
+    # 0 이면 다음 정리 때 모두 지운다. 개인정보 처리방침 표시는 frontend 빌드 인자 VITE_FEEDBACK_IMAGE_DAYS (compose 가 같은 값을 넘김)
+    feedback_image_retention_days: float = Field(default=30, ge=0, alias="FEEDBACK_IMAGE_RETENTION_DAYS")
     # 【수동·Phase2】 닫힌 어휘(YOLO names)에 없는 대상만 Grounding DINO+SAM2.
     # 가중치·torch 가 없으면 업로드는 YOLO/ONNX/stub 으로 계속된다. 기동 중 다운로드 없음.
     open_vocab_enabled: bool = Field(default=False, alias="OPEN_VOCAB_ENABLED")

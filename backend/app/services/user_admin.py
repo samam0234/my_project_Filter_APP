@@ -218,6 +218,10 @@ def delete_user(
             .update({LearningSample.user_id: None}, synchronize_session=False)
         )
         ldb.commit()
+    # 실패 · 확신 낮은 요청의 사진(피드백 폴더)도 지우고 남는 기록은 익명으로 (개인정보 처리방침 3절)
+    from app.services.feedback_images import purge_user
+
+    feedback = purge_user(None, user_id, ldb)
 
     logger.warning(
         "회원 삭제 user={} username={} by={} jobs={} batches={} videos={} learning_unlinked={}",
@@ -231,4 +235,5 @@ def delete_user(
         "videos": len(videos),
         "removed_dirs": removed_dirs,
         "learning_unlinked": int(unlinked),
+        "feedback_images_removed": feedback["removed_images"],
     }

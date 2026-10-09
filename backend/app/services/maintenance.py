@@ -2,6 +2,7 @@
 
 - 서비스 DB 백업: DB_BACKUP_HOURS 마다 (services/db_backup) — SQLite 일 때만
 - 업로드 정리: FILE_CLEANUP_MINUTES 마다 FILE_RETENTION_HOURS 가 지난 파일 삭제 (services/retention, 콘솔 "지금 정리"와 같은 함수)
+  + 피드백 사진(실패 · 확신 낮음)은 FEEDBACK_IMAGE_RETENTION_DAYS 가 지나면 삭제 (services/feedback_images)
   예전에는 scripts/cleanup.py 를 누군가 돌려야 지워져 "24시간 보관" 안내가 지켜지지 않았다
 
 여러 워커 프로세스로 띄워도 각 작업이 멱등이라 안전하다 (백업이 몇 개 더 생길 뿐 keep 개수로 정리됨).
@@ -24,13 +25,16 @@ def cleanup_uploads(settings: Settings | None = None) -> dict:
     from app.services.retention import cleanup_dir
 
     settings = settings or get_settings()
+    from app.services.feedback_images import purge_expired
+
     result = cleanup_dir(settings.upload_path, settings.file_retention_hours)
     if result.removed_files:
         logger.info(
             "보관 기간 지난 업로드 정리: 파일 {}개 ({:.1f}MB) · 빈 폴더 {}개",
             result.removed_files, result.freed_bytes / 1024 / 1024, result.removed_dirs,
         )
-    return result.as_dict()
+    # 실패 · 확신 낮은 요청의 사진(피드백 폴더)은 보관 기간이 따로다 (FEEDBACK_IMAGE_RETENTION_DAYS)
+    return result.as_dict() | {"feedback_images": purge_expired(settings)}
 
 
 def _every(name: str, seconds: float, job: Callable[[], object]) -> threading.Thread:
