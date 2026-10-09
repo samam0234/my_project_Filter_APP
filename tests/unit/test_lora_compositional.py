@@ -34,7 +34,10 @@ def test_compositional_labels_are_canonical_and_deterministic():
     for r in rows:
         p = r["parsed_prompt"]
         assert normalize_parsed(p).target == p["target"]  # 서빙 규격과 같은 이름
-        assert p["selector"] is None  # 관계 표현("X 옆의 Y")은 위치 selector 가 아니다
+        if p["selector"] is not None:  # 개수 + 위치 묶음만 selector 가 있다 — rank 는 붙이지 않는다
+            assert p["selector"]["rank"] is None and p["selector"]["count"] >= 1
+        if "옆" in r["prompt"] or " next to " in r["prompt"]:
+            assert p["selector"] is None  # 관계 표현("X 옆의 Y")은 위치 selector 가 아니다
         assert p["crop"] == (p["effect"] == "crop" or "크롭까지" in r["prompt"] or "다음 잘라" in r["prompt"])
 
 

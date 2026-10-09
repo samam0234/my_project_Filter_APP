@@ -1,0 +1,2255 @@
+{
+ "run": "user_261009_2023",
+ "decision": "채택 — 전체 +29문항, 최대 하락 1문항",
+ "deployed": true,
+ "previous_backup": "backend/models/lora_prev_261009_2115",
+ "train": {
+  "cases": 2718,
+  "records": 4773,
+  "skipped": 0,
+  "with_image": 0,
+  "votes": {
+   "like": 2718
+  },
+  "seed_cases": 2080,
+  "approved_cases": 8,
+  "augment_cases": 30,
+  "dropped_eval_leaks": 41
+ },
+ "sets": {
+  "eval": {
+   "previous": {
+    "n": 40,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 0.95,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 0.95,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "앞줄 맨 앞 사람만 남기고 크롭까지 해줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "gold": {
+       "target": [
+        "cat"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 40,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 0.975,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 0.975,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "gold": {
+       "target": [
+        "cat"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   }
+  },
+  "eval_ext": {
+   "previous": {
+    "n": 56,
+    "accuracy": {
+     "target": 0.9821428571428571,
+     "effect": 0.9285714285714286,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 0.9107142857142857,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "gold": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "가운데 사람만 남기고 크롭까지 부탁해요",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "강쥐만 남겨줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "rat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target"
+      ]
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 56,
+    "accuracy": {
+     "target": 0.9821428571428571,
+     "effect": 0.9285714285714286,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 0.9821428571428571,
+     "rank": 1.0,
+     "count": 0.9821428571428571,
+     "attributes": 1.0,
+     "exact": 0.8928571428571429,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "gold": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "사람만남기고배경제거",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "강쥐만 남겨줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "rat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target"
+      ]
+     },
+     {
+      "prompt": "뒤에 버스 좀 지워봐",
+      "gold": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count"
+      ]
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   }
+  },
+  "eval_distractor": {
+   "previous": {
+    "n": 47,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 1.0,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 0.9787234042553191,
+     "count": 0.9361702127659575,
+     "attributes": 0.9787234042553191,
+     "exact": 0.9148936170212766,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "오른쪽 두 사람만 남기고 나머지는 지워줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "red shirt"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red person"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count",
+       "attributes"
+      ]
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "gold": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "blue handbag"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue handbag"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 47,
+    "accuracy": {
+     "target": 0.9787234042553191,
+     "effect": 1.0,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 0.9361702127659575,
+     "attributes": 0.9787234042553191,
+     "exact": 0.9361702127659575,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "red shirt"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red clothing"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count",
+       "attributes"
+      ]
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "gold": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "blue handbag"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "handbag"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue bag"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "target",
+       "count"
+      ]
+     }
+    ]
+   }
+  },
+  "eval_holdout": {
+   "previous": {
+    "n": 40,
+    "accuracy": {
+     "target": 0.975,
+     "effect": 0.95,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 0.975,
+     "rank": 1.0,
+     "count": 0.975,
+     "attributes": 0.975,
+     "exact": 0.875,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "강아지 두 마리 중 왼쪽 강아지만 남겨줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     },
+     {
+      "prompt": "고양이와 강아지는 놔두고 나머지를 지워주세요",
+      "gold": {
+       "target": [
+        "cat",
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "cat",
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "우산 쓴 사람은 빼고 우산만 크롭",
+      "gold": {
+       "target": [
+        "umbrella"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "umbrella person"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "target",
+       "attributes"
+      ]
+     },
+     {
+      "prompt": "차 한 대만 남겨줘 제일 가까운 차",
+      "gold": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     },
+     {
+      "prompt": "여기서 강아지 말고 다른 건 다 지워줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 40,
+    "accuracy": {
+     "target": 0.975,
+     "effect": 0.975,
+     "intensity": 0.975,
+     "crop": 0.975,
+     "position": 0.975,
+     "rank": 0.975,
+     "count": 0.975,
+     "attributes": 0.975,
+     "exact": 0.975,
+     "valid": 0.975
+    },
+    "misses": [
+     {
+      "prompt": "사람은 두고 나머지 물체들은 모두 날려줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": null,
+      "error": "허용되지 않은 effect: 'remove_objects'",
+      "wrong": [
+       "target",
+       "effect",
+       "intensity",
+       "crop",
+       "position",
+       "rank",
+       "count",
+       "attributes"
+      ]
+     }
+    ]
+   }
+  },
+  "eval_fresh": {
+   "previous": {
+    "n": 30,
+    "accuracy": {
+     "target": 0.9666666666666667,
+     "effect": 0.9666666666666667,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 0.9666666666666667,
+     "rank": 1.0,
+     "count": 0.9666666666666667,
+     "attributes": 0.9333333333333333,
+     "exact": 0.9,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "blur it all except for the biggest dog",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "big dog"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count",
+       "attributes"
+      ]
+     },
+     {
+      "prompt": "강아지 옆의 아이는 지우지 말고 강아지만 지워줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "오토바이는 지워줘 헬멧 쓴 사람은 그대로",
+      "gold": {
+       "target": [
+        "motorcycle"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "helmet"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "target",
+       "attributes"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 30,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 1.0,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 1.0,
+     "valid": 1.0
+    },
+    "misses": []
+   }
+  },
+  "eval_fresh2": {
+   "previous": {
+    "n": 40,
+    "accuracy": {
+     "target": 0.95,
+     "effect": 0.975,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 0.975,
+     "rank": 0.975,
+     "count": 0.975,
+     "attributes": 0.975,
+     "exact": 0.875,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "하늘 빼고 나머지 전부 투명하게 해줘",
+      "gold": {
+       "target": [
+        "sky"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target"
+      ]
+     },
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "gold": {
+       "target": [
+        "train",
+        "bridge"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "train",
+        "horse"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target"
+      ]
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "오른쪽 개 두 마리만 남겨줘",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "새 두 마리 중에 큰 새만 남겨",
+      "gold": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "large bird"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count",
+       "attributes"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 40,
+    "accuracy": {
+     "target": 0.95,
+     "effect": 0.95,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 0.975,
+     "exact": 0.925,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "gold": {
+       "target": [
+        "train",
+        "bridge"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "train",
+        "tree"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target"
+      ]
+     },
+     {
+      "prompt": "벽이랑 바닥은 남기고 사람만 지워 주세요",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "pred": {
+       "target": [
+        "wall",
+        "floor"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "error": null,
+      "wrong": [
+       "target",
+       "effect"
+      ]
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow umbrella"
+        ]
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow raincoat"
+        ]
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect",
+       "attributes"
+      ]
+     }
+    ]
+   }
+  },
+  "eval_fresh3": {
+   "previous": {
+    "n": 30,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 0.9666666666666667,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 0.7333333333333333,
+     "rank": 0.7,
+     "count": 0.7,
+     "attributes": 1.0,
+     "exact": 0.3333333333333333,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "왼쪽에 있는 고양이 두 마리만 살려줘",
+      "gold": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "앞줄 사람 세 명만 남기고 배경은 투명하게",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 3,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": 3,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank",
+       "count"
+      ]
+     },
+     {
+      "prompt": "뒤쪽 차 두 대는 지워줘",
+      "gold": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "오른편 의자 2개만 선명하게 나머지 흐리게",
+      "gold": {
+       "target": [
+        "chair"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "chair"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "강아지 세 마리 중에서 제일 작은 애만 남겨",
+      "gold": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "smallest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     },
+     {
+      "prompt": "컵 세 개 중 가운데 컵만 남겨주세요",
+      "gold": {
+       "target": [
+        "cup"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cup"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 3,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     },
+     {
+      "prompt": "말 두 마리 가운데 더 큰 말만 남기고 배경 지워",
+      "gold": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count"
+      ]
+     },
+     {
+      "prompt": "가장 가까이 있는 자전거 한 대만 남겨줘",
+      "gold": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     },
+     {
+      "prompt": "제일 멀리 있는 사람만 지워 줘",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     },
+     {
+      "prompt": "병 두 개 중 작은 병만 크롭",
+      "gold": {
+       "target": [
+        "bottle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "smallest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bottle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count"
+      ]
+     },
+     {
+      "prompt": "오른쪽 새 세 마리만 남겨줘",
+      "gold": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 3,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 3,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank",
+       "count"
+      ]
+     },
+     {
+      "prompt": "왼쪽 끝 사람 두 명은 빼고 다 투명하게",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "가운데 서 있는 두 사람만 선명하게 강도 40",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     },
+     {
+      "prompt": "휴대폰 두 대 중 왼쪽 거만 남기고 배경 없애줘",
+      "gold": {
+       "target": [
+        "cell phone"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cell phone"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "count"
+      ]
+     },
+     {
+      "prompt": "가방 세 개 중 제일 큰 가방만 잘라내 줘",
+      "gold": {
+       "target": [
+        "handbag"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "handbag"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 3,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position",
+       "count"
+      ]
+     },
+     {
+      "prompt": "고양이 두 마리 중 뒤에 있는 고양이를 지워줘",
+      "gold": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank",
+       "count"
+      ]
+     },
+     {
+      "prompt": "keep the two people on the left",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank"
+      ]
+     },
+     {
+      "prompt": "crop the closest bicycle",
+      "gold": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "front",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     },
+     {
+      "prompt": "blur everything except the three cars on the right",
+      "gold": {
+       "target": [
+        "car"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": 3,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": 3,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "rank",
+       "count"
+      ]
+     },
+     {
+      "prompt": "새 한 마리만 남겨줘 제일 큰 걸로",
+      "gold": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "largest",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "position"
+      ]
+     }
+    ]
+   },
+   "candidate": {
+    "n": 30,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 0.9666666666666667,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 0.9666666666666667,
+     "valid": 1.0
+    },
+    "misses": [
+     {
+      "prompt": "가운데 서 있는 두 사람만 선명하게 강도 40",
+      "gold": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "error": null,
+      "wrong": [
+       "effect"
+      ]
+     }
+    ]
+   }
+  },
+  "db_val": {
+   "previous": {
+    "n": 1,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 1.0,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 1.0,
+     "valid": 1.0
+    },
+    "misses": []
+   },
+   "candidate": {
+    "n": 1,
+    "accuracy": {
+     "target": 1.0,
+     "effect": 1.0,
+     "intensity": 1.0,
+     "crop": 1.0,
+     "position": 1.0,
+     "rank": 1.0,
+     "count": 1.0,
+     "attributes": 1.0,
+     "exact": 1.0,
+     "valid": 1.0
+    },
+    "misses": []
+   }
+  }
+ }
+}

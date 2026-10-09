@@ -1,0 +1,839 @@
+{
+ "sets": {
+  "eval": {
+   "lora": {
+    "n": 40,
+    "exact": 0.975,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.528347075000056,
+    "calls": {
+     "lora": 40
+    },
+    "misses": [
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.975,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.082519579998916,
+    "calls": {
+     "lora": 40
+    },
+    "misses": [
+     {
+      "prompt": "왼쪽 두 번째 고양이만 남기고 크롭",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": "left",
+        "rank": 2,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "ext": {
+   "lora": {
+    "n": 56,
+    "exact": 0.8928571428571429,
+    "target": 0.9821428571428571,
+    "extra": 0,
+    "sec": 0.9872470517854838,
+    "calls": {
+     "lora": 56
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람만남기고배경제거",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "강쥐만 남겨줘",
+      "pred": {
+       "target": [
+        "rat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "뒤에 버스 좀 지워봐",
+      "pred": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 56,
+    "exact": 0.9107142857142857,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.695814817856964,
+    "calls": {
+     "lora": 56,
+     "ollama": 1
+    },
+    "misses": [
+     {
+      "prompt": "컵이랑 노트북만 선명하게 해줘",
+      "pred": {
+       "target": [
+        "cup",
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람만남기고배경제거",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "뒤에 버스 좀 지워봐",
+      "pred": {
+       "target": [
+        "bus"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 말고 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "사람 지우고 배경만 남겨줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "distractor": {
+   "lora": {
+    "n": 47,
+    "exact": 0.9361702127659575,
+    "target": 0.9787234042553191,
+    "extra": 0,
+    "sec": 1.0050039553192465,
+    "calls": {
+     "lora": 47,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red clothing"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "handbag"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue bag"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 47,
+    "exact": 0.9361702127659575,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.0171780978735694,
+    "calls": {
+     "lora": 47,
+     "ollama": 1
+    },
+    "misses": [
+     {
+      "prompt": "빨간 옷 입은 사람만 남기고 다른 사람은 다 지워줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "red clothing"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "흰색 차만 남기고 사람이랑 다른 차는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "white car"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "파란 가방 든 사람만 남겨줘 다른 사람 말고",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "blue bag"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   }
+  },
+  "holdout": {
+   "lora": {
+    "n": 40,
+    "exact": 0.975,
+    "target": 0.975,
+    "extra": 0,
+    "sec": 0.7981835499987937,
+    "calls": {
+     "lora": 40,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "사람은 두고 나머지 물체들은 모두 날려줘",
+      "pred": null,
+      "valid": false,
+      "exact": false,
+      "target_ok": false,
+      "kind": "invalid",
+      "effect_ok": false,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.975,
+    "target": 0.975,
+    "extra": 0,
+    "sec": 0.8161383375001605,
+    "calls": {
+     "lora": 40,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "사람은 두고 나머지 물체들은 모두 날려줘",
+      "pred": null,
+      "valid": false,
+      "exact": false,
+      "target_ok": false,
+      "kind": "invalid",
+      "effect_ok": false,
+      "selector_ok": false
+     }
+    ]
+   }
+  },
+  "fresh": {
+   "lora": {
+    "n": 30,
+    "exact": 1.0,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 0.7723168299999088,
+    "calls": {
+     "lora": 30,
+     "ollama": 0
+    },
+    "misses": []
+   },
+   "chain_hybrid": {
+    "n": 30,
+    "exact": 0.9333333333333333,
+    "target": 0.9333333333333333,
+    "extra": 0,
+    "sec": 1.3564908733358607,
+    "calls": {
+     "lora": 30,
+     "ollama": 2
+    },
+    "misses": [
+     {
+      "prompt": "하늘이랑 나무는 살리고 건물은 지워줘",
+      "pred": {
+       "target": [
+        "building"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the dog, keep the bench and the people",
+      "pred": {
+       "target": [
+        "bench",
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "fresh2": {
+   "lora": {
+    "n": 40,
+    "exact": 0.925,
+    "target": 0.95,
+    "extra": 0,
+    "sec": 0.8702172699995572,
+    "calls": {
+     "lora": 40,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "pred": {
+       "target": [
+        "train",
+        "tree"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "벽이랑 바닥은 남기고 사람만 지워 주세요",
+      "pred": {
+       "target": [
+        "wall",
+        "floor"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow raincoat"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 40,
+    "exact": 0.925,
+    "target": 0.95,
+    "extra": 0,
+    "sec": 2.9001825175015257,
+    "calls": {
+     "lora": 40,
+     "ollama": 10
+    },
+    "misses": [
+     {
+      "prompt": "기차랑 다리는 선명하게 나머지는 블러 처리",
+      "pred": {
+       "target": [
+        "train",
+        "tree"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": true
+     },
+     {
+      "prompt": "벽이랑 바닥은 남기고 사람만 지워 주세요",
+      "pred": {
+       "target": [
+        "wall",
+        "floor"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "노란 우산 든 사람만 선명하게 강도 35",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 35,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "yellow raincoat"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  },
+  "fresh3": {
+   "lora": {
+    "n": 30,
+    "exact": 0.9666666666666667,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.1432657666659602,
+    "calls": {
+     "lora": 30,
+     "ollama": 0
+    },
+    "misses": [
+     {
+      "prompt": "가운데 서 있는 두 사람만 선명하게 강도 40",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   },
+   "chain_hybrid": {
+    "n": 30,
+    "exact": 0.9666666666666667,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 1.3685972033340172,
+    "calls": {
+     "lora": 30,
+     "ollama": 1
+    },
+    "misses": [
+     {
+      "prompt": "가운데 서 있는 두 사람만 선명하게 강도 40",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     }
+    ]
+   }
+  }
+ },
+ "parsers": [
+  "lora",
+  "chain_hybrid"
+ ],
+ "total": {
+  "lora": {
+   "n": 283,
+   "exact": 0.9469964664310954,
+   "target": 0.9823321554770318,
+   "sec": 1.0171675424024877
+  },
+  "chain_hybrid": {
+   "n": 283,
+   "exact": 0.9434628975265018,
+   "target": 0.9823321554770318,
+   "sec": 1.4716581628981207
+  }
+ }
+}
