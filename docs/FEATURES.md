@@ -25,10 +25,11 @@
 | 작업 상세 🔒 | `/jobs/:id` | `GET /jobs/{id}` · `GET /files/{id}/{before,after,thumb,webp}` | 결과 다시 보기(영상 재생), 해석 JSON 복사, 같은 문장으로 다시 작업 |
 | 평가 · 정답 알려주기 🔒 | 작업실 · 작업 상세 | `POST /feedback` | 좋아요/싫어요, 해석이 틀렸으면 올바른 값을 골라 보냄 → 검수 후 학습 |
 | 프롬프트 가이드 | `/guide` | — | 남기기 vs 지우기, 위치·크기·순서·개수·색 고르기, 예시, 한계, 보관 안내 |
-| 회원가입 | `/signup` | `POST /auth/signup` | 입력 즉시 규칙 안내, 가입 후 바로 로그인, 보관 기간·학습 이용 안내 |
+| 회원가입 | `/signup` | `POST /auth/signup` | 입력 즉시 규칙 안내, **[필수] 만 14세 이상 · 약관 · 개인정보 처리방침 동의**(서버도 검사, 동의 시각 기록), 보관 기간·학습 이용 안내 |
 | 로그인 · 로그아웃 | `/login` | `POST /auth/login` · `/logout` · `GET /auth/me` | `?next=` 로 돌아가기, HttpOnly 세션 쿠키 |
 | 아이디 찾기 | `/find-id` | `POST /auth/find-id` | 가입 이메일로 아이디 발송 (있든 없든 같은 안내) |
 | 비밀번호 찾기 | `/find-password` | `POST /auth/password/request` · `/reset` | 이메일 인증 코드 → 새 비밀번호 |
+| 개인정보 처리방침 · 이용약관 | `/privacy` · `/terms` | — | 실제 동작과 같은 보관 기간 · 수집 항목 · 외부 전송, 운영자 정보는 빌드 인자 — [`guidance/legal.md`](guidance/legal.md) |
 | 서버 상태 | 머리글 점 | `GET /health` | 30초마다, 초록 = 연결됨 |
 | 디자인 | 전 화면 | — | 다크 테마, Pretendard, 낱말 단위 줄바꿈, 1024px 미만 펼침 메뉴, 키보드 초점 링 — [`vaildates/ui-design-20261008.md`](vaildates/ui-design-20261008.md) |
 
@@ -103,6 +104,8 @@
 | 기능 | 설정 | 설명 |
 |------|------|------|
 | 계정 보안 | `LOGIN_MAX_FAILURES` · `LOGIN_LOCK_MINUTES` · `SESSION_TTL_HOURS` · `SESSION_COOKIE_SECURE` · `SECRET_KEY` | scrypt 해시, 연속 실패 잠금, HttpOnly 세션, 이메일 코드 재설정 |
+| HTTPS | `docker-compose.https.yml` · `DOMAIN` · `ACME_EMAIL` | Caddy 가 인증서 자동 발급·갱신, http→https, Secure 쿠키 · HSTS — [`guidance/https-deploy.md`](guidance/https-deploy.md) |
+| 메일 | `SMTP_*` · `SMTP_SSL` | 587(STARTTLS) · 465(SSL), 개발용 Mailpit(프로필 mail), `scripts/send_test_mail.py` — [`guidance/auth.md`](guidance/auth.md) |
 | 접근 정책 | — | 결과 파일 · 기록은 본인만(404), 비로그인은 저장하지 않음 |
 | 속도 제한 | `UPLOAD_RATE_*` · `TRUSTED_PROXIES` | 비로그인 IP 별 · 회원 계정별, nginx 뒤에서도 사람마다 |
 | 업로드 검증 | `MAX_UPLOAD_SIZE_MB` · `MAX_IMAGE_PIXELS` · `GIF_MAX_PIXELS` · `VIDEO_MAX_SIDE` | 확장자 · MIME · 시그니처 · 해상도(압축 폭탄) |

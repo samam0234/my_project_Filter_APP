@@ -71,7 +71,10 @@ class AuthService:
         password: str,
         display_name: str | None,
         user_agent: str | None = None,
+        agree_terms: bool = False,
     ) -> SessionIssue:
+        if not agree_terms:
+            raise AuthError("만 14세 이상인지와 이용약관 · 개인정보 처리방침 동의를 확인해 주세요.")
         username = username.strip().lower()
         email = email.strip().lower()
         display_name = (display_name or "").strip() or None
@@ -96,6 +99,7 @@ class AuthService:
                 email=email,
                 password_hash=pw.hash_password(password),
                 display_name=display_name,
+                terms_agreed_at=datetime.now(timezone.utc),
             )
         except IntegrityError as exc:  # 동시 가입 경합
             self.repo.db.rollback()

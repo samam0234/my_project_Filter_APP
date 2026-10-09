@@ -38,4 +38,6 @@
 - [ ] 백업: MariaDB(학습 DB) `mysqldump` 정기 실행 / 피드백 데이터(`data/feedback`)
 - [ ] 내부 포트 127.0.0.1 바인딩 확인 (`docker ps` 의 PORTS 가 `127.0.0.1:` 로 시작) — 공개는 :80
 - [ ] 대상 지우기 LaMa 모델 배치 (`backend/models/lama_fp32.onnx`) — 없으면 Telea
-- [ ] 개인정보 처리방침 · 이용약관 (보관 24시간 · 요청 문장 학습 이용 · 삭제 요청 방법)
+- [ ] 개인정보 처리방침 · 이용약관 — `.env` 의 `OPERATOR_NAME` · `OPERATOR_EMAIL` · `POLICY_DATE` 채우고 frontend 다시 빌드, 법률 검토 ([legal.md](../guidance/legal.md))
+- [ ] HTTPS — `docker-compose.https.yml` + `DOMAIN` · `ACME_EMAIL` ([https-deploy.md](../guidance/https-deploy.md))
+- [ ] 메일 — `python scripts/send_test_mail.py 내주소` 로 발송 확인

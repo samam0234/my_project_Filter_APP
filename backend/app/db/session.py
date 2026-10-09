@@ -109,6 +109,7 @@ _ADDED_COLUMNS: list[tuple[str, str, str]] = [
     ("jobs", "user_id", "VARCHAR(32)"),
     ("batch_jobs", "user_id", "VARCHAR(32)"),
     ("jobs", "kind", "VARCHAR(16)"),
+    ("users", "terms_agreed_at", "DATETIME"),
 ]
 
 

@@ -81,6 +81,7 @@ def signup(body: SignupRequest, request: Request, response: Response, db: Sessio
             password=body.password,
             display_name=body.display_name,
             user_agent=request.headers.get("user-agent"),
+            agree_terms=body.agree_terms,
         )
     except AuthError as exc:
         _raise(exc)

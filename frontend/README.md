@@ -15,9 +15,10 @@
 | `/batch` | 배치 🔒 | 여러 장 등록 · 진행률 · 항목별 원본/결과 · zip 받기 · 내 배치 | `POST /batch`, `GET /batch/{id}` |
 | `/video` | 영상 | 짧은 영상 처리 · 바로 재생 · mp4 저장 · 이 브라우저(IndexedDB)에 마지막 결과 보관 · 회원은 작업 기록 링크 | `POST /video`, `GET /video/{id}` |
 | `/login` | 로그인 | 아이디·비밀번호, `?next=` 로 돌아갈 곳, 아이디/비밀번호 찾기 링크 | `POST /auth/login` |
-| `/signup` | 회원가입 | 입력 즉시 규칙 안내, 가입 후 바로 로그인 | `POST /auth/signup` |
+| `/signup` | 회원가입 | 입력 즉시 규칙 안내, **[필수] 만 14세 · 약관 · 방침 동의**, 가입 후 바로 로그인 | `POST /auth/signup` |
 | `/find-id` | 아이디 찾기 | 가입 이메일로 아이디 발송 (항상 같은 안내) | `POST /auth/find-id` |
 | `/find-password` | 비밀번호 찾기 | ① 아이디+이메일 → 코드 ② 코드+새 비밀번호 | `POST /auth/password/request`, `/reset` |
+| `/privacy` · `/terms` | 개인정보 처리방침 · 이용약관 | 운영자 정보는 `src/data/legal.ts`(빌드 인자 `VITE_OPERATOR_*`) | — |
 | 그 외 | 404 | | |
 
 🔒 = 로그인 회원 전용. 비로그인이 들어오면 `RequireLogin` 게이트가 로그인·회원가입 안내를 보여주고

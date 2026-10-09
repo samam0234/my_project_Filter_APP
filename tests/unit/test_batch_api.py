@@ -73,7 +73,7 @@ def env(api_env, monkeypatch, tmp_path):
 
 
 def _signup(client, name):
-    r = client.post("/api/v1/auth/signup", json={"username": name, "email": f"{name}@example.com", "password": PW})
+    r = client.post("/api/v1/auth/signup", json={"username": name, "email": f"{name}@example.com", "password": PW, "agree_terms": True})
     assert r.status_code == 201, r.text
 
 

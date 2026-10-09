@@ -91,6 +91,38 @@ Select-String -Path backend\logs\app_*.log -Pattern "DEV MAIL" -Context 0,4 | Se
 
 > 로그에 인증 코드가 남으므로 **배포 환경에서는 반드시 SMTP 를 설정**하고 로그 접근을 제한한다.
 
+### 메일 서비스별 설정
+
+| 서비스 | `SMTP_HOST` | `SMTP_PORT` | 방식 | 비밀번호 |
+|--------|-------------|-------------|------|----------|
+| Gmail | `smtp.gmail.com` | 465 | `SMTP_SSL=true` · `SMTP_STARTTLS=false` | 2단계 인증 후 **앱 비밀번호** |
+| Gmail | `smtp.gmail.com` | 587 | `SMTP_STARTTLS=true` | 앱 비밀번호 |
+| 네이버 | `smtp.naver.com` | 465 | `SMTP_SSL=true` · `SMTP_STARTTLS=false` | 메일 설정에서 IMAP/SMTP 사용 켜기 (+ 2단계면 앱 비밀번호) |
+| 다음·카카오 | `smtp.daum.net` | 465 | `SMTP_SSL=true` · `SMTP_STARTTLS=false` | 메일 설정에서 SMTP 사용 켜기 |
+| 발송 전문 (SES · SendGrid · Mailgun 등) | 서비스 안내대로 | 587 | `SMTP_STARTTLS=true` | 발급한 SMTP 자격 증명 — 대량 · 도메인 발송이면 이쪽 권장 |
+
+- `SMTP_FROM` 의 주소는 로그인한 계정과 같은 주소(또는 그 서비스에서 인증한 도메인)여야 스팸으로 덜 분류된다
+- 자기 도메인으로 보낼 때는 그 도메인 DNS 에 SPF · DKIM · DMARC 를 설정한다 (발송 서비스 안내대로)
+- 메일 헤더에 `Date` · `Message-ID` 를 넣어 보낸다 (없으면 스팸 판정이 쉬움)
+
+### 설정 확인
+
+```powershell
+python scripts/send_test_mail.py 받는주소@example.com    # 성공하면 "발송 성공", 실패하면 원인은 backend 로그의 "메일 발송 실패"
+```
+
+### 개발용 받은편지함 (Mailpit)
+
+실제로 밖에 보내지 않고 메일을 눈으로 확인하려면:
+
+```powershell
+docker compose -p cut_and_keep --env-file .env --profile mail up -d mailpit
+# .env: SMTP_HOST=mailpit · SMTP_PORT=1025 · SMTP_STARTTLS=false · SMTP_SSL=false → backend 재시작
+# 받은 메일: http://127.0.0.1:8025
+```
+
+호스트에서 띄운 backend 는 `SMTP_HOST=127.0.0.1` · `SMTP_PORT=1025` 로 Mailpit 의 1025 를 쓰려면 compose 에서 1025 도 열어야 한다 — Docker backend 로 확인하는 쪽이 간단하다.
+
 ---
 
 ## 5. 설정

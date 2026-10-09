@@ -6,6 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# 개인정보 처리방침 · 이용약관의 운영자 정보 (src/data/legal.ts) — compose 가 .env 의 OPERATOR_* 를 넘긴다
+ARG VITE_OPERATOR_NAME=""
+ARG VITE_OPERATOR_EMAIL=""
+ARG VITE_POLICY_DATE=""
+ENV VITE_OPERATOR_NAME=$VITE_OPERATOR_NAME VITE_OPERATOR_EMAIL=$VITE_OPERATOR_EMAIL VITE_POLICY_DATE=$VITE_POLICY_DATE
 RUN npm run build
 
 # --- 프로덕션 단계 ---
@@ -14,5 +19,7 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 # /api · /health 프록시 설정
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+# HTTPS 모드에서 Caddy 뒤 실제 IP 설정을 끼워 넣는 자리 (평소엔 비어 있다)
+RUN mkdir -p /etc/nginx/snippets
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

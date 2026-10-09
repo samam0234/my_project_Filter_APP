@@ -1,0 +1,44 @@
+# HTTPS 로 띄우기 — 기본 compose 에 겹쳐 쓴다
+#
+#   docker compose -p cut_and_keep --env-file .env -f docker-compose.yml -f docker-compose.https.yml up -d --build
+#
+# .env:
+#   DOMAIN=cutnkeep.example.com     # 실제 도메인 (로컬 확인은 localhost — 자체 서명 인증서)
+#   ACME_EMAIL=you@example.com      # 인증서 만료 알림 받을 주소
+#   CORS_ORIGINS=https://cutnkeep.example.com
+# 바뀌는 것:
+#   - caddy 가 80 · 443 을 받고 인증서를 자동 발급 · 갱신, http → https 이동
+#   - frontend(nginx) 는 밖으로 포트를 열지 않는다 (caddy 만 접근)
+#   - backend 세션 쿠키가 Secure (https 에서만 전송) + HSTS
+# 자세히: docs/guidance/https-deploy.md
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # 인증서·계정 키 — 지우면 다시 발급받는다 (Let's Encrypt 발급 횟수 제한 주의)
+      - ./data/caddy/data:/data
+      - ./data/caddy/config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+    networks:
+      - cutnkeep_net
+
+  frontend:
+    # caddy 만 접근 — 밖으로 포트를 열지 않는다
+    ports: !reset []
+    volumes:
+      - ./docker/nginx/realip-behind-caddy.conf:/etc/nginx/snippets/realip.conf:ro
+
+  backend:
+    environment:
+      SESSION_COOKIE_SECURE: "true"

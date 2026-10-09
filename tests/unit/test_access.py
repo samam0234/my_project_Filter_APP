@@ -31,7 +31,7 @@ PW = "cutkeep2026"
 def _signup(client, username, email):
     r = client.post(
         "/api/v1/auth/signup",
-        json={"username": username, "email": email, "password": PW},
+        json={"username": username, "email": email, "password": PW, "agree_terms": True},
     )
     assert r.status_code == 201, r.text
 

@@ -50,7 +50,7 @@ def test_storage_usage_splits_jobs_batches_videos(tmp_path):
 def admin(api_env, monkeypatch):
     monkeypatch.setattr(get_settings(), "console_admins", "boss")
     c = api_env["client"]
-    r = c.post("/api/v1/auth/signup", json={"username": "boss", "email": "boss@example.com", "password": "cutkeep2026"})
+    r = c.post("/api/v1/auth/signup", json={"username": "boss", "email": "boss@example.com", "password": "cutkeep2026", "agree_terms": True})
     assert r.status_code == 201
     return c
 
