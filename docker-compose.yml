@@ -32,6 +32,8 @@ services:
       args:
         # 세그 런타임: ultralytics(기본, .pt) | onnx(가볍게, .onnx — YOLO_MODEL_PATH 도 .onnx 로)
         SEG_RUNTIME: ${SEG_RUNTIME:-ultralytics}
+        # LoRA 문장 해석 패키지 (transformers · peft): 1 이면 설치 — CPU 이미지라 문장당 수십 초, 실사용은 GPU 호스트에서 (llm-and-vision.md)
+        LLM_LORA: ${LLM_LORA:-0}
     ports:
       # 백엔드 직접 접근은 이 PC 에서만 (사용자는 frontend :80 의 nginx 를 거친다). 다른 기기에서 열려면 BIND_HOST=0.0.0.0
       # 호스트에서 uvicorn 을 따로 띄워 8000 이 차 있으면 BACKEND_PORT=8001 처럼 바꾼다 (nginx 는 컨테이너끼리 8000 으로 연결)

@@ -130,7 +130,10 @@ PROMPT_VOTES=2                 # LoRA 1 + Ollama 1 + 키워드 파서 1 표
 - 2026-10-09 비교(253문장, GPU): 지금 기본(Ollama 체인) 85.4% · 6.9초 → **혼합 91.3% · 3.0초**, Ollama 호출 293 → 15번
 - 홀드아웃 셋은 Ollama 체인이 더 높고, 평가 문장 일부가 LoRA 학습 설계에 영향을 줘 **기본값은 그대로** —
   [`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)
-- Docker 백엔드 이미지(CPU torch, transformers 없음)에서는 쓸 수 없다
+- Docker 백엔드 이미지는 기본으로 transformers 가 없다. `LLM_LORA=1` 로 빌드하면 들어가지만 **CPU 라 실사용이 안 된다**
+  (2026-10-09, `--cpus=4` 컨테이너 · 학습이 같이 돌던 PC: 첫 호출 모델 로드 699초, 이후 문장당 평균 23.2초 · 최대 122.5초 —
+  Ollama 체인은 약 7초). 베이스 모델(`qwen2.5-1.5b-instruct`)은 `backend/models/` 아래에 두고 `LORA_BASE_MODEL=models/qwen2.5-1.5b-instruct`.
+  혼합 · LoRA 는 **GPU 가 있는 호스트 실행**에서 쓴다
 
 ---
 
