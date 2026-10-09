@@ -81,6 +81,7 @@ def parse_args() -> argparse.Namespace:
             _LORA_DIR / "seed" / "eval_distractor.jsonl",
             _LORA_DIR / "seed" / "eval_holdout.jsonl",
             _LORA_DIR / "seed" / "eval_fresh.jsonl",
+            _LORA_DIR / "seed" / "eval_fresh2.jsonl",
         ],
         help="평가셋들 — 같은 문장은 학습에서 뺀다 (점수 부풀림 방지)",
     )
@@ -100,8 +101,12 @@ def parse_args() -> argparse.Namespace:
         "--seed-file",
         type=Path,
         nargs="+",
-        default=[_LORA_DIR / "seed" / "train.jsonl", _LORA_DIR / "seed" / "train_distractor.jsonl"],
-        help="시드 JSONL 들 (인스턴스 선택 · 방해물 문장 — 없는 파일은 건너뜀)",
+        default=[
+            _LORA_DIR / "seed" / "train.jsonl",
+            _LORA_DIR / "seed" / "train_distractor.jsonl",
+            _LORA_DIR / "seed" / "train_compositional.jsonl",
+        ],
+        help="시드 JSONL 들 (인스턴스 선택 · 방해물 문장 · 조합형 문장 — 없는 파일은 건너뜀)",
     )
     parser.add_argument(
         "--seed-repeat",
