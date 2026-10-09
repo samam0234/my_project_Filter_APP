@@ -8,6 +8,8 @@
 |----------|------|
 | `convert_to_onnx.py` | YOLO 가중치 → ONNX 변환 |
 | `cleanup.py` | 오래된 업로드 파일 삭제 (보관 시간). **백엔드가 매시간 자동으로 같은 정리를 한다** — 손으로 돌릴 때만 |
+| `fetch_models.py` | git 에 없는 큰 모델(LaMa) 받기 + SHA-256 확인 — 배포 서버 준비용 (백엔드도 기동 시 자동으로 받음) |
+| `send_test_mail.py` | 지금 SMTP 설정으로 테스트 메일 한 통 |
 | `export_stuff_onnx.py` | 배경 덩어리용 SegFormer → ONNX (`backend/models/segformer-ade.onnx`) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
 | `retrain_lora.py` | 승인 사용자 문장이 기준 이상 쌓이면 증강·학습·평가·배포본 비교 (`--deploy` 로 교체) |

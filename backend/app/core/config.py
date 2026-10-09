@@ -231,6 +231,8 @@ class Settings(BaseSettings):
     # LaMa 는 큰 물체를 지워도 주변 무늬를 이어 그린다 (Telea 는 번진 얼룩). 사진에만 — 영상·GIF 는 프레임 수 때문에 Telea
     inpaint_engine: Literal["auto", "lama", "telea"] = Field(default="auto", alias="INPAINT_ENGINE")
     inpaint_model_path: str = Field(default="models/lama_fp32.onnx", alias="INPAINT_MODEL_PATH")
+    # LaMa 를 쓸 설정인데 파일이 없으면 기동 시 백그라운드로 받는다 (208MB, 체크섬 확인 — services/model_fetch)
+    model_auto_download: bool = Field(default=True, alias="MODEL_AUTO_DOWNLOAD")
     # 【수동】 영상 업로드. 비로그인은 응답으로만 받고 디스크에 남기지 않는다.
     video_max_upload_mb: int = Field(default=80, alias="VIDEO_MAX_UPLOAD_MB")
     video_max_frames: int = Field(default=240, alias="VIDEO_MAX_FRAMES")

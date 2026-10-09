@@ -66,6 +66,7 @@
 | 검증 · 재시도 | `services/validator.py` · `workflows/edges.py` | — | ok · fallback · failed, 반대쪽 입력 + 낮은 신뢰도로 한 번 더, 더 나은 쪽 채택 |
 | 효과 · 경계 | `services/effects.py` | — | 업스케일 · 안티앨리어싱 · 깃털 알파 — [`vaildates/edge-tuning-20261008.md`](vaildates/edge-tuning-20261008.md) |
 | 대상 지우기 메우기 | `services/inpaint.py` | `INPAINT_ENGINE` · `INPAINT_MODEL_PATH` | LaMa ONNX(없으면 Telea) — [`vaildates/inpaint-20261009.md`](vaildates/inpaint-20261009.md) |
+| 모델 자동 받기 | `services/model_fetch.py` · `scripts/fetch_models.py` | `MODEL_AUTO_DOWNLOAD` | 없는 LaMa 를 기동 시 백그라운드로 받고 SHA-256 확인, 생기면 바로 LaMa 로 |
 | 영상 | `services/video_processor.py` | `VIDEO_*` | 프레임마다 같은 규칙(`FrameRenderer`), 광학 흐름 스무딩, mp4 변환, avi 등 원본 미리 보기 |
 | GIF | `services/gif_processor.py` | `GIF_MAX_FRAMES` · `GIF_MAX_PIXELS` | 투명 GIF + 움직이는 WebP |
 | 배치 | `routers/batch.py` · `tasks/batch_tasks.py` | `BATCH_USE_CELERY` | 최대 500장, 한 장씩 처리, Celery 는 선택 |

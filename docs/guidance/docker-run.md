@@ -23,7 +23,7 @@ docker compose -p cut_and_keep ps
   (nginx 는 컨테이너끼리 8000 으로 연결하므로 http://localhost 는 그대로)
 - Docker 서비스 DB 는 **MariaDB** (호스트 개발 서버는 SQLite `cutnkeep.host.db`). 처음 전환하면 옛 `cutnkeep.db` 의 회원·작업을 자동으로 옮긴다
 - MariaDB 는 `mariadb-backup` 이 매일 `data/mariaDB_backups/` 로 덤프한다 (7일 보관) — 복구는 `docs/plan/DATABASE.md`
-- 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — 없으면 Telea 로 동작 (`backend/models/README.md`, 경로는 `INPAINT_MODEL_PATH`, 엔진은 `INPAINT_ENGINE`)
+- 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — **없으면 backend 가 기동 시 자동으로 받는다**(체크섬 확인, `MODEL_AUTO_DOWNLOAD`). 받는 동안은 Telea (`backend/models/README.md`)
 - backend 는 기동 시 **서비스 DB 백업**(`backend/data/backups/`)과 **보관 기간 지난 업로드 정리**를 스스로 돌린다
 
 ## 인증 · DB

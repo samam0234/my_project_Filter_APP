@@ -37,7 +37,7 @@
 - [x] 서비스 DB · 학습 DB(MariaDB) 백업 — 자동 (`mariadb-backup`, 24시간 · 7일, `data/mariaDB_backups/`)
 - [ ] 백업 파일 · 피드백 데이터(`data/feedback`)를 다른 디스크 · PC 로 정기 복사
 - [ ] 내부 포트 127.0.0.1 바인딩 확인 (`docker ps` 의 PORTS 가 `127.0.0.1:` 로 시작) — 공개는 :80
-- [ ] 대상 지우기 LaMa 모델 배치 (`backend/models/lama_fp32.onnx`) — 없으면 Telea
+- [x] 대상 지우기 LaMa 모델 — 없으면 백엔드가 기동 시 자동으로 받는다(체크섬 확인). 인터넷이 막힌 서버는 `MODEL_AUTO_DOWNLOAD=false` 로 두고 `python scripts/fetch_models.py` 로 받은 파일을 넣는다
 - [ ] 개인정보 처리방침 · 이용약관 — `.env` 의 `OPERATOR_NAME` · `OPERATOR_EMAIL` · `POLICY_DATE` 채우고 frontend 다시 빌드, 법률 검토 ([legal.md](../guidance/legal.md))
 - [ ] HTTPS — `docker-compose.https.yml` + `DOMAIN` · `ACME_EMAIL` ([https-deploy.md](../guidance/https-deploy.md))
 - [ ] 메일 — `python scripts/send_test_mail.py 내주소` 로 발송 확인
