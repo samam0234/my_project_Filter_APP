@@ -225,7 +225,7 @@ def server(args) -> Report:
                   f"LoRA 베이스 모델 {base.relative_to(ROOT) if base.is_relative_to(ROOT) else base}", f"LoRA 베이스 모델 없음: {base} (LORA_BASE_DIR)")
         rep.check((backend / "models" / "lora" / "adapter_model.safetensors").is_file(), "LoRA 어댑터 backend/models/lora", "LoRA 어댑터 없음: backend/models/lora")
         probe = ("import torch,os;print(torch.cuda.is_available(), os.environ.get('LLM_PROVIDER'), "
-                 "torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')")
+                 "'CUDA', torch.version.cuda, torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')")
         try:
             out = subprocess.run(["docker", "compose", "-p", "cut_and_keep", "exec", "-T", "backend", "python", "-c", probe], cwd=ROOT,
                                  capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
