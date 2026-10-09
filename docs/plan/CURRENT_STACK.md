@@ -1,7 +1,7 @@
 # 컷앤킵 — 현재 스택 스냅샷
 
 **기준 브랜치:** `develop`  
-**스냅샷 일자:** 2026-10-09 (보안 강화 · LaMa 지우기 · GIF · 영상 작업 기록 · 해석 체인 · 디자인 반영)  
+**스냅샷 일자:** 2026-10-10 (영상 추적 · 카메라 이동 지우기 · 실제 영상 검증 · LoRA 조합형 재학습 · GPU 오버레이 · 배포 도구 · 의존성 보안 업데이트 반영)  
 **목적:** 추가·수정·제외된 구성을 한곳에 모아, 다른 문서가 어긋나지 않게 한다.
 
 ---
@@ -57,7 +57,7 @@
 | 파일 | 용도 |
 |------|------|
 | **루트** `requirements.txt` | 로컬 backend 풀스택 |
-| **루트** `requirements.docker.txt` | Docker 런타임 공통 (LangGraph 포함). 세그는 `backend/Dockerfile` 의 `SEG_RUNTIME`: `ultralytics`(CPU torch, 약 2.8GB) 또는 `onnx`(onnxruntime 만, 약 1.1GB). 검증은 `docs/plan/ONNX_INFERENCE.md` |
+| **루트** `requirements.docker.txt` | Docker 런타임 공통 (FastAPI 0.143 · starlette 1.7 · LangGraph 1.2 · langchain-core 1.6 · Pillow 12.3 — 2026-10-10 취약점 0건, [`security.md`](../guidance/security.md) 5절). 빌드 인자 `LLM_LORA`(LoRA 패키지) · `TORCH_INDEX`(cpu · cu128 · cu130). 세그는 `backend/Dockerfile` 의 `SEG_RUNTIME`: `ultralytics`(CPU torch, 약 2.8GB) 또는 `onnx`(onnxruntime 만, 약 1.1GB). 검증은 `docs/plan/ONNX_INFERENCE.md` |
 | `training/requirements-training.txt` | 학습 venv (torch 는 로컬 wheel, 원격 자동 대용량 금지 정책) |
 | ~~`backend/requirements*.txt`~~ | **제거됨** (루트로 이전) |
 
@@ -71,19 +71,19 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 |------|-----------|
 | 세그 | **YOLO26m-seg** — 서빙 `backend/models/yolo26m-seg.pt` / `.onnx`, 원본·후보 루트 `models/`. ONNX 경로는 `backend/app/utils/onnx_utils.py` (torch·ultralytics 불필요) |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
-| LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱 |
+| LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱. **GPU 오버레이는 `lora`** (283문장 94.7% · Ollama 체인 85.2%, [`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)) · 혼합 `PROMPT_SECOND_OPINION` |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
 | 프롬프트 RAG | `services/prompt_rag.py` — 사용자 교정·좋아요 중 비슷한 문장을 LLM 예시로 (글자 n-gram TF-IDF, `PROMPT_RAG_*`) |
 | 해석 체인 | `PROMPT_CHAIN=langchain`(기본) — LLM 답과 키워드 파서(`heuristic_targets.py`)가 다르면 최대 3번 물어 다수결 (`services/prompt_chain.py`) |
 | 인스턴스 선택 | `services/instance_selector.py` — 같은 클래스 중 특정 인스턴스 (학습 아닌 규칙) |
 | 마스크 처리 | 다른 인스턴스 몫 덜어내기 `MASK_EXCLUSIVE=subtract` · GrabCut 끔 · CLAHE 끔 (지정하지 않은 대상이 섞이는 문제 — `docs/vaildates/leak-diagnosis-20261008.md`) |
 | 배경 덩어리 | SegFormer ADE20K ONNX — 건물 · 하늘 · 도로 등 14종 (`services/stuff_segmentation.py`) |
-| 대상 지우기 | 사진: 학습형 **LaMa** ONNX (`backend/models/lama_fp32.onnx`, 없으면 Telea) · 영상·GIF: Telea (`INPAINT_ENGINE`) |
-| 영상 · GIF | 영상: 프레임마다 처리 → H.264 mp4, 광학 흐름 스무딩 · GIF: 프레임마다 처리 → 투명 GIF + 부드러운 경계 WebP. 회원은 작업 기록(`jobs.kind`)에 남음 |
-| 파이프라인 실행 | LangGraph 0.2 · 스레드풀 실행 · 재시도 시 조건 변경 + 최선 시도 채택 · 기동 시 모델 워밍업 (`PRELOAD_MODELS`) · `meta.timings` ([`WORKFLOW.md`](../WORKFLOW.md)) |
+| 대상 지우기 | 사진: 학습형 **LaMa** ONNX (`backend/models/lama_fp32.onnx`, 없으면 Telea, `MODEL_AUTO_DOWNLOAD` 로 자동 받기) · 영상·GIF: 다른 프레임에서 보인 **배경판**(고정 카메라 · 프레임 맞춤, 시간 중앙값 · 밝기 맞춤) → 맞지 않으면 Telea (`VIDEO_REMOVE_MODE`, `services/video_inpaint.py`) |
+| 영상 · GIF | 영상: 프레임마다 처리 → H.264 mp4, 광학 흐름 스무딩 · GIF: 프레임마다 처리 → 투명 GIF(경계 매트 `matte`) + 부드러운 경계 WebP. 위치 · 순서 · 개수로 고른 대상은 프레임 사이 추적(`VIDEO_TRACK_INSTANCES`, `services/instance_tracker.py`). 회원은 작업 기록(`jobs.kind`)에 남음 — 실제 영상 검증 [`davis-real-video-20261010.md`](../vaildates/davis-real-video-20261010.md) |
+| 파이프라인 실행 | LangGraph 1.2 · 스레드풀 실행 · 재시도 시 조건 변경 + 최선 시도 채택 · 기동 시 모델 워밍업 (`PRELOAD_MODELS`) · `meta.timings` ([`WORKFLOW.md`](../WORKFLOW.md)) |
 | 계정 | `/api/v1/auth/*` — scrypt 해시 · HttpOnly 세션 쿠키 · 이메일 코드 재설정. SMTP 미설정 시 메일은 로그에만 ([`auth.md`](../guidance/auth.md)) |
 | 접근 정책 | 비로그인: 처리·다운로드만(저장 없음, IP 별 분당 한도) / 회원: 저장·작업 기록(사진·영상·GIF)·피드백·배치(본인 것만) / 콘솔 API: 관리자 로그인 또는 서버 PC |
-| 보관 · 정리 | 업로드 파일은 `FILE_RETENTION_HOURS`(24) 뒤 백엔드가 `FILE_CLEANUP_MINUTES`(60)마다 자동 삭제 |
+| 보관 · 정리 | 업로드 파일은 `FILE_RETENTION_HOURS`(24) 뒤 백엔드가 `FILE_CLEANUP_MINUTES`(60)마다 자동 삭제 · 실패 · 확신 낮은 요청의 사진은 `FEEDBACK_IMAGE_RETENTION_DAYS`(30) 뒤, 계정 삭제 시 바로 |
 | 학습 | `training/` — `train_segment.py` 본선, `env_cuda.ps1` / `setup_cuda_env.ps1` |
 
 문서: `docs/plan/AI_MODEL_STRATEGY.md`, `YOLO26S_DEFAULT.md`, `training/README.md`
@@ -103,6 +103,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | `mariadb-backup` | MariaDB 자동 덤프 (서비스 + 학습 DB) |
 | `mailpit` | 프로필 `mail` — 개발용 메일 받은편지함 `127.0.0.1:8025` |
 | `caddy` | `docker-compose.https.yml` 을 겹칠 때만 — HTTPS 인증서 · 80/443 |
+| (GPU) `backend` · `celery_worker` | `docker-compose.gpu.yml` 을 겹칠 때만 — 이미지 `cut_and_keep-backend-gpu`(CUDA torch `GPU_TORCH_INDEX` cu128 기본 · cu130, LoRA 패키지), NVIDIA GPU 예약, 문장 해석 LoRA ([`gpu-deploy.md`](../guidance/gpu-deploy.md)) |
 | ~~GSS 커스텀 MariaDB 이미지~~ | **제외** |
 
 Backend 컨테이너 오버라이드 예:
@@ -173,6 +174,8 @@ Backend 컨테이너 오버라이드 예:
 - [ ] 내부 포트 **127.0.0.1** 바인딩 · 공개는 frontend :80
 - [ ] 작업 종류(사진 · 영상 · GIF) · LaMa · 자동 정리 · 자동 백업
 - [ ] 커밋 기록 경로 **branchs/commits**
+- [ ] 오버레이 **https · gpu**, 배포 도구 `make_prod_env` · `deploy_check` · `models_bundle` ([`DEPLOYMENT.md`](../DEPLOYMENT.md))
+- [ ] 의존성 취약점 점검 결과 ([`security.md`](../guidance/security.md) 5절)
 - [ ] Console Compose 미포함
 - [ ] 런타임(`backend/`) · 학습 공유(루트) 폴더 분리
 

@@ -115,6 +115,7 @@ LORA_ADAPTER_PATH=models/lora                              # backend/models/lora
 - 첫 요청에 모델 로드(수십 초), 이후 요청당 약 1~2 초
 - 평가(2026-09-30, 40문항 완전 일치): **gemma4:e4b 92.5%** / **LoRA v2 87.5%** / 키워드 35%
   → 기본은 품질 우선으로 Ollama, 속도가 중요하면 lora
+- **최신(2026-10-09, 조합형 · 선택자 재학습 후 283문장)**: LoRA 94.7% · Ollama 체인 85.2% — GPU 서버면 LoRA 가 더 정확하고 빠르다 ([`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md) · [gpu-deploy.md](./gpu-deploy.md))
 - 확장 평가(2026-10-06, 새 말투 56문항): gemma4 91.1% / LoRA v2 83.9% / 키워드 42.9% — 상세·사용자 문장 학습 결과는
   [`training/lora/README.md`](../../training/lora/README.md#확장-평가셋--사용자-문장-학습-2026-10-06)
 - 학습·평가 방법: [`training/lora/README.md`](../../training/lora/README.md)

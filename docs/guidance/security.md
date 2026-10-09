@@ -2,6 +2,10 @@
 
 공개 배포 전에 이 표를 위에서부터 확인한다. "자동"은 코드가 이미 하고 있는 것, "수동"은 배포하는 사람이 정해야 하는 것.
 
+배포 순서 전체는 [../DEPLOYMENT.md](../DEPLOYMENT.md). 아래 항목 대부분은 두 스크립트가 대신 확인한다:
+- `python scripts/make_prod_env.py` — 1절 값을 채우고 새 비밀 값을 만든 뒤 preflight 까지 (`.env.production`)
+- `python scripts/deploy_check.py remote https://도메인` · `server [--gpu]` — 2절 네트워크 · 헤더 · 인증서, 모델 · 백업 · Docker
+
 ## 1. 설정 (`.env`)
 
 | 항목 | 배포 값 | 확인 방법 |
@@ -43,11 +47,29 @@
 | 서비스 DB 백업 | **자동** — SQLite 면 기동 직후 + `DB_BACKUP_HOURS`(24)마다 `backend/data/backups/` 에 온라인 백업, 최근 `DB_BACKUP_KEEP`(7)개. 깨진 백업은 버린다 ([DATABASE.md](../plan/DATABASE.md)) |
 | MariaDB 백업 (서비스 + 학습 DB) | **자동** — `mariadb-backup` 서비스, 24시간마다 · 7일 보관, 복구 절차·확인은 [DATABASE.md](../plan/DATABASE.md). **수동**: 백업 파일을 다른 디스크 · PC 로 복사 |
 | 이용자 안내 | 회원가입 화면 · 프롬프트 가이드에 보관 기간(24시간)과 학습 이용(운영자 검수 후 문장만)을 안내 |
-| 학습 후보 | 요청 문장 + 해석만 (이미지는 업로드 폴더를 가리키고 24시간 뒤 사라진다). 회원 삭제 시 계정 연결을 끊는다 |
-| 어려운 사례 수집 `HARD_EXAMPLE_CONF` | 기본 꺼짐 — 켜면 이미지가 학습 후보로 더 남으므로 개인정보 처리방침에 적은 뒤 켠다 |
+| 학습 후보 | 요청 문장 + 해석. 회원 삭제 시 계정 연결을 끊는다 |
+| 실패 · 확신 낮은 요청의 원본 사진 (`data/feedback`) | **자동** — `FEEDBACK_IMAGE_RETENTION_DAYS`(30)일 뒤 삭제, 계정 삭제 시 바로 삭제 (`services/feedback_images.py`). 처리방침에 같은 일수 표시 |
+| 어려운 사례 수집 `HARD_EXAMPLE_CONF` | 기본 꺼짐 — 켜면 실패하지 않은 요청 중 확신 낮은 것의 사진도 위 규칙으로 남는다 (처리방침은 이미 이 경우를 포함) |
 | 개인정보 처리방침 · 이용약관 | 화면 `/privacy` · `/terms`, 가입 시 [필수] 만 14세 · 동의 체크(서버 검사 · 시각 기록). **수동**: 운영자 정보 `OPERATOR_*` 채우기 · 법률 검토 ([legal.md](./legal.md)) |
 
-## 5. 아직 안 한 것
+## 5. 의존성 취약점 점검
 
-- 침투 테스트 · 의존성 취약점 자동 점검(`pip-audit`, `npm audit`) 정기 실행
+2026-10-10 에 처음 돌렸다:
+
+| 대상 | 결과 | 조치 |
+|------|------|------|
+| Python (`requirements.docker.txt` · `requirements.txt`, `pip-audit`) | **9개 패키지에 알려진 취약점** — Pillow 10.4(33건) · python-multipart 0.0.9(14) · starlette 0.38(14, FastAPI 경유) · langchain-core 0.3(13) · cryptography 43(10) · langgraph-checkpoint(6) · langsmith(5) · langgraph 0.2(3) · python-dotenv(2) | 고친 판으로 올림: FastAPI 0.143 · starlette 1.7 · python-multipart 0.0.32 · Pillow 12.3 · cryptography 50.0 · langgraph 1.2 · langchain-core 1.6 · pydantic 2.14 등 → **0건**, 테스트 451 통과 · Docker 이미지 확인 |
+| 프론트 · 콘솔 배포 의존성 (`npm audit --omit=dev`) | 0건 | — |
+| 프론트 · 콘솔 개발 도구 (`npm audit`) | 7건 (moderate 2 · high 5) — 빌드 도구의 `postcss-selector-parser` | 브라우저로 나가는 코드가 아니다. 고치려면 `npm audit fix --force`(깨질 수 있는 업그레이드)라 보류 |
+
+다시 돌리기:
+
+```bash
+pip install pip-audit && PYTHONUTF8=1 pip-audit -r requirements.docker.txt    # Windows 는 PYTHONUTF8=1 (한글 주석)
+cd frontend && npm audit --omit=dev && cd ../console && npm audit --omit=dev
+```
+
+## 6. 아직 안 한 것
+
+- 침투 테스트 (pip-audit 은 CI 에 넣었다 — push 마다 · 매주 월요일. npm 개발 도구 7건은 보류)
 - 여러 서버로 늘릴 때 속도 제한을 Redis 로 (지금은 프로세스 메모리)

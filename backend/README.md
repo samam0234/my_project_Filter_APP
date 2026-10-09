@@ -33,6 +33,8 @@
 | `validator.py` | 마스크 품질 점수 → ok / fallback / failed |
 | `effects.py` | 경계 다듬기, 배경 제거·블러·크롭, `remove_object`(LaMa → 실패 시 Telea) |
 | `inpaint.py` | 학습형 인페인팅 LaMa ONNX (`backend/models/lama_fp32.onnx`) |
+| `model_fetch.py` | 없는 모델(LaMa) 받기 · SHA-256 확인 · 기동 시 백그라운드 (`MODEL_AUTO_DOWNLOAD`) |
+| `video_inpaint.py` | 영상 · GIF 지우기 배경판 — 고정 카메라 · 프레임 맞춤(호모그래피), 시간 중앙값 · 밝기 맞춤, 안 맞는 프레임은 Telea |
 | `video_processor.py` | 영상 프레임 처리(`FrameRenderer` — GIF 와 공용) · 광학 흐름 스무딩 · mp4 변환 · 원본 미리 보기 |
 | `instance_tracker.py` | 영상 · GIF 에서 위치 · 순서 · 개수로 고른 대상을 프레임 사이로 따라가기 (다른 사람도 같이 추적, 가려짐 대비) |
 | `gif_processor.py` | 움직이는 GIF 읽기 · 처리 · 투명 GIF / WebP 쓰기 |
@@ -41,6 +43,7 @@
 | `learning_catalog.py` · `learning_review.py` | 학습 후보 수집 · 콘솔 검수 |
 | `user_admin.py` · `system_status.py` | 콘솔 회원 관리 · 시스템 스냅샷 |
 | `feedback_service.py` | 피드백 DB + `data/feedback/` 사이드카 |
+| `feedback_images.py` | 실패 · 확신 낮은 요청 사진 보관 기간(`FEEDBACK_IMAGE_RETENTION_DAYS`) · 계정 삭제 때 정리 |
 | `auth_service.py` | 가입 · 로그인 잠금 · 세션 · 아이디 찾기 · 비밀번호 재설정 규칙 |
 | `mailer.py` | SMTP 발송 (미설정 시 로그에만 기록) |
 

@@ -4,6 +4,7 @@
 Docker(`cut_and_keep`) 스택 실행 방법을 정리한다.
 
 더 자세한 문서: `docs/guidance/getting-started.md`, `docs/guidance/docker-run.md`
+공개 서버 배포(운영 `.env` · HTTPS · GPU · 점검)는 [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 
 ---
 

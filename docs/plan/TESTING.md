@@ -63,15 +63,16 @@ push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 
 
 | job | 내용 |
 |-----|------|
-| backend | Python 3.11 · `requirements.docker.txt` + `tests/requirements-test.txt` (모델 없음, 학습 DB=SQLite) → `pytest` → 안전한 production 값으로 `python -m app.core.preflight` |
+| backend | Python 3.11 · `requirements.docker.txt` + `tests/requirements-test.txt` (모델 없음, 학습 DB=SQLite) → `pytest` → **`pip-audit`**(의존성 취약점) → 안전한 production 값으로 `python -m app.core.preflight` |
 | frontend | Node 20 · `npm ci` → `npm test`(vitest) → `npm run build` → `npm audit --omit=dev --audit-level=high` |
 | console | frontend 와 같음 |
 
 - 모델(ultralytics·torch)이 필요한 테스트는 `importorskip` 으로 건너뛰고 세그는 stub 마스크로 동작
-- 로컬 전체: 2026-10-09 기준 **백엔드 405 · 프론트 50 · 콘솔 21** 통과
-- 로컬에서 CI 와 같은 조건 확인 (2026-10-06, 깨끗한 venv · `.env` 없이 204 passed — 이후 테스트가 늘었다):
-  `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 `.env` 가 없는 폴더에서 pytest
-- 아직 원격에 push 하지 않아 실제 Actions 실행은 확인 전
+- 매주 월요일에도 돈다(`schedule`) — 코드가 그대로여도 새로 알려진 의존성 취약점을 잡는다
+- 로컬 전체: 2026-10-10 기준 **백엔드 451 · 프론트 54 · 콘솔 21** 통과
+- 로컬에서 CI 와 같은 조건 확인 (2026-10-10, 깨끗한 venv · 모델 · `.env` 없이 — 전부 통과, 모델 파일이 필요한 1개만 건너뜀 · pip-audit 0건):
+  `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 git 파일만 꺼낸 폴더(`git archive`)에서 pytest
+- `tests/requirements-test.txt` 에는 pytest · httpx 만 둔다 — LangGraph 등을 따로 고정하면 `requirements.docker.txt` 와 판이 어긋나 설치가 깨진다(2026-10-10 실제로 있었다)
 
 ### 프론트 · 콘솔 테스트 (vitest + Testing Library, jsdom)
 
@@ -88,6 +89,9 @@ cd console;  npm test      # 21건 — 학습 데이터 검수, 회원 관리, �
 새 기능을 넣고 이 테스트가 실패하면 메시지에 나온 항목을 문서에 적는다.
 
 ### 테스트가 실제 데이터를 건드리지 않게
+
+- `tests/unit/conftest.py` 는 API 의존성(`get_db` · `get_learning_db`)뿐 아니라 **서비스 · 학습 DB 엔진 싱글톤**도 테스트 엔진으로 바꾼다.
+  배치 백그라운드 작업 · 파이프라인 실패 저장 · RAG 처럼 라우터 밖에서 직접 세션을 여는 경로도 테스트 DB 를 쓰게 하려는 것 (2026-10-10 전에는 이 경로가 `.env` 의 실제 DB 를 열었다 — 쓰기 없이 조회만 해 오염은 없었다)
 
 - API 테스트는 `tests/unit/conftest.py` 의 `api_env` — 메모리 SQLite, 업로드·피드백 폴더를 임시 폴더로
 - 업로드를 만드는 서비스 테스트도 `monkeypatch.setattr(get_settings(), "upload_dir", tmp)` 로 (실제 `backend/data/uploads` 금지)

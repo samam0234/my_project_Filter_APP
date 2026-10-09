@@ -275,11 +275,11 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 |------------|------|
 | `GET /api/v1/console/me` | `{via: "admin"\|"local"\|"open", username}` — 콘솔이 첫 진입에 호출, 401·403 이면 로그인 화면 |
 | `GET /api/v1/console/system` | 런타임 스냅샷: `segmentation`(runtime not_loaded/ultralytics/onnx/stub) · `open_vocab` · `llm` · `batch`(Celery 일 때만 `redis_ok`) · `video` · `console` · `storage`(`areas` jobs/batches/videos 별 files·bytes·oldest_hours·expired_files, `disk`) · `preflight`. 모델을 새로 로드하지 않음 |
-| `POST /api/v1/console/system/cleanup?dry_run=` | `FILE_RETENTION_HOURS` 지난 업로드 파일 삭제(`dry_run` 이면 집계만) → `{removed_files, freed_bytes, removed_dirs, dry_run, retention_hours}` |
+| `POST /api/v1/console/system/cleanup?dry_run=` | `FILE_RETENTION_HOURS` 지난 업로드 파일 + `FEEDBACK_IMAGE_RETENTION_DAYS` 지난 실패 사진 삭제(`dry_run` 이면 집계만) → `{removed_files, freed_bytes, removed_dirs, dry_run, retention_hours, feedback_images: {removed_files, freed_bytes, retention_days, dry_run}}` |
 | `GET /api/v1/console/users?q=&limit=&offset=` | 회원 목록 `{items, total, limit, offset}` — 작업·배치 수, 활성 세션, 잠김, `is_admin` (비밀번호 해시 없음) |
 | `POST /api/v1/console/users/{id}/unlock` | 로그인 실패 잠금 해제 |
 | `POST /api/v1/console/users/{id}/sessions/revoke` | 모든 세션 삭제 → `{id, revoked}` |
-| `DELETE /api/v1/console/users/{id}` | 본문 `{"confirm": "아이디"}`. 계정·세션·작업·배치·영상·파일 삭제, 학습 샘플은 `user_id` 만 비움 → `{jobs, batches, videos, removed_dirs, learning_unlinked}`. 관리자·본인 400, 확인 아이디 불일치 400 |
+| `DELETE /api/v1/console/users/{id}` | 본문 `{"confirm": "아이디"}`. 계정·세션·작업·배치·영상·파일 · 실패 사진 삭제, 학습 샘플 · 피드백은 `user_id` 만 비움 → `{jobs, batches, videos, removed_dirs, learning_unlinked, feedback_images_removed}`. 관리자·본인 400, 확인 아이디 불일치 400 |
 | `GET /api/v1/console/jobs?limit=50` | 전체 작업 최근 목록 (소유자 무관, 소유자 없는 옛 작업 포함) — `kind` · `thumb_url` · `webp_url` 포함 |
 | `GET /api/v1/console/batches?limit=50` | 전체 회원 배치 최근 목록 (상한 200) → `[{job_id, user_id, status, progress, total, completed, failed, message, prompt, created_at}]`. 회원 사진 보호를 위해 이미지 주소는 없다 |
 | `GET /api/v1/console/jobs/{job_id}` | 단건 — `before_url`/`after_url` 은 아래 콘솔 파일 경로 |
