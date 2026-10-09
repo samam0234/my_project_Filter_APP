@@ -265,7 +265,8 @@ def main() -> int:
     ap.add_argument("--train-workers", type=int, default=2,
                     help="학습 데이터 로더 프로세스 수 (Windows 는 프로세스마다 메모리를 크게 써 8개면 16GB 에서 모자랐다)")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--n-eval", type=int, default=48, help="섞임 평가 시나리오마다 사진 수")
+    ap.add_argument("--n-eval", type=int, default=150,
+                    help="섞임 평가 시나리오마다 사진 수 상한 (있는 만큼 — leak_eval.py --download-touching 으로 늘린다. 48장이면 1장이 2%%p)")
     ap.add_argument("--skip-collect", action="store_true")
     ap.add_argument("--collect-only", action="store_true", help="데이터만 만들고 끝 (GPU 를 다른 일이 쓰는 동안)")
     ap.add_argument("--skip-train", action="store_true")

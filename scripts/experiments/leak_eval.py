@@ -89,6 +89,47 @@ def download_extra(classes=("dog", "cat", "horse", "sheep", "cow", "elephant", "
     return got
 
 
+def download_touching(n: int = 200) -> int:
+    """평가 사진 늘리기 — 사람이 둘 이상 크게 보이고(중간 크기 사람 없음) 왼쪽 두 사람이 맞닿은 val2017 사진을 더 받는다.
+
+    시나리오 left · rank2 · touching 이 48장 남짓이라 1장 차이가 2%p — 개선 판정이 잡음에 묻힌다. git 무시 폴더.
+    """
+    import urllib.request
+
+    data = json.loads(ANN.read_text(encoding="utf-8"))
+    person = next(c["id"] for c in data["categories"] if c["name"] == "person")
+    by_image: Dict[int, list] = {}
+    for a in data["annotations"]:
+        if a["category_id"] == person and not a.get("iscrowd"):
+            by_image.setdefault(a["image_id"], []).append(a)
+    info = {i["id"]: i for i in data["images"]}
+    dest = IMAGE_DIRS[1]
+    dest.mkdir(parents=True, exist_ok=True)
+    have = {p.stem for d in IMAGE_DIRS for p in d.glob("*.jpg")}
+    got = 0
+    for iid, anns in sorted(by_image.items()):
+        if got >= n:
+            break
+        im = info[iid]
+        area = im["width"] * im["height"]
+        visible = [a for a in anns if a["area"] >= TINY * area]
+        if len(visible) < 2 or any(a["area"] < BIG * area for a in visible) or f"{iid:012d}" in have:
+            continue
+        a, b = sorted(visible, key=lambda x: x["bbox"][0] + x["bbox"][2] / 2)[:2]
+        ax, ay, aw, ah = a["bbox"]
+        bx, by, bw, bh = b["bbox"]
+        pad = 0.01 * max(im["width"], im["height"])
+        if not (ax - pad < bx + bw and bx - pad < ax + aw and ay - pad < by + bh and by - pad < ay + ah):
+            continue
+        try:
+            urllib.request.urlretrieve(im["coco_url"], dest / f"{iid:012d}.jpg")
+        except OSError:
+            continue
+        have.add(f"{iid:012d}")
+        got += 1
+    return got
+
+
 def load_gt(limit: Optional[int] = None) -> List[GT]:
     data = json.loads(ANN.read_text(encoding="utf-8"))
     cats = {c["id"]: c["name"] for c in data["categories"]}
@@ -567,6 +608,7 @@ def main() -> None:
     ap.add_argument("--n", type=int, default=48, help="라운드마다 사진 수 상한")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--download", action="store_true", help="동물 사진을 COCO 에서 더 받는다 (한 번만)")
+    ap.add_argument("--download-touching", type=int, default=0, help="맞닿은 사람 사진을 COCO val 에서 이만큼 더 받는다 (평가 표본 늘리기)")
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--rows-out", type=Path, default=None, help="사진별 원자료까지 저장 (분석용, 크다)")
     args = ap.parse_args()
@@ -578,6 +620,8 @@ def main() -> None:
         return
     if args.download:
         print("추가로 받은 사진", download_extra())
+    if args.download_touching:
+        print("맞닿은 사람 사진 추가", download_touching(args.download_touching))
     wanted = None if args.rounds == "all" else set(args.rounds.split(","))
     pool = load_gt()
     print(f"정답 로드: 사진 {len(pool)}장")

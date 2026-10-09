@@ -72,9 +72,14 @@ RAG 예시는 모든 호출에 똑같이 붙는다. **기본값은 langchain** �
 - 0.4 기준으로 사진의 약 10% 가 걸리고 그중 약 31% 가 실제 섞임/오선택 (무작위의 2.4배) — 데이터 수집 효율이 2배 이상
 - **회원 이미지가 더 저장되는 일**이라 기본은 꺼져 있다 (개인정보 안내·보관 기간 `FILE_RETENTION_HOURS` 와 함께 결정)
 
-모인 사진에 YOLO-seg 폴리곤 라벨을 달면(CVAT · Label Studio 등, `images/` · `labels/`) 재학습 루프에 넣는다:
+모인 사진에 YOLO-seg 폴리곤 라벨을 달면(CVAT · Label Studio 등, `images/` · `labels/`) 재학습 루프에 넣는다.
+`scripts/seg_labeling.py` 가 이 과정을 준비한다:
 
 ```bash
+python scripts/seg_labeling.py export --out training/datasets/seg_review/261009   # 실패 · 확신 낮음 · 싫어요 사진 + 큰 모델(yolo26x) 초벌 라벨
+#   → images/ · labels/(초벌) · labelstudio.json(가져오기) · cases.json(요청 문장 · 실패 이유) · README.md(작업 순서)
+#   → 로컬 Label Studio 에서 고쳐 YOLO 로 내보내기 (회원 사진 — 외부 라벨링 서비스에 올리지 않는다)
+python scripts/seg_labeling.py check training/datasets/seg_review/261009_fixed [--fix]   # 빠진 라벨 · 잘못된 번호 · 클래스 순서
 python scripts/retrain_yolo.py --collect-only                  # COCO 어려운 사례 + 일반 사진 준비 (한 번)
 python scripts/retrain_yolo.py --skip-collect --extra <라벨 폴더> # 이어 학습 → 섞임 평가 · mAP → 판정
 python scripts/retrain_yolo.py --skip-collect --extra <라벨 폴더> --deploy   # 채택이면 backend/models 교체 (백업)
