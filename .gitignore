@@ -91,4 +91,5 @@ training/models/
 training/**/runs/
 training/**/wandb/
 
-
+# 배포용 모델 묶음 (scripts/models_bundle.py)
+/dist/

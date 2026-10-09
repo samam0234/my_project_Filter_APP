@@ -50,6 +50,34 @@ curl -kI https://localhost        # -k: 자체 서명 인증서 허용
 curl -I http://localhost          # 308 → https
 ```
 
+## 3-1. 배포 리허설 — 모델 옮기기 · 점검 스크립트
+
+모델 파일은 git 에 없다. 개발 PC 에서 **지금 설정이 쓰는 모델만** 묶어 서버로 옮긴다 (실험용 · 백업 모델은 빠진다).
+
+```powershell
+# 개발 PC
+python scripts/models_bundle.py pack --out dist/models.tar      # + dist/models.sha256.json (파일별 SHA-256)
+scp dist/models.tar dist/models.sha256.json user@server:~/cutnkeep/
+# 서버 (저장소 폴더)
+tar -xf models.tar && python scripts/models_bundle.py verify models.sha256.json
+```
+
+LaMa 는 서버가 직접 받게 해도 된다 (`MODEL_AUTO_DOWNLOAD=true` · `python scripts/fetch_models.py`, 체크섬 확인).
+
+띄운 뒤 **밖에서**(아무 PC)와 **서버 안에서** 점검한다. 실패가 있으면 종료 코드 1.
+
+```powershell
+python scripts/deploy_check.py remote https://cutnkeep.example.com
+#   인증서 유효 · 만료 14일 이상 · http→https · HSTS · CSP · X-Frame-Options · nosniff · 서버 버전 숨김
+#   /health(서비스 DB MariaDB) · 로그인 없는 /auth/me 401 · /docs 비노출 · 다른 출처 CORS 거절 · /privacy · /terms
+python scripts/deploy_check.py server --models-manifest models.sha256.json
+#   APP_ENV=production · SECRET_KEY · SMTP(Mailpit 아님) · DOMAIN · OPERATOR_* · 모델 파일 · 체크섬
+#   최근 MariaDB 백업 26시간 이내 · Docker 서비스 상태 · caddy · mariadb-backup · 개발 도구(adminer · mailpit) 경고
+```
+
+로컬 리허설(2026-10-09, `DOMAIN` 없이 https compose): `remote https://localhost --insecure` → 실패 0 · 경고 1(자체 서명 인증서).
+일반 compose(http)로 돌리면 "HTTPS 아님" · "HSTS 없음" 이 실패로 나온다 — 의도한 결과다.
+
 ## 4. 바뀌는 것
 
 | 항목 | 기본 compose | https compose |
