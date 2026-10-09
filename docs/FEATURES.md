@@ -82,6 +82,7 @@
 | 회원 요청 후보 | 사진 · 영상 · GIF 처리 시 | 요청 문장 + 해석을 검수 후보로 (`LEARNING_COLLECT_REQUESTS`) |
 | 어려운 사례 수집 | LangGraph `feedback_collector` | `HARD_EXAMPLE_CONF` (기본 꺼짐) |
 | 콘솔 검수 | 콘솔 "학습 데이터" | 승인 · 정답 고쳐서 승인 · 거절 · 일괄 |
+| GPU 서버 (CUDA) | `docker-compose.gpu.yml` · `backend/Dockerfile` | `TORCH_INDEX` · `LLM_LORA` · `GPU_LLM_PROVIDER` · `GPU_LLM_FALLBACK` · `LORA_BASE_DIR` | CUDA torch 이미지, 문장 해석 LoRA(문장당 1.85초 GPU) · 세그 GPU — [`guidance/gpu-deploy.md`](guidance/gpu-deploy.md) |
 | 배포 리허설 | `scripts/deploy_check.py` · `scripts/models_bundle.py` | — | 실서버를 밖 · 안에서 점검(실패 시 종료 코드 1), git 밖 모델을 묶어 옮기고 체크섬 대조 — [`guidance/https-deploy.md`](guidance/https-deploy.md) |
 | 실패 사진 보관 기간 | `services/feedback_images.py` | `FEEDBACK_IMAGE_RETENTION_DAYS` | 처리 실패 · 인식 불확실한 회원 요청의 원본 사진을 기간 뒤 자동 삭제, 계정 삭제 시 바로 삭제 · 기록은 익명 — 처리방침에 같은 일수 표시 |
 | 세그 실패 사진 라벨링 | `scripts/seg_labeling.py` | `HARD_EXAMPLE_CONF` (수집) | 실패 · 싫어요 사진을 큰 모델 초벌 라벨과 함께 Label Studio 용으로 내보내고, 고친 라벨을 학습 전에 검사 |

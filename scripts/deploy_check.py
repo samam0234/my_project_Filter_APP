@@ -216,6 +216,26 @@ def server(args) -> Report:
                     h.update(chunk)
             rep.check(h.hexdigest() == digest, f"체크섬 일치 {rel}", f"체크섬 불일치 {rel} — 복사 중 깨졌거나 다른 버전")
 
+    if args.gpu:
+        print("GPU (docker-compose.gpu.yml)")
+        base = Path(env.get("LORA_BASE_DIR") or ROOT / "training" / "models" / "qwen2.5-1.5b-instruct")
+        base = base if base.is_absolute() else ROOT / base
+        rep.check((base / "model.safetensors").is_file() and (base / "config.json").is_file(),
+                  f"LoRA 베이스 모델 {base.relative_to(ROOT) if base.is_relative_to(ROOT) else base}", f"LoRA 베이스 모델 없음: {base} (LORA_BASE_DIR)")
+        rep.check((backend / "models" / "lora" / "adapter_model.safetensors").is_file(), "LoRA 어댑터 backend/models/lora", "LoRA 어댑터 없음: backend/models/lora")
+        probe = ("import torch,os;print(torch.cuda.is_available(), os.environ.get('LLM_PROVIDER'), "
+                 "torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')")
+        try:
+            out = subprocess.run(["docker", "compose", "-p", "cut_and_keep", "exec", "-T", "backend", "python", "-c", probe], cwd=ROOT,
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+            line = (out.stdout or "").strip().splitlines()[-1:] or [""]
+            parts = line[0].split(" ", 2)
+            rep.check(parts[:1] == ["True"], f"컨테이너 CUDA 사용 가능 ({parts[2] if len(parts) > 2 else ''})",
+                      f"컨테이너에서 CUDA 를 못 씀 ({(out.stderr or line[0]).strip()[:120]}) — NVIDIA Container Toolkit · -f docker-compose.gpu.yml 확인")
+            rep.check(len(parts) > 1 and parts[1] == "lora", "문장 해석 LLM_PROVIDER=lora", f"LLM_PROVIDER={parts[1] if len(parts) > 1 else '?'} — GPU 오버레이가 아닌 듯", warn_only=True)
+        except (OSError, subprocess.TimeoutExpired) as e:
+            rep.warn(f"컨테이너 확인 못 함: {e}")
+
     print("백업")
     backups = sorted((ROOT / "data" / "mariaDB_backups").glob("*.sql.gz"), key=lambda p: p.stat().st_mtime)
     if not backups:
@@ -256,6 +276,7 @@ def main() -> int:
     r.add_argument("--insecure", action="store_true", help="인증서 검증 실패를 경고로 (로컬 자체 서명 리허설)")
     s = sub.add_parser("server")
     s.add_argument("--models-manifest", help="scripts/models_bundle.py 가 만든 체크섬 목록")
+    s.add_argument("--gpu", action="store_true", help="GPU 서버(docker-compose.gpu.yml) — LoRA 베이스 · 어댑터 · 컨테이너 CUDA 확인")
     args = ap.parse_args()
     rep = remote(args.url, args.insecure) if args.cmd == "remote" else server(args)
     print(f"\n실패 {rep.fails} · 경고 {rep.warns}")

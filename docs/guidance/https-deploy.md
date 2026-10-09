@@ -52,6 +52,8 @@ curl -I http://localhost          # 308 → https
 
 ## 3-1. 배포 리허설 — 모델 옮기기 · 점검 스크립트
 
+GPU 서버면 `-f docker-compose.gpu.yml` 을 더하고 `models_bundle.py pack --gpu` · `deploy_check.py server --gpu` 를 쓴다 — [gpu-deploy.md](./gpu-deploy.md).
+
 모델 파일은 git 에 없다. 개발 PC 에서 **지금 설정이 쓰는 모델만** 묶어 서버로 옮긴다 (실험용 · 백업 모델은 빠진다).
 
 ```powershell

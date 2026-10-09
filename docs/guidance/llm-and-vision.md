@@ -133,7 +133,7 @@ PROMPT_VOTES=2                 # LoRA 1 + Ollama 1 + 키워드 파서 1 표
 - Docker 백엔드 이미지는 기본으로 transformers 가 없다. `LLM_LORA=1` 로 빌드하면 들어가지만 **CPU 라 실사용이 안 된다**
   (2026-10-09, `--cpus=4` 컨테이너 · 학습이 같이 돌던 PC: 첫 호출 모델 로드 699초, 이후 문장당 평균 23.2초 · 최대 122.5초 —
   Ollama 체인은 약 7초). 베이스 모델(`qwen2.5-1.5b-instruct`)은 `backend/models/` 아래에 두고 `LORA_BASE_MODEL=models/qwen2.5-1.5b-instruct`.
-  혼합 · LoRA 는 **GPU 가 있는 호스트 실행**에서 쓴다
+  혼합 · LoRA 는 **GPU 가 있는 호스트 실행** 또는 **GPU Docker**(`docker-compose.gpu.yml`, 컨테이너에서 문장당 1.85초 — [gpu-deploy.md](./gpu-deploy.md))에서 쓴다
 
 ---
 
