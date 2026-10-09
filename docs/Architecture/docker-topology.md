@@ -6,11 +6,14 @@ Network: **`cut_and_keep_net`**
 
 ```text
 cut_and_keep-frontend-1   0.0.0.0:80                     (공개 — nginx, /api → backend:8000)
-cut_and_keep-backend-1    127.0.0.1:${BACKEND_PORT:-8000} → mariadb:3306, redis:6379
+cut_and_keep-backend-1    127.0.0.1:${BACKEND_PORT:-8000} → mariadb:3306(서비스 + 학습 DB), redis:6379
 cut_and_keep-mariadb-1    127.0.0.1:${MARIADB_PORT:-3306}→3306  (예 3309)
 cut_and_keep-redis-1      127.0.0.1:6380→6379
 cut_and_keep-adminer-1    127.0.0.1:8081→8080  (default server=mariadb)
 cut_and_keep-celery_worker-1  (프로필 phase2 일 때만)
+cut_and_keep-mariadb-backup-1 → mariadb (매일 덤프 → data/mariaDB_backups)
+cut_and_keep-mailpit-1        127.0.0.1:8025 (프로필 mail 일 때만)
+cut_and_keep-caddy-1          0.0.0.0:80·443 (docker-compose.https.yml 일 때만 — 이때 frontend 는 포트 없음)
 ```
 
 내부 포트는 `BIND_HOST`(기본 127.0.0.1)에만 열린다. 보안 헤더 · 업로드 한도는 frontend nginx(`frontend/nginx.conf`).

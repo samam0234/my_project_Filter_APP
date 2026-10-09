@@ -36,9 +36,12 @@ def backup_sqlite(src: Path, out_dir: Path, keep: int) -> Path | None:
     if not src.is_file():
         return None
     out_dir.mkdir(parents=True, exist_ok=True)
+    _remove_stale_parts(out_dir)
     dst = out_dir / f"{src.stem}-{datetime.now():%Y%m%d-%H%M%S}.db"
+    # 쓰는 동안은 임시 이름 — 도중에 프로세스가 끝나도(예: --reload 재시작) 반쪽 백업이 백업 목록에 섞이지 않게
+    part = dst.with_name(dst.name + ".part")
     source = sqlite3.connect(f"file:{src.as_posix()}?mode=ro", uri=True)
-    target = sqlite3.connect(dst)
+    target = sqlite3.connect(part)
     try:
         source.backup(target)
         ok = target.execute("PRAGMA quick_check").fetchone()[0] == "ok"
@@ -49,14 +52,28 @@ def backup_sqlite(src: Path, out_dir: Path, keep: int) -> Path | None:
         target.close()
         source.close()
     if not ok:
-        dst.unlink(missing_ok=True)
+        part.unlink(missing_ok=True)
         logger.error("서비스 DB 백업본이 정상이 아니라 지웠다 — 원본 점검 필요 ({})", src)
         return None
+    part.replace(dst)
     olds = sorted(out_dir.glob(f"{src.stem}-*.db"))
     for old in olds[: max(0, len(olds) - keep)]:
         old.unlink(missing_ok=True)
     logger.info("서비스 DB 백업 {} (보관 {}개)", dst.name, min(len(olds), keep))
     return dst
+
+
+def _remove_stale_parts(out_dir: Path, older_than_s: float = 3600) -> None:
+    """끝나지 못한 백업 조각(.part · -journal)을 지운다 — 한 시간 넘게 남은 것만 (지금 쓰는 중인 것은 두고)."""
+    import time
+
+    cutoff = time.time() - older_than_s
+    for path in list(out_dir.glob("*.part")) + list(out_dir.glob("*.part-journal")) + list(out_dir.glob("*.db-journal")):
+        try:
+            if path.stat().st_mtime < cutoff:
+                path.unlink()
+        except OSError:
+            continue
 
 
 def run_once(settings: Settings | None = None) -> Path | None:

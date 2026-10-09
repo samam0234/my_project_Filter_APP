@@ -34,8 +34,8 @@
 - [ ] 이미지 빌드 성공 (`backend`, `frontend`)
 - [ ] 포트 충돌 없음 (`ports-inventory.md`)
 - [ ] 콘솔 외부 노출 여부 결정 (기본 비권장/내부망). 원격은 `CONSOLE_ADMINS` 관리자 로그인 + `CONSOLE_REQUIRE_LOGIN=true` ([console-admin.md](../guidance/console-admin.md))
-- [x] 서비스 DB(SQLite) 백업 — 자동 (`DB_BACKUP_HOURS` 24, 최근 7개, `backend/data/backups/`)
-- [ ] 백업: MariaDB(학습 DB) `mysqldump` 정기 실행 / 피드백 데이터(`data/feedback`)
+- [x] 서비스 DB · 학습 DB(MariaDB) 백업 — 자동 (`mariadb-backup`, 24시간 · 7일, `data/mariaDB_backups/`)
+- [ ] 백업 파일 · 피드백 데이터(`data/feedback`)를 다른 디스크 · PC 로 정기 복사
 - [ ] 내부 포트 127.0.0.1 바인딩 확인 (`docker ps` 의 PORTS 가 `127.0.0.1:` 로 시작) — 공개는 :80
 - [ ] 대상 지우기 LaMa 모델 배치 (`backend/models/lama_fp32.onnx`) — 없으면 Telea
 - [ ] 개인정보 처리방침 · 이용약관 — `.env` 의 `OPERATOR_NAME` · `OPERATOR_EMAIL` · `POLICY_DATE` 채우고 frontend 다시 빌드, 법률 검토 ([legal.md](../guidance/legal.md))

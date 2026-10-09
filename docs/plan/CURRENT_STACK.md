@@ -28,8 +28,8 @@
 
 | 항목 | 현재 |
 |------|------|
-| 서비스 DB | `DB_DIALECT=sqlite` → 호스트 `backend/data/cutnkeep.host.db` · Docker `backend/data/cutnkeep.db` (users · auth_* · jobs · batch_jobs) — 같은 파일을 둘이 쓰면 깨진다 |
-| 서비스 DB 백업 | SQLite 면 기동 직후 + `DB_BACKUP_HOURS`(24)마다 `backend/data/backups/` 온라인 백업, 최근 7개 |
+| 서비스 DB | **Docker: MariaDB**(학습 DB 와 같은 데이터베이스, 처음 전환 시 옛 SQLite 를 자동으로 옮김) · 호스트 개발: SQLite `backend/data/cutnkeep.host.db` (users · auth_* · jobs · batch_jobs) |
+| 백업 | MariaDB: `mariadb-backup` 서비스가 24시간마다 `data/mariaDB_backups/*.sql.gz`, 7일 보관 (복구 확인됨) · SQLite(호스트): `backend/data/backups/` |
 | 학습 DB | `LEARNING_DB_DIALECT=mariadb` (feedbacks · learning_samples, 경로·라벨만). 호스트는 `127.0.0.1:MARIADB_PORT`, 꺼져 있으면 `backend/data/learning.db` fallback. Docker backend 는 `mariadb:3306` 강제 ([`DATABASE.md`](DATABASE.md)) |
 | 이미지 | 공식 **`mariadb:11`** (GSS 커스텀 이미지 **제거됨**) |
 | 인증 | **비밀번호만** (`mysql_native_password`). GSS-API **미사용** |
@@ -100,13 +100,16 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | `redis` | 127.0.0.1:6380 |
 | `adminer` | 127.0.0.1:8081 |
 | `celery_worker` | 프로필 `phase2` — 배치를 Redis 워커로 넘길 때만 (`BATCH_USE_CELERY=true`) |
+| `mariadb-backup` | MariaDB 자동 덤프 (서비스 + 학습 DB) |
+| `mailpit` | 프로필 `mail` — 개발용 메일 받은편지함 `127.0.0.1:8025` |
+| `caddy` | `docker-compose.https.yml` 을 겹칠 때만 — HTTPS 인증서 · 80/443 |
 | ~~GSS 커스텀 MariaDB 이미지~~ | **제외** |
 
 Backend 컨테이너 오버라이드 예:
 
 - `REDIS_URL=redis://redis:6379/0`
 - `LLM_BASE_URL=http://host.docker.internal:11434` (또는 `DOCKER_LLM_BASE_URL`)
-- `SQLITE_PATH=data/cutnkeep.db` (호스트 backend 는 `cutnkeep.host.db` — 같은 파일을 쓰지 않게)
+- `DB_DIALECT=mariadb` (서비스 DB, `DOCKER_DB_DIALECT=sqlite` 로 되돌림) · 옛 SQLite 는 `SERVICE_DB_IMPORT_FROM` 에서 한 번 옮김
 - `TRUSTED_PROXIES=172.16.0.0/12` (nginx 가 넘기는 `X-Real-IP` 로 비로그인 한도를 사람마다)
 
 ---

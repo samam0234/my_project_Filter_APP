@@ -158,4 +158,8 @@ def init_db() -> None:
     Base.metadata.create_all(bind=eng)
     _ensure_columns(eng)
     check_sqlite_integrity(eng)
+    # MariaDB 로 처음 바꿨으면 옛 SQLite 서비스 DB(회원 · 작업)를 한 번 옮긴다 (app/db/sqlite_import.py)
+    from app.db.sqlite_import import auto_import
+
+    auto_import(get_settings(), eng)
     logger.info("DB 테이블 확인/생성 완료 dialect={}", eng.dialect.name)
