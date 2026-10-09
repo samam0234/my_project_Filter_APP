@@ -46,17 +46,34 @@ def cut(img, mask, height):
     return cv2.resize(i, size, interpolation=cv2.INTER_AREA), cv2.resize(m, size, interpolation=cv2.INTER_NEAREST) > 0
 
 
-def make_clip(bg, a, b, a_front: bool, rng):
-    """(frames, 보이는 A 마스크들, 보이는 B 마스크들)."""
+def _path(f: float, scenario: str) -> float:
+    """시간 f(0~1) → 화면 가로 위치 비율. A 기준 (B 는 거울)."""
+    if scenario == "turn":  # 가운데까지 와서 겹쳤다가 되돌아간다 — 지나치지 않는다
+        return 0.05 + 0.9 * (f if f < 0.5 else 1.0 - f) * 0.95
+    return 0.05 + 0.9 * f
+
+
+def make_clip(bg, a, b, a_front: bool, rng, scenario: str = "cross"):
+    """(frames, 보이는 A 마스크들, 보이는 B 마스크들).
+
+    scenario: cross(서로 지나감) · turn(겹쳤다 되돌아감) · lookalike(똑같이 생긴 두 사람이 지나감) · pan(지나가는 동안 카메라가 옆으로)
+    """
     h, w = bg.shape[:2]
+    if scenario == "lookalike":
+        b = a
     (ai, am), (bi, bm) = a, b
     ya, yb = h - am.shape[0] - 1 - int(rng.integers(0, 12)), h - bm.shape[0] - 1 - int(rng.integers(0, 12))
+    pad = int(0.15 * w)
+    wide = cv2.copyMakeBorder(bg, 0, 0, pad, pad, cv2.BORDER_REFLECT) if scenario == "pan" else None
     frames, vis_a, vis_b = [], [], []
     for t in range(FRAMES):
         f = t / (FRAMES - 1)
-        xa = int((w - am.shape[1]) * (0.05 + 0.9 * f))
-        xb = int((w - bm.shape[1]) * (0.95 - 0.9 * f))
-        frame = bg.copy()
+        cam = int(2 * pad * f) - pad if scenario == "pan" else 0  # 카메라 이동량 — 사람은 세상 기준으로 걸으므로 화면에서 반대로 밀린다
+        xa = int((w - am.shape[1]) * _path(f, scenario)) - cam
+        xb = int((w - bm.shape[1]) * (1.0 - _path(f, scenario))) - cam
+        xa = int(np.clip(xa, 0, w - am.shape[1]))
+        xb = int(np.clip(xb, 0, w - bm.shape[1]))
+        frame = wide[:, cam + pad: cam + pad + w].copy() if wide is not None else bg.copy()
         full_a, full_b = np.zeros((h, w), bool), np.zeros((h, w), bool)
         full_a[ya: ya + am.shape[0], xa: xa + am.shape[1]] = am
         full_b[yb: yb + bm.shape[0], xb: xb + bm.shape[1]] = bm
@@ -119,6 +136,7 @@ def run(frames, vis, target, other, position, seg_factory, track):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=20)
+    ap.add_argument("--scenario", choices=["cross", "turn", "lookalike", "pan"], default="cross")
     ap.add_argument("--reps", type=int, default=3, help="배경 한 장에 만들 사람 조합 수")
     ap.add_argument("--seg", choices=["oracle", "yolo"], default="oracle")
     ap.add_argument("--out", type=Path)
@@ -155,7 +173,7 @@ def main() -> None:
             if max(d[1].shape[1] for d in donors) > bg.shape[1] * 0.4:
                 continue
             a_front = len(rows) % 4 < 2
-            frames, va, vb = make_clip(bg, donors[0], donors[1], a_front, rng)
+            frames, va, vb = make_clip(bg, donors[0], donors[1], a_front, rng, args.scenario)
             for position, target, other in (("left", va, vb), ("right", vb, va)):
                 row = {"image": gt.path.name, "position": position, "a_front": a_front}
                 for track in (False, True):
@@ -168,7 +186,7 @@ def main() -> None:
                 rows.append(row)
 
     rng2 = np.random.default_rng(0)
-    summary = {"n": len(rows), "seg": args.seg}
+    summary = {"n": len(rows), "seg": args.seg, "scenario": args.scenario}
     for k in ("correct", "after", "iou"):
         old = np.array([r[f"frame_{k}"] for r in rows if r[f"frame_{k}"] is not None])
         new = np.array([r[f"track_{k}"] for r in rows if r[f"track_{k}"] is not None])
@@ -177,7 +195,7 @@ def main() -> None:
         summary[k] = {"frame": float(old.mean()), "track": float(new.mean()),
                       "diff_ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]}
     summary["track_reselected_mean"] = float(np.mean([r["track_reselected"] for r in rows]))
-    print(f"seg={args.seg} n={len(rows)} (클립 {len(rows) // 2}개 × 왼쪽/오른쪽)")
+    print(f"scenario={args.scenario} seg={args.seg} n={len(rows)} (클립 {len(rows) // 2}개 × 왼쪽/오른쪽)")
     for k in ("correct", "after", "iou"):
         v = summary[k]
         print(f"  {k:8} 프레임마다 {v['frame']:.3f} → 추적 {v['track']:.3f}  차이 95% CI {np.round(v['diff_ci95'], 3)}")

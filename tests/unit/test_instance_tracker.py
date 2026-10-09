@@ -98,18 +98,58 @@ def test_reacquires_after_full_occlusion_without_switching():
     assert r.held >= 4 and r.tracker.reselected == 1
 
 
+def _box(x0, x1, y0=10, y1=50):
+    m = np.zeros((H, W), np.uint8)
+    m[y0:y1, x0:x1] = 255
+    return m
+
+
 def test_reselects_when_lost_for_long():
-    sel = InstanceSelector(position="left")
-    tracker = InstanceTracker(sel)
+    """오래 못 찾았고, 새로 보인 사람이 색도 다르면 selector 로 다시 고른다."""
+    tracker = InstanceTracker(InstanceSelector(position="left"))
     frame = np.full((H, W, 3), 128, np.uint8)
-    left = np.zeros((H, W), np.uint8)
-    left[10:50, 10:40] = 255
-    right = np.zeros((H, W), np.uint8)
-    right[10:50, 150:180] = 255
-    a = Instance.from_mask(left, "person", 0.9)
+    frame[10:50, 10:40] = (40, 40, 220)  # 처음 고른 사람: 빨강
+    frame[10:50, 150:180] = (220, 60, 40)  # 나중에 보인 사람: 파랑
+    a = Instance.from_mask(_box(10, 40), "person", 0.9)
     assert tracker.choose([a], frame) == [a]
-    for _ in range(20):
+    for _ in range(30):
         tracker.choose([], frame)
-    b = Instance.from_mask(right, "person", 0.9)
-    assert tracker.choose([b], frame) == [b]  # 오래 못 찾았으면 selector 로 다시
-    assert tracker.reselected == 2
+    b = Instance.from_mask(_box(150, 180), "person", 0.9)
+    assert tracker.choose([b], frame) == [b]
+    assert tracker.reselected == 2 and tracker.reidentified == 0
+
+
+def test_reidentifies_same_looking_person_after_long_loss():
+    """오래 가려졌다 엉뚱한 곳에서 다시 나타나도, 색이 같으면 selector(왼쪽) 대신 그 사람으로 이어 간다."""
+    tracker = InstanceTracker(InstanceSelector(position="left"))
+    frame = np.full((H, W, 3), 128, np.uint8)
+    frame[10:50, 10:40] = (40, 40, 220)  # 고른 사람: 빨강 (왼쪽)
+    frame[60:100, 60:90] = (220, 60, 40)  # 다른 사람: 파랑
+    a = Instance.from_mask(_box(10, 40), "person", 0.9)
+    other = Instance.from_mask(_box(60, 90, 60, 100), "person", 0.9)
+    assert tracker.choose([a, other], frame) == [a]
+    for _ in range(12):
+        tracker.choose([other], frame)  # 고른 사람이 오래 안 보인다
+    frame2 = np.full((H, W, 3), 128, np.uint8)
+    frame2[10:50, 150:180] = (40, 40, 220)  # 빨간 사람이 오른쪽 끝에서 다시
+    frame2[60:100, 20:50] = (220, 60, 40)  # 파란 사람은 이제 왼쪽
+    back = Instance.from_mask(_box(150, 180), "person", 0.9)
+    other2 = Instance.from_mask(_box(20, 50, 60, 100), "person", 0.9)
+    assert tracker.choose([other2, back], frame2) == [back]
+    assert tracker.reidentified == 1 and tracker.reselected == 1
+
+
+def test_duplicate_detection_of_target_is_not_tracked_as_other_person():
+    """한 사람이 겹친 마스크 두 개로 검출돼도, 다음 프레임에 하나만 나오면 그게 고른 대상이다."""
+    tracker = InstanceTracker(InstanceSelector(position="left"))
+    frame = np.full((H, W, 3), 128, np.uint8)
+    frame[10:50, 10:40] = (40, 40, 220)
+    frame[10:50, 150:180] = (220, 60, 40)
+    part = Instance.from_mask(_box(10, 40, 10, 35), "person", 0.6)  # 같은 사람의 윗부분만
+    whole = Instance.from_mask(_box(10, 40), "person", 0.9)
+    right = Instance.from_mask(_box(150, 180), "person", 0.9)
+    first = tracker.choose([part, whole, right], frame)
+    assert len(first) == 1 and first[0] in (part, whole)
+    assert sum(1 for t in tracker.tracks if not t.target) == 1  # 중복은 따로 추적하지 않는다 (오른쪽 사람만)
+    again = Instance.from_mask(_box(12, 42), "person", 0.9)
+    assert tracker.choose([again, right], frame) == [again]

@@ -13,7 +13,12 @@
 
 일부만 보이면(다른 사람에게 가려지는 중) 보이는 조각의 무게중심이 뒤로 밀려 속도가 틀어지므로, 속도 · 기준 모습은 그대로 두고
 예측 위치를 이어 간다. 놓치면(가려짐 · 검출 실패) 예측 위치를 속도만큼 계속 옮기며 MAX_LOST 프레임까지 기다리고 (그동안 빈 결과 →
-FrameRenderer 가 직전 마스크 유지), 그래도 못 찾으면 selector 로 다시 고른다.
+FrameRenderer 가 직전 마스크 유지), 그 뒤로는 색 분포가 아주 비슷한 사람(REID_LOOK)이 보이면 그 사람으로 이어 가고,
+RESELECT_LOST 프레임이 지나도록 못 찾으면 selector 로 다시 고른다.
+
+실제 검출기 잡음 대비 (YOLO 로 잰 실패에서):
+  - 한 사람이 겹친 마스크 두 개로 검출되면 하나를 "다른 사람"으로 따라가다 대상을 빼앗는다 → 고른 대상과 크게 겹치는 마스크는 중복으로 보고 따로 추적하지 않는다
+  - 지나치는 순간 두 사람이 한 마스크로 합쳐지면 기준 색이 오염된다 → 면적이 평소의 1.5배를 넘으면 기준 모습을 갱신하지 않는다
 
 개수가 정해지지 않은 selector(예: "빨간 옷 입은 사람들" — 조건 맞는 전부)는 새로 들어온 사람도 포함해야 하므로 추적하지 않는다.
 """
@@ -35,9 +40,13 @@ MIN_IOU = 0.15  # 예측 위치와 이만큼은 겹쳐야 같은 대상 후보
 APPEARANCE_WEIGHT = 0.4
 MIN_LOOK = 0.35  # 색 분포 유사도가 이 아래면 위치가 겹쳐도 다른 대상 (지나치며 겹친 다른 사람으로 옮겨 가지 않게)
 REACQUIRE_PX = 3  # 놓친 대상을 다시 잡을 때 예측 위치를 이만큼(축소 기준 px) 넓혀 본다
-MAX_LOST = 8  # 이 프레임 수보다 오래 못 찾으면 selector 로 다시 고른다
+MAX_LOST = 8  # 이 프레임 수보다 오래 못 찾으면 위치 예측을 버리고 색 분포로 다시 찾는다 (다른 사람 추적은 이때 지운다)
+RESELECT_LOST = 24  # 이보다 오래 못 찾으면 selector 로 다시 고른다 (초당 30프레임이면 약 0.8초 — 지나치며 가려지는 시간보다 길게)
 VELOCITY_DECAY = 0.9  # 놓친 동안 예측 속도를 조금씩 줄인다 (멈춘 대상이 멀리 날아가지 않게)
 PARTIAL = 0.7  # 보이는 면적이 평소의 이 비율 미만이면 "일부 가려짐" — 조각의 무게중심은 믿지 않고 예측 위치를 이어 간다
+MERGED = 1.5  # 면적이 평소의 이 배를 넘으면 옆 사람과 한 덩어리로 검출된 것 — 기준 모습(마스크 · 색)을 갱신하지 않는다
+DUPLICATE = 0.6  # 같은 프레임의 두 마스크가 작은 쪽 면적의 이 비율 넘게 겹치면 같은 사람의 중복 검출
+REID_LOOK = 0.6  # 오래 놓친 뒤 selector 로 다시 고르기 전에, 색 분포가 이만큼 비슷한 사람이 있으면 그 사람으로 이어 간다
 
 
 def should_track(selector: Optional[InstanceSelector]) -> bool:
@@ -97,6 +106,7 @@ class InstanceTracker:
     tracks: List[_Track] = field(default_factory=list)  # 고른 대상 + 나머지 사람들 (target 으로 구분)
     reselected: int = 0  # selector 로 (다시) 고른 횟수 — 처음 1 + 놓쳐서 다시 고른 횟수
     lost_frames: int = 0  # 고른 대상을 하나라도 못 찾은 프레임 수
+    reidentified: int = 0  # 오래 놓친 뒤 색으로 다시 찾은 횟수
 
     def choose(self, instances: List[Instance], frame: np.ndarray) -> List[Instance]:
         if not instances:
@@ -158,7 +168,7 @@ class InstanceTracker:
             if ti in matched:
                 s = smalls[matched[ti]]
                 area = float(s.sum())
-                if area >= PARTIAL * track.area:
+                if PARTIAL * track.area <= area <= MERGED * max(track.area, 1.0):
                     step = (_centroid(s) - _centroid(track.mask)) / (track.since + 1)  # 가려졌던 동안의 평균 이동
                     track.velocity = 0.5 * track.velocity + 0.5 * step
                     track.mask = s
@@ -168,7 +178,7 @@ class InstanceTracker:
                     if hists[matched[ti]] is not None:
                         track.hist = hists[matched[ti]]
                 else:
-                    track.coast()  # 일부 가려짐 — 다 보이던 모습을 예측 위치로 옮겨 둔다
+                    track.coast()  # 일부 가려짐 · 옆 사람과 합쳐짐 — 다 보이던 모습을 예측 위치로 옮겨 둔다
                 track.lost = 0
             else:
                 track.lost += 1
@@ -178,11 +188,17 @@ class InstanceTracker:
         if any(ti not in matched for ti in targets):
             self.lost_frames += 1
         if all(self.tracks[ti].lost > MAX_LOST for ti in targets):
-            return self._reselect(instances, frame, smalls, hists)
+            again = self._reidentify(targets, smalls, hists, used_i)
+            if again is not None:
+                matched[targets[0]] = again
+                used_i.add(again)
+            elif all(self.tracks[ti].lost > RESELECT_LOST for ti in targets):
+                return self._reselect(instances, frame, smalls, hists)
         chosen = [instances[matched[ti]] for ti in targets if ti in matched]
-        # 새로 보인 사람은 "다른 사람" 추적으로 — 고른 대상과 헷갈리지 않게
+        # 새로 보인 사람은 "다른 사람" 추적으로 — 고른 대상과 헷갈리지 않게. 고른 대상과 크게 겹치면 같은 사람의 중복 검출이라 만들지 않는다
+        target_masks = [smalls[matched[ti]] for ti in targets if ti in matched]
         for ii in range(len(instances)):
-            if ii not in used_i:
+            if ii not in used_i and not any(_duplicate(smalls[ii], m) for m in target_masks):
                 self.tracks.append(_new_track(smalls[ii], hists[ii], target=False))
         self.tracks = [t for t in self.tracks if t.target or t.lost <= MAX_LOST]
         return chosen
@@ -194,15 +210,48 @@ class InstanceTracker:
             t.lost += 1
             t.coast()
             t.velocity *= VELOCITY_DECAY
-        if not any(t.target and t.lost <= MAX_LOST for t in self.tracks):
-            self.tracks = []  # 다음에 검출이 있으면 selector 로 다시 고른다
+        # 오래 놓쳐도 지우지 않는다 — 다음에 검출이 있으면 색으로 다시 찾아보고(_reidentify), 없으면 selector 로 다시 고른다
+
+    def _reidentify(self, targets, smalls, hists, used_i) -> int | None:
+        """오래 놓친 고른 대상(하나일 때)을 색 분포로 다시 찾는다 — 다른 사람 추적이 가져가지 않은 인스턴스 중 가장 비슷한 것."""
+        if len(targets) != 1:
+            return None
+        track = self.tracks[targets[0]]
+        if track.hist is None:
+            return None
+        best = None
+        for ii, h in enumerate(hists):
+            if ii in used_i or h is None:
+                continue
+            look = 1.0 - float(cv2.compareHist(track.hist, h, cv2.HISTCMP_BHATTACHARYYA))
+            if look >= REID_LOOK and (best is None or look > best[0]):
+                best = (look, ii)
+        if best is None:
+            return None
+        s = smalls[best[1]]
+        track.mask, track.area, track.lost, track.since = s, float(s.sum()), 0, 0
+        track.offset = np.zeros(2, np.float32)
+        track.velocity = np.zeros(2, np.float32)
+        self.reidentified += 1
+        return best[1]
 
     def _reselect(self, instances, frame, smalls, hists) -> List[Instance]:
         chosen = select_instances(instances, self.selector, frame).chosen
         picked = {id(c) for c in chosen}
-        self.tracks = [_new_track(smalls[k], hists[k], target=id(inst) in picked) for k, inst in enumerate(instances)]
+        chosen_masks = [smalls[k] for k, inst in enumerate(instances) if id(inst) in picked]
+        self.tracks = [
+            _new_track(smalls[k], hists[k], target=id(inst) in picked)
+            for k, inst in enumerate(instances)
+            # 고른 대상과 크게 겹치는 다른 마스크는 같은 사람의 중복 검출 — 따로 추적하면 다음 프레임에 대상을 빼앗는다
+            if id(inst) in picked or not any(_duplicate(smalls[k], m) for m in chosen_masks)
+        ]
         self.reselected += 1
         return chosen
+
+
+def _duplicate(a: np.ndarray, b: np.ndarray) -> bool:
+    small = min(int(a.sum()), int(b.sum()))
+    return small > 0 and np.logical_and(a, b).sum() > DUPLICATE * small
 
 
 def _new_track(mask_small: np.ndarray, hist: np.ndarray | None, *, target: bool) -> _Track:
