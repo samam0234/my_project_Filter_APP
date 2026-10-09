@@ -119,6 +119,19 @@ LORA_ADAPTER_PATH=models/lora                              # backend/models/lora
   [`training/lora/README.md`](../../training/lora/README.md#확장-평가셋--사용자-문장-학습-2026-10-06)
 - 학습·평가 방법: [`training/lora/README.md`](../../training/lora/README.md)
 
+### 혼합: LoRA 먼저, 갈릴 때만 Ollama (`PROMPT_SECOND_OPINION`)
+
+```env
+LLM_PROVIDER=lora
+PROMPT_SECOND_OPINION=ollama   # 체인이 다시 물을 때 쓸 다른 provider
+PROMPT_VOTES=2                 # LoRA 1 + Ollama 1 + 키워드 파서 1 표
+```
+
+- 2026-10-09 비교(253문장, GPU): 지금 기본(Ollama 체인) 85.4% · 6.9초 → **혼합 91.3% · 3.0초**, Ollama 호출 293 → 15번
+- 홀드아웃 셋은 Ollama 체인이 더 높고, 평가 문장 일부가 LoRA 학습 설계에 영향을 줘 **기본값은 그대로** —
+  [`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)
+- Docker 백엔드 이미지(CPU torch, transformers 없음)에서는 쓸 수 없다
+
 ---
 
 ## 고도화 LLM

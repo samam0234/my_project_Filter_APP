@@ -9,6 +9,8 @@
   _decide: LLM 답들의 대상 집합에 투표 + 키워드 파서(heuristic_targets)가 한 표. 이긴 대상 집합을 낸 첫 LLM 답을 채택
            (효과·선택자 등은 그 답을 그대로 쓴다). 동률이면 LLM 답이 많은 쪽, 그래도 같으면 먼저 나온 것.
   빠른 길: 첫 답이 키워드 파서와 같으면 호출은 1번 — 평소 지연이 늘지 않는다.
+  PROMPT_SECOND_OPINION: 다시 물을 때 다른 provider (예: LoRA 먼저 → 갈리면 Ollama). LoRA 는 같은 문장에 늘 같은 답이라
+  같은 provider 로 다시 물으면 투표가 의미 없다.
 
 LLM 호출 자체(provider·fallback·RAG 예시 붙이기)는 기존 prompt_llm.parse_prompt_llm 을 그대로 쓴다.
 PROMPT_CHAIN=legacy 면 이 체인을 건너뛴다.
@@ -69,9 +71,14 @@ def _needs_more(state: ChainState) -> bool:
 def _resample(state: ChainState) -> ChainState:
     """키워드 파서와 의견이 갈릴 때만 — 총 PROMPT_VOTES 개가 될 때까지 더 묻는다 (추가 호출의 실패는 무시)."""
     samples = list(state["samples"])
+    settings = state["settings"]
+    second = (settings.prompt_second_opinion or "").strip().lower()
+    if second and second != (settings.llm_provider or "").strip().lower():
+        # 다시 물을 때는 다른 provider — 같은 답만 되풀이하는 결정적 모델(LoRA)에 두 번째 의견을 붙인다
+        settings = settings.model_copy(update={"llm_provider": second, "llm_fallback": ""})
     while len(samples) < state["settings"].prompt_votes:
         try:
-            more = state["ask"](state["prompt"], state["settings"], state.get("examples", ""))
+            more = state["ask"](state["prompt"], settings, state.get("examples", ""))
         except LLMError as exc:
             logger.warning("추가 LLM 호출 실패 — 있는 답으로 다수결: {}", exc)
             break

@@ -57,6 +57,7 @@
 | 키워드 파서 | `services/heuristic_targets.py` | — | LLM 이 꺼져도 동작, 역할 규칙(남길 것 · 뺄 것 · 지울 것) |
 | 해석 체인 (LangChain) | `services/prompt_chain.py` | `PROMPT_CHAIN=langchain` · `PROMPT_VOTES` | LLM 답과 키워드 파서가 다르면 다수결 — 처음 본 문장 86.7→96.7% |
 | RAG 예시 | `services/prompt_rag.py` | `PROMPT_RAG_*` | 승인된 교정 문장을 LLM 예시로, 30초 안에 반영 |
+| 해석 혼합 (선택) | `services/prompt_chain.py` | `PROMPT_SECOND_OPINION` | LoRA 먼저, 키워드 파서와 갈릴 때만 다른 provider(Ollama) — 253문장 91.3% · 3.0초 (기본 체인 85.4% · 6.9초) — [`vaildates/parser-compare-20261009.md`](vaildates/parser-compare-20261009.md) |
 | LoRA 해석 모델 | `services/prompt_lora.py` · `training/lora/` | `LLM_PROVIDER=lora` | Qwen2.5-1.5B 어댑터 — [`vaildates/lora-compositional-20261009.md`](vaildates/lora-compositional-20261009.md) (조합형 문장, 새 40문장 87.5%) |
 | 낱개 물체 세그 | `services/segmentation.py` | `YOLO_MODEL_PATH` · `SEG_PREFER_ONNX` · `SEG_IMGSZ` · `SEG_NMS_IOU` (Docker 빌드 인자 `SEG_RUNTIME`) | YOLO26m-seg (.pt / ONNX) |
 | 배경 덩어리 세그 | `services/stuff_segmentation.py` | `STUFF_*` | SegFormer ADE20K ONNX — [`vaildates/stuff-segmentation-20261008.md`](vaildates/stuff-segmentation-20261008.md) |

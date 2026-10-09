@@ -100,3 +100,23 @@ def test_node_passes_its_own_llm_function_so_tests_never_reach_ollama(monkeypatc
     monkeypatch.setattr(get_settings(), "prompt_chain", "langchain")
     out = nodes.prompt_analyzer({"prompt": "강아지만 남기고 사람은 지워줘", "job_id": "zz-chain-node"})
     assert out["parsed_prompt"]["target"] == ["dog"] and calls == ["강아지만 남기고 사람은 지워줘"]
+
+
+def test_second_opinion_uses_other_provider_only_when_split(monkeypatch):
+    """LoRA 먼저 → 키워드 파서와 갈릴 때만 Ollama 한 번 → LoRA · Ollama · 키워드 파서 셋이 투표."""
+    seen = []
+
+    def ask(prompt, settings, examples=""):
+        seen.append(settings.llm_provider)
+        return _p("dog", "person") if settings.llm_provider == "lora" else _p("dog")
+
+    monkeypatch.setattr(prompt_chain, "parse_prompt_llm", ask)
+    monkeypatch.setattr(prompt_chain, "_CHAIN", None)
+    s = _settings(LLM_PROVIDER="lora", PROMPT_SECOND_OPINION="ollama", PROMPT_VOTES=2)
+    out = prompt_chain.parse_prompt_chain("강아지만 남기고 사람은 지워줘", s)
+    assert seen == ["lora", "ollama"] and out.target == ["dog"]  # Ollama + 키워드 파서 2표 > LoRA 1표
+
+    seen.clear()
+    monkeypatch.setattr(prompt_chain, "parse_prompt_llm", lambda p, st, e="": seen.append(st.llm_provider) or _p("dog"))
+    prompt_chain.parse_prompt_chain("강아지만 남기고 사람은 지워줘", s)
+    assert seen == ["lora"]  # 키워드 파서와 같으면 Ollama 는 부르지 않는다

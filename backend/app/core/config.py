@@ -135,6 +135,10 @@ class Settings(BaseSettings):
     # (처음 보는 30문장 대상 정확도 86.7% → 96.7%, 호출 평균 1.4번 — docs/vaildates/leak-diagnosis-20261008.md)
     prompt_chain: Literal["legacy", "langchain"] = Field(default="langchain", alias="PROMPT_CHAIN")
     prompt_votes: int = Field(default=3, ge=1, le=7, alias="PROMPT_VOTES")
+    # 【선택】 PROMPT_SECOND_OPINION — 체인이 다시 물을 때(키워드 파서와 대상이 다를 때만) 쓸 다른 provider.
+    # LLM_PROVIDER=lora · PROMPT_SECOND_OPINION=ollama · PROMPT_VOTES=2 = LoRA 먼저, 갈리면 Ollama 한 번 → 셋이 투표
+    # (253문장: 전 항목 85.4% → 91.3%, 문장당 6.9초 → 3.0초(GPU) — docs/vaildates/parser-compare-20261009.md). 빈 값이면 같은 provider 로 다시 묻는다
+    prompt_second_opinion: str = Field(default="", alias="PROMPT_SECOND_OPINION")
     prompt_rag_enabled: bool = Field(default=True, alias="PROMPT_RAG_ENABLED")
     # 기본은 운영 콘솔에서 승인된 교정·좋아요·회원 요청만. 시드(seed)는 고정 규칙과 겹쳐 평가에서 정확도를 낮춤
     # (eval 40건: 없음 95.0% → 시드 포함 90.0~92.5%, docs/guidance/llm-and-vision.md)
