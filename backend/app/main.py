@@ -62,6 +62,10 @@ async def lifespan(app: FastAPI):
     from app.services import maintenance
 
     maintenance.start(settings)
+    # git 에 없는 큰 모델(LaMa)이 없으면 백그라운드로 받는다 — 받는 동안은 Telea 로 동작
+    from app.services import model_fetch
+
+    model_fetch.start_background(settings)
     yield
     maintenance.stop()
     logger.info("컷앤킵 종료")

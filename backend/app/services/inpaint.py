@@ -26,24 +26,35 @@ MIN_CROP = 256  # 아주 작은 물체도 이만큼은 주변을 본다
 
 _LOCK = threading.Lock()
 _SESSION = None
-_LOADED = False
+_MISSING_LOGGED = False
+_FAILED: tuple[str, float] | None = None  # 로드에 실패한 (경로, 수정 시각) — 같은 파일로 매 요청 다시 시도하지 않게
 
 
 def _session(settings: Settings):
-    """LaMa 세션 (프로세스당 한 번 로드). 없으면 None."""
-    global _SESSION, _LOADED
-    with _LOCK:
-        if not _LOADED:
-            _LOADED = True
-            from app.utils.onnx_utils import create_session
+    """LaMa 세션 (프로세스당 한 번 로드). 없으면 None.
 
-            path = settings.inpaint_model_file
-            if path.is_file():
-                _SESSION = create_session(path, None)
-                if _SESSION is not None:
-                    logger.info("LaMa 인페인팅 모델 로드: {}", path.name)
-            else:
-                logger.info("LaMa 모델 없음 — 대상 지우기는 Telea 로: {}", path)
+    파일이 없다가 나중에 생기면(기동 시 자동 받기 — services/model_fetch) 그때 로드한다.
+    """
+    global _SESSION, _MISSING_LOGGED, _FAILED
+    with _LOCK:
+        if _SESSION is not None:
+            return _SESSION
+        path = settings.inpaint_model_file
+        if not path.is_file():
+            if not _MISSING_LOGGED:
+                logger.info("LaMa 모델 없음 — 대상 지우기는 Telea 로 (생기면 바로 LaMa): {}", path)
+                _MISSING_LOGGED = True
+            return None
+        stamp = (str(path), path.stat().st_mtime)
+        if _FAILED == stamp:
+            return None
+        from app.utils.onnx_utils import create_session
+
+        _SESSION = create_session(path, None)
+        if _SESSION is not None:
+            logger.info("LaMa 인페인팅 모델 로드: {}", path.name)
+        else:
+            _FAILED = stamp
         return _SESSION
 
 
