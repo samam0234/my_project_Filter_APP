@@ -344,7 +344,7 @@ POST /video → frames
   회원: uploads/videos/{id} 보관 + jobs(kind=video) + 첫 프레임 thumb.jpg
 ```
 - 비로그인은 응답으로만 받고 저장하지 않는다
-- 프레임 간 추적(LSTM 등)은 아직 없다 — 사람이 겹치면 고른 대상이 바뀔 수 있다
+- 프레임 간 추적: 위치 · 순서 · 개수로 고른 대상은 `services/instance_tracker.py` 가 첫 프레임에서 고른 인스턴스를 따라간다 (예측 위치 IoU + 색 분포, 다른 사람도 같이 추적, 가려지면 예측 위치를 이어 감) — [video-tracking-20261009.md](../vaildates/video-tracking-20261009.md)
 
 ### 8.3 GIF
 ```

@@ -186,7 +186,11 @@ class FrameRenderer:
     render() 는 apply_effects 결과를 그대로 돌려준다 (배경 제거면 BGRA — GIF 는 알파를 투명색으로 쓴다).
     """
 
-    def __init__(self, parsed: ParsedPrompt, segmentor, *, smoothing: str = "flow", smoothing_weight: float = 0.3) -> None:
+    def __init__(
+        self, parsed: ParsedPrompt, segmentor, *, smoothing: str = "flow", smoothing_weight: float = 0.3, track: bool | None = None,
+    ) -> None:
+        from app.services.instance_tracker import InstanceTracker, should_track
+
         self.parsed = parsed
         self.segmentor = segmentor
         self.effect = (parsed.effect or "remove_bg").lower()
@@ -194,6 +198,12 @@ class FrameRenderer:
         self.held = 0  # 검출이 없어 직전 마스크를 다시 쓴 프레임 수
         self._previous: np.ndarray | None = None
         self._scaled: dict[tuple[int, int], ParsedPrompt] = {}
+        if track is None:
+            from app.core.config import get_settings
+
+            track = get_settings().video_track_instances
+        # 위치 · 순서 · 개수로 고르는 대상은 처음 고른 그 인스턴스를 따라간다 (프레임마다 다시 고르면 지나칠 때 대상이 바뀐다)
+        self.tracker = InstanceTracker(parsed.selector) if track and should_track(parsed.selector) else None
 
     def _fx_parsed(self, width: int, height: int) -> ParsedPrompt:
         """블러면 프레임 크기에 맞춰 보정한 강도의 ParsedPrompt (크기별 한 번만 만든다)."""
@@ -211,14 +221,20 @@ class FrameRenderer:
         parsed = self.parsed
         seg = self.segmentor.predict(frame, targets=list(parsed.target or ["person"]))
         mask = seg.mask
+        if not seg.instances and self.tracker is not None:
+            self.tracker.choose([], frame)  # 검출이 없는 프레임도 놓친 시간으로 센다
         if seg.instances:
             from app.core.config import get_settings
             from app.services.mask_exclusion import finalize_selection
 
             chosen = seg.instances
-            if parsed.selector is not None:
+            if self.tracker is not None:
+                chosen = self.tracker.choose(seg.instances, frame)
+            elif parsed.selector is not None:
                 chosen = select_instances(seg.instances, parsed.selector, frame).chosen
-            mask, _forbid = finalize_selection(seg, chosen, frame.shape[:2], get_settings())
+            mask = None
+            if chosen:  # 추적 대상을 이 프레임에서 못 찾으면 비워 두고 아래에서 직전 마스크를 쓴다
+                mask, _forbid = finalize_selection(seg, chosen, frame.shape[:2], get_settings())
         if mask is None or not np.any(mask):
             if self._previous is not None:
                 mask = self._previous
