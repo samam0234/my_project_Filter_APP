@@ -154,6 +154,7 @@ def process_gif(
     max_pixels: int = 4_000_000,
     smoothing: str = "flow",
     smoothing_weight: float = 0.3,
+    remove_mode: str = "propagate",
 ) -> dict:
     """GIF 바이트 → 처리된 GIF 바이트와 정보.
 
@@ -162,7 +163,14 @@ def process_gif(
     """
     gif = read_gif(data, max_frames, max_pixels)
     renderer = FrameRenderer(parsed, segmentor, smoothing=smoothing, smoothing_weight=smoothing_weight)
-    rendered = [renderer.render(frame) for frame in gif.frames]
+    if renderer.effect == "remove_object" and remove_mode == "propagate":
+        # 지우기: 다른 프레임에서 보인 배경으로 메운다 (영상과 같은 방식 — services/video_inpaint)
+        from app.services import video_inpaint
+
+        plan = video_inpaint.build_plan(gif.frames, renderer.mask)
+        rendered = [video_inpaint.render(frame, i, plan) for i, frame in enumerate(gif.frames)]
+    else:
+        rendered = [renderer.render(frame) for frame in gif.frames]
     transparent = renderer.effect not in ("blur", "remove_object", "crop", "none")
     out = encode_gif(rendered, gif.durations, gif.loop, transparent)
     webp = None

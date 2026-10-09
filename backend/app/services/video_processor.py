@@ -262,6 +262,23 @@ def find_result(root: Path) -> Path | None:
     return None
 
 
+def _read_frames(src: Path, limit: int):
+    """영상 앞에서부터 limit 프레임 (BGR). 지우기 2단계 처리는 이것을 두 번 돈다."""
+    capture = cv2.VideoCapture(str(src))
+    count = 0
+    try:
+        while count < limit:
+            ok, frame = capture.read()
+            if not ok or frame is None:
+                break
+            if frame.ndim == 2:
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            yield frame
+            count += 1
+    finally:
+        capture.release()
+
+
 def process_video(
     src: Path,
     dst: Path,
@@ -274,8 +291,12 @@ def process_video(
     output_format: str = "mp4",
     smoothing: str = "flow",
     smoothing_weight: float = 0.3,
+    remove_mode: str = "propagate",
 ) -> dict:
     """src 를 읽어 dst 확장자를 바꾼 파일(mp4 → 안 되면 webm → avi)로 쓴다.
+
+    대상 지우기(remove_object)는 remove_mode="propagate" 면 영상을 두 번 읽는다 — 1번째에 마스크와 배경판(다른 프레임에서 보인 배경),
+    2번째에 그 배경판으로 메운다 (services/video_inpaint). 카메라가 움직이는 영상은 자동으로 프레임마다 Telea.
 
     반환: frames, held(직전 마스크를 재사용한 프레임 수), fps, path, format, media_type,
     effect · intensity(해석된 효과와 요청 강도 — 화면에 보여 "무엇이 적용됐는지" 확인하게 한다).
@@ -285,10 +306,10 @@ def process_video(
         raise ValueError(f"영상을 열 수 없습니다: {src}")
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
-    if max(width, height) > max_side:
-        capture.release()
-        raise ValueError(f"영상 해상도가 너무 큽니다 ({width}×{height}). 긴 변 {max_side}px 이하로 줄여 주세요.")
     fps = float(capture.get(cv2.CAP_PROP_FPS) or 0.0)
+    capture.release()
+    if max(width, height) > max_side:
+        raise ValueError(f"영상 해상도가 너무 큽니다 ({width}×{height}). 긴 변 {max_side}px 이하로 줄여 주세요.")
     if fps <= 1 or fps > 120:
         fps = 15.0
     limit = max(1, int(max_frames))
@@ -306,14 +327,17 @@ def process_video(
     write_format = "avi" if ffmpeg else ("webm" if output_format == "mp4" else output_format)
     out_format = write_format
     frames = 0
+    plan = None
+    if effect == "remove_object" and remove_mode == "propagate":
+        from app.services import video_inpaint
+
+        plan = video_inpaint.build_plan(_read_frames(src, limit), renderer.mask)
     try:
-        while frames < limit:
-            ok, frame = capture.read()
-            if not ok or frame is None:
-                break
-            if frame.ndim == 2:
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-            rendered = _as_bgr(renderer.render(frame), frame.shape[1], frame.shape[0])
+        for frame in _read_frames(src, limit):
+            if plan is not None:
+                rendered = video_inpaint.render(frame, frames, plan)
+            else:
+                rendered = _as_bgr(renderer.render(frame), frame.shape[1], frame.shape[0])
             if writer is None:
                 height, width = rendered.shape[:2]
                 writer, out_path, out_format = _open_writer(dst, write_format, fps, (width, height))
@@ -328,7 +352,6 @@ def process_video(
             writer.write(rendered)
             frames += 1
     finally:
-        capture.release()
         if writer is not None:
             writer.release()
     if frames == 0:
@@ -351,4 +374,6 @@ def process_video(
         "media_type": MEDIA_TYPES[out_path.suffix],
         "effect": effect,
         "intensity": parsed.intensity,
+        # 지우기: 고정 카메라로 보고 배경판을 썼는지 · 지울 자리 중 다른 프레임에서 실제로 보인 비율
+        "removal": {"static": plan.static, "seen_ratio": round(plan.seen_ratio, 3)} if plan is not None else None,
     }

@@ -63,6 +63,7 @@ def _run(data: bytes, prompt: str) -> dict:
         max_pixels=settings.gif_max_pixels,
         smoothing=settings.video_temporal_smoothing,
         smoothing_weight=settings.video_smoothing_weight,
+        remove_mode=settings.video_remove_mode,
     )
     info["parsed"] = parsed.model_dump()
     return info

@@ -93,6 +93,7 @@ def _run(src: Path, dst: Path, prompt: str) -> dict:
         output_format=settings.video_output_format,
         smoothing=settings.video_temporal_smoothing,
         smoothing_weight=settings.video_smoothing_weight,
+        remove_mode=settings.video_remove_mode,
     )
     info["parsed"] = parsed.model_dump()
     return info

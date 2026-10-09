@@ -42,6 +42,7 @@ class Settings(BaseSettings):
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         extra="ignore",  # 알 수 없는 env 키는 무시
+        protected_namespaces=("settings_",),  # model_auto_download 같은 model_ 로 시작하는 설정 이름 허용
     )
 
     # --- 런타임 ---
@@ -243,6 +244,9 @@ class Settings(BaseSettings):
     # 비중 = 현재 프레임 몫. 0.5 이상이면 이진 마스크라 효과가 없다 (docs/vaildates/edge-tuning-20261008.md)
     video_temporal_smoothing: Literal["flow", "ema", "off"] = Field(default="flow", alias="VIDEO_TEMPORAL_SMOOTHING")
     video_smoothing_weight: float = Field(default=0.3, gt=0.0, lt=0.5, alias="VIDEO_SMOOTHING_WEIGHT")
+    # 영상 · GIF 의 대상 지우기: propagate = 다른 프레임에서 보인 배경으로 메우고 안 보인 곳만 LaMa 한 번 (고정 카메라일 때, 아니면 자동으로 frame)
+    #                         frame = 프레임마다 Telea (예전 방식)
+    video_remove_mode: Literal["propagate", "frame"] = Field(default="propagate", alias="VIDEO_REMOVE_MODE")
     # 【수동】 움직이는 GIF (작업실 GIF 탭). 크기는 사진과 같은 MAX_UPLOAD_SIZE_MB. 프레임마다 세그를 돌려 처리 시간이 프레임 수에 비례
     gif_max_frames: int = Field(default=120, ge=1, le=1000, alias="GIF_MAX_FRAMES")
     # GIF 한 프레임 픽셀 상한 (프레임 × 픽셀이 메모리에 올라간다 — 2000×2000 정도)
