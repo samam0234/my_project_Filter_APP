@@ -115,8 +115,25 @@ def test_reselects_when_lost_for_long():
     for _ in range(30):
         tracker.choose([], frame)
     b = Instance.from_mask(_box(150, 180), "person", 0.9)
-    assert tracker.choose([b], frame) == [b]
-    assert tracker.reselected == 2 and tracker.reidentified == 0
+    assert tracker.choose([b], frame) == [b]  # 색이 다른 새 사람 — 아는 사람이 아니므로 selector 로 이어 간다
+    assert tracker.reidentified == 0 and tracker.reacquired == 1
+
+
+def test_long_loss_does_not_jump_to_known_other_person():
+    """오래 가려져도, 이미 따라가는 다른 사람(selector 기준으로는 지금 '왼쪽')으로 넘어가지 않는다."""
+    tracker = InstanceTracker(InstanceSelector(position="left"))
+    frame = np.full((H, W, 3), 128, np.uint8)
+    frame[10:50, 10:40] = (40, 40, 220)
+    frame[60:100, 150:180] = (220, 60, 40)
+    a = Instance.from_mask(_box(10, 40), "person", 0.9)
+    other = Instance.from_mask(_box(150, 180, 60, 100), "person", 0.9)
+    assert tracker.choose([a, other], frame) == [a]
+    for k in range(12):  # 고른 사람은 사라지고, 다른 사람은 왼쪽으로 걸어온다
+        x = 150 - k * 10
+        f = np.full((H, W, 3), 128, np.uint8)
+        f[60:100, x:x + 30] = (220, 60, 40)
+        assert tracker.choose([Instance.from_mask(_box(x, x + 30, 60, 100), "person", 0.9)], f) == []
+    assert tracker.reacquired == 0 and tracker.reselected == 1
 
 
 def test_reidentifies_same_looking_person_after_long_loss():
