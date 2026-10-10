@@ -136,8 +136,8 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 function BackLink() {
   return (
-    <Link to="/history" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
-      <ArrowLeft className="h-4 w-4" /> 작업 기록
+    <Link to="/account?tab=history" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
+      <ArrowLeft className="h-4 w-4" /> 내 작업 기록
     </Link>
   );
 }

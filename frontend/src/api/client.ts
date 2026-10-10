@@ -118,6 +118,32 @@ export async function logoutRequest(): Promise<void> {
   await api.post("/api/v1/auth/logout");
 }
 
+/** 내 계정 — 표시 이름 수정 (빈 값이면 아이디를 이름으로 쓴다) */
+export async function updateProfileRequest(displayName: string): Promise<AuthUser> {
+  const { data } = await api.patch<AuthUser>("/api/v1/auth/me", { display_name: displayName });
+  return data;
+}
+
+/** 현재 비밀번호 확인 후 변경 — 지금 기기는 로그인 유지, 다른 기기는 로그아웃 */
+export async function changePasswordRequest(currentPassword: string, newPassword: string): Promise<MessageResponse> {
+  const { data } = await api.post<MessageResponse>("/api/v1/auth/password/change", {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+  return data;
+}
+
+/** 모든 기기(지금 기기 포함)에서 로그아웃 */
+export async function logoutAllRequest(): Promise<void> {
+  await api.post("/api/v1/auth/logout-all");
+}
+
+/** 스스로 탈퇴 — 비밀번호 + 아이디 확인. 작업 · 배치 · 영상이 모두 지워진다 */
+export async function deleteAccountRequest(password: string, confirm: string): Promise<MessageResponse> {
+  const { data } = await api.delete<MessageResponse>("/api/v1/auth/me", { data: { password, confirm } });
+  return data;
+}
+
 export async function findIdRequest(email: string): Promise<MessageResponse> {
   const { data } = await api.post<MessageResponse>("/api/v1/auth/find-id", { email });
   return data;

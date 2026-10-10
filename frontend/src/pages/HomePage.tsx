@@ -134,7 +134,7 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-2">
           <h2 className="text-xl font-bold text-white">내 최근 작업</h2>
           {loggedIn && (
-            <Link to="/history" className="text-sm text-brand-400 hover:text-brand-200">
+            <Link to="/account?tab=history" className="text-sm text-brand-400 hover:text-brand-200">
               전체 보기 →
             </Link>
           )}

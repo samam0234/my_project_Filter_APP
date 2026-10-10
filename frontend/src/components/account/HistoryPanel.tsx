@@ -1,18 +1,17 @@
 /**
- * 작업 기록 (/history) — 로그인 회원 전용, 본인 작업만 (사진 · 영상 · GIF). 종류 · 상태 필터 · 검색.
+ * 작업 기록 — 내 계정(/account?tab=history) 안의 한 구역. 본인 작업만 (사진 · 영상 · GIF). 종류 · 상태 필터 · 검색.
  *
- * 필터는 URL 쿼리(?kind=video&status=failed&q=사람)에 남겨 새로고침해도 유지한다.
+ * 필터는 URL 쿼리(?tab=history&kind=video&status=failed&q=사람)에 남겨 새로고침해도 유지한다.
+ * 로그인 확인은 계정 페이지가 한다.
  */
 import { useMemo } from "react";
 import { RefreshCw, Search } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { PageHeader } from "../components/common/PageHeader";
-import { EmptyBlock, ErrorBlock, LoadingBlock } from "../components/common/States";
-import { JobCard } from "../components/jobs/JobCard";
-import { useJobs } from "../hooks/useApi";
-import { RequireLogin } from "../components/auth/RequireLogin";
-import { Link, navigate, useSearch } from "../router";
-import { statusLabel } from "../utils/formatters";
+import { Button } from "../common/Button";
+import { EmptyBlock, ErrorBlock, LoadingBlock } from "../common/States";
+import { JobCard } from "../jobs/JobCard";
+import { useJobs } from "../../hooks/useApi";
+import { Link, navigate, usePathname, useSearch } from "../../router";
+import { statusLabel } from "../../utils/formatters";
 
 const FILTERS = ["all", "ok", "fallback", "failed"] as const;
 const KINDS = [
@@ -25,15 +24,8 @@ const KINDS = [
 // 【수동】 한 번에 불러올 개수 (백엔드 상한 200)
 const LIMIT = 120;
 
-export function HistoryPage() {
-  return (
-    <RequireLogin title="작업 기록은 로그인 회원 전용이에요" reason="로그인하면 내가 처리한 작업을 모아 보고 다시 내려받을 수 있어요.">
-      <History />
-    </RequireLogin>
-  );
-}
-
-function History() {
+export function HistoryPanel() {
+  const pathname = usePathname();
   const search = useSearch();
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const status = params.get("status") ?? "all";
@@ -46,7 +38,7 @@ function History() {
     if (!value || value === "all") next.delete(key);
     else next.set(key, value);
     const qs = next.toString();
-    navigate(`/history${qs ? `?${qs}` : ""}`, { replace: true });
+    navigate(`${pathname}${qs ? `?${qs}` : ""}`, { replace: true });
   };
 
   const counts = useMemo(() => {
@@ -76,16 +68,14 @@ function History() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="작업 기록"
-        title="내 작업 기록"
-        description={`내가 로그인해서 처리한 사진 · 영상 · GIF 를 최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
-        actions={
-          <Button variant="secondary" onClick={reload} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
-          </Button>
-        }
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
+          {`내가 로그인해서 처리한 사진 · 영상 · GIF 를 최근 ${LIMIT}건까지 보여줍니다. 결과 파일은 서버 보관 시간(기본 24시간)이 지나면 지워질 수 있어요.`}
+        </p>
+        <Button variant="secondary" onClick={reload} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
+        </Button>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div role="tablist" aria-label="작업 종류" className="flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-900/50 p-1">

@@ -21,7 +21,8 @@
 | GIF 처리 | `/studio?type=gif` | `POST /gif` | 움직이는 GIF 를 프레임마다 처리, 간격·반복 유지, 배경 제거는 투명 GIF + **WebP(부드러운 경계)**, 올릴 배경(밝은·어두운)을 고르면 GIF 경계도 부드럽게(매트), 120프레임까지 |
 | 영상 처리 | `/video` | `POST /video` · `GET /video/{id}` | 최대 20초·80MB·긴 변 3840. H.264 mp4 + 오디오, 페이지에서 재생, 마지막 결과를 이 브라우저(IndexedDB)에 보관, 문장 고쳐 다시 처리 |
 | 배치 🔒 | `/batch` | `POST /batch` · `GET /batch` · `GET /batch/{id}` · 항목 원본·결과 · zip | 같은 문장으로 최대 500장, 진행률 자동 갱신, 실패 항목 표시, 결과 zip |
-| 작업 기록 🔒 | `/history` | `GET /jobs` | 사진 · 영상 · GIF 를 모아 보기 — 종류 필터 · 상태 필터 · 검색, 영상·GIF 배지와 썸네일 |
+| 내 계정 🔒 | `/account` | `PATCH /auth/me` · `POST /auth/password/change` · `POST /auth/logout-all` · `DELETE /auth/me` | 헤더 프로필 메뉴에서 진입. 내 정보(표시 이름 수정 · 이용 현황) · 작업 기록 · 보안(비밀번호 변경 · 모든 기기 로그아웃) · 보관 안내와 계정 탈퇴 |
+| 작업 기록 🔒 | `/account?tab=history` | `GET /jobs` | 사진 · 영상 · GIF 를 모아 보기 — 종류 필터 · 상태 필터 · 검색, 영상·GIF 배지와 썸네일 (`/history` 는 여기로 이동) |
 | 작업 상세 🔒 | `/jobs/:id` | `GET /jobs/{id}` · `GET /files/{id}/{before,after,thumb,webp}` | 결과 다시 보기(영상 재생), 해석 JSON 복사, 같은 문장으로 다시 작업 |
 | 평가 · 정답 알려주기 🔒 | 작업실 · 작업 상세 | `POST /feedback` | 좋아요/싫어요, 해석이 틀렸으면 올바른 값을 골라 보냄 → 검수 후 학습 |
 | 프롬프트 가이드 | `/guide` | — | 남기기 vs 지우기, 위치·크기·순서·개수·색 고르기, 예시, 한계, 보관 안내 |
