@@ -22,6 +22,8 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+      # Cloudflare Worker 로 앞단을 두는 경우만 채운다 (deploy/cloudflare) — 비어 있으면 꺼진다
+      EDGE_SECRET: ${EDGE_SECRET:-}
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       # 인증서·계정 키 — 지우면 다시 발급받는다 (Let's Encrypt 발급 횟수 제한 주의)

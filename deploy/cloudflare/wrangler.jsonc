@@ -1,0 +1,18 @@
+// 컷앤킵 프런트엔드 — Cloudflare Worker (정적 파일 + /api 프록시). docs/guidance/cloudflare-deploy.md
+{
+  "name": "cutnkeep-front",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "../../frontend/dist",
+    // 파일이 없는 주소(/account 등)는 index.html — 화면 경로는 브라우저 안의 라우터가 처리
+    "not_found_handling": "single-page-application",
+    // 아래 경로만 Worker 코드가 먼저 받아 서버로 넘긴다. 나머지는 정적 파일
+    "run_worker_first": ["/api/*", "/health"]
+  },
+  "vars": {
+    // 백엔드(Caddy) 주소 — 자체 도메인으로 바꾸면 이 값만 바꾼다
+    "ORIGIN": "https://168-110-17-193.sslip.io"
+  }
+  // 비밀 값 EDGE_SECRET 은 파일에 두지 않는다: npx wrangler secret put EDGE_SECRET
+}

@@ -51,6 +51,7 @@ docker compose -p cut_and_keep --env-file .env -f docker-compose.yml -f docker-c
 
 - Caddy 가 인증서를 자동으로 발급받는다. 확인: `docker compose -p cut_and_keep logs -f caddy` 에서 `certificate obtained`
 - 첫 요청은 모델을 올리느라 느리다. 띄운 뒤 사진 하나를 미리 처리해 둔다
+- 화면을 Cloudflare 에 올리려면 [guidance/cloudflare-deploy.md](./guidance/cloudflare-deploy.md)
 - 운영 콘솔(`console/`)은 Compose 에 없다 — 관리자 PC 에서 띄워 서버 API 에 붙인다 ([guidance/console-admin.md](./guidance/console-admin.md))
 
 ### 해석 모델 고르기를 쓰려면 (Ollama 서버)
