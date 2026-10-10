@@ -17,6 +17,10 @@ interface AuthState {
   login: (username: string, password: string) => Promise<AuthUser>;
   signup: (body: { username: string; email: string; password: string; display_name?: string; agree_terms: boolean }) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  /** 서버가 돌려준 최신 사용자 정보로 바꾼다 (이름 수정 등) */
+  setUser: (user: AuthUser) => void;
+  /** 서버 세션이 이미 끝났을 때(전체 로그아웃 · 탈퇴) 화면 상태만 비로그인으로 */
+  clear: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -44,6 +48,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user, status: "user" });
     return user;
   },
+
+  setUser: (user) => set({ user, status: "user" }),
+
+  clear: () => set({ user: null, status: "guest" }),
 
   logout: async () => {
     try {

@@ -251,3 +251,77 @@ def test_signup_requires_terms_agreement_and_records_time(api_env):
         user = db.query(User).filter(User.username == "agree_01").one()
         assert user.terms_agreed_at is not None
         assert db.query(User).filter(User.username == "noagree_1").count() == 0
+
+
+# ------------------------------------------------------------------ 내 계정 (프로필 · 비밀번호 변경 · 전체 로그아웃 · 탈퇴)
+
+
+def test_update_display_name(env):
+    c = env["client"]
+    _signup(c)
+    r = c.patch("/api/v1/auth/me", json={"display_name": "  새 이름  "})
+    assert r.status_code == 200 and r.json()["display_name"] == "새 이름"
+    assert c.patch("/api/v1/auth/me", json={"display_name": ""}).json()["display_name"] is None
+    assert c.patch("/api/v1/auth/me", json={"display_name": "가" * 51}).status_code == 400
+
+
+def test_account_endpoints_need_login(env):
+    c = env["client"]
+    assert c.patch("/api/v1/auth/me", json={"display_name": "x"}).status_code == 401
+    assert c.post("/api/v1/auth/password/change", json={"current_password": "a", "new_password": "b"}).status_code == 401
+    assert c.post("/api/v1/auth/logout-all").status_code == 401
+    assert c.request("DELETE", "/api/v1/auth/me", json={"password": "a", "confirm": "b"}).status_code == 401
+
+
+def test_change_password_keeps_this_device_and_drops_others(env):
+    c = env["client"]
+    _signup(c)
+    other = type(c)(c.app)  # 다른 기기
+    assert other.post("/api/v1/auth/login", json={"username": "tester_01", "password": GOOD_PW}).status_code == 200
+
+    body = {"current_password": "틀린비번123", "new_password": "newpass2026"}
+    assert c.post("/api/v1/auth/password/change", json=body).status_code == 403
+    same = {"current_password": GOOD_PW, "new_password": GOOD_PW}
+    assert c.post("/api/v1/auth/password/change", json=same).status_code == 400
+    weak = {"current_password": GOOD_PW, "new_password": "short1"}
+    assert c.post("/api/v1/auth/password/change", json=weak).status_code == 400
+
+    ok = {"current_password": GOOD_PW, "new_password": "newpass2026"}
+    assert c.post("/api/v1/auth/password/change", json=ok).status_code == 200
+    assert c.get("/api/v1/auth/me").status_code == 200  # 지금 기기는 그대로
+    assert other.get("/api/v1/auth/me").status_code == 401  # 다른 기기는 로그아웃
+    c.post("/api/v1/auth/logout")
+    assert c.post("/api/v1/auth/login", json={"username": "tester_01", "password": GOOD_PW}).status_code == 401
+    assert c.post("/api/v1/auth/login", json={"username": "tester_01", "password": "newpass2026"}).status_code == 200
+
+
+def test_logout_all_ends_every_session(env):
+    c = env["client"]
+    _signup(c)
+    other = type(c)(c.app)
+    other.post("/api/v1/auth/login", json={"username": "tester_01", "password": GOOD_PW})
+    assert c.post("/api/v1/auth/logout-all").status_code == 200
+    assert c.get("/api/v1/auth/me").status_code == 401
+    assert other.get("/api/v1/auth/me").status_code == 401
+
+
+def test_self_delete_needs_password_and_username(env):
+    c = env["client"]
+    _signup(c)
+    assert c.request("DELETE", "/api/v1/auth/me", json={"password": "틀린비번123", "confirm": "tester_01"}).status_code == 403
+    assert c.request("DELETE", "/api/v1/auth/me", json={"password": GOOD_PW, "confirm": "someone"}).status_code == 400
+    assert c.get("/api/v1/auth/me").status_code == 200  # 아직 계정이 있다
+
+    r = c.request("DELETE", "/api/v1/auth/me", json={"password": GOOD_PW, "confirm": "Tester_01"})
+    assert r.status_code == 200, r.text
+    assert c.get("/api/v1/auth/me").status_code == 401
+    assert c.post("/api/v1/auth/login", json={"username": "tester_01", "password": GOOD_PW}).status_code == 401
+
+
+def test_admin_cannot_self_delete(env, monkeypatch):
+    c = env["client"]
+    _signup(c)
+    monkeypatch.setattr(get_settings(), "console_admins", "tester_01")
+    r = c.request("DELETE", "/api/v1/auth/me", json={"password": GOOD_PW, "confirm": "tester_01"})
+    assert r.status_code == 403 and "운영자" in r.json()["detail"]
+    assert c.get("/api/v1/auth/me").status_code == 200

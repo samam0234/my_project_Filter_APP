@@ -41,6 +41,10 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 | `POST /api/v1/auth/login` | `username`, `password` | 200 사용자 + 쿠키 · 401 불일치 · 429 잠금 |
 | `POST /api/v1/auth/logout` | — | 200, 서버 세션 폐기 + 쿠키 삭제 |
 | `GET /api/v1/auth/me` | — | 200 사용자 · 401 비로그인 |
+| `PATCH /api/v1/auth/me` | `display_name` (빈 값이면 아이디가 이름) | 200 수정된 사용자 · 400 50자 초과 · 401 |
+| `POST /api/v1/auth/password/change` | `current_password`, `new_password` | 200 (지금 기기만 로그인 유지, 다른 기기 로그아웃) · 400 규칙 위반/현재와 같음 · 403 현재 비밀번호 불일치 · 401 |
+| `POST /api/v1/auth/logout-all` | — | 200, 모든 기기(지금 기기 포함) 세션 폐기 + 쿠키 삭제 · 401 |
+| `DELETE /api/v1/auth/me` | `password`, `confirm`(아이디) | 200 탈퇴 — 작업 · 배치 · 영상 삭제, 학습 DB 는 계정 연결만 끊음 · 400 아이디 불일치 · 403 비밀번호 불일치 또는 운영자(`CONSOLE_ADMINS`) 계정 · 401 |
 | `POST /api/v1/auth/find-id` | `email` | 200 **항상 같은 안내** (아이디는 메일로만) |
 | `POST /api/v1/auth/password/request` | `username`, `email` | 200 **항상 같은 안내** (일치하면 6자리 코드 메일) |
 | `POST /api/v1/auth/password/reset` | `username`, `code`, `new_password` | 200 성공(모든 세션 로그아웃) · 400 코드 오류/만료/규칙 위반 |

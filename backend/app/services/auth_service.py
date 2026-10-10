@@ -163,6 +163,50 @@ class AuthService:
         if token:
             self.repo.delete_session(pw.token_digest(token))
 
+    def logout_all(self, user: User) -> int:
+        """모든 기기에서 로그아웃 (현재 기기 포함)."""
+        n = len(user.sessions)
+        self.repo.delete_user_sessions(user.id)
+        return n
+
+    # ------------------------------------------------------------ 내 계정
+    def update_profile(self, user: User, display_name: Optional[str]) -> User:
+        name = (display_name or "").strip()
+        if len(name) > 50:
+            raise AuthError("표시 이름은 50자 이하로 입력해 주세요.")
+        user.display_name = name or None
+        return self.repo.save(user)
+
+    def change_password(self, user: User, *, current_password: str, new_password: str, keep_token: str | None) -> None:
+        """현재 비밀번호 확인 후 변경. 지금 쓰는 기기만 로그인을 유지하고 나머지 세션은 끊는다."""
+        if not pw.verify_password(current_password, user.password_hash):
+            raise AuthError("현재 비밀번호가 올바르지 않습니다.", status=403)
+        problem = pw.password_problem(new_password)
+        if problem:
+            raise AuthError(problem)
+        if pw.verify_password(new_password, user.password_hash):
+            raise AuthError("새 비밀번호가 현재 비밀번호와 같습니다.")
+        user.password_hash = pw.hash_password(new_password)
+        self.repo.save(user)
+        self.repo.delete_user_sessions(user.id)
+        if keep_token:
+            self.repo.add_session(
+                token_hash=pw.token_digest(keep_token),
+                user_id=user.id,
+                expires_at=_now() + timedelta(hours=self.settings.session_ttl_hours),
+                user_agent=None,
+            )
+        logger.info("비밀번호 변경 user={}", user.id)
+
+    def check_delete(self, user: User, *, password: str, confirm: str) -> None:
+        """탈퇴 전 본인 확인 — 비밀번호 + 아이디 입력. 운영자(CONSOLE_ADMINS)는 콘솔 보호를 위해 스스로 탈퇴할 수 없다."""
+        if not pw.verify_password(password, user.password_hash):
+            raise AuthError("비밀번호가 올바르지 않습니다.", status=403)
+        if confirm.strip().lower() != user.username:
+            raise AuthError("확인용 아이디가 일치하지 않습니다.")
+        if user.username in self.settings.console_admin_set:
+            raise AuthError("운영자 계정은 스스로 탈퇴할 수 없습니다. 먼저 관리자 목록(CONSOLE_ADMINS)에서 빼 주세요.", status=403)
+
     # ------------------------------------------------------------ 아이디 찾기
     def find_username(self, email: str) -> str:
         user = self.repo.by_email(email.strip().lower())

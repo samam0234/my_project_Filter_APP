@@ -5,7 +5,8 @@
  * |---------------|-------------------|
  * | /             | 홈                |
  * | /studio       | 작업실 (배경 제거) |
- * | /history      | 작업 기록         |
+ * | /account      | 내 계정 (내 정보 · 작업 기록 · 보안 · 탈퇴) |
+ * | /history      | → /account?tab=history (예전 주소) |
  * | /jobs/:id     | 작업 상세         |
  * | /guide        | 프롬프트 가이드   |
  * | /batch        | 배치 (회원 전용)  |
@@ -24,9 +25,9 @@
 import { useEffect } from "react";
 import { safeNext } from "./components/auth/AuthForm";
 import { AppLayout } from "./components/layout/AppLayout";
+import { AccountPage } from "./pages/AccountPage";
 import { BatchPage } from "./pages/BatchPage";
 import { GuidePage } from "./pages/GuidePage";
-import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -44,7 +45,8 @@ import { useAuthStore } from "./store/useAuthStore";
 const TITLES: Record<string, string> = {
   "/": "홈",
   "/studio": "작업실",
-  "/history": "작업 기록",
+  "/account": "내 계정",
+  "/history": "내 계정",
   "/guide": "프롬프트 가이드",
   "/batch": "배치",
   "/video": "영상",
@@ -59,10 +61,22 @@ const TITLES: Record<string, string> = {
 /** 로그인 상태면 들어올 필요 없는 화면 */
 const GUEST_ONLY = new Set(["/login", "/signup", "/find-id", "/find-password"]);
 
+/** 예전 주소(/history)를 내 계정의 한 구역으로 보낸다 — 북마크 · 로그인 next 가 깨지지 않게, 필터 쿼리는 유지 */
+function Redirect({ to, tab }: { to: string; tab: string }) {
+  const search = useSearch();
+  useEffect(() => {
+    const q = new URLSearchParams(search);
+    q.set("tab", tab);
+    navigate(`${to}?${q.toString()}`, { replace: true });
+  }, [to, tab, search]);
+  return null;
+}
+
 function Page({ pathname }: { pathname: string }) {
   if (matchRoute("/", pathname)) return <HomePage />;
   if (matchRoute("/studio", pathname)) return <StudioPage />;
-  if (matchRoute("/history", pathname)) return <HistoryPage />;
+  if (matchRoute("/account", pathname)) return <AccountPage />;
+  if (matchRoute("/history", pathname)) return <Redirect to="/account" tab="history" />;
   if (matchRoute("/guide", pathname)) return <GuidePage />;
   if (matchRoute("/batch", pathname)) return <BatchPage />;
   if (matchRoute("/video", pathname)) return <VideoPage />;

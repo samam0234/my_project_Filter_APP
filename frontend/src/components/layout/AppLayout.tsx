@@ -1,12 +1,13 @@
 /**
  * 사용자 앱 공통 레이아웃 — 상단 내비게이션 · 서버 상태 · 푸터.
  *
- * 메뉴: 홈 / 작업실 / 작업 기록 / 프롬프트 가이드 / 배치 / 영상
- * (작업 상세 /jobs/:id 는 작업 기록에서 들어가므로 메뉴에서는 "작업 기록" 을 활성으로 표시)
+ * 메뉴: 홈 / 작업실 / 프롬프트 가이드 / 배치 / 영상
+ * 로그인하면 헤더 오른쪽의 프로필을 눌러 내 계정(/account) · 작업 기록 · 로그아웃 메뉴를 연다.
+ * (작업 기록은 내 계정 안에 있다 — 작업 상세 /jobs/:id 에서는 프로필이 활성으로 표시된다)
  * lg 미만에서는 메뉴를 이름이 보이는 펼침 목록(햄버거)으로 바꾼다 — 아이콘만 늘어놓으면 무엇인지 모른다.
  */
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   Clapperboard,
@@ -18,6 +19,7 @@ import {
   LogOut,
   Menu,
   Scissors,
+  ChevronDown,
   UserRound,
   Wand2,
   X,
@@ -31,13 +33,6 @@ import { displayName, useAuthStore } from "../../store/useAuthStore";
 const NAV = [
   { to: "/", label: "홈", icon: Home, match: (p: string) => p === "/", members: false },
   { to: "/studio", label: "작업실", icon: Wand2, match: (p: string) => p.startsWith("/studio"), members: false },
-  {
-    to: "/history",
-    label: "작업 기록",
-    icon: History,
-    match: (p: string) => p.startsWith("/history") || p.startsWith("/jobs"),
-    members: true,
-  },
   { to: "/guide", label: "프롬프트 가이드", icon: BookOpen, match: (p: string) => p.startsWith("/guide"), members: false },
   { to: "/batch", label: "배치", icon: Layers, match: (p: string) => p.startsWith("/batch"), members: true },
   { to: "/video", label: "영상", icon: Clapperboard, match: (p: string) => p.startsWith("/video"), members: false },
@@ -62,11 +57,10 @@ function ServerStatus() {
   );
 }
 
-/** 헤더 우측 계정 영역 — 비로그인: 로그인·회원가입 / 로그인: 이름(내 작업) · 로그아웃 */
+/** 헤더 우측 계정 영역 — 비로그인: 로그인·회원가입 / 로그인: 프로필 메뉴 */
 function AccountMenu() {
   const pathname = usePathname();
-  const { user, status, logout } = useAuthStore();
-  const [busy, setBusy] = useState(false);
+  const { user, status } = useAuthStore();
 
   if (status === "loading") return <span className="h-8 w-16 animate-pulse rounded-lg bg-slate-900" />;
 
@@ -92,35 +86,100 @@ function AccountMenu() {
     );
   }
 
+  return <ProfileMenu />;
+}
+
+/** 로그인한 사용자의 프로필 버튼 — 누르면 이름 · 이메일과 내 계정 · 작업 기록 · 배치 · 로그아웃을 연다 */
+function ProfileMenu() {
+  const pathname = usePathname();
+  const { user, logout } = useAuthStore();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  // 다른 화면으로 가면 닫는다
+  useEffect(() => setOpen(false), [pathname]);
+
+  // 바깥을 누르거나 Esc 를 누르면 닫는다
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  if (!user) return null;
+  const item =
+    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800";
+  const active = pathname.startsWith("/account") || pathname.startsWith("/jobs");
+
   return (
-    <div className="flex shrink-0 items-center gap-1">
-      <Link
-        to="/history"
-        title={user.username + " · " + user.email + " — 내 작업 보기"}
-        className="inline-flex max-w-[10rem] items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-200 transition hover:bg-slate-900"
+    <div ref={box} className="relative shrink-0">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="내 계정 메뉴"
+        title={user.username + " · " + user.email}
+        onClick={() => setOpen((v) => !v)}
+        className={`inline-flex max-w-[11rem] items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-200 transition hover:bg-slate-900 ${
+          active || open ? "bg-slate-900" : ""
+        }`}
       >
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500/15 ring-1 ring-inset ring-brand-500/30">
           <UserRound className="h-3.5 w-3.5 text-brand-300" />
         </span>
         <span className="hidden truncate sm:inline">{displayName(user)}</span>
-      </Link>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          await logout();
-          // 로그인 상태에서 만든 결과(피드백·상세 링크)는 비로그인에서 쓸 수 없으므로 비운다
-          useAppStore.getState().setResult(null);
-          setBusy(false);
-          navigate("/");
-        }}
-        aria-label="로그아웃"
-        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-slate-400 transition hover:bg-slate-900 hover:text-white"
-      >
-        <LogOut className="h-4 w-4" />
-        <span className="hidden lg:inline">로그아웃</span>
+        <ChevronDown className={`hidden h-3.5 w-3.5 shrink-0 text-slate-500 transition sm:block ${open ? "rotate-180" : ""}`} />
       </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl shadow-black/40"
+        >
+          <div className="border-b border-slate-800 px-3 pb-2.5 pt-2">
+            <p className="truncate text-sm font-medium text-white">{displayName(user)}</p>
+            <p className="truncate text-xs text-slate-500">@{user.username}</p>
+            <p className="truncate text-xs text-slate-500">{user.email}</p>
+          </div>
+          <div className="space-y-0.5 py-1.5">
+            <Link to="/account" role="menuitem" className={item}>
+              <UserRound className="h-4 w-4 text-slate-400" /> 내 계정
+            </Link>
+            <Link to="/account?tab=history" role="menuitem" className={item}>
+              <History className="h-4 w-4 text-slate-400" /> 작업 기록
+            </Link>
+            <Link to="/batch" role="menuitem" className={item}>
+              <Layers className="h-4 w-4 text-slate-400" /> 배치
+            </Link>
+          </div>
+          <div className="border-t border-slate-800 pt-1.5">
+            <button
+              type="button"
+              role="menuitem"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await logout();
+                // 로그인 상태에서 만든 결과(피드백·상세 링크)는 비로그인에서 쓸 수 없으므로 비운다
+                useAppStore.getState().setResult(null);
+                setBusy(false);
+                navigate("/");
+              }}
+              className={`${item} text-slate-300`}
+            >
+              <LogOut className="h-4 w-4 text-slate-400" /> 로그아웃
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

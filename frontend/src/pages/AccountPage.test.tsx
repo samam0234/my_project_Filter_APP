@@ -14,19 +14,19 @@ vi.mock("../hooks/useApi", () => ({
 }));
 
 import { useAuthStore } from "../store/useAuthStore";
-import { HistoryPage } from "./HistoryPage";
+import { AccountPage } from "./AccountPage";
 
 beforeEach(() => {
   useAuthStore.setState({ user: { id: "u", username: "m", email: "m@x" }, status: "user" });
-  window.history.replaceState(null, "", "/history");
+  window.history.replaceState(null, "", "/account?tab=history");
 });
 afterEach(cleanup);
 
 const titles = () => screen.queryAllByText(/작업$|예전 사진/).map((el) => el.textContent);
 
-describe("HistoryPage", () => {
+describe("AccountPage — 작업 기록 구역", () => {
   it("사진·영상·GIF 를 함께 보여 주고 종류 배지와 썸네일을 쓴다", () => {
-    render(<HistoryPage />);
+    render(<AccountPage />);
     expect(titles()).toEqual(["사진 작업", "영상 작업", "GIF 작업", "예전 사진"]);
     const video = screen.getByText("영상 작업").closest("a") as HTMLElement;
     expect(within(video).getByText("영상")).toBeTruthy();
@@ -35,11 +35,11 @@ describe("HistoryPage", () => {
   });
 
   it("종류 필터 — kind 가 없는 예전 작업은 사진으로 센다", () => {
-    render(<HistoryPage />);
+    render(<AccountPage />);
     const kinds = screen.getByRole("tablist", { name: "작업 종류" });
     expect(within(kinds).getByRole("tab", { name: /사진/ }).textContent).toContain("2");
     fireEvent.click(within(kinds).getByRole("tab", { name: /영상/ }));
-    expect(window.location.search).toBe("?kind=video");
+    expect(window.location.search).toBe("?tab=history&kind=video");
     expect(titles()).toEqual(["영상 작업"]);
     fireEvent.click(within(kinds).getByRole("tab", { name: /사진/ }));
     expect(titles()).toEqual(["사진 작업", "예전 사진"]);
