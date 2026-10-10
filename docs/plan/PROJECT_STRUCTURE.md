@@ -11,20 +11,33 @@
 ## 1. 전체 디렉토리 구조
 
 ```bash
-cut-and-keep/
-├── backend/                          # FastAPI 백엔드 (Python)
-├── frontend/                         # React + TypeScript 프론트엔드
-├── scripts/                          # 유틸리티 & 학습 스크립트
-├── models/                           # 학습된 모델 저장소 (ONNX, LoRA)
-├── data/                             # 데이터셋 & 피드백 데이터
-├── docker/                           # Docker 관련 설정
-├── docs/                             # 문서화
-├── logs/                             # 런타임 로그
-├── .env
-├── docker-compose.yml
-├── README.md
-└── requirements.txt / package.json
+cut-and-keep/                         # 저장소 루트 (로컬 예: CutNKeep)
+├── backend/                          # FastAPI (Dockerfile context 는 루트)
+├── frontend/                         # React 사용자 앱 (:5173 / Docker :80)
+├── console/                          # React 운영 콘솔 (:5174, Compose 미포함)
+├── scripts/                          # 운영 유틸 (cleanup, onnx 등)
+├── training/                         # YOLO detect/seg · LoRA · CUDA 스크립트
+├── tests/                            # pytest (unit/structure/smoke)
+├── models/                           # 모델 원본·후보·LoRA 보관소 (gitignore)
+├── data/                             # 학습 공유: feedback · pseudo_labels
+├── docker/                           # mariadb conf/init · README
+├── docs/                             # 문서 허브
+├── logs/                             # 학습·스크립트 로그
+├── requirements.txt                  # 로컬 Python (루트)
+├── requirements.docker.txt           # Docker 경량 (루트)
+├── pytest.ini
+├── .env / .env.example
+├── docker-compose.yml                # -p cut_and_keep · adminer · mariadb:11
+├── AGENTS.md                         # 에이전트 규칙 요약
+├── RUN.md                            # 실행 가이드
+└── README.md                         # 저장소 홈 소개 (홈 README)
 ```
+
+**참고 (홈과 혼동 금지)**  
+- 에이전트 도구 폴더: `.agents/`, `.grok/`, `.claude/`, `.github/` … (앱 런타임 아님)  
+- `.github/Read_for_we.md` — GitHub 폴더 내부 안내 (구 README.md)  
+- 현재 스택 스냅샷: `docs/plan/CURRENT_STACK.md`
+
 
 ---
 
@@ -35,46 +48,67 @@ cut-and-keep/
 ```bash
 backend/
 ├── app/
-│   ├── main.py                      # FastAPI 앱 진입점, lifespan, middleware
+│   ├── main.py                      # FastAPI 진입점, lifespan, middleware
 │   ├── core/
-│   │   ├── config.py                # 설정 관리 (Pydantic Settings)
-│   │   ├── security.py              # 보안 (MIME, 파일 크기 검증)
+│   │   ├── config.py                # 설정 (DB_DIALECT, paths, thresholds)
+│   │   ├── security.py              # MIME / 크기 검증
 │   │   └── constants.py
-│   ├── models/                      # Pydantic 스키마
+│   ├── db/                          # DB 엔진 · 세션 · init
+│   │   ├── base.py                  # DeclarativeBase
+│   │   └── session.py               # SQLite / MariaDB engine, get_db, init_db
+│   ├── models/                      # SQLAlchemy ORM (테이블)
+│   │   ├── job.py                   # jobs
+│   │   ├── feedback.py              # feedbacks
+│   │   └── batch_job.py             # batch_jobs (Phase 2)
+│   ├── schemas/                     # Pydantic API DTO
 │   │   ├── request.py
 │   │   ├── response.py
 │   │   └── feedback.py
-│   ├── workflows/                   # LangGraph 기반 워크플로우
-│   │   ├── state.py                 # GraphState 정의 (image, prompt, mask, feedback, result)
-│   │   ├── nodes.py                 # 개별 노드 (prompt_analyzer, segmentor 등)
-│   │   ├── edges.py                 # 조건부 엣지 (블러/크롭/실패 재시도)
-│   │   └── graph.py                 # 전체 그래프 컴파일
-│   ├── services/
-│   │   ├── image_processor.py       # OpenCV 전체 파이프라인 (7단계)
-│   │   ├── segmentation.py          # YOLO, Grounding DINO, SAM2
-│   │   ├── effects.py               # 블러, 크롭, 마스크 합성
-│   │   ├── validator.py             # 결과 검증 + fallback
-│   │   └── feedback_service.py      # 피드백 수집 & Pseudo Labeling
-│   ├── tasks/                       # Celery 비동기 작업 (Phase 2~)
+│   ├── repositories/                # DB 접근 전용
+│   │   ├── job_repository.py
+│   │   ├── feedback_repository.py
+│   │   └── batch_repository.py
+│   ├── routers/                     # HTTP 라우터 계층
+│   │   ├── router.py                # /api/v1 집합
+│   │   ├── upload.py                # 사진 처리 · /files/{id}/{before,after,thumb,webp}
+│   │   ├── gif.py                   # 움직이는 GIF
+│   │   ├── video.py                 # 영상
+│   │   ├── feedback.py
+│   │   ├── jobs.py                  # job 조회 (kind=image·video·gif)
+│   │   ├── batch.py
+│   │   ├── auth.py                  # 회원
+│   │   └── console.py               # 운영 콘솔
+│   ├── workflows/                   # LangGraph
+│   │   ├── state.py
+│   │   ├── nodes.py
+│   │   ├── edges.py
+│   │   └── graph.py
+│   ├── services/                    # 전체 목록·역할: backend/README.md
+│   │   ├── prompt_spec.py · prompt_llm.py · prompt_chain.py · heuristic_targets.py · prompt_rag.py
+│   │   ├── image_processor.py · segmentation.py · stuff_segmentation.py · mask_exclusion.py · instance_selector.py
+│   │   ├── effects.py · inpaint.py(LaMa) · validator.py
+│   │   ├── video_processor.py · gif_processor.py
+│   │   ├── feedback_service.py · learning_catalog.py · learning_review.py
+│   │   └── retention.py · maintenance.py · db_backup.py · user_admin.py · system_status.py
+│   ├── tasks/
 │   │   └── batch_tasks.py
-│   ├── api/
-│   │   ├── endpoints/
-│   │   │   ├── upload.py            # 단일 이미지 업로드
-│   │   │   ├── batch.py             # 배치 처리 (최대 500장)
-│   │   │   └── feedback.py          # 피드백 수집
-│   │   └── router.py
 │   ├── utils/
-│   │   ├── image_utils.py
-│   │   ├── onnx_utils.py
-│   │   └── logging.py
 │   └── exceptions.py
-├── models/                          # ONNX 모델, LoRA 어댑터 저장
-├── data/
-│   ├── feedback/                    # 실패 케이스 (image + json)
-│   └── pseudo_labels/
-├── logs/
-└── Dockerfile
+├── data/                            # 서비스 런타임: uploads/ · cutnkeep.db (gitignore)
+├── models/                          # 서빙 중인 활성 가중치 (gitignore)
+├── logs/                            # 앱 로그 app_YYYY-MM-DD.log (gitignore)
+├── Dockerfile                       # 빌드 context = 저장소 루트
 ```
+
+**Python 의존성(루트)**: `requirements.txt` (로컬 풀스택), `requirements.docker.txt` (경량 이미지)
+
+**계층 규칙**: `routers` → `services`/`workflows` → `repositories` → `models`/`db`  
+API 입출력은 `schemas`만 사용. ORM 모델은 Repository 밖으로 최대한 노출하지 않는다.
+
+**DB**: 서비스 DB `SQLite` (Docker `backend/data/cutnkeep.db` · 호스트 `cutnkeep.host.db`, 자동 백업 `backend/data/backups/`) / 학습 DB `MariaDB` — 상세는 `docs/plan/DATABASE.md`  
+**AI 모델**: yolo26m-seg + Ollama E4B(기본) / OpenAI·Gemini(고도화) — `docs/plan/AI_MODEL_STRATEGY.md`  
+**테스트**: 루트 `tests/` + `pytest.ini` — `docs/plan/TESTING.md`
+
 
 ### 2.2 frontend/ (React + Vite)
 
@@ -121,19 +155,41 @@ scripts/
 ├── convert_to_onnx.py
 ├── pseudo_labeling.py
 ├── evaluate_model.py
-└── cleanup.py                       # 24시간 후 임시 파일 삭제
+├── cleanup.py                       # 24시간 지난 업로드 삭제 (백엔드가 매시간 자동으로도 함)
+├── retrain_lora.py                  # 승인 문장으로 LoRA 재학습 · 판정 · 배포
+└── experiments/                     # 정답 주석 기반 평가 (섞임 · 문장 해석 · 경계 · 지우기 등)
 
 docs/
-├── DEVELOPMENT_PLAN.md              # 원본 계획서
+├── plan/
+│   ├── CURRENT_STACK.md             # ★ 현재 포트·DB·Docker 스냅샷
+│   ├── LOGIC_STRUCTURE.md
+│   ├── PROJECT_STRUCTURE.md         # 본 문서
+│   ├── DATABASE.md
+│   ├── AI_MODEL_STRATEGY.md
+│   ├── YOLO26S_DEFAULT.md
+│   ├── TESTING.md
+│   ├── LOGIC_AND_GIT_BRANCH_STRATEGY.md
+│   ├── DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md
+│   └── DEVELOPMENT_PLAN.docx
+├── branchs/commits/                 # 커밋 기록 (필수)
+├── Architecture/                    # docker-topology 등
+├── guidance/                        # commit-message, docker-run, …
 ├── API_DOCUMENTATION.md
-├── WORKFLOW.md                      # LangGraph 상세 흐름
-├── DEPLOYMENT.md
-└── LOGIC_AND_GIT_BRANCH_STRATEGY.md # 로직 + 실행 규칙 + Git 전략
+├── WORKFLOW.md
+└── DEPLOYMENT.md
 
-models/                              # .onnx, .safetensors 등
-data/                                # 학습/피드백 데이터
-docker/                              # Docker Compose 관련
-logs/                                # 런타임 로그
+training/
+├── README.md                        # 학습·실행 전 설정 가이드
+├── env_cuda.ps1 · setup_cuda_env.ps1
+├── yolo/train_segment.py            # 세그 본선
+├── configs/*.example.yaml
+└── requirements-training.txt
+
+docker/
+├── README.md
+└── mariadb/                         # conf · init · README (password-only)
+
+models/ · data/ · logs/
 ```
 
 ---

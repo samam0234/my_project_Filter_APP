@@ -1,0 +1,11 @@
+# 컷앤킵 5클래스 세그 ~5k (prepare_coco5k_seg.py)
+path: ../datasets/cutnkeep_seg_5k
+train: images/train
+val: images/val
+
+names:
+  0: person
+  1: dog
+  2: cat
+  3: car
+  4: bag

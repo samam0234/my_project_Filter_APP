@@ -1,0 +1,469 @@
+{
+ "ollama": [
+  {
+   "round": 1,
+   "seconds": 223.8,
+   "overall": {
+    "exact": 0.8,
+    "target_ok": 0.8667,
+    "effect_ok": 0.9,
+    "selector_ok": 0.9667,
+    "extra": 2,
+    "missing": 0,
+    "wrong": 2,
+    "invalid": 0,
+    "n": 30
+   },
+   "by_set": {
+    "fresh": {
+     "n": 30,
+     "target_ok": 0.8667,
+     "exact": 0.8,
+     "extra": 2,
+     "missing": 0,
+     "wrong": 2
+    }
+   }
+  },
+  {
+   "round": 2,
+   "seconds": 217.1,
+   "overall": {
+    "exact": 0.8333,
+    "target_ok": 0.9,
+    "effect_ok": 0.8667,
+    "selector_ok": 0.9333,
+    "extra": 0,
+    "missing": 0,
+    "wrong": 3,
+    "invalid": 0,
+    "n": 30
+   },
+   "by_set": {
+    "fresh": {
+     "n": 30,
+     "target_ok": 0.9,
+     "exact": 0.8333,
+     "extra": 0,
+     "missing": 0,
+     "wrong": 3
+    }
+   }
+  },
+  {
+   "round": 3,
+   "seconds": 228.4,
+   "overall": {
+    "exact": 0.8667,
+    "target_ok": 0.9333,
+    "effect_ok": 0.9,
+    "selector_ok": 0.9333,
+    "extra": 0,
+    "missing": 0,
+    "wrong": 2,
+    "invalid": 0,
+    "n": 30
+   },
+   "by_set": {
+    "fresh": {
+     "n": 30,
+     "target_ok": 0.9333,
+     "exact": 0.8667,
+     "extra": 0,
+     "missing": 0,
+     "wrong": 2
+    }
+   }
+  }
+ ],
+ "ollama_vote": {
+  "target_ok": 0.9333,
+  "effect_ok": 0.9,
+  "extra": 0,
+  "missing": 0,
+  "wrong": 2,
+  "distractor_target_ok": 0.0
+ },
+ "ollama_answers": [
+  {
+   "prompt": "트럭이랑 버스는 남겨두고 사람들만 지워줘",
+   "set": "fresh",
+   "gold": [
+    "person"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}"
+   ]
+  },
+  {
+   "prompt": "배경은 필요 없고 고양이 한 마리만 있으면 돼",
+   "set": "fresh",
+   "gold": [
+    "cat"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}"
+   ]
+  },
+  {
+   "prompt": "자전거 탄 사람은 두고 도로만 흐리게 해줘",
+   "set": "fresh",
+   "gold": [
+    "road"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"road\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"road\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"road\"]}"
+   ]
+  },
+  {
+   "prompt": "말만 선명하게 하고 나머지 풍경은 전부 블러 강도 25",
+   "set": "fresh",
+   "gold": [
+    "horse"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 25, \"selector\": null, \"target\": [\"horse\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 25, \"selector\": null, \"target\": [\"horse\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 25, \"selector\": null, \"target\": [\"horse\"]}"
+   ]
+  },
+  {
+   "prompt": "나는 새만 남기고 싶어, 하늘도 필요 없어",
+   "set": "fresh",
+   "gold": [
+    "bird"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bird\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bird\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bird\"]}"
+   ]
+  },
+  {
+   "prompt": "제일 오른쪽 사람만 뽑아내 줘",
+   "set": "fresh",
+   "gold": [
+    "person"
+   ],
+   "answers": [
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"right\", \"rank\": null}, \"target\": [\"person\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"right\", \"rank\": null}, \"target\": [\"person\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"right\", \"rank\": null}, \"target\": [\"person\"]}"
+   ]
+  },
+  {
+   "prompt": "컵이 아닌 노트북만 크롭해줘",
+   "set": "fresh",
+   "gold": [
+    "laptop"
+   ],
+   "answers": [
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"laptop\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"laptop\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"laptop\"]}"
+   ]
+  },
+  {
+   "prompt": "의자랑 테이블은 놔두고 강아지를 없애줘",
+   "set": "fresh",
+   "gold": [
+    "dog"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}"
+   ]
+  },
+  {
+   "prompt": "keep the umbrella and the person, drop the background",
+   "set": "fresh",
+   "gold": [
+    "person",
+    "umbrella"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\", \"person\"]}"
+   ]
+  },
+  {
+   "prompt": "take out the bus only",
+   "set": "fresh",
+   "gold": [
+    "bus"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"bus\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"bus\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"bus\"]}"
+   ]
+  },
+  {
+   "prompt": "just the cat please, nothing else",
+   "set": "fresh",
+   "gold": [
+    "cat"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}"
+   ]
+  },
+  {
+   "prompt": "blur it all except for the biggest dog",
+   "set": "fresh",
+   "gold": [
+    "dog"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"largest\", \"rank\": null}, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"largest\", \"rank\": null}, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"largest\", \"rank\": null}, \"target\": [\"dog\"]}"
+   ]
+  },
+  {
+   "prompt": "건물 앞에 서 있는 사람만 남기고 나머지는 모두 날려줘",
+   "set": "fresh",
+   "gold": [
+    "person"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"person\"]}"
+   ]
+  },
+  {
+   "prompt": "하늘이랑 나무는 살리고 건물은 지워줘",
+   "set": "fresh",
+   "gold": [
+    "sky",
+    "tree"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"sky\", \"tree\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"building\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"sky\", \"tree\"]}"
+   ]
+  },
+  {
+   "prompt": "차는 필요 없어 사람만 있으면 돼",
+   "set": "fresh",
+   "gold": [
+    "person"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}"
+   ]
+  },
+  {
+   "prompt": "맨 앞의 자전거만 남겨줘 사람은 빼고",
+   "set": "fresh",
+   "gold": [
+    "bicycle"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"bicycle\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"bicycle\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 1, \"position\": \"front\", \"rank\": null}, \"target\": [\"bicycle\"]}"
+   ]
+  },
+  {
+   "prompt": "강아지 옆의 아이는 지우지 말고 강아지만 지워줘",
+   "set": "fresh",
+   "gold": [
+    "dog"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"dog\"]}"
+   ]
+  },
+  {
+   "prompt": "트럭만 남기고 도로 위의 차들은 투명하게",
+   "set": "fresh",
+   "gold": [
+    "truck"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"truck\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"truck\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"truck\"]}"
+   ]
+  },
+  {
+   "prompt": "사람 둘만 남겨줘 가방은 빼고",
+   "set": "fresh",
+   "gold": [
+    "person"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": {\"attributes\": [], \"count\": 2, \"position\": null, \"rank\": null}, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"handbag\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"handbag\"]}"
+   ]
+  },
+  {
+   "prompt": "우산만 크롭하고 사람은 제외",
+   "set": "fresh",
+   "gold": [
+    "umbrella"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\", \"person\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"umbrella\"]}"
+   ]
+  },
+  {
+   "prompt": "산이랑 호수만 선명하게 사람은 흐리게 처리해줘",
+   "set": "fresh",
+   "gold": [
+    "mountain",
+    "water"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"person\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"mountain\", \"water\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"mountain\", \"water\"]}"
+   ]
+  },
+  {
+   "prompt": "잔디 말고 말을 남겨줘",
+   "set": "fresh",
+   "gold": [
+    "horse"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"horse\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"horse\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"horse\"]}"
+   ]
+  },
+  {
+   "prompt": "오토바이는 지워줘 헬멧 쓴 사람은 그대로",
+   "set": "fresh",
+   "gold": [
+    "motorcycle"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"motorcycle\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"motorcycle\"]}",
+    "{\"crop\": false, \"effect\": \"remove_object\", \"intensity\": 15, \"selector\": null, \"target\": [\"motorcycle\"]}"
+   ]
+  },
+  {
+   "prompt": "가방만 오려내 줘",
+   "set": "fresh",
+   "gold": [
+    "handbag"
+   ],
+   "answers": [
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"handbag\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"handbag\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"handbag\"]}"
+   ]
+  },
+  {
+   "prompt": "바다랑 사람 둘 다 남기고 나머지는 흐릿하게",
+   "set": "fresh",
+   "gold": [
+    "person",
+    "water"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"water\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"water\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"water\", \"person\"]}"
+   ]
+  },
+  {
+   "prompt": "remove the dog, keep the bench and the people",
+   "set": "fresh",
+   "gold": [
+    "dog"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bench\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bench\", \"person\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"bench\", \"person\"]}"
+   ]
+  },
+  {
+   "prompt": "everything but the car should go",
+   "set": "fresh",
+   "gold": [
+    "car"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"car\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"car\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"car\"]}"
+   ]
+  },
+  {
+   "prompt": "크롭: 고양이만, 소파는 제외",
+   "set": "fresh",
+   "gold": [
+    "cat"
+   ],
+   "answers": [
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": true, \"effect\": \"crop\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}"
+   ]
+  },
+  {
+   "prompt": "소만 남기고 풀밭은 지워줘",
+   "set": "fresh",
+   "gold": [
+    "cow"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cow\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cow\"]}",
+    "{\"crop\": false, \"effect\": \"remove_bg\", \"intensity\": 15, \"selector\": null, \"target\": [\"cow\"]}"
+   ]
+  },
+  {
+   "prompt": "강아지와 고양이 중 고양이만 선명하게 나머지는 블러",
+   "set": "fresh",
+   "gold": [
+    "cat"
+   ],
+   "answers": [
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}",
+    "{\"crop\": false, \"effect\": \"blur\", \"intensity\": 15, \"selector\": null, \"target\": [\"cat\"]}"
+   ]
+  }
+ ],
+ "ollama_stability": 0.8333,
+ "ollama_always_wrong": [
+  {
+   "prompt": "remove the dog, keep the bench and the people",
+   "gold": [
+    "dog"
+   ],
+   "pred": [
+    [
+     "bench",
+     "person"
+    ]
+   ],
+   "set": "fresh"
+  }
+ ]
+}

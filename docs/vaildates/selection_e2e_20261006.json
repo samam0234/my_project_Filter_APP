@@ -1,0 +1,388 @@
+{
+  "images": 600,
+  "detection": {
+    "gt": 777,
+    "found": 646
+  },
+  "totals": {
+    "clear_n": 1320,
+    "clear_ok": 945,
+    "order": 173,
+    "ambiguous_n": 150,
+    "ambiguous_ok": 64,
+    "images": 600,
+    "miss": 202
+  },
+  "by_scenario": {
+    "왼쪽 첫 번째": {
+      "clear_n": 235,
+      "clear_ok": 181,
+      "miss": 34,
+      "order": 20,
+      "ambiguous_n": 10,
+      "ambiguous_ok": 4
+    },
+    "왼쪽에서 두 번째": {
+      "clear_n": 230,
+      "clear_ok": 148,
+      "order": 48,
+      "miss": 34,
+      "ambiguous_n": 15,
+      "ambiguous_ok": 4
+    },
+    "오른쪽 첫 번째": {
+      "clear_n": 234,
+      "clear_ok": 176,
+      "miss": 33,
+      "order": 25,
+      "ambiguous_n": 11,
+      "ambiguous_ok": 6
+    },
+    "가운데": {
+      "clear_n": 194,
+      "clear_ok": 153,
+      "ambiguous_n": 51,
+      "ambiguous_ok": 25,
+      "order": 14,
+      "miss": 27
+    },
+    "제일 큰": {
+      "clear_n": 216,
+      "clear_ok": 174,
+      "ambiguous_n": 29,
+      "ambiguous_ok": 17,
+      "miss": 29,
+      "order": 13
+    },
+    "제일 작은": {
+      "ambiguous_n": 34,
+      "ambiguous_ok": 8,
+      "clear_n": 211,
+      "clear_ok": 113,
+      "miss": 45,
+      "order": 53
+    }
+  },
+  "examples": [
+    {
+      "image": "000000001237.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 7,
+      "pred": 6
+    },
+    {
+      "image": "000000009878.jpg",
+      "class": "person",
+      "scenario": "가운데",
+      "cause": "order",
+      "gt": 7,
+      "pred": 8
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "car",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 3
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "car",
+      "scenario": "오른쪽 첫 번째",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 3
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "car",
+      "scenario": "제일 큰",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 3
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "car",
+      "scenario": "제일 작은",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 3
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000024343.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000025143.jpg",
+      "class": "person",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000025143.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000025143.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000026274.jpg",
+      "class": "car",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 4,
+      "pred": 2
+    },
+    {
+      "image": "000000026274.jpg",
+      "class": "car",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "miss",
+      "gt": 4,
+      "pred": 2
+    },
+    {
+      "image": "000000026274.jpg",
+      "class": "car",
+      "scenario": "제일 큰",
+      "cause": "miss",
+      "gt": 4,
+      "pred": 2
+    },
+    {
+      "image": "000000026274.jpg",
+      "class": "person",
+      "scenario": "오른쪽 첫 번째",
+      "cause": "miss",
+      "gt": 5,
+      "pred": 9
+    },
+    {
+      "image": "000000026274.jpg",
+      "class": "person",
+      "scenario": "제일 큰",
+      "cause": "miss",
+      "gt": 5,
+      "pred": 9
+    },
+    {
+      "image": "000000027476.jpg",
+      "class": "car",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000027476.jpg",
+      "class": "car",
+      "scenario": "가운데",
+      "cause": "miss",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000027476.jpg",
+      "class": "car",
+      "scenario": "제일 작은",
+      "cause": "miss",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000029161.jpg",
+      "class": "person",
+      "scenario": "오른쪽 첫 번째",
+      "cause": "miss",
+      "gt": 5,
+      "pred": 5
+    },
+    {
+      "image": "000000029161.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "miss",
+      "gt": 5,
+      "pred": 5
+    },
+    {
+      "image": "000000031471.jpg",
+      "class": "person",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 7
+    },
+    {
+      "image": "000000031471.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 7
+    },
+    {
+      "image": "000000031471.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 3,
+      "pred": 7
+    },
+    {
+      "image": "000000045552.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000045552.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 2,
+      "pred": 3
+    },
+    {
+      "image": "000000048432.jpg",
+      "class": "person",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 10,
+      "pred": 13
+    },
+    {
+      "image": "000000048432.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 10,
+      "pred": 13
+    },
+    {
+      "image": "000000048432.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 10,
+      "pred": 13
+    },
+    {
+      "image": "000000054111.jpg",
+      "class": "person",
+      "scenario": "오른쪽 첫 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 6
+    },
+    {
+      "image": "000000054111.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 3,
+      "pred": 6
+    },
+    {
+      "image": "000000062483.jpg",
+      "class": "person",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000062483.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000064170.jpg",
+      "class": "person",
+      "scenario": "왼쪽에서 두 번째",
+      "cause": "order",
+      "gt": 6,
+      "pred": 15
+    },
+    {
+      "image": "000000066190.jpg",
+      "class": "person",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 2,
+      "pred": 5
+    },
+    {
+      "image": "000000067220.jpg",
+      "class": "person",
+      "scenario": "왼쪽 첫 번째",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000067220.jpg",
+      "class": "person",
+      "scenario": "오른쪽 첫 번째",
+      "cause": "order",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000067220.jpg",
+      "class": "person",
+      "scenario": "가운데",
+      "cause": "miss",
+      "gt": 3,
+      "pred": 4
+    },
+    {
+      "image": "000000071675.jpg",
+      "class": "car",
+      "scenario": "가운데",
+      "cause": "order",
+      "gt": 5,
+      "pred": 5
+    },
+    {
+      "image": "000000071675.jpg",
+      "class": "car",
+      "scenario": "제일 작은",
+      "cause": "order",
+      "gt": 5,
+      "pred": 5
+    }
+  ]
+}

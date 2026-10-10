@@ -1,3 +1,13 @@
+/**
+ * 사용자 앱 전역 상태 (Zustand).
+ *
+ * - file / previewUrl : 업로드 선택 + 로컬 미리보기(Object URL)
+ * - prompt            : 자연어 입력
+ * - isProcessing      : 업로드·파이프라인 진행 중
+ * - result            : 서버 처리 결과 (before/after URL 등)
+ *
+ * setFile / reset 시 이전 Object URL 을 revoke 해 메모리 누수를 막는다.
+ */
 import { create } from "zustand";
 import type { ParsedPrompt, ProcessResultState } from "../types";
 
@@ -20,17 +30,25 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   file: null,
   previewUrl: null,
+  // -------------------------------------------------------------------------
+  // 【수동】 앱 최초 로드 시 작업실 textarea 기본 프롬프트 문구
+  // 조건: 사용자가 지우기 전까지 이 문자열이 POST /upload 의 prompt 로 감
+  // 기능: 데모용 예시. 홈·가이드의 예시 칩을 누르면 setPrompt 로 덮어씀
+  // 백엔드: LLM(또는 키워드 파서)이 "사람"→person, 배경 제거→remove_bg 로 해석
+  // -------------------------------------------------------------------------
   prompt: "사람만 남기고 배경 제거해줘",
   isProcessing: false,
   error: null,
   result: null,
 
   setFile: (file) => {
+    // 이전 미리보기 URL 해제
     const prev = get().previewUrl;
     if (prev) URL.revokeObjectURL(prev);
     set({
       file,
       previewUrl: file ? URL.createObjectURL(file) : null,
+      // 새 파일이면 이전 결과/에러 초기화
       result: null,
       error: null,
     });

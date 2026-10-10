@@ -1,0 +1,5 @@
+# 테스트 러너 (backend requirements 위에 추가 설치)
+# CI: pip install -r requirements.docker.txt -r tests/requirements-test.txt
+# (LangGraph · langchain-core 는 requirements.docker.txt 에 이미 있다 — 여기서 따로 고정하면 판이 어긋나 설치가 깨진다)
+pytest>=8.0.0
+httpx>=0.27.0

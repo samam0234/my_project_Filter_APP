@@ -21,25 +21,43 @@ npm-debug.log*
 # Env & secrets
 .env
 .env.local
+.env.production
+.env.*.local
 *.pem
 
 # Runtime data / models (keep directories via .gitkeep)
 data/uploads/*
 data/feedback/*
 data/pseudo_labels/*
+data/*.db
+data/*.db-*
+# MariaDB(Docker) 데이터 파일 — bind mount (docker-compose.yml)
+data/mariaDB_datas/
+data/mariaDB_backups/
 !data/**/.gitkeep
+# backend/ = 서비스 런타임 (uploads·SQLite·서빙 모델·앱 로그)
 backend/data/uploads/*
-backend/data/feedback/*
-backend/data/pseudo_labels/*
+backend/data/backups/
+# HTTPS(Caddy) 인증서 · 계정 키
+data/caddy/
+backend/data/feedback/
+backend/data/pseudo_labels/
+backend/data/*.db
+backend/data/*.db-*
 !backend/data/**/.gitkeep
+!backend/data/README.md
 models/*
 !models/.gitkeep
+!models/README.md
 backend/models/*
 !backend/models/.gitkeep
+!backend/models/README.md
 logs/*
 !logs/.gitkeep
+!logs/README.md
 backend/logs/*
 !backend/logs/.gitkeep
+!backend/logs/README.md
 
 # IDE / OS
 .idea/
@@ -55,3 +73,28 @@ Thumbs.db
 *.tsbuildinfo
 tmp/
 temp/
+
+# Personal scratch (local only) — keep README as guide
+Scribble/**
+!Scribble/README.md
+
+# Console build
+console/dist/
+console/.vite/
+
+# Training zone (keep scripts/configs/README; ignore data & runs)
+training/.venv/
+training/datasets/**
+!training/datasets/.gitkeep
+training/outputs/**
+!training/outputs/.gitkeep
+training/configs/*.resolved.yaml
+training/models/
+training/**/runs/
+training/**/wandb/
+
+# 배포용 모델 묶음 (scripts/models_bundle.py)
+/dist/
+
+# Cloudflare wrangler 로컬 캐시
+.wrangler/

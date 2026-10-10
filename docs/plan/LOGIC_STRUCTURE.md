@@ -6,8 +6,14 @@
 **근거 문서** (동일 폴더)
 - `DEVELOPMENT_PLAN.docx` — 원본 상세 계획서
 - `PROJECT_STRUCTURE.md` — 디렉토리·모듈 구조
+- `DATABASE.md` — SQLite / MariaDB, ERD, Repository
+- `AI_MODEL_STRATEGY.md` — YOLO26m-seg · Ollama E4B · OpenAI/Gemini
+- `YOLO26S_DEFAULT.md` — 비전 기본 n→s 전환 안내
+- `TESTING.md` — pytest 구조·실행 전 검증 전략
 - `LOGIC_AND_GIT_BRANCH_STRATEGY.md` — 실행 규칙·브랜치
 - `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` — 환경·실행·배포
+
+
 
 ---
 
@@ -26,7 +32,7 @@
 ### 1.3 범위 (Phase 게이트)
 | Phase | 범위 | 성공 기준(요약) |
 |-------|------|-----------------|
-| **P1 MVP** | 단일 이미지, YOLO-seg, 기본 워크플로우, 피드백 UI | 기본 프롬프트 처리 데모 동작 |
+| **P1 MVP** | 단일 이미지, **YOLO26m-seg**, Ollama E4B 프롬프트 분석, 피드백 UI | 기본 프롬프트 처리 데모 동작 |
 | **P2** | Grounding DINO+SAM2, 배치 500장, LoRA | 배치 안정 완료 + 개선 루프 |
 | **P3** | 영상 + Temporal Smoothing + 배포 | Docker 배포 가능한 완성 앱 |
 
@@ -43,38 +49,42 @@
 └───────────────────────────┬─────────────────────────────────┘
                             │ HTTP (multipart) / SSE·WS (P2)
 ┌───────────────────────────▼─────────────────────────────────┐
-│  API Layer (FastAPI)                                        │
-│  /upload  /batch(P2)  /feedback  /health                    │
-│  security: MIME · size · extension                          │
+│  Router Layer  app/routers/                                 │
+│  upload · feedback · jobs · batch · /health                 │
+│  + schemas (Pydantic DTO)  · security (MIME/size)           │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  Workflow Orchestrator (LangGraph)                          │
-│  GraphState + nodes + conditional edges                        │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│  Domain Services                                            │
-│  image_processor · segmentation · effects · validator       │
-│  feedback_service                                           │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌──────────────┬────────────▼────────────┬────────────────────┐
-│ OpenCV       │ Models (ONNX/YOLO)      │ Storage            │
-│ preproc/FX   │ + LLM (prompt parse)    │ uploads · feedback │
-└──────────────┴─────────────────────────┴────────────────────┘
+│  Workflow (LangGraph) + Services                            │
+│  GraphState · nodes · image_processor · segment · effects   │
+└───────────────┬─────────────────────────────┬───────────────┘
+                │                             │
+┌───────────────▼───────────────┐   ┌─────────▼────────────────┐
+│  Repository Layer             │   │  Files / Models          │
+│  job / feedback / batch repo │   │  uploads · feedback · ONNX│
+└───────────────┬───────────────┘   └──────────────────────────┘
+                │
+┌───────────────▼───────────────────────────────────────────────┐
+│  ORM models + db/session                                      │
+│  Local: SQLite (backend/data/cutnkeep.db) | Prod: MariaDB     │
+└───────────────────────────────────────────────────────────────┘
          P2: Celery+Redis  |  P3: Video + Optical Flow + LSTM
 ```
 
 ### 2.1 계층별 책임
 
-| 계층 | 책임 | 하지 않는 것 |
-|------|------|--------------|
-| **Frontend** | UX, 상태, API 호출, 피드백 수집 UI | 모델 추론, 파일 영구 보관 |
-| **API** | 요청 검증, 직렬화, HTTP 계약 | OpenCV/모델 세부 구현 |
-| **Workflow** | 단계 순서·분기·재시도 | 저수준 이미지 연산 |
-| **Services** | 전처리·세그·효과·검증·피드백 I/O | 라우팅·HTTP |
-| **Infra** | 모델 파일, Redis/Celery, Docker | 비즈니스 규칙 |
+| 계층 | 경로 | 책임 | 하지 않는 것 |
+|------|------|------|--------------|
+| **Frontend** | `frontend/` | UX, API 호출 | 모델 추론, DB 직접 접근 |
+| **Router** | `app/routers/` | HTTP, Depends, 응답 매핑 | SQL, OpenCV 세부 |
+| **Schema** | `app/schemas/` | 요청/응답 DTO | DB 테이블 정의 |
+| **Workflow/Service** | `workflows/`, `services/` | 파이프라인·도메인 로직 | raw SQL |
+| **Repository** | `app/repositories/` | CRUD / commit | 비즈니스 분기 |
+| **Model (ORM)** | `app/models/` | 테이블 매핑 | HTTP |
+| **DB** | `app/db/` | engine, session, init | 도메인 규칙 |
+
+DB 상세·ERD: **`DATABASE.md`**
+
 
 ---
 
@@ -98,18 +108,22 @@
         │
         ▼
 [3] OpenCV Preprocessing
-    · imread, resize(종횡비 유지), CLAHE(clipLimit=2.0, tile=8×8)
+    · imread, resize(종횡비 유지), CLAHE(clipLimit=2.0, tile=8×8) — **기본 끔**(`PREPROCESS_CLAHE=false`, 검출·선택을 해쳐서). 재시도에서 반대쪽 입력으로 한 번 더
     · 색공간 변환 · 모든 단계 .copy()로 원본 보존
         │
         ▼
 [4] Segmentation
-    · P1: YOLOv8/11-seg (ONNX Runtime)
+    · P1: **YOLO26m-seg** (.pt / ONNX) + 배경 덩어리 SegFormer(건물 · 하늘 · 도로 등)
+    · 고른 인스턴스에서 **다른 인스턴스 몫 덜어내기** (`MASK_EXCLUSIVE=subtract`, `services/mask_exclusion.py`)
     · P2: Grounding DINO + SAM2 (오픈보캐브 대상)
+    · 프롬프트 분석 LLM: 기본 Ollama gemma4:e4b → 고도화 OpenAI/Gemini
+      (docs/plan/AI_MODEL_STRATEGY.md)
         │
         ▼
 [5] Mask Refinement + Effect
-    · GrabCut + morphologyEx(MORPH_CLOSE)
+    · 경계 다듬기(업스케일 · 안티앨리어싱 · 깃털 알파). GrabCut 은 **기본 끔**(`MASK_GRABCUT=false`, 이웃 조각을 끌어와서)
     · GaussianBlur + bitwise_and (배경 블러)
+    · 대상 지우기(remove_object): 사진은 학습형 **LaMa**(ONNX) · 영상/GIF 는 OpenCV Telea (`services/inpaint.py`)
     · boundingRect + crop / 알파 합성 / addWeighted
         │
         ▼
@@ -124,17 +138,19 @@
     · P2: Pseudo Label → 주 1회 LoRA (오프라인)
 ```
 
-### 3.1 단계 ↔ 코드 매핑 (구현 앵커)
+### 3.1 단계 ↔ 코드 매핑 (현재 구현)
 
-| Step | 모듈 (예정) | Feature 브랜치 |
-|------|-------------|----------------|
-| 1 | `api/endpoints/upload.py`, `core/security.py` | `feature/backend` |
-| 2 | `workflows/nodes.py` (`prompt_analyzer`) | `feature/llm`, `feature/langgraph` |
-| 3 | `services/image_processor.py` | `feature/opencv` |
-| 4 | `services/segmentation.py` | `feature/yolo` → `feature/sam2` |
-| 5 | `services/effects.py` | `feature/opencv` |
-| 6 | `services/validator.py` | `feature/langgraph` |
-| 7 | `services/feedback_service.py`, `api/.../feedback.py` | `feature/feedback` |
+경로는 모두 `backend/app/` 기준. 오른쪽은 처음 넣은 브랜치 이름이고, 지금 코드는 `develop` 에 있다.
+
+| Step | 모듈 | 상태 |
+|------|------|------|
+| 1 | `routers/upload.py`, `core/security.py` | 구현 |
+| 2 | `workflows/nodes.py` (`prompt_analyzer`), `services/prompt_spec.py` | 구현 (Ollama 기본, LoRA·클라우드 선택) |
+| 3 | `services/image_processor.py` | 구현 |
+| 4 | `services/segmentation.py`, `utils/onnx_utils.py`, `services/instance_selector.py` | 구현 (YOLO26m-seg `.pt` / ONNX). SAM2 는 `OPEN_VOCAB_ENABLED` 일 때만, 가중치 없으면 YOLO 로 폴백 |
+| 5 | `services/effects.py` | 구현 |
+| 6 | `services/validator.py` | 구현 |
+| 7 | `services/feedback_service.py`, `routers/feedback.py` | 구현 |
 
 ---
 
@@ -162,7 +178,7 @@ GraphState
 
 | 노드 | 입력 | 출력 | 기술 |
 |------|------|------|------|
-| `prompt_analyzer` | prompt | parsed_prompt | LangChain + LLM |
+| `prompt_analyzer` | prompt | parsed_prompt (target·effect·selector) | Ollama/LoRA/OpenAI/Gemini HTTP·로컬 추론, 실패 시 키워드 |
 | `preprocessor` | image | preprocessed_image | OpenCV |
 | `segmentor` | preprocessed + target | mask, confidence | YOLO / DINO+SAM2 |
 | `effect_applier` | image + mask + effect | effect_result | OpenCV |
@@ -231,12 +247,17 @@ P2: text prompt → Grounding DINO boxes → SAM2 masks
 
 | Method | Path | Phase | 설명 |
 |--------|------|-------|------|
-| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 |
-| POST | `/api/v1/feedback` | P1 | like/dislike + job_id |
-| GET | `/health` | P1 | 헬스체크 |
-| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id |
-| GET | `/api/v1/batch/{job_id}` | P2 | 진행률·결과 |
+| POST | `/api/v1/upload` | P1 | 단일 이미지 + prompt → 결과 (**로그인: DB jobs 저장** · 비로그인: 저장 없이 data URL) |
+| GET | `/api/v1/jobs/{job_id}` | P1 | 본인 job 조회 (로그인) |
+| GET | `/api/v1/jobs` | P1 | 본인 최근 job 목록 (로그인) |
+| POST | `/api/v1/feedback` | P1 | like/dislike → **DB feedbacks** + 파일 사이드카 (로그인 · 본인 작업) |
+| * | `/api/v1/auth/*` | P1 | 로그인 · 회원가입 · 아이디/비밀번호 찾기 |
+| GET | `/api/v1/console/*` | P1 | 운영 콘솔 전체 조회 (서버 PC 에서만) |
+| GET | `/health` | P1 | 헬스체크 (+ `db_dialect`) |
+| POST | `/api/v1/batch` | P2 | 다중 업로드 → job_id (**batch_jobs**, 로그인 회원) |
+| GET | `/api/v1/batch/{job_id}` | P2 | 본인 배치 진행률·결과 |
 | WS/SSE | `/api/v1/batch/{job_id}/stream` | P2 | 실시간 진행률 |
+
 
 ### 6.2 업로드 요청/응답 (개념)
 
@@ -306,23 +327,32 @@ useAppStore
 
 ### 8.1 배치 (Phase 2)
 ```
-POST /batch → Celery task enqueue
-  worker: for image in generator(files):
-            run same 7-step pipeline
-            update Redis progress
-  client: poll or SSE → progress %
+POST /batch (회원) → 파일 저장 + status=queued
+  기본: BackgroundTasks → run_batch_job
+  BATCH_USE_CELERY=true: Celery + Redis (compose profile phase2)
+  worker: generator 로 한 장씩 → batch_jobs.progress 갱신
+  client: GET /batch/{job_id}
 ```
 - 최대 500장
-- 메모리: **반드시 generator/스트리밍** (한 번에 전체 로드 금지)
+- 메모리: **한 장씩** (`run_batch_job` 이 항목마다 `run_pipeline` 호출, 결과는 `batches/{id}/out/` 으로 옮기고 임시 폴더 삭제)
 
-### 8.2 영상 (Phase 3)
+### 8.2 영상
 ```
-video → frames
-  per frame: 7-step pipeline
-  Temporal Smoothing: Optical Flow + LSTM/GRU
-  → reassembled video
+POST /video → frames
+  per frame: FrameRenderer (세그 → selector → 겹침 덜어내기 → 직전 마스크 유지 → 광학 흐름 스무딩 → 효과)
+  → MJPG 임시 avi → ffmpeg H.264 mp4 (+ 원본 오디오), 실패 시 webm → avi
+  회원: uploads/videos/{id} 보관 + jobs(kind=video) + 첫 프레임 thumb.jpg
 ```
-- 목표: 프레임 간 마스크 깜빡임/흔들림 감소
+- 비로그인은 응답으로만 받고 저장하지 않는다
+- 프레임 간 추적: 위치 · 순서 · 개수로 고른 대상은 `services/instance_tracker.py` 가 첫 프레임에서 고른 인스턴스를 따라간다 (예측 위치 IoU + 색 분포, 다른 사람도 같이 추적, 가려지면 예측 위치를 이어 감) — [video-tracking-20261009.md](../vaildates/video-tracking-20261009.md)
+
+### 8.3 GIF
+```
+POST /gif → Pillow 로 프레임 합성(disposal 처리) → FrameRenderer(영상과 같은 규칙)
+  → 투명 GIF (배경 제거, 1비트 투명) + 움직이는 WebP (8비트 알파, 부드러운 경계)
+  → 프레임 간격 · 반복 유지, GIF_MAX_FRAMES(120) · GIF_MAX_PIXELS(4MP)
+  회원: uploads/{id}/before.gif · after.gif(.webp) + jobs(kind=gif) / 비로그인: data URL 응답
+```
 
 ---
 
@@ -392,10 +422,12 @@ frontend ↛ backend 내부 모듈 (HTTP만)
 | 파일 | 역할 |
 |------|------|
 | **`LOGIC_STRUCTURE.md`** (본 문서) | 통합 로직 구조 — 구현 시 1순위 참조 |
+| **`DATABASE.md`** | SQLite/MariaDB, ERD, Repository, 환경변수 |
 | `DEVELOPMENT_PLAN.docx` | 원본 상세 계획서 (Why/Phase/일정) |
 | `PROJECT_STRUCTURE.md` | 폴더·파일 트리 |
 | `LOGIC_AND_GIT_BRANCH_STRATEGY.md` | 실행 규칙 + Git 전략 |
 | `DEVELOPMENT_AND_DEPLOYMENT_GUIDE.md` | 환경 세팅·로컬 실행·Docker |
+
 
 ---
 

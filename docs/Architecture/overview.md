@@ -1,0 +1,29 @@
+# System Overview
+
+## 한 줄
+
+프롬프트 기반 선택적 배경 제거(Cut & Keep) — React 사용자 앱 + 운영 콘솔 + FastAPI + SQLite/MariaDB.
+
+## 구성 요소
+
+```
+[Browser]
+   │
+   ├─ frontend :5173  사용자 업로드/필터
+   └─ console  :5174  운영 Job/헬스 모니터링
+         │
+         ▼
+   backend :8000  FastAPI
+         │
+         ├─ LangGraph workflow + OpenCV/YOLO(or stub)
+         ├─ Repository → SQLite | MariaDB
+         └─ Files: backend/data/uploads (런타임), data/feedback (학습 공유)
+```
+
+## Phase
+
+| Phase | 초점 |
+|-------|------|
+| 1 ✅ | 단일 이미지, 계층 구조, DB, Docker, Console |
+| 2 ✅ | 배치 500, 영상 · GIF, 배경 덩어리(SegFormer), LaMa 지우기, 해석 체인, LoRA 재학습, SAM2(코드) |
+| 3 (진행) | 영상 흐름 보정(✅) · 추적, 배포(HTTPS · SMTP · 처리방침), YOLO 재학습 |

@@ -1,0 +1,349 @@
+{
+ "F-left": {
+  "scenario": "left",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8077,
+    "cover": 0.8602,
+    "bf": 0.6368,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8076,
+    "cover": 0.8566,
+    "bf": 0.6361,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0471,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8057,
+    "cover": 0.8593,
+    "bf": 0.6063,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0195,
+   "select_leak_case5_pick_ok": 0.077,
+   "final_leak_pick_ok": 0.0167,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 91,
+   "seconds": 0.209,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "F-right": {
+  "scenario": "right",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0411,
+    "leak_case5": 0.14,
+    "leak_case15": 0.05,
+    "iou": 0.8085,
+    "cover": 0.8735,
+    "bf": 0.6092,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0386,
+    "leak_case5": 0.12,
+    "leak_case15": 0.04,
+    "iou": 0.8035,
+    "cover": 0.8611,
+    "bf": 0.6047,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0394,
+    "leak_case5": 0.12,
+    "leak_case15": 0.04,
+    "iou": 0.8039,
+    "cover": 0.864,
+    "bf": 0.5972,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.014,
+   "select_leak_case5_pick_ok": 0.088,
+   "final_leak_pick_ok": 0.0109,
+   "final_leak_case5_pick_ok": 0.066,
+   "n_pick_ok": 91,
+   "seconds": 0.091,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "F-largest": {
+  "scenario": "largest",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0621,
+    "leak_case5": 0.15,
+    "leak_case15": 0.09,
+    "iou": 0.8372,
+    "cover": 0.8977,
+    "bf": 0.6286,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0571,
+    "leak_case5": 0.13,
+    "leak_case15": 0.08,
+    "iou": 0.8381,
+    "cover": 0.8932,
+    "bf": 0.6291,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0572,
+    "leak_case5": 0.14,
+    "leak_case15": 0.08,
+    "iou": 0.8371,
+    "cover": 0.8956,
+    "bf": 0.6114,
+    "empty": 0
+   },
+   "pick_ok": 0.92,
+   "select_leak_pick_ok": 0.0158,
+   "select_leak_case5_pick_ok": 0.076,
+   "final_leak_pick_ok": 0.0108,
+   "final_leak_case5_pick_ok": 0.065,
+   "n_pick_ok": 92,
+   "seconds": 0.092,
+   "det_recall": 0.957,
+   "merged_cases": 0.07
+  }
+ },
+ "F-rank2": {
+  "scenario": "rank2",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0747,
+    "leak_case5": 0.194,
+    "leak_case15": 0.081,
+    "iou": 0.7848,
+    "cover": 0.8649,
+    "bf": 0.6454,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0724,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7845,
+    "cover": 0.8617,
+    "bf": 0.6451,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0723,
+    "leak_case5": 0.177,
+    "leak_case15": 0.081,
+    "iou": 0.7839,
+    "cover": 0.865,
+    "bf": 0.6477,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0196,
+   "select_leak_case5_pick_ok": 0.125,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.1,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "F-touching": {
+  "scenario": "touching",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0388,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8767,
+    "bf": 0.6119,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0391,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8065,
+    "cover": 0.8606,
+    "bf": 0.6077,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0396,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.8047,
+    "cover": 0.8632,
+    "bf": 0.5788,
+    "empty": 1
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0229,
+   "select_leak_case5_pick_ok": 0.11,
+   "final_leak_pick_ok": 0.0191,
+   "final_leak_case5_pick_ok": 0.099,
+   "n_pick_ok": 91,
+   "seconds": 0.108,
+   "det_recall": 0.953,
+   "merged_cases": 0.08
+  }
+ },
+ "F-all_persons": {
+  "scenario": "all_persons",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 100,
+   "select": {
+    "empty": 100
+   },
+   "refine": {
+    "leak": 0.0115,
+    "leak_case5": 0.052,
+    "leak_case15": 0.01,
+    "iou": 0.8369,
+    "cover": 0.9044,
+    "bf": 0.6532,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.0118,
+    "leak_case5": 0.052,
+    "leak_case15": 0.01,
+    "iou": 0.8361,
+    "cover": 0.9091,
+    "bf": 0.6295,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0118,
+   "final_leak_case5_pick_ok": 0.052,
+   "n_pick_ok": 96,
+   "seconds": 0.093
+  }
+ },
+ "F-one_person_with_objects": {
+  "scenario": "one_person_with_objects",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 69,
+   "select": {
+    "empty": 69
+   },
+   "refine": {
+    "leak": 0.0138,
+    "leak_case5": 0.062,
+    "leak_case15": 0.015,
+    "iou": 0.8545,
+    "cover": 0.9158,
+    "bf": 0.6441,
+    "empty": 4
+   },
+   "final": {
+    "leak": 0.014,
+    "leak_case5": 0.062,
+    "leak_case15": 0.015,
+    "iou": 0.853,
+    "cover": 0.9187,
+    "bf": 0.6295,
+    "empty": 4
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.014,
+   "final_leak_case5_pick_ok": 0.062,
+   "n_pick_ok": 65,
+   "seconds": 0.106
+  }
+ },
+ "F-car": {
+  "scenario": "car",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0602,
+    "leak_case5": 0.167,
+    "leak_case15": 0.083,
+    "iou": 0.751,
+    "cover": 0.8362,
+    "bf": 0.5954,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0598,
+    "leak_case5": 0.167,
+    "leak_case15": 0.083,
+    "iou": 0.7518,
+    "cover": 0.8416,
+    "bf": 0.5556,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0598,
+   "final_leak_case5_pick_ok": 0.167,
+   "n_pick_ok": 24,
+   "seconds": 0.096
+  }
+ },
+ "F-dog": {
+  "scenario": "dog",
+  "desc": "새 기본값 + 위험 신호 기록",
+  "summary": {
+   "n": 32,
+   "select": {
+    "empty": 32
+   },
+   "refine": {
+    "leak": 0.0198,
+    "leak_case5": 0.069,
+    "leak_case15": 0.069,
+    "iou": 0.8575,
+    "cover": 0.9182,
+    "bf": 0.6723,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0198,
+    "leak_case5": 0.069,
+    "leak_case15": 0.069,
+    "iou": 0.8572,
+    "cover": 0.9207,
+    "bf": 0.6663,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0198,
+   "final_leak_case5_pick_ok": 0.069,
+   "n_pick_ok": 29,
+   "seconds": 0.108
+  }
+ }
+}

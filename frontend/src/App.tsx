@@ -1,59 +1,120 @@
-import { Scissors } from "lucide-react";
-import { Button } from "./components/common/Button";
-import { ImageUploader } from "./components/image/ImageUploader";
-import { BeforeAfterViewer } from "./components/image/BeforeAfterViewer";
-import { ProcessingStatus } from "./components/image/ProcessingStatus";
-import { PromptInput } from "./components/prompt/PromptInput";
-import { FeedbackButtons } from "./components/feedback/FeedbackButtons";
-import { BatchUploader } from "./components/batch/BatchUploader";
-import { useImageProcessing } from "./hooks/useImageProcessing";
-import { useAppStore } from "./store/useAppStore";
+/**
+ * 사용자 앱 루트 (Vite :5173) — 경로별 페이지 선택.
+ *
+ * | 경로          | 페이지            |
+ * |---------------|-------------------|
+ * | /             | 홈                |
+ * | /studio       | 작업실 (배경 제거) |
+ * | /account      | 내 계정 (내 정보 · 작업 기록 · 보안 · 탈퇴) |
+ * | /history      | → /account?tab=history (예전 주소) |
+ * | /jobs/:id     | 작업 상세         |
+ * | /guide        | 프롬프트 가이드   |
+ * | /batch        | 배치 (회원 전용)  |
+ * | /video        | 영상              |
+ * | /login        | 로그인            |
+ * | /signup       | 회원가입          |
+ * | /find-id      | 아이디 찾기       |
+ * | /find-password| 비밀번호 찾기     |
+ * | /privacy      | 개인정보 처리방침 |
+ * | /terms        | 이용약관          |
+ *
+ * 앱 시작 시 /auth/me 로 로그인 상태를 확인한다 (세션은 HttpOnly 쿠키).
+ * 이미 로그인한 사용자가 로그인·가입 화면에 오면 next(또는 홈)로 보낸다.
+ * 라우터: ./router.tsx (History API). 상태: useAppStore (작업실 입력·결과 유지).
+ */
+import { useEffect } from "react";
+import { safeNext } from "./components/auth/AuthForm";
+import { AppLayout } from "./components/layout/AppLayout";
+import { AccountPage } from "./pages/AccountPage";
+import { BatchPage } from "./pages/BatchPage";
+import { GuidePage } from "./pages/GuidePage";
+import { HomePage } from "./pages/HomePage";
+import { JobDetailPage } from "./pages/JobDetailPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { StudioPage } from "./pages/StudioPage";
+import { VideoPage } from "./pages/VideoPage";
+import { FindIdPage } from "./pages/auth/FindIdPage";
+import { FindPasswordPage } from "./pages/auth/FindPasswordPage";
+import { LoginPage } from "./pages/auth/LoginPage";
+import { SignupPage } from "./pages/auth/SignupPage";
+import { PrivacyPage } from "./pages/legal/PrivacyPage";
+import { TermsPage } from "./pages/legal/TermsPage";
+import { matchRoute, navigate, usePathname, useSearch } from "./router";
+import { useAuthStore } from "./store/useAuthStore";
+
+const TITLES: Record<string, string> = {
+  "/": "홈",
+  "/studio": "작업실",
+  "/account": "내 계정",
+  "/history": "내 계정",
+  "/guide": "프롬프트 가이드",
+  "/batch": "배치",
+  "/video": "영상",
+  "/login": "로그인",
+  "/signup": "회원가입",
+  "/find-id": "아이디 찾기",
+  "/find-password": "비밀번호 찾기",
+  "/privacy": "개인정보 처리방침",
+  "/terms": "이용약관",
+};
+
+/** 로그인 상태면 들어올 필요 없는 화면 */
+const GUEST_ONLY = new Set(["/login", "/signup", "/find-id", "/find-password"]);
+
+/** 예전 주소(/history)를 내 계정의 한 구역으로 보낸다 — 북마크 · 로그인 next 가 깨지지 않게, 필터 쿼리는 유지 */
+function Redirect({ to, tab }: { to: string; tab: string }) {
+  const search = useSearch();
+  useEffect(() => {
+    const q = new URLSearchParams(search);
+    q.set("tab", tab);
+    navigate(`${to}?${q.toString()}`, { replace: true });
+  }, [to, tab, search]);
+  return null;
+}
+
+function Page({ pathname }: { pathname: string }) {
+  if (matchRoute("/", pathname)) return <HomePage />;
+  if (matchRoute("/studio", pathname)) return <StudioPage />;
+  if (matchRoute("/account", pathname)) return <AccountPage />;
+  if (matchRoute("/history", pathname)) return <Redirect to="/account" tab="history" />;
+  if (matchRoute("/guide", pathname)) return <GuidePage />;
+  if (matchRoute("/batch", pathname)) return <BatchPage />;
+  if (matchRoute("/video", pathname)) return <VideoPage />;
+  if (matchRoute("/login", pathname)) return <LoginPage />;
+  if (matchRoute("/signup", pathname)) return <SignupPage />;
+  if (matchRoute("/find-id", pathname)) return <FindIdPage />;
+  if (matchRoute("/find-password", pathname)) return <FindPasswordPage />;
+  if (matchRoute("/privacy", pathname)) return <PrivacyPage />;
+  if (matchRoute("/terms", pathname)) return <TermsPage />;
+  const job = matchRoute("/jobs/:id", pathname);
+  if (job) return <JobDetailPage jobId={job.id} />;
+  return <NotFoundPage />;
+}
 
 export default function App() {
-  const { process, isProcessing } = useImageProcessing();
-  const reset = useAppStore((s) => s.reset);
-  const file = useAppStore((s) => s.file);
+  const pathname = usePathname();
+  const search = useSearch();
+  const authStatus = useAuthStore((s) => s.status);
+  const refreshAuth = useAuthStore((s) => s.refresh);
+
+  useEffect(() => {
+    void refreshAuth();
+  }, [refreshAuth]);
+
+  useEffect(() => {
+    if (authStatus === "user" && GUEST_ONLY.has(pathname)) {
+      navigate(safeNext(search), { replace: true });
+    }
+  }, [authStatus, pathname, search]);
+
+  useEffect(() => {
+    const base = pathname.startsWith("/jobs/") ? "작업 상세" : TITLES[pathname] ?? "페이지 없음";
+    document.title = `${base} · 컷앤킵`;
+  }, [pathname]);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 text-brand-500">
-          <Scissors className="h-6 w-6" />
-          <span className="text-xs font-semibold uppercase tracking-widest">
-            Cut & Keep
-          </span>
-        </div>
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">
-          컷앤킵 — 프롬프트로 원하는 것만 남기기
-        </h1>
-        <p className="text-sm text-slate-400">
-          자연어로 대상을 지정하면 배경을 제거하고 선택 효과(블러/크롭)를
-          적용합니다. Phase 1 MVP 스켈레톤.
-        </p>
-      </header>
-
-      <main className="flex flex-col gap-5">
-        <ImageUploader />
-        <PromptInput />
-        <ProcessingStatus />
-
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={() => process()} disabled={isProcessing || !file}>
-            처리 시작
-          </Button>
-          <Button variant="ghost" onClick={() => reset()} disabled={isProcessing}>
-            초기화
-          </Button>
-        </div>
-
-        <BeforeAfterViewer />
-        <FeedbackButtons />
-        <BatchUploader />
-      </main>
-
-      <footer className="mt-auto border-t border-slate-800 pt-4 text-xs text-slate-500">
-        docs/plan 로직 구조 기반 · YOLO-seg + LangGraph + OpenCV
-      </footer>
-    </div>
+    <AppLayout>
+      <Page pathname={pathname} />
+    </AppLayout>
   );
 }

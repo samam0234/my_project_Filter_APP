@@ -26,39 +26,21 @@
 
 ## 2. Backend 의존성 (Python)
 
-### 2.1 핵심 패키지 (Phase 1 필수)
+### 2.1 핵심 패키지
 
-```txt
-# requirements.txt (Phase 1 기준)
+> **버전의 기준은 저장소 루트 `requirements.txt`(로컬 전체) · `requirements.docker.txt`(Docker) 다.** 이 문서는 버전을 따로 적지 않는다
+> (예전 Phase 1 목록이 실제 파일과 어긋났다). 2026-10-10 의존성 취약점 점검 후 올린 주요 판:
+> FastAPI 0.143 · starlette 1.7 · uvicorn 0.54 · python-multipart 0.0.32 · pydantic 2.14 · Pillow 12.3 · LangGraph 1.2 · langchain-core 1.6 ·
+> cryptography 50.0 — `pip-audit` 0건 ([`../guidance/security.md`](../guidance/security.md) 5절).
 
-# Web Framework
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-python-multipart==0.0.9
-pydantic==2.9.2
-pydantic-settings==2.5.2
-
-# Image Processing
-opencv-python-headless==4.10.0.84
-numpy==1.26.4
-Pillow==10.4.0
-
-# YOLO & ONNX
-ultralytics==8.3.0
-onnxruntime==1.19.2          # CPU
-# onnxruntime-gpu==1.19.2    # GPU 사용 시
-
-# LangGraph / LangChain
-langchain==0.3.1
-langchain-core==0.3.6
-langgraph==0.2.28
-langchain-openai==0.2.1      # 또는 langchain-community (로컬 LLM용)
-
-# Utils
-python-dotenv==1.0.1
-aiofiles==24.1.0
-loguru==0.7.2
-```
+| 묶음 | 패키지 |
+|------|--------|
+| 웹 | fastapi · uvicorn · python-multipart · pydantic · pydantic-settings |
+| 이미지 · 영상 | opencv-python-headless · numpy · Pillow · imageio-ffmpeg |
+| 세그 · 지우기 | ultralytics(+ torch, Docker 는 빌드 인자 `SEG_RUNTIME`) · onnxruntime (SegFormer · LaMa · ONNX YOLO) |
+| 파이프라인 | langgraph · langchain-core (백엔드는 이 둘만 import — LLM 호출은 urllib) |
+| DB | SQLAlchemy · PyMySQL · cryptography |
+| 기타 | python-dotenv · aiofiles · loguru |
 
 ### 2.2 Phase 2 추가 패키지
 
@@ -143,20 +125,32 @@ pnpm install
 git clone <your-repo> cut-and-keep
 cd cut-and-keep
 
-# 2. Backend 세팅
-cd backend
+# 2. Backend 세팅 (의존성 파일은 저장소 루트)
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+# 경량 Docker 와 동일: pip install -r requirements.docker.txt
 
 # 3. Frontend 세팅
-cd ../frontend
+cd frontend
 npm install
 
 # 4. 환경변수 설정
 cp .env.example .env
 # .env 파일에 필요한 값 입력 (OPENAI_API_KEY, REDIS_URL 등)
 ```
+
+### 3.9 테스트 (실행 전 검증)
+
+```bash
+# 저장소 루트
+pip install -r requirements.txt
+pip install -r tests/requirements-test.txt
+pytest
+# 또는 골격만: pytest tests/structure
+```
+
+상세: `docs/plan/TESTING.md`, `tests/README.md`
 
 ### 4.1 주요 환경변수 (.env)
 
@@ -170,22 +164,50 @@ SECRET_KEY=your-secret-key-here
 MAX_UPLOAD_SIZE_MB=20
 ALLOWED_MIME_TYPES=image/jpeg,image/png,image/webp
 
-# 모델 경로
-YOLO_MODEL_PATH=models/yolov8n-seg.onnx
+# 모델 경로 (YOLO26m instance segmentation — 기본 m 스케일)
+YOLO_MODEL_PATH=models/yolo26m-seg.pt
+# YOLO_MODEL_PATH=models/yolo26m-seg.onnx
 UPLOAD_DIR=data/uploads
 FEEDBACK_DIR=data/feedback
 
-# LLM (프롬프트 분석용)
-OPENAI_API_KEY=sk-...
-# 또는 로컬 LLM 사용 시
-# LLM_BASE_URL=http://localhost:11434
+# LLM — 기본 로컬 Ollama E4B, 고도화 openai/gemini
+# 상세: docs/plan/AI_MODEL_STRATEGY.md
+LLM_PROVIDER=ollama
+LLM_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=gemma4:e4b
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4o-mini
+# LLM_PROVIDER=gemini
+# GEMINI_API_KEY=...
+# GEMINI_MODEL=gemini-2.0-flash
 
-# Redis (Phase 2)
-REDIS_URL=redis://localhost:6379/0
+# Redis — 호스트에서 Docker Redis 쓸 때 6380
+REDIS_URL=redis://localhost:6380/0
 
 # 파일 자동 삭제 (시간)
 FILE_RETENTION_HOURS=24
+
+# CORS (console 5174 포함)
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
+
+# Database — 로컬 SQLite / Docker·배포 MariaDB
+DB_DIALECT=sqlite
+SQLITE_PATH=data/cutnkeep.host.db   # backend/ 기준 (Docker 는 data/cutnkeep.db)
+# 호스트 DBeaver: 127.0.0.1 + MARIADB_PORT (예 3309)
+# Docker backend: compose 가 HOST=mariadb PORT=3306 강제
+# MARIADB_HOST=localhost
+# MARIADB_PORT=3309
+# MARIADB_USER=admin
+# MARIADB_PASSWORD=...
+# MARIADB_DATABASE=cutnkeep
+# MYSQL_ROOT_PASSWORD=...
+# DATABASE_URL=mysql+pymysql://...
 ```
+
+DB 설계·ERD: `docs/plan/DATABASE.md`  
+현재 스택(포트·Adminer·비밀번호 전용): `docs/plan/CURRENT_STACK.md`
+
 
 ---
 
@@ -211,11 +233,17 @@ npm run dev
 
 - 기본 주소: http://localhost:5173
 
-### 5.3 Celery Worker (Phase 2)
+### 5.3 Celery Worker (Phase 2, 선택)
+
+기본 배치는 API 프로세스의 BackgroundTasks 다 (`BATCH_USE_CELERY=false`).
+Redis 워커를 쓸 때만 아래를 켠다. compose 서비스 `celery_worker` 는 profile `phase2` 라
+`docker compose up` 만으로는 뜨지 않는다.
 
 ```bash
 cd backend
 celery -A app.tasks.batch_tasks worker --loglevel=info
+# 또는
+# BATCH_USE_CELERY=true docker compose -p cut_and_keep --profile phase2 up -d celery_worker
 ```
 
 ### 5.4 Redis (Phase 2)
@@ -310,21 +338,21 @@ services:
 
 ### 7.2 Backend Dockerfile 예시
 
+실제 파일: `backend/Dockerfile` (빌드 context = **저장소 루트**).
+
 ```dockerfile
 FROM python:3.11-slim
-
 WORKDIR /app
 
-# 시스템 의존성
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 루트 의존성 (경량 이미지 기본)
+COPY requirements.docker.txt requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.docker.txt
 
-COPY . .
+COPY backend/ ./
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

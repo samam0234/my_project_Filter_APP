@@ -1,1 +1,1 @@
-"""Core configuration, security, and constants."""
+"""core: 설정·상수·보안 등 앱 전역 인프라."""

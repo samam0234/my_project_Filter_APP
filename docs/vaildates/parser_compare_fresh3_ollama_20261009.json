@@ -1,0 +1,521 @@
+{
+ "sets": {
+  "fresh3": {
+   "heuristic": {
+    "n": 30,
+    "exact": 0.43333333333333335,
+    "target": 0.9666666666666667,
+    "extra": 0,
+    "sec": 8.53799981996417e-05,
+    "calls": {},
+    "misses": [
+     {
+      "prompt": "왼쪽에 있는 고양이 두 마리만 살려줘",
+      "pred": {
+       "target": [
+        "cat"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "앞줄 사람 세 명만 남기고 배경은 투명하게",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "뒤쪽 차 두 대는 지워줘",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "back",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "오른편 의자 2개만 선명하게 나머지 흐리게",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": false,
+      "kind": "wrong",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "말 두 마리 가운데 더 큰 말만 남기고 배경 지워",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "가장 가까이 있는 자전거 한 대만 남겨줘",
+      "pred": {
+       "target": [
+        "bicycle"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "제일 멀리 있는 사람만 지워 줘",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "병 두 개 중 작은 병만 크롭",
+      "pred": {
+       "target": [
+        "bottle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "오른쪽 새 세 마리만 남겨줘",
+      "pred": {
+       "target": [
+        "bird"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "왼쪽 끝 사람 두 명은 빼고 다 투명하게",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "가운데 서 있는 두 사람만 선명하게 강도 40",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 40,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep the two people on the left",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "remove the smaller of the two dogs",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "blur everything except the three cars on the right",
+      "pred": {
+       "target": [
+        "car"
+       ],
+       "effect": "blur",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "right",
+        "rank": null,
+        "count": null,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "keep only the larger horse",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "노트북 두 대만 남겨줘",
+      "pred": {
+       "target": [
+        "laptop"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "사람 네 명만 남기고 배경 날려",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": null
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   },
+   "chain_ollama": {
+    "n": 30,
+    "exact": 0.8333333333333334,
+    "target": 1.0,
+    "extra": 0,
+    "sec": 5.7429612300009465,
+    "calls": {
+     "ollama": 32
+    },
+    "misses": [
+     {
+      "prompt": "말 두 마리 가운데 더 큰 말만 남기고 배경 지워",
+      "pred": {
+       "target": [
+        "horse"
+       ],
+       "effect": "remove_bg",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "center",
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "병 두 개 중 작은 병만 크롭",
+      "pred": {
+       "target": [
+        "bottle"
+       ],
+       "effect": "crop",
+       "intensity": 15,
+       "crop": true,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": null,
+        "attributes": [
+         "smaller bottle"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "왼쪽 끝 사람 두 명은 빼고 다 투명하게",
+      "pred": {
+       "target": [
+        "person"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": "left",
+        "rank": null,
+        "count": 2,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": false,
+      "selector_ok": true
+     },
+     {
+      "prompt": "remove the smaller of the two dogs",
+      "pred": {
+       "target": [
+        "dog"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": [
+         "smaller dog"
+        ]
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     },
+     {
+      "prompt": "의자 중에 가장 작은 거 지워줘",
+      "pred": {
+       "target": [
+        "chair"
+       ],
+       "effect": "remove_object",
+       "intensity": 15,
+       "crop": false,
+       "selector": {
+        "position": null,
+        "rank": null,
+        "count": 1,
+        "attributes": []
+       }
+      },
+      "valid": true,
+      "exact": false,
+      "target_ok": true,
+      "kind": "ok",
+      "effect_ok": true,
+      "selector_ok": false
+     }
+    ]
+   }
+  }
+ },
+ "parsers": [
+  "heuristic",
+  "chain_ollama"
+ ],
+ "total": {
+  "heuristic": {
+   "n": 30,
+   "exact": 0.43333333333333335,
+   "target": 0.9666666666666667,
+   "sec": 8.53799981996417e-05
+  },
+  "chain_ollama": {
+   "n": 30,
+   "exact": 0.8333333333333334,
+   "target": 1.0,
+   "sec": 5.7429612300009465
+  }
+ }
+}

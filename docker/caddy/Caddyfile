@@ -1,0 +1,38 @@
+# 컷앤킵 HTTPS 앞단 (docker-compose.https.yml)
+#
+# DOMAIN 이 실제 도메인이면 Let's Encrypt 인증서를 자동으로 받고 갱신한다
+#   (도메인의 A 레코드가 이 서버 IP 를 가리키고, 80 · 443 포트가 밖에서 열려 있어야 한다)
+# DOMAIN=localhost 면 Caddy 내부 인증 기관으로 자체 서명 인증서를 만든다 (로컬 확인용 — 브라우저 경고는 정상)
+# http 로 들어오면 https 로 자동 이동한다.
+{
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# 브라우저가 이후 https 로만 오게 (180일). 도메인을 바꾸거나 http 로 되돌릴 계획이면 먼저 지운다
+	header Strict-Transport-Security "max-age=15552000"
+	# 서버 종류(Caddy · nginx)를 응답에 드러내지 않는다
+	header -Server
+
+	# Cloudflare Worker(deploy/cloudflare)를 거쳐 온 요청 — Worker 가 비밀 값(EDGE_SECRET)을 실어 보낸 경우에만
+	# 실제 사용자 IP(X-Cnk-Real-IP)를 속도 제한용 IP 로 믿는다. EDGE_SECRET 이 비어 있으면 이 경로는 꺼진다.
+	@edge expression `"{$EDGE_SECRET}" != "" && {http.request.header.X-Cnk-Edge} == "{$EDGE_SECRET}"`
+	handle @edge {
+		reverse_proxy frontend:80 {
+			header_up X-Real-IP {http.request.header.X-Cnk-Real-IP}
+			header_up -X-Cnk-Edge
+			header_up -X-Cnk-Real-IP
+		}
+	}
+
+	# 그 밖의 요청 — 영상 · GIF 업로드는 nginx 가 85MB · 600초까지 받는다 (Caddy 는 기본으로 크기·시간 제한이 없다)
+	handle {
+		reverse_proxy frontend:80 {
+			header_up X-Real-IP {remote_host}
+			header_up -X-Cnk-Edge
+			header_up -X-Cnk-Real-IP
+		}
+	}
+}

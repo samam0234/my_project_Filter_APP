@@ -1,0 +1,26 @@
+# Docker 빌드 컨텍스트에서 제외 (backend 이미지, context=.)
+.git
+.github
+**/.venv
+**/venv
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+console
+frontend
+docs
+tests
+training
+scripts
+data
+logs
+models
+# 런타임 산출물은 이미지에 굽지 않음 (compose 가 마운트)
+backend/data
+backend/logs
+backend/models
+*.md
+.env
+.env.*
+!.env.example

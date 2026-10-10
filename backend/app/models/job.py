@@ -1,0 +1,61 @@
+"""ORM: 처리 Job 레코드.
+
+한 번의 업로드·파이프라인 실행 = jobs 테이블 1행.
+id 는 클라이언트에 노출되는 job_id 와 동일(hex uuid).
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Optional
+
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import JSON
+
+from app.db.base import Base
+
+
+class Job(Base):
+    __tablename__ = "jobs"
+
+    # PK = 파이프라인 job_id
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 로그인 상태로 처리한 작업의 소유자 (비로그인 작업은 NULL, 탈퇴 시 NULL 로)
+    user_id: Mapped[Optional[str]] = mapped_column(
+        String(32), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    # 작업 종류: image(사진) | video(영상) | gif(움직이는 GIF). 예전 행은 NULL → image 로 본다
+    kind: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, default="image")
+    # pending | ok | fallback | failed
+    status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    # ParsedPrompt JSON (target, effect, intensity, crop)
+    parsed_prompt: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    quality_score: Mapped[float] = mapped_column(Float, default=0.0)
+    # 디스크 경로 (API URL 이 아님)
+    before_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    after_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    backend: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # yolo|stub
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    labels: Mapped[Optional[list[Any]]] = mapped_column(JSON, nullable=True)
+    confidences: Mapped[Optional[list[Any]]] = mapped_column(JSON, nullable=True)
+    feedback_saved: Mapped[int] = mapped_column(Integer, default=0)  # 0/1 (SQLite 호환)
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+    # 파일 정리 스케줄용 (file_retention_hours)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

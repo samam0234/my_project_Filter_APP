@@ -1,1 +1,5 @@
-"""Domain services: image processing, segmentation, effects, validation, feedback."""
+"""도메인 서비스: 이미지 처리, 세그, 효과, 검증, 피드백.
+
+라우터/워크플로 노드는 여기 함수·클래스를 호출하고,
+DB 접근은 repositories 에 위임한다.
+"""

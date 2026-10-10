@@ -1,0 +1,35 @@
+{
+  "image": "000000001237.jpg",
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 8,
+      "wall_s": 50.0,
+      "throughput_per_min": 9.6,
+      "latency_p50_s": 6.19,
+      "latency_p95_s": 8.2,
+      "latency_max_s": 8.2,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.7,
+      "health_max_ms": 2.9,
+      "health_failures": 0
+    },
+    {
+      "concurrency": 4,
+      "requests": 8,
+      "wall_s": 22.2,
+      "throughput_per_min": 21.7,
+      "latency_p50_s": 6.8,
+      "latency_p95_s": 15.43,
+      "latency_max_s": 15.43,
+      "statuses": {
+        "ok": 8
+      },
+      "health_p50_ms": 1.9,
+      "health_max_ms": 5.5,
+      "health_failures": 0
+    }
+  ]
+}

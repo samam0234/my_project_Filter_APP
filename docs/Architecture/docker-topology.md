@@ -1,0 +1,50 @@
+# Docker Topology (`cut_and_keep`)
+
+Compose project: **`cut_and_keep`**  
+Network: **`cut_and_keep_net`**  
+스냅샷: [`docs/plan/CURRENT_STACK.md`](../plan/CURRENT_STACK.md)
+
+```text
+cut_and_keep-frontend-1   0.0.0.0:80                     (공개 — nginx, /api → backend:8000)
+cut_and_keep-backend-1    127.0.0.1:${BACKEND_PORT:-8000} → mariadb:3306(서비스 + 학습 DB), redis:6379
+cut_and_keep-mariadb-1    127.0.0.1:${MARIADB_PORT:-3306}→3306  (예 3309)
+cut_and_keep-redis-1      127.0.0.1:6380→6379
+cut_and_keep-adminer-1    127.0.0.1:8081→8080  (default server=mariadb)
+cut_and_keep-celery_worker-1  (프로필 phase2 일 때만)
+cut_and_keep-mariadb-backup-1 → mariadb (매일 덤프 → data/mariaDB_backups)
+cut_and_keep-mailpit-1        127.0.0.1:8025 (프로필 mail 일 때만)
+cut_and_keep-caddy-1          0.0.0.0:80·443 (docker-compose.https.yml 일 때만 — 이때 frontend 는 포트 없음)
+```
+
+내부 포트는 `BIND_HOST`(기본 127.0.0.1)에만 열린다. 보안 헤더 · 업로드 한도는 frontend nginx(`frontend/nginx.conf`).
+
+## Images
+
+| 이름 | 비고 |
+|------|------|
+| `cut_and_keep-backend` | context=저장소 루트, `requirements.docker.txt` |
+| `cut_and_keep-frontend` | nginx + 정적 빌드 |
+| `mariadb:11` | 공식 이미지, password-only, skip_ssl |
+| `redis:7-alpine` | |
+| `adminer:4` | DB UI |
+
+**제외:** GSS 커스텀 MariaDB 이미지 (`cut_and_keep-mariadb:gssapi` 등) · Celery
+
+## Backend 환경 오버라이드 (컨테이너)
+
+| 키 | 값 |
+|----|-----|
+| `DB_DIALECT` | `sqlite` (서비스 DB, `./backend/data` 볼륨) |
+| `LEARNING_DB_DIALECT` | `mariadb` (학습 DB) · `LEARNING_DB_FALLBACK_SQLITE=false` |
+| `MARIADB_HOST` | `mariadb` |
+| `MARIADB_PORT` | `3306` |
+| `REDIS_URL` | `redis://redis:6379/0` |
+| `LLM_BASE_URL` | `host.docker.internal:11434` (기본) |
+
+호스트 도구용 `.env` 의 `MARIADB_HOST=localhost` / `MARIADB_PORT=3309` 와 **역할이 분리**된다.
+
+## Notes
+
+- Docker Desktop Images 목록은 전역 — 다른 프로젝트 이미지도 보일 수 있음
+- 프로젝트 격리는 컨테이너·네트워크·볼륨 prefix (`cut_and_keep_*`)
+- Console 은 Compose 미포함

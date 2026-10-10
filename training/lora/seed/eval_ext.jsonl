@@ -1,0 +1,56 @@
+{"prompt": "우리 집 고양이만 남기고 나머지는 싹 지워줘", "parsed_prompt": {"target": ["cat"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "배경 다 날려주고 사람만 딱 남겨주세요", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "강아지랑 고양이 빼고 전부 투명하게 해줘", "parsed_prompt": {"target": ["dog", "cat"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "자전거 탄 사람만 남기고 배경 없애줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "누끼 따줘 사람만", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "차 두 대만 남기고 나머지 지워", "parsed_prompt": {"target": ["car"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": 2, "attributes": []}}}
+{"prompt": "맨 오른쪽 사람만 남겨 줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "right", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "가운데 있는 꽃병만 남기고 배경 제거해 주실 수 있나요?", "parsed_prompt": {"target": ["vase"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "center", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "제일 큰 곰인형만 남겨줘", "parsed_prompt": {"target": ["teddy bear"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "largest", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "뒤쪽에 서 있는 기차만 남기고 다 지워", "parsed_prompt": {"target": ["train"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "back", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "흰 셔츠 입은 남자 한 명만 남기고 배경 투명", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": 1, "attributes": ["white shirt"]}}}
+{"prompt": "말 세 마리만 남기고 배경 날려줘", "parsed_prompt": {"target": ["horse"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": 3, "attributes": []}}}
+{"prompt": "왼쪽에서 두번째 강아지만 남겨", "parsed_prompt": {"target": ["dog"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": 2, "count": 1, "attributes": []}}}
+{"prompt": "사람이랑 자전거만 남기고 배경 지워줘", "parsed_prompt": {"target": ["person", "bicycle"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "사진 속 쓰레기통 옆 자전거 좀 없애줄래", "parsed_prompt": {"target": ["bicycle"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "오른쪽 끝 자동차 지워주세요", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "right", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "가운데 앉아있는 남자 없애줘", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "center", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "화분 지워줘", "parsed_prompt": {"target": ["potted plant"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "파란 트럭 사진에서 없애", "parsed_prompt": {"target": ["truck"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["blue truck"]}}}
+{"prompt": "왼쪽에서 세 번째 사람 삭제해 줘", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": 3, "count": 1, "attributes": []}}}
+{"prompt": "검정 가방 지워줘", "parsed_prompt": {"target": ["handbag"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["black handbag"]}}}
+{"prompt": "제일 작은 비행기 지워", "parsed_prompt": {"target": ["airplane"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "smallest", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "맨 앞 의자 하나만 치워줘", "parsed_prompt": {"target": ["chair"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "front", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "사진에 찍힌 고양이 두 마리 지워줘", "parsed_prompt": {"target": ["cat"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": 2, "attributes": []}}}
+{"prompt": "주황색 헬멧 쓴 작업자 지워 줘", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["orange helmet"]}}}
+{"prompt": "아이만 선명하게 하고 배경은 흐리게", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "강아지 빼고 배경 블러 80", "parsed_prompt": {"target": ["dog"], "effect": "blur", "intensity": 80, "crop": false, "selector": null}}
+{"prompt": "배경 살짝 흐리게 해줘 강도 20 정도로 사람만 또렷하게", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 20, "crop": false, "selector": null}}
+{"prompt": "가운데 커플 두 명만 남기고 뒤는 블러", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 15, "crop": false, "selector": {"position": "center", "rank": null, "count": 2, "attributes": []}}}
+{"prompt": "오토바이만 선명하게 나머지 뿌옇게 강도 45", "parsed_prompt": {"target": ["motorcycle"], "effect": "blur", "intensity": 45, "crop": false, "selector": null}}
+{"prompt": "제일 앞에 있는 강아지 한 마리만 또렷하게, 나머지 블러", "parsed_prompt": {"target": ["dog"], "effect": "blur", "intensity": 15, "crop": false, "selector": {"position": "front", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "컵이랑 노트북만 선명하게 해줘", "parsed_prompt": {"target": ["cup", "laptop"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "고양이만 잘라줘", "parsed_prompt": {"target": ["cat"], "effect": "crop", "intensity": 15, "crop": true, "selector": null}}
+{"prompt": "오른쪽 두 번째 병만 크롭", "parsed_prompt": {"target": ["bottle"], "effect": "crop", "intensity": 15, "crop": true, "selector": {"position": "right", "rank": 2, "count": 1, "attributes": []}}}
+{"prompt": "제일 큰 피자 조각만 오려줘", "parsed_prompt": {"target": ["pizza"], "effect": "crop", "intensity": 15, "crop": true, "selector": {"position": "largest", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "가운데 사람만 남기고 크롭까지 부탁해요", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": true, "selector": {"position": "center", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "빨간 차만 크롭해 줘", "parsed_prompt": {"target": ["car"], "effect": "crop", "intensity": 15, "crop": true, "selector": {"position": null, "rank": null, "count": null, "attributes": ["red car"]}}}
+{"prompt": "사람만남기고배경제거", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "강쥐만 남겨줘", "parsed_prompt": {"target": ["dog"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "왼쪽사람 지워죠", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "배경 블러해조 사람 빼고", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "핸드폰만 남기고 다 지워", "parsed_prompt": {"target": ["cell phone"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "뒤에 버스 좀 지워봐", "parsed_prompt": {"target": ["bus"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "back", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "keep only the cat and remove the background", "parsed_prompt": {"target": ["cat"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "remove the person on the far left", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "left", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "blur everything except the two kids, strength 60", "parsed_prompt": {"target": ["person"], "effect": "blur", "intensity": 60, "crop": false, "selector": {"position": null, "rank": null, "count": 2, "attributes": []}}}
+{"prompt": "crop the largest dog", "parsed_prompt": {"target": ["dog"], "effect": "crop", "intensity": 15, "crop": true, "selector": {"position": "largest", "rank": null, "count": 1, "attributes": []}}}
+{"prompt": "erase the red car", "parsed_prompt": {"target": ["car"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["red car"]}}}
+{"prompt": "keep the man in the blue jacket", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": {"position": null, "rank": null, "count": null, "attributes": ["blue jacket"]}}}
+{"prompt": "remove the third bike from the right", "parsed_prompt": {"target": ["bicycle"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": {"position": "right", "rank": 3, "count": 1, "attributes": []}}}
+{"prompt": "person 만 남기고 background 지워줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "dog 지워줘", "parsed_prompt": {"target": ["dog"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "사람 말고 다 지워줘", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "사람 지우고 배경만 남겨줘", "parsed_prompt": {"target": ["person"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "자동차는 빼고 사람만 남겨", "parsed_prompt": {"target": ["person"], "effect": "remove_bg", "intensity": 15, "crop": false, "selector": null}}
+{"prompt": "트럭 빼줘", "parsed_prompt": {"target": ["truck"], "effect": "remove_object", "intensity": 15, "crop": false, "selector": null}}

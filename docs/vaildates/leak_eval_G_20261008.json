@@ -1,0 +1,518 @@
+{
+ "G-50-left": {
+  "scenario": "left",
+  "desc": "신뢰도 게이트 0.5",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0498,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8018,
+    "cover": 0.8541,
+    "bf": 0.6332,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0466,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8074,
+    "cover": 0.8566,
+    "bf": 0.635,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0472,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8055,
+    "cover": 0.8593,
+    "bf": 0.6054,
+    "empty": 0
+   },
+   "pick_ok": 0.9,
+   "select_leak_pick_ok": 0.0197,
+   "select_leak_case5_pick_ok": 0.078,
+   "final_leak_pick_ok": 0.0168,
+   "final_leak_case5_pick_ok": 0.078,
+   "n_pick_ok": 90,
+   "seconds": 0.177,
+   "det_recall": 0.957,
+   "merged_cases": 0.08
+  }
+ },
+ "G-50-right": {
+  "scenario": "right",
+  "desc": "신뢰도 게이트 0.5",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0414,
+    "leak_case5": 0.14,
+    "leak_case15": 0.05,
+    "iou": 0.8098,
+    "cover": 0.8751,
+    "bf": 0.6099,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0386,
+    "leak_case5": 0.12,
+    "leak_case15": 0.04,
+    "iou": 0.8052,
+    "cover": 0.8629,
+    "bf": 0.6072,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0393,
+    "leak_case5": 0.12,
+    "leak_case15": 0.04,
+    "iou": 0.8055,
+    "cover": 0.8657,
+    "bf": 0.5987,
+    "empty": 0
+   },
+   "pick_ok": 0.91,
+   "select_leak_pick_ok": 0.0143,
+   "select_leak_case5_pick_ok": 0.088,
+   "final_leak_pick_ok": 0.0109,
+   "final_leak_case5_pick_ok": 0.066,
+   "n_pick_ok": 91,
+   "seconds": 0.149,
+   "det_recall": 0.961,
+   "merged_cases": 0.08
+  }
+ },
+ "G-50-rank2": {
+  "scenario": "rank2",
+  "desc": "신뢰도 게이트 0.5",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0724,
+    "leak_case5": 0.161,
+    "leak_case15": 0.081,
+    "iou": 0.7868,
+    "cover": 0.8649,
+    "bf": 0.647,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0711,
+    "leak_case5": 0.161,
+    "leak_case15": 0.081,
+    "iou": 0.7849,
+    "cover": 0.8617,
+    "bf": 0.6464,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0711,
+    "leak_case5": 0.161,
+    "leak_case15": 0.081,
+    "iou": 0.7844,
+    "cover": 0.865,
+    "bf": 0.649,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0182,
+   "select_leak_case5_pick_ok": 0.107,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.107,
+   "n_pick_ok": 56,
+   "seconds": 0.102,
+   "det_recall": 0.949,
+   "merged_cases": 0.048
+  }
+ },
+ "G-50-touching": {
+  "scenario": "touching",
+  "desc": "신뢰도 게이트 0.5",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0375,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8072,
+    "cover": 0.871,
+    "bf": 0.6094,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.0332,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8109,
+    "cover": 0.8705,
+    "bf": 0.6091,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0338,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.809,
+    "cover": 0.873,
+    "bf": 0.5805,
+    "empty": 1
+   },
+   "pick_ok": 0.909,
+   "select_leak_pick_ok": 0.0231,
+   "select_leak_case5_pick_ok": 0.111,
+   "final_leak_pick_ok": 0.0193,
+   "final_leak_case5_pick_ok": 0.1,
+   "n_pick_ok": 90,
+   "seconds": 0.149,
+   "det_recall": 0.953,
+   "merged_cases": 0.09
+  }
+ },
+ "G-60-left": {
+  "scenario": "left",
+  "desc": "신뢰도 게이트 0.6",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8017,
+    "cover": 0.8541,
+    "bf": 0.6334,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8072,
+    "cover": 0.8566,
+    "bf": 0.635,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.047,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8053,
+    "cover": 0.8593,
+    "bf": 0.6061,
+    "empty": 0
+   },
+   "pick_ok": 0.9,
+   "select_leak_pick_ok": 0.0197,
+   "select_leak_case5_pick_ok": 0.078,
+   "final_leak_pick_ok": 0.0168,
+   "final_leak_case5_pick_ok": 0.078,
+   "n_pick_ok": 90,
+   "seconds": 0.154,
+   "det_recall": 0.961,
+   "merged_cases": 0.08
+  }
+ },
+ "G-60-right": {
+  "scenario": "right",
+  "desc": "신뢰도 게이트 0.6",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0425,
+    "leak_case5": 0.14,
+    "leak_case15": 0.05,
+    "iou": 0.811,
+    "cover": 0.875,
+    "bf": 0.6095,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.042,
+    "leak_case5": 0.13,
+    "leak_case15": 0.05,
+    "iou": 0.8023,
+    "cover": 0.8629,
+    "bf": 0.604,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0428,
+    "leak_case5": 0.13,
+    "leak_case15": 0.05,
+    "iou": 0.8025,
+    "cover": 0.8657,
+    "bf": 0.5958,
+    "empty": 0
+   },
+   "pick_ok": 0.92,
+   "select_leak_pick_ok": 0.0184,
+   "select_leak_case5_pick_ok": 0.098,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.087,
+   "n_pick_ok": 92,
+   "seconds": 0.135,
+   "det_recall": 0.965,
+   "merged_cases": 0.08
+  }
+ },
+ "G-60-rank2": {
+  "scenario": "rank2",
+  "desc": "신뢰도 게이트 0.6",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0649,
+    "leak_case5": 0.145,
+    "leak_case15": 0.065,
+    "iou": 0.7941,
+    "cover": 0.8649,
+    "bf": 0.6509,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0711,
+    "leak_case5": 0.161,
+    "leak_case15": 0.081,
+    "iou": 0.7849,
+    "cover": 0.8617,
+    "bf": 0.6464,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0711,
+    "leak_case5": 0.161,
+    "leak_case15": 0.081,
+    "iou": 0.7844,
+    "cover": 0.865,
+    "bf": 0.649,
+    "empty": 0
+   },
+   "pick_ok": 0.919,
+   "select_leak_pick_ok": 0.0186,
+   "select_leak_case5_pick_ok": 0.105,
+   "final_leak_pick_ok": 0.026,
+   "final_leak_case5_pick_ok": 0.123,
+   "n_pick_ok": 57,
+   "seconds": 0.196,
+   "det_recall": 0.954,
+   "merged_cases": 0.048
+  }
+ },
+ "G-60-touching": {
+  "scenario": "touching",
+  "desc": "신뢰도 게이트 0.6",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0374,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8072,
+    "cover": 0.871,
+    "bf": 0.6095,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.033,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8108,
+    "cover": 0.8704,
+    "bf": 0.6091,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0336,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.8089,
+    "cover": 0.873,
+    "bf": 0.5812,
+    "empty": 1
+   },
+   "pick_ok": 0.909,
+   "select_leak_pick_ok": 0.0231,
+   "select_leak_case5_pick_ok": 0.111,
+   "final_leak_pick_ok": 0.0193,
+   "final_leak_case5_pick_ok": 0.1,
+   "n_pick_ok": 90,
+   "seconds": 0.132,
+   "det_recall": 0.957,
+   "merged_cases": 0.09
+  }
+ },
+ "G-70-left": {
+  "scenario": "left",
+  "desc": "신뢰도 게이트 0.7",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0497,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8015,
+    "cover": 0.8538,
+    "bf": 0.6328,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0465,
+    "leak_case5": 0.1,
+    "leak_case15": 0.08,
+    "iou": 0.8072,
+    "cover": 0.8566,
+    "bf": 0.6352,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.047,
+    "leak_case5": 0.11,
+    "leak_case15": 0.08,
+    "iou": 0.8053,
+    "cover": 0.8593,
+    "bf": 0.6061,
+    "empty": 0
+   },
+   "pick_ok": 0.9,
+   "select_leak_pick_ok": 0.0197,
+   "select_leak_case5_pick_ok": 0.078,
+   "final_leak_pick_ok": 0.0168,
+   "final_leak_case5_pick_ok": 0.078,
+   "n_pick_ok": 90,
+   "seconds": 0.146,
+   "det_recall": 0.961,
+   "merged_cases": 0.08
+  }
+ },
+ "G-70-right": {
+  "scenario": "right",
+  "desc": "신뢰도 게이트 0.7",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0426,
+    "leak_case5": 0.14,
+    "leak_case15": 0.05,
+    "iou": 0.8108,
+    "cover": 0.874,
+    "bf": 0.6084,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.042,
+    "leak_case5": 0.13,
+    "leak_case15": 0.05,
+    "iou": 0.8025,
+    "cover": 0.8631,
+    "bf": 0.604,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0428,
+    "leak_case5": 0.13,
+    "leak_case15": 0.05,
+    "iou": 0.8027,
+    "cover": 0.8659,
+    "bf": 0.5958,
+    "empty": 0
+   },
+   "pick_ok": 0.92,
+   "select_leak_pick_ok": 0.0184,
+   "select_leak_case5_pick_ok": 0.098,
+   "final_leak_pick_ok": 0.0175,
+   "final_leak_case5_pick_ok": 0.087,
+   "n_pick_ok": 92,
+   "seconds": 0.146,
+   "det_recall": 0.965,
+   "merged_cases": 0.08
+  }
+ },
+ "G-70-rank2": {
+  "scenario": "rank2",
+  "desc": "신뢰도 게이트 0.7",
+  "summary": {
+   "n": 62,
+   "select": {
+    "leak": 0.0873,
+    "leak_case5": 0.161,
+    "leak_case15": 0.097,
+    "iou": 0.775,
+    "cover": 0.8357,
+    "bf": 0.6348,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0941,
+    "leak_case5": 0.194,
+    "leak_case15": 0.113,
+    "iou": 0.7708,
+    "cover": 0.8388,
+    "bf": 0.6361,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0939,
+    "leak_case5": 0.194,
+    "leak_case15": 0.113,
+    "iou": 0.7703,
+    "cover": 0.8421,
+    "bf": 0.6392,
+    "empty": 0
+   },
+   "pick_ok": 0.903,
+   "select_leak_pick_ok": 0.0179,
+   "select_leak_case5_pick_ok": 0.089,
+   "final_leak_pick_ok": 0.0259,
+   "final_leak_case5_pick_ok": 0.125,
+   "n_pick_ok": 56,
+   "seconds": 0.154,
+   "det_recall": 0.958,
+   "merged_cases": 0.048
+  }
+ },
+ "G-70-touching": {
+  "scenario": "touching",
+  "desc": "신뢰도 게이트 0.7",
+  "summary": {
+   "n": 100,
+   "select": {
+    "leak": 0.0374,
+    "leak_case5": 0.131,
+    "leak_case15": 0.071,
+    "iou": 0.8056,
+    "cover": 0.8691,
+    "bf": 0.6079,
+    "empty": 1
+   },
+   "refine": {
+    "leak": 0.033,
+    "leak_case5": 0.111,
+    "leak_case15": 0.071,
+    "iou": 0.8121,
+    "cover": 0.8717,
+    "bf": 0.6108,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0336,
+    "leak_case5": 0.121,
+    "leak_case15": 0.071,
+    "iou": 0.8101,
+    "cover": 0.8742,
+    "bf": 0.5817,
+    "empty": 1
+   },
+   "pick_ok": 0.909,
+   "select_leak_pick_ok": 0.0231,
+   "select_leak_case5_pick_ok": 0.111,
+   "final_leak_pick_ok": 0.0193,
+   "final_leak_case5_pick_ok": 0.1,
+   "n_pick_ok": 90,
+   "seconds": 0.133,
+   "det_recall": 0.957,
+   "merged_cases": 0.09
+  }
+ }
+}

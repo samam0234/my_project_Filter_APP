@@ -1,0 +1,312 @@
+{
+  "summary": {
+    "none_on_light": 10.932068157196046,
+    "none_on_dark": 6.733748817443848,
+    "light_on_light": 2.988798666000366,
+    "light_on_dark": 24.346937370300292,
+    "dark_on_light": 25.066390419006346,
+    "dark_on_dark": 2.5821704983711244
+  },
+  "rows": [
+    {
+      "image": "000000006894.jpg",
+      "edge_px": 13394,
+      "none_on_light": 7.74555778503418,
+      "none_on_dark": 9.005324363708496,
+      "light_on_light": 2.43652081489563,
+      "light_on_dark": 24.29218864440918,
+      "dark_on_light": 24.608827590942383,
+      "dark_on_dark": 2.5611679553985596
+    },
+    {
+      "image": "000000021903.jpg",
+      "edge_px": 11120,
+      "none_on_light": 10.400507926940918,
+      "none_on_dark": 7.423356533050537,
+      "light_on_light": 2.885225772857666,
+      "light_on_dark": 23.91199493408203,
+      "dark_on_light": 24.586252212524414,
+      "dark_on_dark": 2.539945602416992
+    },
+    {
+      "image": "000000023126.jpg",
+      "edge_px": 14434,
+      "none_on_light": 9.456656455993652,
+      "none_on_dark": 7.01104736328125,
+      "light_on_light": 2.93680477142334,
+      "light_on_dark": 24.061939239501953,
+      "dark_on_light": 24.469392776489258,
+      "dark_on_dark": 2.5143237113952637
+    },
+    {
+      "image": "000000025560.jpg",
+      "edge_px": 8274,
+      "none_on_light": 11.281230926513672,
+      "none_on_dark": 4.549010276794434,
+      "light_on_light": 2.3668460845947266,
+      "light_on_dark": 23.29043960571289,
+      "dark_on_light": 24.21332359313965,
+      "dark_on_dark": 1.9134204387664795
+    },
+    {
+      "image": "000000045070.jpg",
+      "edge_px": 18508,
+      "none_on_light": 12.064420700073242,
+      "none_on_dark": 7.278533935546875,
+      "light_on_light": 4.779448509216309,
+      "light_on_dark": 24.311588287353516,
+      "dark_on_light": 25.14666175842285,
+      "dark_on_dark": 3.729295492172241
+    },
+    {
+      "image": "000000047819.jpg",
+      "edge_px": 8435,
+      "none_on_light": 8.2811279296875,
+      "none_on_dark": 9.343659400939941,
+      "light_on_light": 2.9660730361938477,
+      "light_on_dark": 24.836870193481445,
+      "dark_on_light": 25.063034057617188,
+      "dark_on_dark": 3.0722131729125977
+    },
+    {
+      "image": "000000053529.jpg",
+      "edge_px": 6955,
+      "none_on_light": 13.881486892700195,
+      "none_on_dark": 3.4985289573669434,
+      "light_on_light": 2.5896739959716797,
+      "light_on_dark": 21.76343536376953,
+      "dark_on_light": 23.440811157226562,
+      "dark_on_dark": 1.693378210067749
+    },
+    {
+      "image": "000000054931.jpg",
+      "edge_px": 20912,
+      "none_on_light": 11.784202575683594,
+      "none_on_dark": 5.207257270812988,
+      "light_on_light": 2.907787799835205,
+      "light_on_dark": 24.035533905029297,
+      "dark_on_light": 24.958189010620117,
+      "dark_on_dark": 2.5442521572113037
+    },
+    {
+      "image": "000000064868.jpg",
+      "edge_px": 19280,
+      "none_on_light": 10.635427474975586,
+      "none_on_dark": 5.140710830688477,
+      "light_on_light": 2.4308865070343018,
+      "light_on_dark": 23.72646141052246,
+      "dark_on_light": 24.537250518798828,
+      "dark_on_dark": 2.069246292114258
+    },
+    {
+      "image": "000000080153.jpg",
+      "edge_px": 9131,
+      "none_on_light": 6.463008880615234,
+      "none_on_dark": 10.655389785766602,
+      "light_on_light": 2.585444688796997,
+      "light_on_dark": 24.8238582611084,
+      "dark_on_light": 24.567537307739258,
+      "dark_on_dark": 2.9132509231567383
+    },
+    {
+      "image": "000000103723.jpg",
+      "edge_px": 6996,
+      "none_on_light": 10.466644287109375,
+      "none_on_dark": 7.602797508239746,
+      "light_on_light": 2.5646567344665527,
+      "light_on_dark": 24.895282745361328,
+      "dark_on_light": 25.47945213317871,
+      "dark_on_dark": 2.4086947441101074
+    },
+    {
+      "image": "000000106757.jpg",
+      "edge_px": 13632,
+      "none_on_light": 10.670658111572266,
+      "none_on_dark": 6.645263195037842,
+      "light_on_light": 2.810377359390259,
+      "light_on_dark": 24.568567276000977,
+      "dark_on_light": 25.3995418548584,
+      "dark_on_dark": 2.4959025382995605
+    },
+    {
+      "image": "000000117525.jpg",
+      "edge_px": 17596,
+      "none_on_light": 10.028136253356934,
+      "none_on_dark": 6.031698703765869,
+      "light_on_light": 2.6041085720062256,
+      "light_on_dark": 23.693586349487305,
+      "dark_on_light": 24.48519515991211,
+      "dark_on_dark": 2.307950735092163
+    },
+    {
+      "image": "000000117908.jpg",
+      "edge_px": 9982,
+      "none_on_light": 10.50117015838623,
+      "none_on_dark": 6.127899646759033,
+      "light_on_light": 2.492703676223755,
+      "light_on_dark": 24.163471221923828,
+      "dark_on_light": 24.950319290161133,
+      "dark_on_dark": 2.2393407821655273
+    },
+    {
+      "image": "000000139872.jpg",
+      "edge_px": 6459,
+      "none_on_light": 7.27329683303833,
+      "none_on_dark": 10.987935066223145,
+      "light_on_light": 3.064257860183716,
+      "light_on_dark": 24.88631248474121,
+      "dark_on_light": 24.48777198791504,
+      "dark_on_dark": 2.074587345123291
+    },
+    {
+      "image": "000000177015.jpg",
+      "edge_px": 29996,
+      "none_on_light": 13.476097106933594,
+      "none_on_dark": 5.032057285308838,
+      "light_on_light": 3.826821804046631,
+      "light_on_dark": 24.01106834411621,
+      "dark_on_light": 25.229724884033203,
+      "dark_on_dark": 2.817967653274536
+    },
+    {
+      "image": "000000183675.jpg",
+      "edge_px": 13882,
+      "none_on_light": 11.214035987854004,
+      "none_on_dark": 7.318753719329834,
+      "light_on_light": 3.822049140930176,
+      "light_on_dark": 24.420621871948242,
+      "dark_on_light": 25.110631942749023,
+      "dark_on_dark": 3.4379501342773438
+    },
+    {
+      "image": "000000185250.jpg",
+      "edge_px": 12198,
+      "none_on_light": 12.925058364868164,
+      "none_on_dark": 9.783727645874023,
+      "light_on_light": 4.2727437019348145,
+      "light_on_dark": 26.215049743652344,
+      "dark_on_light": 26.865076065063477,
+      "dark_on_dark": 3.7130391597747803
+    },
+    {
+      "image": "000000223188.jpg",
+      "edge_px": 23312,
+      "none_on_light": 11.606243133544922,
+      "none_on_dark": 4.3313751220703125,
+      "light_on_light": 2.842982769012451,
+      "light_on_dark": 23.709840774536133,
+      "dark_on_light": 24.74901008605957,
+      "dark_on_dark": 2.294015407562256
+    },
+    {
+      "image": "000000223747.jpg",
+      "edge_px": 8028,
+      "none_on_light": 13.12910270690918,
+      "none_on_dark": 3.3554158210754395,
+      "light_on_light": 2.5755157470703125,
+      "light_on_dark": 23.66614532470703,
+      "dark_on_light": 24.709184646606445,
+      "dark_on_dark": 1.93006432056427
+    },
+    {
+      "image": "000000236166.jpg",
+      "edge_px": 30989,
+      "none_on_light": 7.46474027633667,
+      "none_on_dark": 10.09693717956543,
+      "light_on_light": 2.8487868309020996,
+      "light_on_dark": 25.62287139892578,
+      "dark_on_light": 25.833471298217773,
+      "dark_on_dark": 3.057445764541626
+    },
+    {
+      "image": "000000251572.jpg",
+      "edge_px": 37973,
+      "none_on_light": 9.934651374816895,
+      "none_on_dark": 5.795615196228027,
+      "light_on_light": 2.357614755630493,
+      "light_on_dark": 23.82076072692871,
+      "dark_on_light": 24.60062599182129,
+      "dark_on_dark": 2.1541104316711426
+    },
+    {
+      "image": "000000275392.jpg",
+      "edge_px": 12125,
+      "none_on_light": 11.467422485351562,
+      "none_on_dark": 6.635924339294434,
+      "light_on_light": 2.74070405960083,
+      "light_on_dark": 23.88877296447754,
+      "dark_on_light": 24.533466339111328,
+      "dark_on_dark": 2.605952262878418
+    },
+    {
+      "image": "000000290843.jpg",
+      "edge_px": 10587,
+      "none_on_light": 12.13259220123291,
+      "none_on_dark": 4.323174476623535,
+      "light_on_light": 2.44773268699646,
+      "light_on_dark": 23.077505111694336,
+      "dark_on_light": 24.129234313964844,
+      "dark_on_dark": 1.9258983135223389
+    },
+    {
+      "image": "000000308545.jpg",
+      "edge_px": 27653,
+      "none_on_light": 10.110649108886719,
+      "none_on_dark": 6.794106960296631,
+      "light_on_light": 2.585829973220825,
+      "light_on_dark": 24.616443634033203,
+      "dark_on_light": 25.277860641479492,
+      "dark_on_dark": 2.3954203128814697
+    },
+    {
+      "image": "000000309484.jpg",
+      "edge_px": 25667,
+      "none_on_light": 13.168648719787598,
+      "none_on_dark": 6.157625198364258,
+      "light_on_light": 3.6520230770111084,
+      "light_on_dark": 25.785659790039062,
+      "dark_on_light": 26.714712142944336,
+      "dark_on_dark": 2.7903153896331787
+    },
+    {
+      "image": "000000319721.jpg",
+      "edge_px": 14498,
+      "none_on_light": 11.135092735290527,
+      "none_on_dark": 6.957029819488525,
+      "light_on_light": 3.730513572692871,
+      "light_on_dark": 23.91934585571289,
+      "dark_on_light": 24.702838897705078,
+      "dark_on_dark": 3.1090781688690186
+    },
+    {
+      "image": "000000338304.jpg",
+      "edge_px": 14005,
+      "none_on_light": 15.25857925415039,
+      "none_on_dark": 4.008325099945068,
+      "light_on_light": 2.7180566787719727,
+      "light_on_dark": 27.099515914916992,
+      "dark_on_light": 28.133264541625977,
+      "dark_on_dark": 2.2447736263275146
+    },
+    {
+      "image": "000000353051.jpg",
+      "edge_px": 11453,
+      "none_on_light": 12.43578815460205,
+      "none_on_dark": 6.302825450897217,
+      "light_on_light": 3.741518259048462,
+      "light_on_dark": 24.33481788635254,
+      "dark_on_light": 25.25031852722168,
+      "dark_on_dark": 3.1726531982421875
+    },
+    {
+      "image": "000000357459.jpg",
+      "edge_px": 7957,
+      "none_on_light": 11.569809913635254,
+      "none_on_dark": 8.61115837097168,
+      "light_on_light": 3.0802507400512695,
+      "light_on_dark": 24.958171844482422,
+      "dark_on_light": 25.758731842041016,
+      "dark_on_dark": 2.7394607067108154
+    }
+  ]
+}

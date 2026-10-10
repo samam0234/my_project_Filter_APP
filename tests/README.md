@@ -1,0 +1,94 @@
+# tests — 실행 전 검증
+
+서비스/학습을 돌리기 **전에** 구조·스키마·핵심 로직이 깨지지 않았는지 확인하는 테스트 구역이다.
+
+## 구조
+
+```text
+tests/
+├── README.md
+├── conftest.py              # 공통 fixture, path
+├── unit/                    # 단위 테스트 (DB/서버 불필요 위주)
+│   ├── test_schemas.py
+│   ├── test_config.py
+│   ├── test_prompt_heuristic.py
+│   ├── test_validator.py
+│   ├── test_security.py
+│   ├── test_effects.py            # 효과 · GrabCut 제한 · remove_object inpaint
+│   ├── test_prompt_llm.py         # LLM provider 요청·파싱·selector 정규화 (네트워크 없음)
+│   ├── test_segmentation_filter.py # 대상 라벨 필터 · 별칭 · ONNX 가드 (가짜 YOLO)
+│   ├── test_instance_selector.py  # 위치·순서·개수·색 속성 선택 (합성 이미지)
+│   ├── conftest.py                # api_env fixture — 메모리 SQLite 앱 + 메일 가로채기
+│   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정
+│   ├── test_access.py             # 비로그인 다운로드만 · 회원 본인 작업만 · 배치 · 콘솔 loopback (가짜 파이프라인)
+│   ├── test_lora_dataset.py       # training/lora 데이터 계약·시드·평가셋 누수 차단 (torch 불필요)
+│   ├── test_learning_db.py        # 서비스/학습 DB 분리 · 사이드카 동기화 · MariaDB fallback
+│   ├── test_learning_review.py    # 학습 데이터 검수 콘솔 · 회원 요청 후보
+│   ├── test_prompt_rag.py         # 승인 샘플 RAG
+│   ├── test_preflight.py          # 배포 설정 점검 · 보안 헤더
+│   ├── test_ratelimit.py          # 업로드 속도 제한
+│   ├── test_batch_api.py          # 배치 · 영상 API (가짜 세그 — 사람 2명)
+│   ├── test_media_history.py      # 영상·GIF 작업 기록 · GIF 처리(투명 · WebP) · LaMa/Telea 선택 · 콘솔 파일
+│   ├── test_security_hardening.py # 압축 폭탄 · 프록시 뒤 IP · 자동 백업 · 자동 정리(.gitkeep 보호)
+│   ├── test_sqlite_integrity.py   # 서비스 DB 손상 감지 · 호스트/Docker 파일 분리
+│   ├── test_mask_exclusion.py     # 겹침 덜어내기 · 금지 구역
+│   ├── test_heuristic_targets.py  # 키워드 파서 역할 규칙
+│   ├── test_prompt_chain.py       # 해석 체인 다수결
+│   ├── test_pipeline_graph.py     # LangGraph 재시도 · 어려운 사례 · 기본값
+│   ├── test_stuff_segmentation.py # 배경 덩어리 SegFormer
+│   ├── test_edge_tuning.py        # 경계 다듬기 · 영상 흐름 스무딩
+│   ├── test_console_system.py · test_console_users.py  # 운영 콘솔 시스템 · 회원 관리
+│   └── test_onnx_inference.py · test_phase2.py         # ONNX 추론 · 영상/배치 보조
+├── structure/               # 폴더·문서·스크립트 존재 검사
+│   └── test_project_layout.py
+└── smoke/                   # 가벼운 import 스모크
+    └── test_imports.py
+```
+
+2026-10-10 기준 **463 passed** (프론트 65 · 콘솔 21) (모델이 필요한 테스트는 `importorskip` 으로 건너뜀). 테스트는 실제 `backend/data` 를 건드리지 않는다 — 업로드 · 피드백 폴더는 임시 폴더로, 서비스 · 학습 DB 는 엔진 싱글톤까지 메모리 DB 로 바꾼다 (라우터 밖 직접 세션 포함).
+
+## 실행 방법
+
+### 전체
+
+```powershell
+cd d:\my_project\CutNKeep
+
+# backend venv (Python 3.11 권장) 활성화 후
+pip install -r requirements.txt
+pip install -r tests/requirements-test.txt
+
+pytest
+```
+
+### 일부만
+
+```powershell
+pytest tests/structure -q          # 폴더/문서 골격만 (의존성 최소)
+pytest tests/unit -q               # 단위
+pytest tests/smoke -q              # import 스모크
+pytest tests/unit/test_schemas.py  # 단일 파일
+```
+
+OpenCV/numpy 가 없으면 `test_effects` 등은 **자동 skip** 될 수 있다.
+
+## 언제 돌리나
+
+| 시점 | 권장 |
+|------|------|
+| 커밋 전 | `pytest tests/structure tests/unit` |
+| 백엔드 의존성 설치 후 | `pytest` 전체 |
+| Docker 배포 전 | 구조 + unit + (가능하면) API 스모크 수동 |
+| 학습(`training/`) 전 | structure + YOLO 관련 path 확인 |
+
+## 관련 문서
+
+- `docs/plan/TESTING.md` — 테스트 전략
+- `docs/plan/PROJECT_STRUCTURE.md`
+- `docs/vaildates/` — 수동 체크리스트
+- `RUN.md` — 서버 기동
+
+## 추가 가이드
+
+새 모듈을 만들면 가능하면 `tests/unit/` 에 대응 테스트를 추가한다.  
+E2E(실제 업로드·YOLO 추론)는 모델 가중치가 있을 때 별도 확장.

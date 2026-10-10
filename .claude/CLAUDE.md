@@ -1,0 +1,43 @@
+# Claude — 컷앤킵
+
+이 저장소는 공유 에이전트 규칙을 사용한다.
+
+**주 지시:** 루트 `AGENTS.md`, `.agents/skills/cutnkeep/SKILL.md`
+
+## 대화 언어 (필수)
+
+- 사용자가 한국어로 말하면 **모든 응답을 한국어로만** 한다
+  — 작업 중 도구 호출 사이의 중간 안내 · 진행 상황 · 질문 · 최종 보고 모두 포함
+- 다른 언어로 말해 달라는 **명시적인 지시가 있을 때만** 그 언어로 바꾼다
+- 코드 식별자 · 명령어 · 파일 경로 · 로그 원문 · 커밋 type/scope 는 그대로 둔다
+
+## 커밋 메시지
+
+- **type / scope:** 영어 (`feat`, `fix`, `backend` …)  
+- **제목 요약:** **한국어** (`feat(tts): 음성 인식 추가`)  
+- **본문·바닥글:** 한국어  
+- 영어 요약 금지: `feat(llm): add to engine` ❌  
+
+→ `docs/guidance/commit-message.md`
+
+## 커밋 기록 (필수 · 예외 없음)
+
+- **경로:** `docs/branchs/commits/` **만** (`docs/commits/` 금지)  
+- **커밋 전 또는 직후 무조건** md 작성  
+- 파일명: `YYMMDD_HHMM_[id]_[이름]_[브랜치].md`  
+- 템플릿: `docs/branchs/TEMPLATE.md`  
+- 기록 파일도 같은 브랜치에 커밋·푸시  
+- 생략·나중에 하기 금지
+
+## 브랜치
+
+- 작업 커밋: `feature/*`  
+- 일자 병합: `develop` / `main` 만  
+→ `docs/guidance/branch-merge.md`
+- **병합 시점 (절대 규칙):** 브랜치 하나 끝날 때마다 병합 **금지**. 사용자가 준 파트 작업을 각 브랜치에 모두 커밋한 뒤, **전부 끝났을 때 한 번에 총 병합** (브랜치별 `--no-ff`, 쌓인 순서대로). 중간 병합·사용자 지시 없는 병합 금지. 병합 기록 md 도 총 병합 때 한 번에
+
+## 스택
+
+- `backend/` FastAPI · `frontend/` :5173 · `console/` :5174  
+- Python 의존성: 루트 `requirements.txt` / `requirements.docker.txt`  
+- Docker: `-p cut_and_keep`  

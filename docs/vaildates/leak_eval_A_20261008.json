@@ -1,0 +1,525 @@
+{
+ "A01": {
+  "scenario": "left",
+  "desc": "기준선: 가장 왼쪽 사람 한 명 (깨끗한 사진)",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.0654,
+    "leak_case5": 0.146,
+    "leak_case15": 0.125,
+    "iou": 0.7853,
+    "cover": 0.8537,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0654,
+    "leak_case5": 0.146,
+    "leak_case15": 0.125,
+    "iou": 0.7853,
+    "cover": 0.8537,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0718,
+    "leak_case5": 0.208,
+    "leak_case15": 0.125,
+    "iou": 0.7735,
+    "cover": 0.8599,
+    "empty": 0
+   },
+   "pick_ok": 0.896,
+   "select_leak_pick_ok": 0.0227,
+   "select_leak_case5_pick_ok": 0.07,
+   "final_leak_pick_ok": 0.031,
+   "final_leak_case5_pick_ok": 0.14,
+   "n_pick_ok": 43,
+   "seconds": 1.258,
+   "det_recall": 0.907,
+   "merged_cases": 0.125
+  }
+ },
+ "A02": {
+  "scenario": "right",
+  "desc": "기준선: 가장 오른쪽 사람 한 명",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.0754,
+    "leak_case5": 0.167,
+    "leak_case15": 0.104,
+    "iou": 0.7617,
+    "cover": 0.8466,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0754,
+    "leak_case5": 0.167,
+    "leak_case15": 0.104,
+    "iou": 0.7617,
+    "cover": 0.8466,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0804,
+    "leak_case5": 0.208,
+    "leak_case15": 0.125,
+    "iou": 0.7519,
+    "cover": 0.8615,
+    "empty": 0
+   },
+   "pick_ok": 0.812,
+   "select_leak_pick_ok": 0.0074,
+   "select_leak_case5_pick_ok": 0.026,
+   "final_leak_pick_ok": 0.0155,
+   "final_leak_case5_pick_ok": 0.077,
+   "n_pick_ok": 39,
+   "seconds": 0.589,
+   "det_recall": 0.907,
+   "merged_cases": 0.125
+  }
+ },
+ "A03": {
+  "scenario": "largest",
+  "desc": "기준선: 가장 큰 사람 한 명",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.0518,
+    "leak_case5": 0.146,
+    "leak_case15": 0.104,
+    "iou": 0.8325,
+    "cover": 0.9088,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0518,
+    "leak_case5": 0.146,
+    "leak_case15": 0.104,
+    "iou": 0.8325,
+    "cover": 0.9088,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0573,
+    "leak_case5": 0.188,
+    "leak_case15": 0.104,
+    "iou": 0.822,
+    "cover": 0.9173,
+    "empty": 0
+   },
+   "pick_ok": 0.896,
+   "select_leak_pick_ok": 0.0133,
+   "select_leak_case5_pick_ok": 0.047,
+   "final_leak_pick_ok": 0.0209,
+   "final_leak_case5_pick_ok": 0.093,
+   "n_pick_ok": 43,
+   "seconds": 0.64,
+   "det_recall": 0.907,
+   "merged_cases": 0.125
+  }
+ },
+ "A04": {
+  "scenario": "rank2",
+  "desc": "기준선: 왼쪽에서 두 번째 사람",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.1144,
+    "leak_case5": 0.208,
+    "leak_case15": 0.146,
+    "iou": 0.7459,
+    "cover": 0.8116,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.1144,
+    "leak_case5": 0.208,
+    "leak_case15": 0.146,
+    "iou": 0.7459,
+    "cover": 0.8116,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.1272,
+    "leak_case5": 0.271,
+    "leak_case15": 0.188,
+    "iou": 0.7339,
+    "cover": 0.8269,
+    "empty": 0
+   },
+   "pick_ok": 0.875,
+   "select_leak_pick_ok": 0.0215,
+   "select_leak_case5_pick_ok": 0.119,
+   "final_leak_pick_ok": 0.0389,
+   "final_leak_case5_pick_ok": 0.19,
+   "n_pick_ok": 42,
+   "seconds": 0.452,
+   "det_recall": 0.946,
+   "merged_cases": 0.062
+  }
+ },
+ "A05": {
+  "scenario": "all_persons",
+  "desc": "기준선: 사람 전부 (다른 물체가 섞이나)",
+  "summary": {
+   "n": 48,
+   "select": {
+    "empty": 48
+   },
+   "refine": {
+    "leak": 0.0296,
+    "leak_case5": 0.17,
+    "leak_case15": 0.021,
+    "iou": 0.8193,
+    "cover": 0.9052,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0389,
+    "leak_case5": 0.277,
+    "leak_case15": 0.085,
+    "iou": 0.8003,
+    "cover": 0.9135,
+    "empty": 1
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0389,
+   "final_leak_case5_pick_ok": 0.277,
+   "n_pick_ok": 47,
+   "seconds": 0.771
+  }
+ },
+ "A06": {
+  "scenario": "touching",
+  "desc": "기준선: 서로 맞닿은 두 사람 중 왼쪽",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.0653,
+    "leak_case5": 0.167,
+    "leak_case15": 0.146,
+    "iou": 0.7865,
+    "cover": 0.8662,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.0653,
+    "leak_case5": 0.167,
+    "leak_case15": 0.146,
+    "iou": 0.7865,
+    "cover": 0.8662,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0742,
+    "leak_case5": 0.25,
+    "leak_case15": 0.146,
+    "iou": 0.7742,
+    "cover": 0.8736,
+    "empty": 0
+   },
+   "pick_ok": 0.896,
+   "select_leak_pick_ok": 0.0336,
+   "select_leak_case5_pick_ok": 0.116,
+   "final_leak_pick_ok": 0.0449,
+   "final_leak_case5_pick_ok": 0.209,
+   "n_pick_ok": 43,
+   "seconds": 0.607,
+   "det_recall": 0.927,
+   "merged_cases": 0.146
+  }
+ },
+ "A07": {
+  "scenario": "dog",
+  "desc": "기준선: 강아지만 (사람이 섞이나)",
+  "summary": {
+   "n": 32,
+   "select": {
+    "empty": 32
+   },
+   "refine": {
+    "leak": 0.017,
+    "leak_case5": 0.069,
+    "leak_case15": 0.034,
+    "iou": 0.8557,
+    "cover": 0.9166,
+    "empty": 3
+   },
+   "final": {
+    "leak": 0.0216,
+    "leak_case5": 0.103,
+    "leak_case15": 0.034,
+    "iou": 0.8429,
+    "cover": 0.923,
+    "empty": 3
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0216,
+   "final_leak_case5_pick_ok": 0.103,
+   "n_pick_ok": 29,
+   "seconds": 0.546
+  }
+ },
+ "A08": {
+  "scenario": "cat",
+  "desc": "기준선: 고양이만",
+  "summary": {
+   "n": 13,
+   "select": {
+    "empty": 13
+   },
+   "refine": {
+    "leak": 0.0516,
+    "leak_case5": 0.077,
+    "leak_case15": 0.077,
+    "iou": 0.8396,
+    "cover": 0.8915,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0593,
+    "leak_case5": 0.231,
+    "leak_case15": 0.077,
+    "iou": 0.8346,
+    "cover": 0.9009,
+    "empty": 0
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0593,
+   "final_leak_case5_pick_ok": 0.231,
+   "n_pick_ok": 13,
+   "seconds": 0.54
+  }
+ },
+ "A09": {
+  "scenario": "car",
+  "desc": "기준선: 자동차만 (사람이 섞이나)",
+  "summary": {
+   "n": 27,
+   "select": {
+    "empty": 27
+   },
+   "refine": {
+    "leak": 0.0647,
+    "leak_case5": 0.16,
+    "leak_case15": 0.12,
+    "iou": 0.7355,
+    "cover": 0.835,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.0708,
+    "leak_case5": 0.2,
+    "leak_case15": 0.12,
+    "iou": 0.7128,
+    "cover": 0.856,
+    "empty": 2
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0708,
+   "final_leak_case5_pick_ok": 0.2,
+   "n_pick_ok": 25,
+   "seconds": 0.641
+  }
+ },
+ "A10": {
+  "scenario": "remove_left",
+  "desc": "기준선: 왼쪽 사람 지우기 (지울 마스크에 남이 섞이나)",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.0654,
+    "leak_case5": 0.146,
+    "leak_case15": 0.125,
+    "iou": 0.7853,
+    "cover": 0.8537,
+    "empty": 0
+   },
+   "refine": {
+    "empty": 48
+   },
+   "final": {
+    "leak": 0.0654,
+    "leak_case5": 0.146,
+    "leak_case15": 0.125,
+    "iou": 0.7853,
+    "cover": 0.8537,
+    "empty": 0
+   },
+   "pick_ok": 0.896,
+   "select_leak_pick_ok": 0.0227,
+   "select_leak_case5_pick_ok": 0.07,
+   "final_leak_pick_ok": 0.0227,
+   "final_leak_case5_pick_ok": 0.07,
+   "n_pick_ok": 43,
+   "seconds": 0.296,
+   "det_recall": 0.907,
+   "merged_cases": 0.125
+  }
+ },
+ "A11": {
+  "scenario": "left_loose",
+  "desc": "기준선: 왼쪽 사람 — 모호한 사진 포함 (정의 차이 확인)",
+  "summary": {
+   "n": 48,
+   "select": {
+    "leak": 0.1213,
+    "leak_case5": 0.188,
+    "leak_case15": 0.146,
+    "iou": 0.6728,
+    "cover": 0.7267,
+    "empty": 0
+   },
+   "refine": {
+    "leak": 0.1213,
+    "leak_case5": 0.188,
+    "leak_case15": 0.146,
+    "iou": 0.6728,
+    "cover": 0.7267,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.1232,
+    "leak_case5": 0.25,
+    "leak_case15": 0.167,
+    "iou": 0.662,
+    "cover": 0.7373,
+    "empty": 0
+   },
+   "pick_ok": 0.771,
+   "select_leak_pick_ok": 0.0077,
+   "select_leak_case5_pick_ok": 0.027,
+   "final_leak_pick_ok": 0.0156,
+   "final_leak_case5_pick_ok": 0.108,
+   "n_pick_ok": 37,
+   "seconds": 0.423,
+   "det_recall": 0.917,
+   "merged_cases": 0.083
+  }
+ },
+ "A12": {
+  "scenario": "one_person_with_objects",
+  "desc": "기준선: 사람 한 명 + 주변 물체 (사람 옆 물체가 섞이나)",
+  "summary": {
+   "n": 48,
+   "select": {
+    "empty": 48
+   },
+   "refine": {
+    "leak": 0.0317,
+    "leak_case5": 0.174,
+    "leak_case15": 0.022,
+    "iou": 0.8301,
+    "cover": 0.9112,
+    "empty": 2
+   },
+   "final": {
+    "leak": 0.0407,
+    "leak_case5": 0.283,
+    "leak_case15": 0.087,
+    "iou": 0.8129,
+    "cover": 0.9195,
+    "empty": 2
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0407,
+   "final_leak_case5_pick_ok": 0.283,
+   "n_pick_ok": 46,
+   "seconds": 0.669
+  }
+ },
+ "A13": {
+  "scenario": "horse",
+  "desc": "기준선: 말만",
+  "summary": {
+   "n": 38,
+   "select": {
+    "empty": 38
+   },
+   "refine": {
+    "leak": 0.0143,
+    "leak_case5": 0.054,
+    "leak_case15": 0.054,
+    "iou": 0.8477,
+    "cover": 0.9131,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0221,
+    "leak_case5": 0.081,
+    "leak_case15": 0.054,
+    "iou": 0.8328,
+    "cover": 0.9206,
+    "empty": 1
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0221,
+   "final_leak_case5_pick_ok": 0.081,
+   "n_pick_ok": 37,
+   "seconds": 0.651
+  }
+ },
+ "A14": {
+  "scenario": "sheep",
+  "desc": "기준선: 양만",
+  "summary": {
+   "n": 12,
+   "select": {
+    "empty": 12
+   },
+   "refine": {
+    "leak": 0.0038,
+    "leak_case5": 0.0,
+    "leak_case15": 0.0,
+    "iou": 0.864,
+    "cover": 0.9099,
+    "empty": 1
+   },
+   "final": {
+    "leak": 0.0074,
+    "leak_case5": 0.0,
+    "leak_case15": 0.0,
+    "iou": 0.8609,
+    "cover": 0.932,
+    "empty": 1
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0074,
+   "final_leak_case5_pick_ok": 0.0,
+   "n_pick_ok": 11,
+   "seconds": 0.953
+  }
+ },
+ "A15": {
+  "scenario": "elephant",
+  "desc": "기준선: 코끼리만",
+  "summary": {
+   "n": 21,
+   "select": {
+    "empty": 21
+   },
+   "refine": {
+    "leak": 0.0028,
+    "leak_case5": 0.0,
+    "leak_case15": 0.0,
+    "iou": 0.8742,
+    "cover": 0.9408,
+    "empty": 0
+   },
+   "final": {
+    "leak": 0.0072,
+    "leak_case5": 0.048,
+    "leak_case15": 0.0,
+    "iou": 0.863,
+    "cover": 0.949,
+    "empty": 0
+   },
+   "pick_ok": null,
+   "final_leak_pick_ok": 0.0072,
+   "final_leak_case5_pick_ok": 0.048,
+   "n_pick_ok": 21,
+   "seconds": 1.037
+  }
+ }
+}
