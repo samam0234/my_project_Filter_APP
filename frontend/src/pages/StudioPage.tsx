@@ -10,6 +10,7 @@ import { Clapperboard, ExternalLink, Film, ImageIcon, RotateCcw, Wand2 } from "l
 import { useMemo } from "react";
 import { GifWorkspace } from "../components/gif/GifWorkspace";
 import { Button } from "../components/common/Button";
+import { ModelSelect } from "../components/common/ModelSelect";
 import { Step } from "../components/common/Step";
 import { PageHeader } from "../components/common/PageHeader";
 import { FeedbackPanel } from "../components/feedback/FeedbackPanel";
@@ -102,6 +103,7 @@ function PhotoWorkspace() {
               <Button size="lg" onClick={() => void process()} disabled={!canRun} className="flex-1 sm:flex-none">
                 <Wand2 className="h-4 w-4" /> 처리 시작
               </Button>
+              <ModelSelect disabled={isProcessing} />
               <Button variant="ghost" size="lg" onClick={() => reset()} disabled={isProcessing}>
                 <RotateCcw className="h-4 w-4" /> 초기화
               </Button>

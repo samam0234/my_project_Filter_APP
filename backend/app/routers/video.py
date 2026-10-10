@@ -31,6 +31,8 @@ from app.exceptions import FileValidationError
 from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.services.learning_catalog import record_request
+from app.routers.llm import resolve_model
+from app.services import llm_models
 from app.services.prompt_llm import parse_prompt_or_heuristic
 from app.services.video_processor import MEDIA_TYPES, PLAYABLE, find_result, preview_mp4, process_video
 
@@ -77,11 +79,11 @@ def collect_request(ldb: Session, job_id: str, prompt: str, parsed: dict, user_i
         logger.exception("요청 후보 기록 실패 job={}", job_id)
 
 
-def _run(src: Path, dst: Path, prompt: str) -> dict:
+def _run(src: Path, dst: Path, prompt: str, llm_model: Optional[str] = None) -> dict:
     from app.workflows import nodes
 
     settings = get_settings()
-    parsed = parse_prompt_or_heuristic(prompt, settings)
+    parsed = parse_prompt_or_heuristic(prompt, llm_models.with_model(settings, llm_model))
     info = process_video(
         src,
         dst,
@@ -104,6 +106,7 @@ async def process_video_upload(
     request: Request,
     file: UploadFile = File(...),
     prompt: str = Form(default="person blur"),
+    llm_model: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     ldb: Session = Depends(get_learning_db),
     user: Optional[User] = Depends(current_user_optional),
@@ -116,6 +119,7 @@ async def process_video_upload(
         ip = client_ip(request)
         enforce(upload_limiter, f"ip:{ip}", settings.upload_rate_guest_per_min, "처리 요청 (비로그인은 분당 제한이 더 낮습니다)")
 
+    model = resolve_model(llm_model)  # 고른 해석 모델 (설치 안 됐으면 400) — 이 요청에만 적용
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_VIDEO_EXT:
         raise HTTPException(status_code=400, detail=f"허용 확장자: {', '.join(sorted(ALLOWED_VIDEO_EXT))}")
@@ -138,7 +142,7 @@ async def process_video_upload(
             src = tmp / f"in{ext}"
             dst = tmp / "result"
             src.write_bytes(data)
-            info = await run_in_threadpool(_run, src, dst, prompt)
+            info = await run_in_threadpool(_run, src, dst, prompt, model)
             out = Path(info["path"])
             payload = out.read_bytes()
         except ValueError as exc:
@@ -168,7 +172,7 @@ async def process_video_upload(
     dst = root / "result"
     src.write_bytes(data)
     try:
-        info = await run_in_threadpool(_run, src, dst, prompt)
+        info = await run_in_threadpool(_run, src, dst, prompt, model)
     except ValueError as exc:
         shutil.rmtree(root, ignore_errors=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -113,6 +113,24 @@ export interface GifResponse {
 /** GIF 배경 제거 경계를 미리 섞을 배경: none · light(밝은 배경용) · dark(어두운 배경용) */
 export type GifMatte = "none" | "light" | "dark";
 
+/** 문장 해석에 고를 수 있는 Ollama 모델 (GET /api/v1/llm/models). available=false 면 서버에 설치되지 않은 "미적용" */
+export interface LlmModel {
+  id: string;
+  label: string;
+  available: boolean;
+  default: boolean;
+  /** 고를 때 보여 줄 안내 (느린 모델 등) — 없으면 빈 문자열 */
+  note?: string;
+}
+
+export interface LlmModelList {
+  /** false 면 해석을 Ollama 가 맡지 않아(예: LoRA) 모델을 고를 수 없다 — 선택 상자를 숨긴다 */
+  enabled: boolean;
+  reachable: boolean;
+  default: string;
+  models: LlmModel[];
+}
+
 /** POST /api/v1/feedback 요청 */
 export interface FeedbackRequest {
   job_id: string;

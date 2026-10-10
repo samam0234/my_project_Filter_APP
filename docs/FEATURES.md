@@ -53,6 +53,7 @@
 | 기능 | 코드 | 주요 설정 | 근거 · 문서 |
 |------|------|-----------|-------------|
 | 파이프라인 (LangGraph) | `workflows/` | `PRELOAD_MODELS` | 해석 → 전처리 → 세그 → 검증·재시도 → 효과 → 피드백 — [`WORKFLOW.md`](WORKFLOW.md) |
+| 해석 모델 고르기 | `services/llm_models.py` · `routers/llm.py` · `components/common/ModelSelect.tsx` | `OLLAMA_MODEL`(기본) | 처리하기 옆 상자로 요청마다 Ollama e4b · 12b · Qwen 3.8 27b 선택, 설치 안 된 모델은 "미적용" (`GET /api/v1/llm/models`, 폼 `llm_model`) — [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md) LLM 절 |
 | 문장 해석 LLM | `services/prompt_llm.py` | `LLM_PROVIDER`(ollama · lora · openai · gemini) · `LLM_FALLBACK` | 기본 Ollama `gemma4:e4b` |
 | 키워드 파서 | `services/heuristic_targets.py` | — | LLM 이 꺼져도 동작, 역할 규칙(남길 것 · 뺄 것 · 지울 것) |
 | 해석 체인 (LangChain) | `services/prompt_chain.py` | `PROMPT_CHAIN=langchain` · `PROMPT_VOTES` | LLM 답과 키워드 파서가 다르면 다수결 — 처음 본 문장 86.7→96.7% |

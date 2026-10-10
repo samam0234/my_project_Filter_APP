@@ -26,6 +26,8 @@ from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.routers.video import collect_request
 from app.services.gif_processor import is_gif, process_gif
+from app.routers.llm import resolve_model
+from app.services import llm_models
 from app.services.prompt_llm import parse_prompt_or_heuristic
 
 router = APIRouter(tags=["gif"])
@@ -52,11 +54,11 @@ class GifResponse(BaseModel):
     webp_url: Optional[str] = None
 
 
-def _run(data: bytes, prompt: str, matte: str = "none") -> dict:
+def _run(data: bytes, prompt: str, matte: str = "none", llm_model: Optional[str] = None) -> dict:
     from app.workflows import nodes
 
     settings = get_settings()
-    parsed = parse_prompt_or_heuristic(prompt, settings)
+    parsed = parse_prompt_or_heuristic(prompt, llm_models.with_model(settings, llm_model))
     info = process_gif(
         data,
         parsed,
@@ -87,6 +89,7 @@ async def process_gif_upload(
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
     matte: str = Form(default="none"),
+    llm_model: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     ldb: Session = Depends(get_learning_db),
     user: Optional[User] = Depends(current_user_optional),
@@ -101,6 +104,7 @@ async def process_gif_upload(
 
     if matte not in ("none", "light", "dark"):
         raise HTTPException(status_code=400, detail="matte 는 none · light · dark 중 하나예요.")
+    model = resolve_model(llm_model)  # 고른 해석 모델 (설치 안 됐으면 400)
     name = (file.filename or "").lower()
     mime = (file.content_type or "").split(";")[0].strip().lower()
     if not name.endswith(".gif") or mime not in GIF_MIMES:
@@ -114,7 +118,7 @@ async def process_gif_upload(
         raise HTTPException(status_code=400, detail="GIF 형식이 아닙니다.")
 
     try:
-        info = await run_in_threadpool(_run, data, prompt, matte)
+        info = await run_in_threadpool(_run, data, prompt, matte, model)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:

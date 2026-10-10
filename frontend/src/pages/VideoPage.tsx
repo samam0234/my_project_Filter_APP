@@ -11,6 +11,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Clapperboard, Download, HardDrive, Info, Loader2, RotateCcw, Trash2, X } from "lucide-react";
 import { errorMessage, fetchBlob, processVideo, saveBlob } from "../api/client";
+import { ModelSelect } from "../components/common/ModelSelect";
+import { currentLlmModel } from "../store/useLlmModelStore";
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
 import { Link } from "../router";
@@ -131,7 +133,7 @@ export function VideoPage() {
     setError(null);
     try {
       const text = prompt.trim();
-      const res = await processVideo(file, text);
+      const res = await processVideo(file, text, currentLlmModel());
       const blob = res.kind === "download" ? res.blob : await fetchBlob(res.url);
       const inBrowser = await saveVideo({
         blob,
@@ -259,15 +261,18 @@ export function VideoPage() {
             />
             <span className="block text-xs text-slate-500">블러를 더 세게: "배경 블러 강도 60" 처럼 숫자를 적어 보세요.</span>
           </label>
-          <Button onClick={() => void run()} disabled={running || !file || !prompt.trim()}>
-            {running ? "처리 중…" : shown ? (
-              <>
-                <RotateCcw className="h-4 w-4" /> 다시 처리
-              </>
-            ) : (
-              "영상 처리 시작"
-            )}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={() => void run()} disabled={running || !file || !prompt.trim()}>
+              {running ? "처리 중…" : shown ? (
+                <>
+                  <RotateCcw className="h-4 w-4" /> 다시 처리
+                </>
+              ) : (
+                "영상 처리 시작"
+              )}
+            </Button>
+            <ModelSelect disabled={running} />
+          </div>
           {shown && !file && !running && (
             <p className="text-xs text-slate-500">다시 처리하려면 원본 영상을 올려 주세요 (결과만 이 브라우저에 보관돼요).</p>
           )}
