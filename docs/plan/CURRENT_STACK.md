@@ -1,7 +1,7 @@
 # 컷앤킵 — 현재 스택 스냅샷
 
 **기준 브랜치:** `develop`  
-**스냅샷 일자:** 2026-10-10 (영상 추적 · 카메라 이동 지우기 · 실제 영상 검증 · LoRA 조합형 재학습 · GPU 오버레이 · 배포 도구 · 의존성 보안 업데이트 반영)  
+**스냅샷 일자:** 2026-10-11 (해석 모델 고르기 · 영상 추적 · 카메라 이동 지우기 · 실제 영상 검증 · LoRA 조합형 재학습 · GPU 오버레이 · 배포 도구 · 의존성 보안 업데이트 반영)  
 **목적:** 추가·수정·제외된 구성을 한곳에 모아, 다른 문서가 어긋나지 않게 한다.
 
 ---
@@ -11,7 +11,7 @@
 | 구성 | 로컬 개발 | Docker (`-p cut_and_keep`) |
 |------|-----------|----------------------------|
 | Backend FastAPI | `:8000` | **`127.0.0.1:${BACKEND_PORT:-8000}`** (호스트에서 uvicorn 을 따로 띄우면 `BACKEND_PORT=8001`) |
-| Frontend (사용자) | Vite 7 `:5173` | nginx **`:80` — 유일한 공개 포트** (보안 헤더 · 영상/GIF 85MB · 600초) |
+| Frontend (사용자) | Vite 7 `:5173` | nginx **`:80` — 유일한 공개 포트** (보안 헤더 · 영상/GIF 85MB · 600초 · 사진 300초) |
 | Console (운영) | Vite 7 `:5174` | **Compose 미포함** → 로컬만. 콘솔 API 는 관리자 로그인(`CONSOLE_ADMINS`) 또는 서버 PC |
 | MariaDB | (선택) 호스트 클라이언트 | **`127.0.0.1:${MARIADB_PORT}`** (예: 3309) → 컨테이너 `3306` |
 | Redis | — | **`127.0.0.1:6380`** → 컨테이너 `6379` |
@@ -71,6 +71,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 |------|-----------|
 | 세그 | **YOLO26m-seg** — 서빙 `backend/models/yolo26m-seg.pt` / `.onnx`, 원본·후보 루트 `models/`. ONNX 경로는 `backend/app/utils/onnx_utils.py` (torch·ultralytics 불필요) |
 | 탐지 실험 | `yolo26s.pt` (서비스 본선 아님) |
+| 해석 모델 고르기 | 작업실 처리하기 옆 상자(사진 · GIF · 영상): Ollama `gemma4:e4b`(기본) · `gemma4:12b` · `qwen3.8:27b`, 서버에 설치되지 않은 모델은 "미적용" — `GET /api/v1/llm/models`, 폼 `llm_model`, `services/llm_models.py`. `LLM_PROVIDER` 가 ollama 일 때만 ([`llm-and-vision.md`](../guidance/llm-and-vision.md)) |
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱. **GPU 오버레이는 `lora`** (283문장 94.7% · Ollama 체인 85.2%, [`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)) · 혼합 `PROMPT_SECOND_OPINION` |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
 | 프롬프트 RAG | `services/prompt_rag.py` — 사용자 교정·좋아요 중 비슷한 문장을 LLM 예시로 (글자 n-gram TF-IDF, `PROMPT_RAG_*`) |
@@ -175,6 +176,7 @@ Backend 컨테이너 오버라이드 예:
 - [ ] 작업 종류(사진 · 영상 · GIF) · LaMa · 자동 정리 · 자동 백업
 - [ ] 커밋 기록 경로 **branchs/commits**
 - [ ] 오버레이 **https · gpu**, 배포 도구 `make_prod_env` · `deploy_check` · `models_bundle` ([`DEPLOYMENT.md`](../DEPLOYMENT.md))
+- [ ] 해석 모델 목록(`llm_models.CATALOG`)과 서버 Ollama 에 설치된 모델 — 큰 모델은 첫 호출이 느리다(nginx 300초)
 - [ ] 의존성 취약점 점검 결과 ([`security.md`](../guidance/security.md) 5절)
 - [ ] Console Compose 미포함
 - [ ] 런타임(`backend/`) · 학습 공유(루트) 폴더 분리

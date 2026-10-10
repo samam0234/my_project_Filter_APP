@@ -53,6 +53,16 @@ docker compose -p cut_and_keep --env-file .env -f docker-compose.yml -f docker-c
 - 첫 요청은 모델을 올리느라 느리다. 띄운 뒤 사진 하나를 미리 처리해 둔다
 - 운영 콘솔(`console/`)은 Compose 에 없다 — 관리자 PC 에서 띄워 서버 API 에 붙인다 ([guidance/console-admin.md](./guidance/console-admin.md))
 
+### 해석 모델 고르기를 쓰려면 (Ollama 서버)
+
+작업실의 "해석 모델" 상자는 `LLM_PROVIDER=ollama` 일 때만 보인다. 서버의 Ollama 에 모델을 받아 두면 상자의 "미적용"이 풀린다:
+
+```bash
+ollama pull gemma4:e4b && ollama pull gemma4:12b && ollama pull qwen3.8:27b   # 27b 는 17GB — GPU 메모리가 모자라면 일부가 CPU 로 돌아 첫 호출이 3분 가깝다
+```
+
+GPU 서버(`docker-compose.gpu.yml`)는 LoRA 로 해석하므로 상자가 보이지 않는다. 큰 모델의 첫 호출을 위해 nginx 는 사진 요청을 300초까지 기다린다.
+
 ## 4. 점검
 
 ```bash
