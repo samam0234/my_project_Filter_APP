@@ -57,6 +57,7 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 |------|------|
 | `file` | JPEG / PNG / WebP, 최대 20 MB (`MAX_UPLOAD_SIZE_MB`) |
 | `prompt` | 자연어 요청 1~1000자 |
+| `llm_model` | (선택) 이 요청의 문장 해석에 쓸 Ollama 모델 — [`GET /llm/models`](#llm--문장-해석-모델-고르기)의 `id`. 안 보내면 서버 기본(`OLLAMA_MODEL`) |
 
 파이프라인을 **동기**로 실행한다.
 
@@ -181,7 +182,7 @@ LLM 이 Ollama 일 때 요청당 약 3~5 초 (대부분 LLM). 처리 중에도 �
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`. 프레임 세그 후 **H.264 mp4**(원본 오디오 포함). **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Effect` · `-Intensity` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `effect` · `intensity` · `frames` · `held`) |
+| `POST /api/v1/video` | `multipart`: `file`(mp4/avi/webm/mov/mkv), `prompt`, `llm_model`(선택, 해석 모델). 프레임 세그 후 **H.264 mp4**(원본 오디오 포함). **비로그인**은 첨부 응답만(저장 없음, 헤더 `X-Cutnkeep-Format` · `-Effect` · `-Intensity` · `-Frames` · `-Held`). **회원**은 `uploads/videos/{job_id}` 보관, JSON(`job_id` · `url` · `format` · `effect` · `intensity` · `frames` · `held`) |
 | `GET /api/v1/video/{job_id}` | **본인만**. 비로그인·남의 영상이면 404 |
 
 **회원 영상은 작업 기록에도 남는다** — `jobs` 에 `kind=video` 행(원본 · 결과 · 첫 프레임 `thumb.jpg`)이 생겨 `/jobs` · `/files/{job_id}/*` 로 다시 보고 받는다.
@@ -206,7 +207,7 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 
 | 엔드포인트 | 설명 |
 |------------|------|
-| `POST /api/v1/gif` | `multipart`: `file`(.gif, 최대 `MAX_UPLOAD_SIZE_MB`), `prompt`, `matte`(선택: `none` 기본 · `light` · `dark` — 배경 제거 경계를 그 배경색과 미리 섞음, 응답에도 `matte`). 프레임마다 영상과 같은 규칙(selector · 겹침 덜어내기 · 직전 마스크 유지 · 시간 스무딩)으로 처리해 다시 GIF 로 |
+| `POST /api/v1/gif` | `multipart`: `file`(.gif, 최대 `MAX_UPLOAD_SIZE_MB`), `prompt`, `llm_model`(선택, 해석 모델), `matte`(선택: `none` 기본 · `light` · `dark` — 배경 제거 경계를 그 배경색과 미리 섞음, 응답에도 `matte`). 프레임마다 영상과 같은 규칙(selector · 겹침 덜어내기 · 직전 마스크 유지 · 시간 스무딩)으로 처리해 다시 GIF 로 |
 
 ```json
 {
@@ -227,6 +228,22 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 - 처리 시간 참고: 480×360 · 10프레임 약 4초 (Docker, 모델 준비 후)
 
 ---
+
+## LLM — 문장 해석 모델 고르기
+
+작업실 "처리하기" 옆 선택 상자의 내용. 사진 · GIF · 영상이 같은 목록을 쓴다 (배치는 서버 기본 모델).
+
+| 엔드포인트 | 설명 |
+|------------|------|
+| `GET /api/v1/llm/models` | 비로그인 가능. `{enabled, reachable, default, models: [{id, label, available, default}]}` |
+
+- `models` 는 `gemma4:e4b`(Ollama e4b) · `gemma4:12b`(Ollama 12b) · `qwen3.8:27b`. 설정한 기본 모델(`OLLAMA_MODEL`)이 목록에 없으면 맨 앞에 더해진다
+- **`available=false` 는 서버 Ollama 에 설치되지 않은 모델**("미적용") — 화면에서 고를 수 없다. `ollama pull <id>` 로 내려받으면 10초 안에 `true` 가 된다 (서버 재시작 불필요)
+- `enabled=false` 는 문장 해석을 Ollama 가 맡지 않는 서버(예: GPU 서버의 LoRA) — 화면이 선택 상자를 숨기고, `llm_model` 을 보내도 무시된다
+- `reachable=false` 는 Ollama 에 닿지 않음 — 이때도 서버 기본 모델은 고를 수 있다 (고르지 않았을 때와 같은 동작)
+- 사진 · GIF · 영상의 `llm_model` 이 목록에 없거나 설치되지 않았으면 `400` (설치되지 않았으면 `ollama pull` 안내). 기본 모델이면 설정 그대로
+- 고른 모델은 **그 요청에만** 적용된다. 큰 모델은 첫 호출에 모델을 올리느라 느려 해석 제한 시간이 더 길다 (12b 90초 · 27b 180초)
+- 사진 결과의 `meta.llm_model` 에 실제로 Ollama 가 해석한 모델이 남는다
 
 ## 대상 마스크 처리 — 지정하지 않은 것이 섞이지 않게
 

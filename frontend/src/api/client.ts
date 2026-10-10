@@ -2,7 +2,7 @@
  * 사용자 앱 ↔ FastAPI HTTP 클라이언트.
  *
  * VITE_API_BASE_URL 이 비어 있으면 동일 오리진(Vite 프록시) 기준.
- * 업로드 타임아웃 180s: LLM(Ollama) + YOLO 동기 처리, 첫 요청 모델 로드 여유.
+ * 업로드 타임아웃 300s: LLM(Ollama) + YOLO 동기 처리, 첫 요청 모델 로드 여유 (큰 해석 모델 12b · 27b 포함).
  */
 import axios from "axios";
 import type {
@@ -15,6 +15,7 @@ import type {
   GifResponse,
   HealthResponse,
   JobResponse,
+  LlmModelList,
   MessageResponse,
   UploadResponse,
   VideoFormat,
@@ -38,27 +39,41 @@ export const api = axios.create({
 });
 
 /** 단일 이미지 업로드 + 프롬프트 처리 (파이프라인 동기 실행) */
-export async function uploadImage(file: File, prompt: string): Promise<UploadResponse> {
+export async function uploadImage(file: File, prompt: string, llmModel?: string): Promise<UploadResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("prompt", prompt);
+  if (llmModel) form.append("llm_model", llmModel);
   const { data } = await api.post<UploadResponse>("/api/v1/upload", form, {
     headers: { "Content-Type": "multipart/form-data" },
-    timeout: 180_000,
+    // 큰 해석 모델(12b · 27b)은 첫 호출에 모델을 올리느라 오래 걸린다 — nginx(300초)와 같게
+    timeout: 300_000,
   });
   return data;
 }
 
 /** 움직이는 GIF 한 개 처리 — 프레임마다 세그라 사진보다 오래 걸린다 */
-export async function processGif(file: File, prompt: string, matte: GifMatte = "none"): Promise<GifResponse> {
+export async function processGif(
+  file: File,
+  prompt: string,
+  matte: GifMatte = "none",
+  llmModel?: string,
+): Promise<GifResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("prompt", prompt);
   form.append("matte", matte);
+  if (llmModel) form.append("llm_model", llmModel);
   const { data } = await api.post<GifResponse>("/api/v1/gif", form, {
     headers: { "Content-Type": "multipart/form-data" },
     timeout: 600_000,
   });
+  return data;
+}
+
+/** 문장 해석에 고를 수 있는 모델 목록과 설치 여부 (비로그인도 가능) */
+export async function getLlmModels(): Promise<LlmModelList> {
+  const { data } = await api.get<LlmModelList>("/api/v1/llm/models", { timeout: 8_000 });
   return data;
 }
 
@@ -231,10 +246,11 @@ function videoFormat(header: string, contentType: string): VideoFormat {
   return "avi";
 }
 
-export async function processVideo(file: File, prompt: string): Promise<VideoResult> {
+export async function processVideo(file: File, prompt: string, llmModel?: string): Promise<VideoResult> {
   const form = new FormData();
   form.append("file", file);
   form.append("prompt", prompt);
+  if (llmModel) form.append("llm_model", llmModel);
   let res;
   try {
     res = await api.post<Blob>("/api/v1/video", form, {

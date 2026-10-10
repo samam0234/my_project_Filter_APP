@@ -145,6 +145,7 @@ def run_pipeline(
     job_id: Optional[str] = None,
     persist: bool = True,
     parsed: Optional[ParsedPrompt] = None,
+    llm_model: Optional[str] = None,
 ) -> ProcessResult:
     """공개 진입점: 이미지 + 프롬프트 → ProcessResult.
 
@@ -152,6 +153,7 @@ def run_pipeline(
     job_id 가 없으면 uuid4 hex 를 발급한다.
     persist=False (비로그인): 실패 케이스를 피드백(학습 재료)으로 저장하지 않는다.
     parsed: 이미 해석된 프롬프트 (배치가 같은 문장을 한 번만 해석해 넘김). 주면 LLM 해석을 건너뛴다.
+    llm_model: 이 요청에서만 쓸 Ollama 해석 모델 (services/llm_models 가 확인한 id). 없으면 설정의 OLLAMA_MODEL.
     """
     job_id = job_id or uuid4().hex
     # GraphState 초기값 — 노드들이 점진적으로 필드를 채움
@@ -167,6 +169,8 @@ def run_pipeline(
     }
     if parsed is not None:
         initial["parsed_prompt"] = parsed.model_dump()
+    if llm_model:
+        initial["llm_model"] = llm_model
 
     compiled = get_compiled_graph()
     try:
@@ -219,6 +223,7 @@ def run_pipeline(
             "labels": final.get("labels"),
             "confidences": final.get("confidences"),
             "prompt_parser": final.get("prompt_parser"),
+            "llm_model": final.get("llm_model"),  # Ollama 가 해석했을 때 쓴 모델 (작업실에서 고른 것 또는 기본)
             "prompt_rag": final.get("prompt_rag"),
             "detected": final.get("detected"),
             "segment_strategy": final.get("segment_strategy"),

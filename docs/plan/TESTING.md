@@ -69,7 +69,7 @@ push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 
 
 - 모델(ultralytics·torch)이 필요한 테스트는 `importorskip` 으로 건너뛰고 세그는 stub 마스크로 동작
 - 매주 월요일에도 돈다(`schedule`) — 코드가 그대로여도 새로 알려진 의존성 취약점을 잡는다
-- 로컬 전체: 2026-10-10 기준 **백엔드 451 · 프론트 54 · 콘솔 21** 통과
+- 로컬 전체: 2026-10-10 기준 **백엔드 463 · 프론트 65 · 콘솔 21** 통과
 - 로컬에서 CI 와 같은 조건 확인 (2026-10-10, 깨끗한 venv · 모델 · `.env` 없이 — 전부 통과, 모델 파일이 필요한 1개만 건너뜀 · pip-audit 0건):
   `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 git 파일만 꺼낸 폴더(`git archive`)에서 pytest
 - `tests/requirements-test.txt` 에는 pytest · httpx 만 둔다 — LangGraph 등을 따로 고정하면 `requirements.docker.txt` 와 판이 어긋나 설치가 깨진다(2026-10-10 실제로 있었다)

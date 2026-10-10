@@ -9,6 +9,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { ExternalLink, Film, Loader2, RefreshCw, RotateCcw, Wand2 } from "lucide-react";
 import { errorMessage, processGif, resolveAssetUrl } from "../../api/client";
+import { currentLlmModel } from "../../store/useLlmModelStore";
+import { ModelSelect } from "../common/ModelSelect";
 import type { GifMatte, GifResponse } from "../../types";
 import { Link } from "../../router";
 import { useAppStore } from "../../store/useAppStore";
@@ -67,7 +69,7 @@ export function GifWorkspace() {
     setError(null);
     setResult(null);
     try {
-      setResult(await processGif(file, prompt.trim(), matte));
+      setResult(await processGif(file, prompt.trim(), matte, currentLlmModel()));
     } catch (err) {
       setError(errorMessage(err, "GIF 를 처리하지 못했어요."));
     } finally {
@@ -172,6 +174,7 @@ export function GifWorkspace() {
             <Button size="lg" onClick={() => void run()} disabled={!canRun} className="flex-1 sm:flex-none">
               <Wand2 className="h-4 w-4" /> GIF 처리 시작
             </Button>
+            <ModelSelect disabled={busy} />
             <Button variant="ghost" size="lg" onClick={reset} disabled={busy}>
               <RotateCcw className="h-4 w-4" /> 초기화
             </Button>

@@ -24,6 +24,7 @@ from app.schemas.request import InstanceSelector, ParsedPrompt
 from app.services.feedback_service import FeedbackService
 from app.services.image_processor import ImageProcessor
 from app.services.instance_selector import select_instances
+from app.services import llm_models
 from app.services.prompt_llm import clear_last_llm_provider, last_llm_provider, llm_chain, parse_prompt_llm
 from app.services.prompt_rag import format_examples, get_prompt_rag
 from app.services.segmentation import union_mask
@@ -226,7 +227,8 @@ def prompt_analyzer(state: GraphState) -> GraphState:
     # =============================================================================
     parsed: ParsedPrompt | None = None
     parser_used = "heuristic"
-    settings = get_settings()
+    # 작업실에서 고른 해석 모델은 이 요청에만 적용한다 (설정 복사본 — 서버 설정은 그대로)
+    settings = llm_models.with_model(get_settings(), state.get("llm_model"))
     rag_hits: list = []
     examples = ""
     provider = (settings.llm_provider or "").strip().lower()
@@ -276,6 +278,7 @@ def prompt_analyzer(state: GraphState) -> GraphState:
         "job_id": job_id,
         "parsed_prompt": parsed.model_dump(),
         "prompt_parser": parser_used,
+        "llm_model": settings.ollama_model if parser_used == "ollama" else None,  # 실제로 Ollama 가 해석했을 때만 어느 모델이었는지 남긴다
         # 다른 사용자의 문장은 남기지 않고 출처·점수만 (교정 예시는 모든 사용자 해석에 쓰임)
         "prompt_rag": [{"source": h.example.source, "score": h.score} for h in rag_hits],
         "status": JobStatus.PENDING.value,

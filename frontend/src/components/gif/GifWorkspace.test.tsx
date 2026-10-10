@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../api/client", () => ({
   processGif: vi.fn(),
+  getLlmModels: vi.fn().mockRejectedValue(new Error("목록 없음")), // 선택 상자는 숨겨지고 기본 모델로 처리된다
   submitFeedback: vi.fn(),
   resolveAssetUrl: (u?: string | null) => u ?? undefined,
   errorMessage: (e: unknown) => String((e as Error)?.message ?? e),
@@ -57,7 +58,7 @@ describe("GifWorkspace", () => {
     render(<GifWorkspace />);
     await pickAndRun();
     expect(await screen.findByText(/12프레임 처리 · 투명 배경/)).toBeTruthy();
-    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "none");
+    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "none", undefined);
     expect((screen.getByAltText("처리 결과") as HTMLImageElement).src).toContain("data:image/gif");
     expect((screen.getByAltText("원본 이미지") as HTMLImageElement).src).toContain("blob:gif-preview");
     expect(screen.getByText("이 결과는 저장되지 않아요")).toBeTruthy();
@@ -107,7 +108,7 @@ describe("GifWorkspace", () => {
     expect(screen.getByText(/반대 배경에 올리면 테두리가 보이니/)).toBeTruthy();
     await pickAndRun();
     await screen.findByText(/12프레임 처리/);
-    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "light");
+    expect(client.processGif).toHaveBeenCalledWith(expect.any(File), "사람만 남기고 배경 제거", "light", undefined);
   });
 
   it("처리 실패는 오류로 보여 주고 다시 시도할 수 있다", async () => {

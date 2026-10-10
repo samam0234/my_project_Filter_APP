@@ -50,6 +50,8 @@ python scripts/deploy_check.py server --gpu      # 베이스 모델 · 어댑터
 - `deploy_check.py remote https://localhost --insecure`: 실패 0 · 경고 1(자체 서명)
 - `server --gpu`: GPU 항목 모두 통과. 운영 값(APP_ENV · SMTP · DOMAIN)은 로컬이라 실패로 나왔다
 
+- **해석 모델 고르기 상자는 GPU 서버에서 보이지 않는다.** 해석을 LoRA 가 하므로 `GET /llm/models` 가 `enabled=false` 를 돌려주고 화면이 상자를 숨긴다 ([`llm-and-vision.md`](./llm-and-vision.md))
+
 ## 4. CUDA 판 고르기 (`GPU_TORCH_INDEX`)
 
 컨테이너는 **자기 CUDA 런타임**(PyTorch 휠 안에 들어 있다)을 쓰고, 호스트에서는 **NVIDIA 드라이버만** 빌린다.

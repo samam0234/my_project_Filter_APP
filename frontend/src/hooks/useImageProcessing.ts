@@ -6,6 +6,7 @@
  */
 import { useCallback } from "react";
 import { resolveAssetUrl, uploadImage } from "../api/client";
+import { currentLlmModel } from "../store/useLlmModelStore";
 import { useAppStore } from "../store/useAppStore";
 
 export function useImageProcessing() {
@@ -31,7 +32,7 @@ export function useImageProcessing() {
     setError(null);
     try {
       // multipart 업로드 → 백엔드 파이프라인 동기 실행
-      const data = await uploadImage(file, prompt.trim());
+      const data = await uploadImage(file, prompt.trim(), currentLlmModel());
       // snake_case API → camelCase UI 상태 매핑
       setResult({
         jobId: data.job_id,

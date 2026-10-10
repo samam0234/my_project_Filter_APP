@@ -36,7 +36,8 @@
 | 확장자·MIME 위장 | 내용 시그니처 검사 (사진 JPEG·PNG·WebP · 영상 AVI·MP4·WebM · GIF) |
 | 압축 폭탄 (파일은 작고 풀면 수 GB) | 디코딩 전에 해상도 확인 — 사진 `MAX_IMAGE_PIXELS`(40MP) · GIF 한 프레임 `GIF_MAX_PIXELS`(4MP) · 영상 긴 변 `VIDEO_MAX_SIDE`(3840) |
 | 큰 파일 | 사진·GIF `MAX_UPLOAD_SIZE_MB`(20) · 영상 `VIDEO_MAX_UPLOAD_MB`(80) · nginx 25MB/85MB |
-| 오래 걸리는 처리 | 영상·GIF 프레임 상한(`VIDEO_MAX_FRAMES` · `GIF_MAX_FRAMES`), nginx 대기 600초 |
+| 오래 걸리는 처리 | 영상·GIF 프레임 상한(`VIDEO_MAX_FRAMES` · `GIF_MAX_FRAMES`), nginx 대기 600초(사진은 큰 해석 모델용 300초) |
+| 해석 모델 고르기 | 요청이 보내는 `llm_model` 은 서버 목록(e4b · 12b · 27b)에 있고 **설치된** 것만 받는다 — 임의 이름을 Ollama 로 넘기지 않는다. 다른 모델의 큰 메모리 사용(27b 17GB)은 속도 제한(분당 6회 비로그인)이 막아 준다 |
 | 남의 파일 보기 | 결과 파일은 작업 소유자만 (`/files/*` 404), 파일 경로는 업로드 폴더 안인지 확인 |
 
 ## 4. 데이터 보관 · 개인정보

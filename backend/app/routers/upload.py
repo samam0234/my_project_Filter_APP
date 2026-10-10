@@ -33,6 +33,7 @@ from app.models.user import User
 from app.repositories.job_repository import JobRepository
 from app.schemas.response import UploadResponse
 from app.services.learning_catalog import record_request, shared_relpath
+from app.routers.llm import resolve_model
 from app.workflows.graph import run_pipeline
 
 router = APIRouter(tags=["upload"])
@@ -43,6 +44,7 @@ async def upload_and_process(
     request: Request,
     file: UploadFile = File(...),
     prompt: str = Form(..., min_length=1, max_length=1000),
+    llm_model: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     ldb: Session = Depends(get_learning_db),
     user: Optional[User] = Depends(current_user_optional),
@@ -61,6 +63,7 @@ async def upload_and_process(
         enforce(upload_limiter, f"ip:{ip}", settings.upload_rate_guest_per_min,
                 "처리 요청 (비로그인은 분당 제한이 더 낮습니다)")
 
+    model = resolve_model(llm_model)  # 고른 해석 모델 (설치 안 됐으면 400) — 이 요청에만 적용
     try:
         data = await validate_upload_file(file)
     except FileValidationError as exc:
@@ -69,8 +72,10 @@ async def upload_and_process(
     try:
         # 파이프라인(LLM·YOLO·OpenCV)은 수십 초 걸리는 동기 작업 — 스레드풀에서 돌려
         # 처리 중에도 다른 요청(로그인·작업 기록·헬스)이 바로 응답하게 한다
+        # 모델을 고르지 않았으면 인자를 아예 넘기지 않는다 — 기본 경로의 호출 모양이 예전과 같다
+        extra = {"llm_model": model} if model else {}
         result = await run_in_threadpool(
-            run_pipeline, image_bytes=data, prompt=prompt, persist=user is not None
+            run_pipeline, image_bytes=data, prompt=prompt, persist=user is not None, **extra
         )
         if user is None:
             return _guest_response(result)

@@ -22,6 +22,7 @@ class GraphState(TypedDict, total=False):
     image_bytes: bytes  # 원본 업로드 바이트 (전처리 전)
     image_path: Optional[str]  # 선택: 디스크 경로로 넘기는 경우
     prompt: str  # 사용자 자연어 프롬프트
+    llm_model: Optional[str]  # 이 요청에서만 쓸 Ollama 해석 모델 (작업실 선택 상자) — 없으면 설정 기본
 
     # --- 프롬프트 분석 결과 ---
     # ParsedPrompt.model_dump() 형태: target, effect, intensity, crop
