@@ -45,6 +45,10 @@ CNK_SSH_KEY=<개인키 경로> CNK_SSH_HOST=ubuntu@<서버IP> bash deploy/cloudf
 
 ## 알아 둘 것
 
+- **"서버 연결 안 됨" · `/health` 502**: Worker 문제인지 서버 문제인지 먼저 가른다 — `curl https://<서버 도메인>/health` 도 502 면 서버 쪽이다.
+  2026-10-11 실제 사례: `.env` 를 바꾸자 compose 가 backend 를 다시 만들어 IP 가 바뀌었는데, nginx 가 옛 IP 로 접속하다 거절됨.
+  → `frontend/nginx.conf` 가 Docker DNS 로 10초마다 backend 주소를 다시 찾도록 고쳤다 (`resolver 127.0.0.11` + 변수 `proxy_pass`)
+
 - 서버 주소를 바꾸면(자체 도메인) `wrangler.jsonc` 의 `ORIGIN` 만 바꾸고 다시 `wrangler deploy`
 - 화면을 고칠 때마다 1~2번을 다시 한다. 서버(`frontend` 컨테이너)의 화면도 그대로 살아 있다
 - 오래 걸리는 요청(영상 · GIF, 큰 해석 모델의 첫 호출)이 Worker 를 거치며 끊기는지는 실제 요청으로 확인한다
