@@ -95,3 +95,6 @@ training/**/wandb/
 
 # 배포용 모델 묶음 (scripts/models_bundle.py)
 /dist/
+
+# Cloudflare wrangler 로컬 캐시
+.wrangler/

@@ -16,8 +16,23 @@
 	# 서버 종류(Caddy · nginx)를 응답에 드러내지 않는다
 	header -Server
 
-	# 영상 · GIF 업로드는 nginx 가 85MB · 600초까지 받는다 — Caddy 는 기본으로 크기·시간 제한이 없다
-	reverse_proxy frontend:80 {
-		header_up X-Real-IP {remote_host}
+	# Cloudflare Worker(deploy/cloudflare)를 거쳐 온 요청 — Worker 가 비밀 값(EDGE_SECRET)을 실어 보낸 경우에만
+	# 실제 사용자 IP(X-Cnk-Real-IP)를 속도 제한용 IP 로 믿는다. EDGE_SECRET 이 비어 있으면 이 경로는 꺼진다.
+	@edge expression `"{$EDGE_SECRET}" != "" && {http.request.header.X-Cnk-Edge} == "{$EDGE_SECRET}"`
+	handle @edge {
+		reverse_proxy frontend:80 {
+			header_up X-Real-IP {http.request.header.X-Cnk-Real-IP}
+			header_up -X-Cnk-Edge
+			header_up -X-Cnk-Real-IP
+		}
+	}
+
+	# 그 밖의 요청 — 영상 · GIF 업로드는 nginx 가 85MB · 600초까지 받는다 (Caddy 는 기본으로 크기·시간 제한이 없다)
+	handle {
+		reverse_proxy frontend:80 {
+			header_up X-Real-IP {remote_host}
+			header_up -X-Cnk-Edge
+			header_up -X-Cnk-Real-IP
+		}
 	}
 }
