@@ -1,0 +1,21 @@
+# 서버가 "내 PC 의 Ollama"를 쓰게 하는 다리 — 기본 compose 에 겹쳐 쓴다 (모델을 서버에 따로 받지 않는다)
+#
+#   PC  : bash scripts/ollama_tunnel.sh      # PC 의 11434 를 서버 loopback 11435 로 SSH 역방향 터널
+#   서버: 이 파일의 ollama-bridge 가 docker 네트워크 주소(172.18.0.1:11434)로 받아 loopback 11435 로 넘긴다
+#   backend 는 .env 의 DOCKER_LLM_BASE_URL 로 그 주소를 쓴다
+#
+# 서버 .env:
+#   LLM_PROVIDER=ollama
+#   LLM_FALLBACK=heuristic                          # PC 가 꺼져 터널이 끊기면 키워드 파서로 (서비스는 계속 동작)
+#   DOCKER_LLM_BASE_URL=http://172.18.0.1:11434     # cut_and_keep_net 의 게이트웨이 주소
+#
+# 서버 방화벽(한 번): sudo iptables -I INPUT -s 172.18.0.0/16 -p tcp --dport 11434 -j ACCEPT   (밖에서는 막힌 채)
+# 자세히: docs/guidance/ollama-server.md
+
+services:
+  ollama-bridge:
+    image: alpine/socat:latest
+    # 호스트 네트워크로 떠야 호스트 loopback(SSH 터널 끝)에 닿는다. docker 네트워크 쪽 주소에만 귀를 연다 — 밖으로는 열리지 않는다
+    network_mode: host
+    command: TCP-LISTEN:11434,bind=${OLLAMA_BRIDGE_BIND:-172.18.0.1},fork,reuseaddr TCP:127.0.0.1:11435
+    restart: unless-stopped
