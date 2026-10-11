@@ -1,0 +1,11 @@
+site/node_modules/
+site/.next/
+ai/.venv/
+ai/**/__pycache__/
+ai/data/rag_memory.json
+ai/data/*.tmp
+site/data/*.sqlite
+site/data/*.sqlite-journal
+site/data/*.sqlite-wal
+site/data/*.sqlite-shm
+**/*.pyc
