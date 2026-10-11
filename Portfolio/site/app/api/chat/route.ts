@@ -1,7 +1,7 @@
 const AI = process.env.PORTFOLIO_AI_URL || "http://127.0.0.1:5055";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 export async function GET() {
   try {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ messages }),
-      signal: AbortSignal.timeout(110000),
+      signal: AbortSignal.timeout(160000),
     });
     const data = await res.json();
     return Response.json(data, { status: res.status });

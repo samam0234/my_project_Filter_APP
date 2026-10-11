@@ -2,10 +2,10 @@
 
 제품 FastAPI와 별도다. 사진을 처리하지 않고, 데이터베이스에 연결하지 않는다.
 
-- LangGraph: 분류 → 검색 → 답변
-- LangChain: `ChatPromptTemplate`, `ChatOllama`, 문서 검색기
-- 검색: 포트폴리오 마크다운과 인수인계·기능·워크플로 문서. 글자 2-gram. 벡터 DB 없음
-- 모델: Ollama `gemma4:12b` (`OLLAMA_MODEL`로 변경 가능)
+- LangGraph: 이해 → 검색 → 초안 → 문서와 어긋나면 한 번 수정
+- LangChain: `ChatPromptTemplate`, `StrOutputParser`, `ChatOllama`, 문서 검색기
+- 검색: BM25와 글자 2-gram, 제목 일치, 말투를 고유명사로 바꾸는 확장. 벡터 DB 없음
+- 모델: Ollama `gemma4:12b`. 생각 토큰은 끄고, 문맥은 6144토큰
 - 기록: 없음. 브라우저가 최근 대화를 요청마다 다시 보낸다
 
 ```bash
