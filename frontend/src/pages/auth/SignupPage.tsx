@@ -66,6 +66,7 @@ export function SignupPage() {
       const next = new URLSearchParams(search).get("next");
       const q = new URLSearchParams({ email: res.email ?? form.email.trim() });
       if (next) q.set("next", next);
+      if (res.mail_delivered === false) q.set("dev", "1"); // 메일이 안 나가는 개발 서버 — 인증 화면이 안내한다
       navigate(`/signup/verify?${q.toString()}`);
     } catch (err) {
       setError(errorMessage(err, "가입에 실패했습니다."));

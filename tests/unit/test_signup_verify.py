@@ -260,3 +260,14 @@ def test_maintenance_purges_only_expired_pending(env):
     with env["Session"]() as db:
         assert [p.email for p in db.query(SignupPending).all()] == ["new@example.com"]
     assert maintenance.purge_signup_pending() == 0
+
+
+def test_response_says_whether_mail_really_went_out(env, monkeypatch):
+    """SMTP 미설정(개발 모드)이면 메일이 로그에만 남는다 — 화면이 사용자에게 알릴 수 있게 응답에 싣는다."""
+    s = get_settings()
+    monkeypatch.setattr(s, "smtp_host", "")
+    c = env["client"]
+    assert _start(c).json()["mail_delivered"] is False
+    assert c.post("/api/v1/auth/signup/resend", json={"email": "newbie@example.com"}).json()["mail_delivered"] is False
+    monkeypatch.setattr(s, "smtp_host", "smtp.test")
+    assert _start(c, username="newbie_02", email="n2@example.com").json()["mail_delivered"] is True

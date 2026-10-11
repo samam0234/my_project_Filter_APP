@@ -111,7 +111,10 @@ SMTP_FROM=Cut & Keep <you@example.com>
 SMTP_STARTTLS=true
 ```
 
-**`SMTP_HOST` 가 비어 있으면(로컬 기본) 메일을 보내지 않고 서버 로그에 본문을 남긴다.**
+**`SMTP_HOST` 가 비어 있으면(로컬 기본) 메일을 보내지 않고 서버 로그에 본문을 남긴다.** 이때 회원가입 인증 화면이
+"메일이 실제로 가지 않았다(개발 모드)"고 알려 준다. 이 PC 에서 실제 메일을 받으려면 `bash scripts/set_smtp_local.sh` 로
+.env 에 SMTP 를 설정하고 백엔드를 다시 시작한다 (비밀번호는 화면에 보이지 않게 입력). 보내는 계정이 Gmail 이어도
+**받는 사람은 어떤 메일이든** 된다 (발신 계정과 수신 주소는 별개).
 개발 중에는 `backend/logs/app_YYYY-MM-DD.log` 에서 `[DEV MAIL` 을 찾아 코드를 확인한다.
 
 ```powershell

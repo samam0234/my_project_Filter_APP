@@ -60,6 +60,16 @@ describe("회원가입 1단계 → 이메일 인증", () => {
     expect(useAuthStore.getState().status).toBe("guest"); // 인증 전에는 로그인 상태가 아니다
   });
 
+  it("메일이 실제로 나가지 않는 개발 서버면 인증 화면에 dev 표시를 달아 보낸다", async () => {
+    signupStart.mockResolvedValue({ ok: true, message: "보냈어요", verification_required: true, email: "n@example.com", mail_delivered: false });
+    render(<SignupPage />);
+    fill();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: /가입하기/ }));
+    await vi.waitFor(() => expect(window.location.pathname).toBe("/signup/verify"));
+    expect(new URLSearchParams(window.location.search).get("dev")).toBe("1");
+  });
+
   it("서버가 인증을 끈 경우(개발)에는 바로 가입된 로그인 상태가 된다", async () => {
     signupStart.mockResolvedValue({ ok: true, message: "가입했습니다.", verification_required: false, user: { id: "u", username: "new_user", email: "n@example.com" } });
     render(<SignupPage />);
