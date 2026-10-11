@@ -13,7 +13,9 @@
 | frontend | `frontend/Dockerfile` | 80 |
 | mariadb | 공식 `mariadb:11` | `${MARIADB_PORT}` (예 3309)→3306 |
 | redis | `redis:7-alpine` | 6380→6379 |
-| adminer | `adminer:4` | 8081 |
+| adminer | `adminer:4` | 8081 (개발용 — 운영 서버에서는 띄우지 않는다) |
+| caddy | `caddy:2.8-alpine` (`docker-compose.https.yml`) | 80 · 443 |
+| ollama-bridge | `alpine/socat` (`docker-compose.pc-ollama.yml`) | host 네트워크 — docker 게이트웨이 `172.18.0.1:11434` → SSH 터널 끝 `127.0.0.1:11435` |
 
 ## MariaDB (비밀번호 전용)
 

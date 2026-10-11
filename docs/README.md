@@ -26,6 +26,7 @@
 
 ## 빠른 링크
 
+- **인수인계 (현재 운영 구성 · 접근 방법 · 명령 · 규칙 · 한계 · 함정):** [HANDOVER.md](./HANDOVER.md)
 - **전체 기능 목록 (화면 · API · 설정 · 코드 · 문서):** [FEATURES.md](./FEATURES.md)
 - **현재 스택 스냅샷 (포트·DB·Docker):** [plan/CURRENT_STACK.md](./plan/CURRENT_STACK.md)
 - **실행 · 서버:** [../RUN.md](../RUN.md) · [guidance/docker-run.md](./guidance/docker-run.md)

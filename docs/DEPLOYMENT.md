@@ -1,5 +1,7 @@
 # 배포 — 공개 서버에 올리는 순서
 
+> 지금 실제로 돌고 있는 구성과 운영 명령은 [HANDOVER.md](./HANDOVER.md) 에 있다.
+
 > 로컬 개발 실행은 [../RUN.md](../RUN.md) · [guidance/docker-run.md](./guidance/docker-run.md).
 > 이 문서는 **공개 서버**에 올리는 순서만 모은다. 각 단계의 자세한 설명은 링크한 문서에 있다.
 

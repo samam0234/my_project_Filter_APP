@@ -101,6 +101,10 @@ python scripts/deploy_check.py server --models-manifest models.sha256.json
 | 세션 쿠키 | `Secure` 꺼짐 | `Secure` 켜짐 + HSTS |
 | 실제 접속 IP | nginx 가 본 주소 | Caddy → nginx(`real_ip`) → backend(`TRUSTED_PROXIES`) — 비로그인 처리 횟수 제한이 사람마다 |
 
+## 4-1. 앞단에 Cloudflare Worker 를 둘 때
+
+화면을 Cloudflare 에 올리고 `/api` 를 이 서버로 넘기면(같은 주소로 보여 쿠키가 그대로 동작) Caddy 는 `EDGE_SECRET` 이 맞는 요청의 `X-Cnk-Real-IP` 만 실제 사용자 IP 로 믿는다 — 아니면 모든 사용자가 Cloudflare IP 하나로 보여 속도 제한이 전원에게 같이 걸린다. `.env` 의 `EDGE_SECRET` 은 비워 두면 꺼진다. 순서 · 이유: [cloudflare-deploy.md](./cloudflare-deploy.md)
+
 ## 5. 되돌리기 · 주의
 
 - https compose 없이 다시 띄우면 기본(http :80)으로 돌아간다. 단 HSTS 를 받은 브라우저는 180일 동안 https 로만 가려 한다 — 도메인을 바꾸거나 http 로 돌아갈 계획이면 Caddyfile 의 HSTS 줄을 먼저 지운다

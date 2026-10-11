@@ -198,6 +198,7 @@ docker compose -p cut_and_keep --env-file .env --profile mail up -d mailpit
 | `users` | id · username · email · display_name · password_hash · failed_logins · locked_until · last_login_at |
 | `auth_sessions` | id(=토큰 SHA-256) · user_id · expires_at · user_agent |
 | `auth_codes` | user_id · purpose(`password_reset`) · code_hash · attempts · expires_at · used_at |
+| `signup_pending` | email · username · password_hash · code_hash · attempts · expires_at · sent_at — 가입 인증 대기 (인증 후 삭제) |
 | `jobs.user_id` | 기존 테이블에 **ALTER 로 추가** (NULL 허용). 비로그인 작업은 저장하지 않으므로, NULL 은 로그인 기능 이전 작업뿐 |
 | `batch_jobs.user_id` | 기존 테이블에 ALTER 로 추가. 배치를 등록한 회원 |
 

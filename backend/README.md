@@ -7,7 +7,7 @@
 | 영역 | 경로 | 설명 |
 |------|------|------|
 | 진입점 | `app/main.py` | FastAPI 앱, CORS, lifespan, `/health` |
-| 라우터 | `app/routers/` | upload(사진 · 파일), gif, video, jobs, feedback, batch, auth, console |
+| 라우터 | `app/routers/` | upload(사진 · 파일), gif, video, jobs, feedback, batch, auth(가입 인증 · 내 계정), llm(모델 목록), **chat(AI 채팅)**, console |
 | 스키마 | `app/schemas/` | Pydantic 요청/응답 DTO |
 | 서비스 | `app/services/` | OpenCV, 세그, 효과, 검증, 피드백 (아래 표) |
 | 워크플로 | `app/workflows/` | LangGraph 노드·그래프 |
@@ -44,7 +44,10 @@
 | `user_admin.py` · `system_status.py` | 콘솔 회원 관리 · 시스템 스냅샷 |
 | `feedback_service.py` | 피드백 DB + `data/feedback/` 사이드카 |
 | `feedback_images.py` | 실패 · 확신 낮은 요청 사진 보관 기간(`FEEDBACK_IMAGE_RETENTION_DAYS`) · 계정 삭제 때 정리 |
-| `auth_service.py` | 가입 · 로그인 잠금 · 세션 · 아이디 찾기 · 비밀번호 재설정 규칙 |
+| `auth_service.py` | 가입(**이메일 인증** — 일련번호 · 대기 신청) · 로그인 잠금 · 세션 · 내 계정(이름 · 비밀번호 변경 · 탈퇴) · 아이디 찾기 · 비밀번호 재설정 규칙 |
+| `mail_templates.py` · `mailer.py` | HTML + 텍스트 메일 본문(가입 인증 · 아이디 · 재설정), SMTP 발송(multipart) |
+| `chat_agent.py` | 프롬프트 가이드 "에이전트에게 묻기" — Ollama `/api/chat`, 서버 고정 시스템 프롬프트, 대화 비저장 |
+| `llm_models.py` | 해석 · 채팅에 고를 수 있는 Ollama 모델 목록과 설치 여부("미적용") |
 | `mailer.py` | SMTP 발송 (미설정 시 로그에만 기록) |
 
 계정 보조: `core/passwords.py`(scrypt·토큰·코드), `core/deps.py`(`current_user`),
