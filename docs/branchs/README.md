@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `c772fa8` | 안내 챗 검색과 답변 그래프 강화 | [commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md](./commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md) |
 | `843aa1c` | 안내 챗 질문 추천과 화면 움직임 | [commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md](./commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md) |
 | `b531c60` | 설명 사이트와 안내 챗 | [commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md](./commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md) |
 | `b1c6975` | 포트폴리오 설명 문서 | [commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md](./commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md) |
