@@ -56,7 +56,7 @@ npm run dev
 | `site/` | Next.js. 화면과 이 사이트의 API |
 | `ai/` | Flask. 포트폴리오를 설명하는 AI 안내. 제품 백엔드와 별도 |
 
-화면의 챗 기록은 브라우저 `localStorage`만 쓴다. 챗봇용 데이터베이스는 두지 않는다. 학습에 쓸 질문과 답은 `Portfolio/ai/data/rag_memory.json`에 남는다.
+화면의 챗 기록은 브라우저 `localStorage`만 쓴다. 대화 본문용 데이터베이스는 두지 않는다. 학습에 쓸 질문과 답은 `Portfolio/ai/data/rag_memory.json`에 남는다. 깊이 추론 횟수만 `site/data/deep_quota.sqlite`에 남고, 사이트 전체로 하루 10번, 한국 시간 오전 12시에 초기화된다.
 안내 모델은 운영에도 쓰는 Ollama `gemma4:12b`다.
 
 ## 제품과 이 사이트의 차이

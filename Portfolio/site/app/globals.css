@@ -321,12 +321,15 @@ ul.clean li { margin: 4px 0; }
 .composer textarea {
   flex: 1;
   min-width: 0;
-  resize: vertical;
-  min-height: 64px;
+  resize: none;
+  overflow-y: hidden;
+  min-height: 94px;
+  max-height: calc(24px * 15 + 22px);
   border-radius: 12px;
   border: 1px solid var(--line);
   padding: 10px;
   font: inherit;
+  line-height: 24px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .composer textarea:focus {
@@ -334,20 +337,42 @@ ul.clean li { margin: 4px 0; }
   border-color: #c4b8a4;
   box-shadow: 0 0 0 3px rgba(154, 52, 18, 0.12);
 }
-.bolt {
+.composer-tools { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.brain, .bolt {
   width: 44px;
   height: 44px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: white;
-  color: var(--copper);
   display: grid;
   place-items: center;
   cursor: pointer;
   flex: none;
+  position: relative;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
-.bolt:hover { transform: translateY(-1px); }
+.brain { color: var(--pine); }
+.bolt { color: var(--copper); }
+.brain:hover, .bolt:hover { transform: translateY(-1px); }
+.brain:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.brain[aria-pressed="true"] {
+  background: var(--pine);
+  color: white;
+  border-color: var(--pine);
+}
+.brain[aria-pressed="true"] .brain-count { background: white; color: var(--pine); }
+.brain-count {
+  position: absolute;
+  top: -7px;
+  right: -8px;
+  background: var(--pine);
+  color: white;
+  border-radius: 99px;
+  font-size: 9px;
+  line-height: 1;
+  padding: 3px 4px;
+  pointer-events: none;
+}
 .bolt[aria-expanded="true"] { background: #fff7ed; border-color: #fdba74; }
 .sparks { display: flex; flex-direction: column; gap: 6px; }
 .sparks button, .prompts button {

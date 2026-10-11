@@ -95,6 +95,7 @@ class GuideState(TypedDict, total=False):
     revised: bool
     answer: str
     memory_id: str
+    deep: bool
 
 
 def _windows(body: str) -> list[str]:
@@ -248,13 +249,15 @@ def understand(state: GuideState) -> GuideState:
 def retrieve(state: GuideState) -> GuideState:
     question = (state.get("question") or "").strip()
     expanded = (state.get("search_query") or "").strip()
+    deep = bool(state.get("deep"))
+    search_k, keep_n, char_cap = _bounds(deep)
     queries = [(question, 1.0)]
     if expanded and expanded != question:
         queries.append((expanded, 0.42))
     merged: dict[tuple[str, str, int], tuple[float, Document]] = {}
     route = state.get("route", "")
     for query, weight in queries:
-        for score, doc in state_retriever.search(query, route, 12):
+        for score, doc in state_retriever.search(query, route, search_k):
             key = (str(doc.metadata.get("source")), str(doc.metadata.get("title")), int(doc.metadata.get("part") or 0))
             previous = merged.get(key)
             total = score * weight
@@ -282,10 +285,12 @@ def retrieve(state: GuideState) -> GuideState:
     best = ranked[0][0] or 1.0
     kept: list[tuple[float, Document]] = []
     total = 0
+    min_keep = 8 if deep else 3
+    floor = 0.28 if deep else 0.45
     for score, doc in ranked:
-        if len(kept) >= 3 and score < best * 0.45:
+        if len(kept) >= min_keep and score < best * floor:
             break
-        if len(kept) >= 6 or total > 5200:
+        if len(kept) >= keep_n or total > char_cap:
             break
         kept.append((score, doc))
         total += len(doc.page_content)
@@ -352,22 +357,36 @@ def _issues(answer: str, context: str, question: str) -> str:
     return " ".join(notes)
 
 
-def _llm() -> ChatOllama:
+BASE_PREDICT = 800
+BASE_CTX = 6144
+DEEP_SCALE = 2.5
+
+
+def _bounds(deep: bool) -> tuple[int, int, int]:
+    """검색 개수, 채택 개수, 문서 글자 상한. 깊이 추론은 일반의 2.5배."""
+    if not deep:
+        return 12, 6, 5200
+    return int(12 * DEEP_SCALE), int(6 * DEEP_SCALE), int(5200 * DEEP_SCALE)
+
+
+def _llm(predict: int, ctx: int, reasoning: bool, timeout: int) -> ChatOllama:
     return ChatOllama(
         model=os.environ.get("OLLAMA_MODEL", "gemma4:12b"),
         base_url=os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
         temperature=0.2,
         top_p=0.9,
         repeat_penalty=1.08,
-        num_ctx=6144,
-        num_predict=800,
-        # gemma4는 생각 토큰을 먼저 쓴다. 끄지 않으면 본문이 비는 경우가 있다.
-        reasoning=False,
-        client_kwargs={"timeout": 100},
+        num_ctx=ctx,
+        num_predict=predict,
+        # gemma4는 생각 토큰을 켜면 생성 한도를 생각만 쓰고 본문이 빈다.
+        # 깊이 추론도 본문을 쓰고, 깊이는 검색·문맥·생성 길이를 2.5배로 둔다.
+        reasoning=reasoning,
+        client_kwargs={"timeout": timeout},
     )
 
 
-llm = _llm()
+llm = _llm(BASE_PREDICT, BASE_CTX, False, 100)
+deep_llm = _llm(int(BASE_PREDICT * DEEP_SCALE), int(BASE_CTX * DEEP_SCALE), False, 540)
 draft_chain = (
     ChatPromptTemplate.from_messages(
         [
@@ -379,6 +398,22 @@ draft_chain = (
         ]
     )
     | llm
+    | StrOutputParser()
+)
+deep_draft_chain = (
+    ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                SYSTEM + "\n- 이번 답은 깊이 추론이다. 문서 안의 이유, 예외, 한계를 일반 답보다 길게 펼친다.",
+            ),
+            (
+                "human",
+                "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n이전 안내 예시:\n{examples}\n\n질문:\n{question}",
+            ),
+        ]
+    )
+    | deep_llm
     | StrOutputParser()
 )
 revise_chain = (
@@ -395,10 +430,28 @@ revise_chain = (
     | llm
     | StrOutputParser()
 )
+deep_revise_chain = (
+    ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                SYSTEM + "\n- 이번 답은 깊이 추론이다. 문서 안의 이유, 예외, 한계를 일반 답보다 길게 펼친다.",
+            ),
+            (
+                "human",
+                "문서:\n{context}\n\n질문:\n{question}\n\n초안:\n{draft}\n\n고칠 점: {issues}\n"
+                "초안을 고쳐서 최종 답만 다시 써라. 고칠 점을 언급하지 마라.",
+            ),
+        ]
+    )
+    | deep_llm
+    | StrOutputParser()
+)
 
 
 def draft(state: GuideState) -> GuideState:
-    raw = draft_chain.invoke(
+    chain = deep_draft_chain if state.get("deep") else draft_chain
+    raw = chain.invoke(
         {
             "route": state.get("route", "overview"),
             "history": state.get("history") or "(없음)",
@@ -410,13 +463,19 @@ def draft(state: GuideState) -> GuideState:
     raw_text = _message_text(raw)
     cleaned = _clean(raw_text) or "문서에서는 답을 만들지 못했습니다. 질문을 더 구체적으로 적어 주세요."
     issues = _issues(cleaned, state.get("context", ""), state.get("question", ""))
+    if state.get("deep") and len(cleaned) < 800:
+        issues = (
+            f"{issues} 깊이 추론이다. 문서에 있는 이유, 예외, 한계를 6문장 이상으로 풀어라. "
+            "한 문단으로 끝내지 마라."
+        ).strip()
     if ".md" in raw_text:
         issues = f"{issues} 파일 이름 없이 완전한 문장으로 다시 써라.".strip()
     return {"draft": cleaned, "answer": cleaned, "issues": issues}
 
 
 def revise(state: GuideState) -> GuideState:
-    raw = revise_chain.invoke(
+    chain = deep_revise_chain if state.get("deep") else revise_chain
+    raw = chain.invoke(
         {
             "context": state.get("context") or "(검색 결과 없음)",
             "question": state.get("question", ""),

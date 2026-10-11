@@ -61,7 +61,15 @@ def ask():
     history = "\n".join(f"{role}: {content}" for role, content in cleaned[:-1]) or "(없음)"
     try:
         result = guide.invoke(
-            {"question": cleaned[-1][1], "history": history, "sources": [], "route": "", "context": "", "answer": ""}
+            {
+                "question": cleaned[-1][1],
+                "history": history,
+                "sources": [],
+                "route": "",
+                "context": "",
+                "answer": "",
+                "deep": bool(data.get("deep")),
+            }
         )
     except Exception as exc:  # noqa: BLE001 — 모델 오류를 화면 문장으로 돌린다
         return jsonify(detail=f"모델 호출에 실패했습니다. {exc}"), 502

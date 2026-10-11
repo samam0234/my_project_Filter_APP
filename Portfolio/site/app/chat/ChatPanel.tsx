@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type Role = "user" | "assistant";
 type Msg = { role: Role; content: string; sources?: string[] };
 type Health = { ok?: boolean; ready?: boolean; model?: string; detail?: string };
+type Quota = { used: number; remaining: number; limit: number; resets: string };
 
 const KEY = "cnk-portfolio-chat-v1";
 const prompts = [
@@ -54,7 +55,20 @@ export function ChatPanel() {
   const [error, setError] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [sparks, setSparks] = useState<string[] | null>(null);
+  const [quota, setQuota] = useState<Quota | null>(null);
+  const [deepOn, setDeepOn] = useState(false);
+  const [deepWait, setDeepWait] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
+  const tools = useRef<HTMLDivElement>(null);
+
+  function loadQuota() {
+    fetch("/api/deep")
+      .then((res) => res.json())
+      .then((data: Quota) => {
+        if (typeof data.remaining === "number") setQuota(data);
+      })
+      .catch(() => setQuota(null));
+  }
 
   useEffect(() => {
     try {
@@ -71,6 +85,7 @@ export function ChatPanel() {
       .then((res) => res.json())
       .then((data: Health) => setHealth(data))
       .catch(() => setHealth({ ready: false, detail: "상태 확인에 실패했습니다." }));
+    loadQuota();
   }, []);
 
   useEffect(() => {
@@ -78,23 +93,49 @@ export function ChatPanel() {
     localStorage.setItem(KEY, JSON.stringify(messages.slice(-40)));
   }, [messages, hydrated]);
 
-  async function send(content: string) {
+  useEffect(() => {
+    if (quota && quota.remaining <= 0) setDeepOn(false);
+  }, [quota]);
+
+  useEffect(() => {
+    const area = box.current;
+    if (!area) return;
+    const min = tools.current?.offsetHeight ?? 0;
+    const style = getComputedStyle(area);
+    const line = Number.parseFloat(style.lineHeight) || 24;
+    const pad = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom);
+    const border = Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth);
+    const max = line * 15 + pad + border;
+    area.style.height = "auto";
+    const needed = Math.max(area.scrollHeight, min);
+    const next = Math.min(needed, max);
+    area.style.height = `${next}px`;
+    area.style.overflowY = area.scrollHeight > max + 1 ? "auto" : "hidden";
+  }, [text]);
+
+  async function send(content: string, deep = false) {
     const question = content.trim();
-    if (!question || pending) return;
+    if (!question || pending) {
+      if (deep && !question) setError("질문을 입력한 뒤 보내기를 누르세요.");
+      return;
+    }
     const next = [...messages, { role: "user" as const, content: question }];
     setMessages(next);
     setText("");
     setPending(true);
+    setDeepWait(deep);
     setError("");
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          deep,
           messages: next.slice(-8).map(({ role, content: body }) => ({ role, content: body })),
         }),
       });
       const data = (await res.json()) as { answer?: string; sources?: string[]; detail?: string };
+      if (deep) loadQuota();
       if (!res.ok) {
         setError(data.detail || "답변을 받지 못했습니다.");
         return;
@@ -104,9 +145,11 @@ export function ChatPanel() {
         { role: "assistant", content: data.answer || "빈 답변입니다.", sources: data.sources || [] },
       ]);
     } catch {
+      if (deep) loadQuota();
       setError("네트워크 오류로 답을 받지 못했습니다. 대화는 이 브라우저에 남아 있습니다.");
     } finally {
       setPending(false);
+      setDeepWait(false);
     }
   }
 
@@ -147,7 +190,11 @@ export function ChatPanel() {
       <section className="thread">
         <div className="messages" aria-live="polite">
           {messages.length === 0 && (
-            <p>문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 다음 비슷한 질문을 보완하는 JSON에 남습니다.</p>
+            <p>
+              문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON에 남습니다.
+              뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기가 그 모드로 나갑니다. 이 사이트 전체에서 하루 10번이고, 한국 시간 오전 12시에 초기화됩니다.
+              횟수는 서버 SQLite에 있으며 이 브라우저에 저장하지 않습니다.
+            </p>
           )}
           {messages.map((msg, i) => (
             <div key={`${msg.role}-${i}`} className={`bubble ${msg.role}`}>
@@ -158,7 +205,9 @@ export function ChatPanel() {
           {pending && (
             <div className="bubble assistant typing">
               <span /><span /><span />
-              문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다.
+              {deepWait
+                ? "깊이 추론 중입니다. 문서를 더 넓게 보고, 생성을 일반 답의 2.5배로 씁니다. 5분에서 10분까지 걸릴 수 있습니다."
+                : "문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다."}
             </div>
           )}
           {error && <div className="note">{error}</div>}
@@ -167,7 +216,7 @@ export function ChatPanel() {
           className="composer"
           onSubmit={(event) => {
             event.preventDefault();
-            void send(text);
+            void send(text, deepOn);
           }}
         >
           {sparks && (
@@ -190,21 +239,46 @@ export function ChatPanel() {
                 if (event.key === "Escape") setSparks(null);
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
-                  void send(text);
+                  void send(text, deepOn);
                 }
               }}
             />
-            <button
-              className="bolt"
-              type="button"
-              aria-label="관련 질문 추천"
-              aria-expanded={sparks !== null}
-              onClick={roll}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
-              </svg>
-            </button>
+            <div className="composer-tools" ref={tools}>
+              <button
+                className="brain"
+                type="button"
+                aria-label="깊이 추론하기"
+                aria-pressed={deepOn}
+                title={
+                  quota
+                    ? `깊이 추론하기. ${deepOn ? "선택됨. 보내기로 전송합니다." : "누르면 선택된 뒤 보내기로 전송합니다."} 오늘 ${quota.remaining}/${quota.limit}. 이 사이트 전체이며 ${quota.resets}에 초기화됩니다.`
+                    : "깊이 추론하기. 오늘 남은 횟수를 확인하는 중입니다."
+                }
+                disabled={pending || !quota || quota.remaining <= 0}
+                onClick={() => {
+                  setError("");
+                  setDeepOn((current) => !current);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
+                  <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
+                  <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
+                </svg>
+                <span className="brain-count">{quota ? `${quota.remaining}/${quota.limit}` : "…"}</span>
+              </button>
+              <button
+                className="bolt"
+                type="button"
+                aria-label="관련 질문 추천"
+                aria-expanded={sparks !== null}
+                onClick={roll}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
+                </svg>
+              </button>
+            </div>
             <button className="btn" type="submit" disabled={pending}>보내기</button>
           </div>
         </form>
