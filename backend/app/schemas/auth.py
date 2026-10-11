@@ -81,6 +81,8 @@ class SignupStartResponse(BaseModel):
     verification_required: bool
     email: Optional[str] = None
     expires_minutes: Optional[int] = None
+    # False 면 SMTP_HOST 가 비어 있어 메일을 보내지 않고 서버 로그에만 남겼다 (개발 모드) — 화면이 사용자에게 알려 준다
+    mail_delivered: bool = True
     user: Optional[UserResponse] = None
 
 
