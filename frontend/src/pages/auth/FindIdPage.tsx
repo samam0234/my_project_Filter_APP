@@ -52,7 +52,7 @@ export function FindIdPage() {
         <div className="space-y-4">
           <Notice tone="success">{done}</Notice>
           <p className="text-xs text-slate-400">
-            메일이 오지 않으면 스팸함을 확인하거나, 잠시 뒤 다시 시도해 주세요.
+            메일은 보통 1분 안에 도착해요. 오지 않으면 스팸함을 확인하고, 가입할 때 쓴 이메일이 맞는지 확인해 주세요.
           </p>
           <Button variant="secondary" className="w-full" onClick={() => setDone(null)}>
             다른 이메일로 찾기

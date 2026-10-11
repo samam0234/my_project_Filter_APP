@@ -1,4 +1,4 @@
-"""메일 발송 (아이디 찾기 · 비밀번호 재설정 코드).
+"""메일 발송 (아이디 찾기 · 비밀번호 재설정 코드 · 회원가입 인증). 본문은 services/mail_templates.py 가 만든다.
 
 - SMTP_HOST 가 설정돼 있으면 smtplib 로 발송
   · 포트 587 등: 평문 연결 후 STARTTLS (`SMTP_STARTTLS=true`)
@@ -21,7 +21,7 @@ from loguru import logger
 from app.core.config import Settings, get_settings
 
 
-def send_mail(to: str, subject: str, body: str, settings: Settings | None = None) -> bool:
+def send_mail(to: str, subject: str, body: str, settings: Settings | None = None, html: str | None = None) -> bool:
     settings = settings or get_settings()
     if not settings.smtp_host:
         logger.warning("[DEV MAIL · SMTP 미설정] to={} subject={}\n{}", to, subject, body)
@@ -36,6 +36,8 @@ def send_mail(to: str, subject: str, body: str, settings: Settings | None = None
     domain = parseaddr(settings.smtp_from)[1].partition("@")[2] or "cutnkeep.local"
     msg["Message-ID"] = make_msgid(domain=domain)
     msg.set_content(body)
+    if html:
+        msg.add_alternative(html, subtype="html")  # 일반 텍스트 본문은 HTML 을 못 여는 클라이언트용으로 남는다
     try:
         context = ssl.create_default_context()
         if settings.smtp_ssl:
