@@ -104,6 +104,21 @@ Select-String -Path backend\logs\app_*.log -Pattern "DEV MAIL" -Context 0,4 | Se
 
 > 로그에 인증 코드가 남으므로 **배포 환경에서는 반드시 SMTP 를 설정**하고 로그 접근을 제한한다.
 
+### 메일 모양 (HTML 템플릿)
+
+메일은 **HTML + 일반 텍스트** 두 본문(multipart/alternative)으로 나간다 — `backend/app/services/mail_templates.py`.
+브랜드 색 머리띠 · 큰 코드 상자 · 버튼 · 안내 문구로 꾸미고, 메일 클라이언트가 `<style>` 을 못 읽는 점을 고려해 표(table) + 인라인 스타일만 쓴다.
+HTML 을 못 여는 클라이언트는 일반 텍스트 본문을 본다. 사용자 입력(이름 · 아이디)은 모두 이스케이프한다.
+
+| 메일 | 내용 | 버튼 |
+|------|------|------|
+| 아이디 안내 | 아이디를 큰 글씨로 | 로그인하기 (`/login`) |
+| 비밀번호 재설정 | 6자리 인증 코드 · 유효 시간 | 재설정 화면 열기 (`/find-password`) |
+| 회원가입 인증 | 일련번호 · 유효 시간 | 회원가입 인증 (`/signup/verify`) |
+
+버튼 주소의 앞부분은 요청을 보낸 화면의 주소(`Origin`)를 쓰되 **`CORS_ORIGINS` 에 있는 주소만** 허용하고, 그 밖이면 목록의 첫 주소를 쓴다
+(임의 주소로 속인 메일이 나가지 않게). 화면 주소가 여러 개(서버 + Cloudflare)면 모두 `CORS_ORIGINS` 에 쉼표로 넣는다.
+
 ### 메일 서비스별 설정
 
 | 서비스 | `SMTP_HOST` | `SMTP_PORT` | 방식 | 비밀번호 |

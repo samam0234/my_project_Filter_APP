@@ -63,7 +63,7 @@ def api_env(monkeypatch, tmp_path):
     monkeypatch.setattr(
         auth_service,
         "send_mail",
-        lambda to, subject, body, settings=None: mails.append({"to": to, "subject": subject, "body": body})
+        lambda to, subject, body, settings=None, html=None: mails.append({"to": to, "subject": subject, "body": body, "html": html})
         or True,
     )
     # 피드백·의사 라벨 폴더를 임시 폴더로 — 실제 data/(학습·RAG 입력)를 오염시키지 않는다

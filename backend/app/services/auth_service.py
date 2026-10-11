@@ -22,6 +22,7 @@ from app.core import passwords as pw
 from app.core.config import Settings, get_settings
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.services import mail_templates
 from app.services.mailer import send_mail
 
 RESET_PURPOSE = "password_reset"
@@ -208,21 +209,17 @@ class AuthService:
             raise AuthError("운영자 계정은 스스로 탈퇴할 수 없습니다. 먼저 관리자 목록(CONSOLE_ADMINS)에서 빼 주세요.", status=403)
 
     # ------------------------------------------------------------ 아이디 찾기
-    def find_username(self, email: str) -> str:
+    def find_username(self, email: str, site_url: str = "") -> str:
         user = self.repo.by_email(email.strip().lower())
         if user is not None:
-            send_mail(
-                user.email,
-                "[컷앤킵] 아이디 안내",
-                f"안녕하세요{', ' + user.display_name if user.display_name else ''}.\n\n"
-                f"요청하신 컷앤킵 아이디는 다음과 같습니다.\n\n    {user.username}\n\n"
-                "본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다.",
-                self.settings,
+            mail = mail_templates.find_id(
+                username=user.username, login_url=f"{site_url}/login", name=user.display_name
             )
+            send_mail(user.email, mail.subject, mail.text, self.settings, html=mail.html)
         return GENERIC_FIND_ID
 
     # ------------------------------------------------------- 비밀번호 재설정
-    def request_password_reset(self, *, username: str, email: str) -> str:
+    def request_password_reset(self, *, username: str, email: str, site_url: str = "") -> str:
         user = self.repo.by_username(username.strip().lower())
         if user is None or user.email != email.strip().lower():
             return GENERIC_RESET_REQUEST
@@ -243,14 +240,13 @@ class AuthService:
             expires_at=now + timedelta(minutes=self.settings.auth_code_ttl_minutes),
             now=now,
         )
-        send_mail(
-            user.email,
-            "[컷앤킵] 비밀번호 재설정 인증 코드",
-            f"비밀번호 재설정 인증 코드: {code}\n\n"
-            f"{self.settings.auth_code_ttl_minutes}분 안에 입력해 주세요.\n"
-            "본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다. 비밀번호는 바뀌지 않습니다.",
-            self.settings,
+        mail = mail_templates.password_reset(
+            code=code,
+            reset_url=f"{site_url}/find-password",
+            ttl_minutes=self.settings.auth_code_ttl_minutes,
+            name=user.display_name,
         )
+        send_mail(user.email, mail.subject, mail.text, self.settings, html=mail.html)
         return GENERIC_RESET_REQUEST
 
     def reset_password(self, *, username: str, code: str, new_password: str) -> None:

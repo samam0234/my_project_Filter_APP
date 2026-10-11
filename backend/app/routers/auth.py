@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.deps import current_user, session_token
+from app.core.deps import current_user, session_token, site_url
 from app.db.learning import get_learning_db
 from app.db.session import get_db
 from app.models.user import User
@@ -124,13 +124,15 @@ def me(user: User = Depends(current_user)):
 
 
 @router.post("/find-id", response_model=MessageResponse)
-def find_id(body: FindIdRequest, db: Session = Depends(get_db)):
-    return MessageResponse(message=AuthService(db).find_username(body.email))
+def find_id(body: FindIdRequest, request: Request, db: Session = Depends(get_db)):
+    return MessageResponse(message=AuthService(db).find_username(body.email, site_url(request)))
 
 
 @router.post("/password/request", response_model=MessageResponse)
-def password_request(body: PasswordResetRequest, db: Session = Depends(get_db)):
-    message = AuthService(db).request_password_reset(username=body.username, email=body.email)
+def password_request(body: PasswordResetRequest, request: Request, db: Session = Depends(get_db)):
+    message = AuthService(db).request_password_reset(
+        username=body.username, email=body.email, site_url=site_url(request)
+    )
     return MessageResponse(message=message)
 
 
