@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # 업로드(LLM + GPU) 분당 허용 횟수 — 비로그인은 IP, 회원은 계정 기준. 0 = 제한 없음 (core/ratelimit.py)
     upload_rate_guest_per_min: int = Field(default=6, alias="UPLOAD_RATE_GUEST_PER_MIN")
     upload_rate_member_per_min: int = Field(default=20, alias="UPLOAD_RATE_MEMBER_PER_MIN")
+    # 프롬프트 가이드 "에이전트에게 묻기"(AI 채팅) — 무거운 LLM 호출이라 따로 제한 (0 = 제한 없음)
+    chat_rate_guest_per_min: int = Field(default=10, alias="CHAT_RATE_GUEST_PER_MIN")
+    chat_rate_member_per_min: int = Field(default=30, alias="CHAT_RATE_MEMBER_PER_MIN")
+    chat_max_chars: int = Field(default=1500, ge=100, le=20000, alias="CHAT_MAX_CHARS")  # 메시지 한 개의 최대 글자 수
 
     # --- 업로드 제한 ---
     # 【수동·.env】 MAX_UPLOAD_SIZE_MB / ALLOWED_MIME_TYPES

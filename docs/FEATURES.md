@@ -25,7 +25,8 @@
 | 작업 기록 🔒 | `/account?tab=history` | `GET /jobs` | 사진 · 영상 · GIF 를 모아 보기 — 종류 필터 · 상태 필터 · 검색, 영상·GIF 배지와 썸네일 (`/history` 는 여기로 이동) |
 | 작업 상세 🔒 | `/jobs/:id` | `GET /jobs/{id}` · `GET /files/{id}/{before,after,thumb,webp}` | 결과 다시 보기(영상 재생), 해석 JSON 복사, 같은 문장으로 다시 작업 |
 | 평가 · 정답 알려주기 🔒 | 작업실 · 작업 상세 | `POST /feedback` | 좋아요/싫어요, 해석이 틀렸으면 올바른 값을 골라 보냄 → 검수 후 학습 |
-| 프롬프트 가이드 | `/guide` | — | 남기기 vs 지우기, 위치·크기·순서·개수·색 고르기, 예시, 한계, 보관 안내 |
+| 프롬프트 가이드 | `/guide` | — | **일반 가이드**: 남기기 vs 지우기, 위치·크기·순서·개수·색 고르기, 예시, 한계, 보관 안내 |
+| 에이전트에게 묻기 | `/guide?tab=agent` | `POST /chat` | AI 채팅 — 요청 문장을 만들어 주고 "작업실에서 써 보기", 답변 모델 선택(Ollama e4b · 12b · 27b), 대화 비저장, 분당 제한 |
 | 회원가입 | `/signup` · `/signup/verify` | `POST /auth/signup/start` · `/signup/verify` · `/signup/resend` | 입력 즉시 규칙 안내, **[필수] 만 14세 이상 · 약관 · 개인정보 처리방침 동의**(서버도 검사, 동의 시각 기록), 보관 기간·학습 이용 안내. **이메일 인증**: 가입하기 → 메일로 일련번호(8글자) → 메일의 [회원가입 인증] 버튼 → 일련번호 입력 → 가입 완료 (30분 · 5회 · 다시 받기). 메일은 HTML 디자인 |
 | 로그인 · 로그아웃 | `/login` | `POST /auth/login` · `/logout` · `GET /auth/me` | `?next=` 로 돌아가기, HttpOnly 세션 쿠키 |
 | 아이디 찾기 | `/find-id` | `POST /auth/find-id` | 가입 이메일로 아이디 발송 (있든 없든 같은 안내) |

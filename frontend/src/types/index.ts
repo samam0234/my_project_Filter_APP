@@ -50,6 +50,17 @@ export interface SignupStartResponse {
   user?: AuthUser | null;
 }
 
+/** POST /chat — AI 채팅 (프롬프트 가이드 "에이전트에게 묻기") */
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+export interface ChatResponse {
+  reply: string;
+  model: string;
+  elapsed_ms: number;
+}
+
 /** 계정 API 공통 안내 응답 */
 export interface MessageResponse {
   ok: boolean;

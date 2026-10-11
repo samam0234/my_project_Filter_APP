@@ -86,9 +86,10 @@ def api_env(monkeypatch, tmp_path):
     monkeypatch.setattr(learning_mod, "_mode", "sqlite(test)")
     learning_mod.LearningSessionLocal.configure(bind=learning_engine)
     session_mod.SessionLocal.configure(bind=engine)
-    from app.core.ratelimit import upload_limiter
+    from app.core.ratelimit import chat_limiter, upload_limiter
 
     upload_limiter.reset()  # 테스트끼리 업로드 횟수가 섞이지 않게
+    chat_limiter.reset()
     application = create_app()
     application.dependency_overrides[get_db] = _db
     application.dependency_overrides[get_learning_db] = _learning_db
