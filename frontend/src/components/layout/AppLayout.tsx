@@ -65,7 +65,7 @@ function AccountMenu() {
   if (status === "loading") return <span className="h-8 w-16 animate-pulse rounded-lg bg-slate-900" />;
 
   if (!user) {
-    const onAuthPage = ["/login", "/signup", "/find-id", "/find-password"].includes(pathname);
+    const onAuthPage = ["/login", "/signup", "/signup/verify", "/find-id", "/find-password"].includes(pathname);
     const next = onAuthPage ? "" : "?next=" + encodeURIComponent(pathname);
     return (
       <div className="flex shrink-0 items-center gap-1">

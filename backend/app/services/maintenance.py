@@ -3,6 +3,7 @@
 - 서비스 DB 백업: DB_BACKUP_HOURS 마다 (services/db_backup) — SQLite 일 때만
 - 업로드 정리: FILE_CLEANUP_MINUTES 마다 FILE_RETENTION_HOURS 가 지난 파일 삭제 (services/retention, 콘솔 "지금 정리"와 같은 함수)
   + 피드백 사진(실패 · 확신 낮음)은 FEEDBACK_IMAGE_RETENTION_DAYS 가 지나면 삭제 (services/feedback_images)
+  + 이메일 인증을 마치지 않은 가입 신청(signup_pending)은 유효 시간이 지나면 삭제 (개인정보 처리방침 안내와 같게)
   예전에는 scripts/cleanup.py 를 누군가 돌려야 지워져 "24시간 보관" 안내가 지켜지지 않았다
 
 여러 워커 프로세스로 띄워도 각 작업이 멱등이라 안전하다 (백업이 몇 개 더 생길 뿐 keep 개수로 정리됨).
@@ -37,6 +38,29 @@ def cleanup_uploads(settings: Settings | None = None) -> dict:
     return result.as_dict() | {"feedback_images": purge_expired(settings)}
 
 
+def purge_signup_pending() -> int:
+    """유효 시간(SIGNUP_CODE_TTL_MINUTES)이 지난 가입 신청을 지운다 — 이메일 · 비밀번호 해시를 필요 이상 두지 않는다."""
+    from datetime import datetime, timezone
+
+    from app.db.session import SessionLocal, get_engine
+    from app.models.user import SignupPending
+
+    SessionLocal.configure(bind=get_engine())
+    db = SessionLocal()
+    try:
+        removed = (
+            db.query(SignupPending)
+            .filter(SignupPending.expires_at < datetime.now(timezone.utc))
+            .delete(synchronize_session=False)
+        )
+        db.commit()
+        if removed:
+            logger.info("만료된 가입 신청 정리: {}건", removed)
+        return int(removed)
+    finally:
+        db.close()
+
+
 def _every(name: str, seconds: float, job: Callable[[], object]) -> threading.Thread:
     def loop() -> None:
         while not _STOP.is_set():
@@ -64,7 +88,7 @@ def start(settings: Settings | None = None) -> list[str]:
     if settings.db_backup_hours > 0 and db_backup.sqlite_file(settings) is not None:
         _THREADS.append(_every("db-backup", settings.db_backup_hours * 3600, lambda: db_backup.run_once(settings)))
     if settings.file_cleanup_minutes > 0:
-        _THREADS.append(_every("upload-cleanup", settings.file_cleanup_minutes * 60, lambda: cleanup_uploads(settings)))
+        _THREADS.append(_every("upload-cleanup", settings.file_cleanup_minutes * 60, lambda: (cleanup_uploads(settings), purge_signup_pending())))
     names = [t.name for t in _THREADS]
     if names:
         logger.info("주기 작업 시작: {}", ", ".join(names))

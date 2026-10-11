@@ -9,13 +9,29 @@
 
 | 기능 | 화면 | API | 결과 |
 |------|------|-----|------|
-| 회원가입 | `/signup` | `POST /api/v1/auth/signup` | 계정 생성 + 바로 로그인 |
+| 회원가입 ① 신청 | `/signup` | `POST /api/v1/auth/signup/start` | 입력 검사 → 이메일로 **일련번호** 발송 (계정은 아직 없음) |
+| 회원가입 ② 인증 | `/signup/verify?email=…` (메일의 [회원가입 인증] 버튼) | `POST /api/v1/auth/signup/verify` | 일련번호 일치 → 계정 생성 + 바로 로그인 |
+| (일련번호 다시 받기) | 같은 화면 | `POST /api/v1/auth/signup/resend` | 새 번호 발송, 이전 번호 무효 |
 | 로그인 | `/login?next=…` | `POST /api/v1/auth/login` | 세션 쿠키 발급 |
 | 로그아웃 | 헤더 | `POST /api/v1/auth/logout` | 서버 세션 폐기 + 쿠키 삭제 |
 | 내 정보 | (앱 시작 시) | `GET /api/v1/auth/me` | 로그인 사용자 / 401 |
 | 아이디 찾기 | `/find-id` | `POST /api/v1/auth/find-id` | 가입 이메일로 아이디 발송 |
 | 비밀번호 찾기 ① | `/find-password` | `POST /api/v1/auth/password/request` | 아이디+이메일 일치 시 6자리 코드 메일 |
 | 비밀번호 찾기 ② | 같은 화면 | `POST /api/v1/auth/password/reset` | 새 비밀번호 저장 + **모든 기기 로그아웃** |
+
+### 회원가입 이메일 인증
+
+```text
+/signup (정보 입력 · 가입하기) ─▶ 서버: signup_pending 에 저장 + 메일 발송(일련번호 K7QM-2XWD)
+      ─▶ 메일의 [회원가입 인증] 버튼 ─▶ /signup/verify (일련번호 입력) ─▶ 계정 생성 · 로그인
+```
+
+- 일련번호는 **8글자**(헷갈리는 0/O · 1/I/L 제외 32자), 대소문자·하이픈 무시. HMAC 해시로만 저장
+- **`SIGNUP_CODE_TTL_MINUTES`(30분)** 안에 입력, **5번 틀리면** 폐기(새로 받기). 다시 받기 · 재신청은 `AUTH_CODE_RESEND_SECONDS`(60초) 간격
+- 인증 전에는 `users` 에 아무것도 없다 — 신청 정보(비밀번호 해시 · 동의 시각)는 `signup_pending` 에만 있고, 인증하면 옮기고 지운다. 같은 이메일로 다시 신청하면 교체
+- 신청 뒤 같은 아이디 · 이메일로 먼저 가입한 사람이 있으면 인증 때 409
+- `SIGNUP_EMAIL_VERIFICATION=false` 면 예전처럼 입력 즉시 가입 (메일 서버가 없는 개발용). 켜져 있으면 `POST /auth/signup` 직접 호출은 403
+- 메일 발송 실패(SMTP 오류)면 신청을 남기지 않고 503 — 사용자가 오지 않을 메일을 기다리지 않게
 
 로그인은 **선택**이다. 로그인하지 않아도 작업실에서 처리하고 결과를 내려받을 수 있다.
 다만 저장·기록·피드백·배치는 **로그인 회원 전용**이다 (아래 1.1).
@@ -157,6 +173,8 @@ docker compose -p cut_and_keep --env-file .env --profile mail up -d mailpit
 
 | 환경변수 | 기본 | 설명 |
 |----------|------|------|
+| `SIGNUP_EMAIL_VERIFICATION` | `true` | 가입 이메일 인증. `false` 면 입력 즉시 가입 |
+| `SIGNUP_CODE_TTL_MINUTES` | `30` | 가입 일련번호 유효 시간 |
 | `SECRET_KEY` | `dev-secret-change-me` | 재설정 코드 HMAC 키. **배포 시 긴 난수로 교체** (바꾸면 발급된 코드 무효) |
 | `SESSION_COOKIE_NAME` | `cnk_session` | |
 | `SESSION_TTL_HOURS` | 168 | 로그인 유지 시간 (7일) |

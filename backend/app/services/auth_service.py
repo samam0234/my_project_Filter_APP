@@ -1,4 +1,4 @@
-"""계정 규칙: 회원가입 · 로그인(잠금) · 세션 · 아이디 찾기 · 비밀번호 재설정.
+"""계정 규칙: 회원가입(이메일 인증) · 로그인(잠금) · 세션 · 아이디 찾기 · 비밀번호 재설정.
 
 보안 원칙
 - 로그인 실패는 이유를 구분하지 않는다 ("아이디 또는 비밀번호가 올바르지 않습니다")
@@ -10,6 +10,8 @@
 from __future__ import annotations
 
 import hmac
+import uuid
+from urllib.parse import quote
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -20,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.core import passwords as pw
 from app.core.config import Settings, get_settings
-from app.models.user import User
+from app.models.user import SignupPending, User
 from app.repositories.user_repository import UserRepository
 from app.services import mail_templates
 from app.services.mailer import send_mail
@@ -29,6 +31,7 @@ RESET_PURPOSE = "password_reset"
 GENERIC_FIND_ID = "입력한 이메일로 가입된 계정이 있으면 아이디를 메일로 보냈습니다."
 GENERIC_RESET_REQUEST = "입력한 정보와 일치하는 계정이 있으면 인증 코드를 메일로 보냈습니다."
 INVALID_CODE = "인증 코드가 올바르지 않거나 만료되었습니다. 코드를 다시 받아 주세요."
+INVALID_SIGNUP_CODE = "일련번호가 올바르지 않거나 만료되었어요. 메일의 일련번호를 다시 확인하거나 새로 받아 주세요."
 
 
 class AuthError(Exception):
@@ -64,16 +67,10 @@ class AuthService:
         self.repo = UserRepository(db)
 
     # ------------------------------------------------------------------ 가입
-    def signup(
-        self,
-        *,
-        username: str,
-        email: str,
-        password: str,
-        display_name: str | None,
-        user_agent: str | None = None,
-        agree_terms: bool = False,
-    ) -> SessionIssue:
+    def _validated_signup(
+        self, *, username: str, email: str, password: str, display_name: str | None, agree_terms: bool
+    ) -> tuple[str, str, str | None]:
+        """가입 입력을 검사하고 (아이디, 이메일, 이름) 으로 정규화한다. 이미 쓰는 아이디 · 이메일이면 409."""
         if not agree_terms:
             raise AuthError("만 14세 이상인지와 이용약관 · 개인정보 처리방침 동의를 확인해 주세요.")
         username = username.strip().lower()
@@ -93,19 +90,165 @@ class AuthService:
             raise AuthError("이미 사용 중인 아이디입니다.", status=409)
         if self.repo.by_email(email):
             raise AuthError("이미 가입된 이메일입니다. 아이디 찾기를 이용해 주세요.", status=409)
+        return username, email, display_name
 
+    def _create_user(
+        self, *, username: str, email: str, password_hash: str, display_name: str | None, terms_agreed_at: datetime
+    ) -> User:
         try:
             user = self.repo.create(
                 username=username,
                 email=email,
-                password_hash=pw.hash_password(password),
+                password_hash=password_hash,
                 display_name=display_name,
-                terms_agreed_at=datetime.now(timezone.utc),
+                terms_agreed_at=terms_agreed_at,
             )
         except IntegrityError as exc:  # 동시 가입 경합
             self.repo.db.rollback()
             raise AuthError("이미 사용 중인 아이디 또는 이메일입니다.", status=409) from exc
         logger.info("회원가입 user={} username={}", user.id, user.username)
+        return user
+
+    def signup(
+        self,
+        *,
+        username: str,
+        email: str,
+        password: str,
+        display_name: str | None,
+        user_agent: str | None = None,
+        agree_terms: bool = False,
+    ) -> SessionIssue:
+        """이메일 인증 없이 바로 가입 (SIGNUP_EMAIL_VERIFICATION=false 일 때만 라우터가 연다)."""
+        username, email, display_name = self._validated_signup(
+            username=username, email=email, password=password, display_name=display_name, agree_terms=agree_terms
+        )
+        user = self._create_user(
+            username=username,
+            email=email,
+            password_hash=pw.hash_password(password),
+            display_name=display_name,
+            terms_agreed_at=datetime.now(timezone.utc),
+        )
+        return self._issue_session(user, user_agent)
+
+    # -------------------------------------------------- 가입 이메일 인증
+    def _pending(self, email: str) -> Optional[SignupPending]:
+        return self.repo.db.query(SignupPending).filter(SignupPending.email == email.strip().lower()).first()
+
+    def _send_signup_mail(self, pending: SignupPending, code: str, site_url: str) -> bool:
+        mail = mail_templates.signup_verify(
+            code=code,
+            verify_url=f"{site_url}/signup/verify?email={quote(pending.email, safe='')}",
+            ttl_minutes=self.settings.signup_code_ttl_minutes,
+            name=pending.display_name,
+        )
+        return send_mail(pending.email, mail.subject, mail.text, self.settings, html=mail.html)
+
+    def _check_resend_interval(self, pending: SignupPending) -> None:
+        sent = _aware(pending.sent_at)
+        if sent:
+            wait = self.settings.auth_code_resend_seconds - (_now() - sent).total_seconds()
+            if wait > 0:
+                raise AuthError(f"방금 메일을 보냈어요. {int(wait) + 1}초 뒤에 다시 받을 수 있어요.", status=429)
+
+    def _code_hash(self, email: str, serial: str) -> str:
+        return pw.code_digest(self.settings.secret_key, f"signup:{email}", pw.normalize_serial(serial))
+
+    def signup_start(
+        self,
+        *,
+        username: str,
+        email: str,
+        password: str,
+        display_name: str | None,
+        agree_terms: bool,
+        site_url: str,
+    ) -> SignupPending:
+        """가입 신청 — 입력을 검사해 대기 건을 만들고 일련번호 메일을 보낸다. 사용자는 아직 만들어지지 않는다."""
+        username, email, display_name = self._validated_signup(
+            username=username, email=email, password=password, display_name=display_name, agree_terms=agree_terms
+        )
+        db = self.repo.db
+        now = _now()
+        db.query(SignupPending).filter(SignupPending.expires_at < now).delete(synchronize_session=False)
+        pending = self._pending(email)
+        if pending is not None:
+            self._check_resend_interval(pending)
+            db.delete(pending)  # 같은 이메일로 다시 신청하면 이전 신청을 교체
+            db.flush()
+
+        code = pw.new_serial()
+        pending = SignupPending(
+            id=uuid.uuid4().hex,
+            email=email,
+            username=username,
+            display_name=display_name,
+            password_hash=pw.hash_password(password),
+            terms_agreed_at=now,
+            code_hash=self._code_hash(email, code),
+            attempts=0,
+            expires_at=now + timedelta(minutes=self.settings.signup_code_ttl_minutes),
+            sent_at=now,
+        )
+        db.add(pending)
+        db.commit()
+        if not self._send_signup_mail(pending, code, site_url):
+            db.delete(pending)
+            db.commit()
+            raise AuthError("인증 메일을 보내지 못했어요. 이메일 주소를 확인하고 잠시 뒤 다시 시도해 주세요.", status=503)
+        logger.info("가입 인증 메일 발송 username={}", username)
+        return pending
+
+    def signup_resend(self, *, email: str, site_url: str) -> SignupPending:
+        """일련번호를 새로 만들어 다시 보낸다 (틀린 횟수 초기화 · 유효 시간 연장)."""
+        pending = self._pending(email)
+        if pending is None:
+            raise AuthError("가입 신청을 찾을 수 없어요. 가입을 처음부터 다시 진행해 주세요.", status=404)
+        self._check_resend_interval(pending)
+        now = _now()
+        code = pw.new_serial()
+        pending.code_hash = self._code_hash(pending.email, code)
+        pending.attempts = 0
+        pending.expires_at = now + timedelta(minutes=self.settings.signup_code_ttl_minutes)
+        pending.sent_at = now
+        self.repo.db.commit()
+        if not self._send_signup_mail(pending, code, site_url):
+            raise AuthError("인증 메일을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.", status=503)
+        return pending
+
+    def signup_verify(self, *, email: str, code: str, user_agent: str | None = None) -> SessionIssue:
+        """메일의 일련번호가 맞으면 계정을 만들고 로그인 상태로 시작한다."""
+        db = self.repo.db
+        pending = self._pending(email)
+        now = _now()
+        if pending is None or _aware(pending.expires_at) <= now:
+            raise AuthError(INVALID_SIGNUP_CODE)
+        if pending.attempts >= self.settings.auth_code_max_attempts:
+            raise AuthError(INVALID_SIGNUP_CODE)
+
+        if not hmac.compare_digest(self._code_hash(pending.email, code), pending.code_hash):
+            pending.attempts += 1
+            db.commit()
+            left = self.settings.auth_code_max_attempts - pending.attempts
+            if left <= 0:
+                raise AuthError(INVALID_SIGNUP_CODE)
+            raise AuthError(f"일련번호가 달라요. {left}번 더 틀리면 새로 받아야 해요.")
+
+        # 신청한 뒤 같은 아이디 · 이메일로 먼저 가입한 사람이 있을 수 있다
+        if self.repo.by_username(pending.username) or self.repo.by_email(pending.email):
+            db.delete(pending)
+            db.commit()
+            raise AuthError("그 사이 같은 아이디 또는 이메일로 가입한 계정이 있어요. 다시 가입해 주세요.", status=409)
+        user = self._create_user(
+            username=pending.username,
+            email=pending.email,
+            password_hash=pending.password_hash,
+            display_name=pending.display_name,
+            terms_agreed_at=_aware(pending.terms_agreed_at),
+        )
+        db.delete(pending)
+        db.commit()
         return self._issue_session(user, user_agent)
 
     # ---------------------------------------------------------------- 로그인
