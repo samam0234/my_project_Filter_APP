@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Role = "user" | "assistant";
 type Msg = { role: Role; content: string; sources?: string[] };
@@ -16,6 +16,36 @@ const prompts = [
   "오픈 보캐브는 지금 켜져 있나요?",
 ];
 
+const pool = [
+  ...prompts,
+  "YOLO26m-seg와 SegFormer는 각각 무엇을 담당하나요?",
+  "영상과 GIF 지우기는 사진 지우기와 어떻게 다른가요?",
+  "배치 작업은 누가, 몇 장까지 할 수 있나요?",
+  "공개 주소와 Cloudflare Worker의 역할은 무엇인가요?",
+  "콘솔은 왜 공개 서버에 올라가 있지 않나요?",
+  "이메일 인증 가입은 어떻게 동작하나요?",
+  "LangGraph 파이프라인의 단계는 무엇인가요?",
+  "승인되지 않은 피드백은 언제 RAG 예시가 되나요?",
+  "파일은 얼마나 보관되고, 손님의 결과는 저장되나요?",
+  "ARM 서버에서 GPU와 LoRA를 쓰지 않는 이유는 무엇인가요?",
+  "Worker가 긴 작업을 끊는 시간은 어느 정도인가요?",
+  "앞으로 추가하려는 서버나 기능은 무엇이 있나요?",
+  "signup_pending 표는 ERD 그림에 왜 없나요?",
+  "제품 기본 모델과 이 안내 챗의 모델은 각각 무엇인가요?",
+  "움직이는 카메라 영상의 지우기는 어디까지 되나요?",
+];
+
+function pickThree(previous: string[]) {
+  const bag = pool.filter((item) => !previous.includes(item));
+  const source = bag.length >= 3 ? bag : [...pool];
+  const copy = [...source];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, 3);
+}
+
 export function ChatPanel() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -23,6 +53,8 @@ export function ChatPanel() {
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [sparks, setSparks] = useState<string[] | null>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     try {
@@ -83,6 +115,16 @@ export function ChatPanel() {
     localStorage.removeItem(KEY);
   }
 
+  function roll() {
+    setSparks((current) => pickThree(current ?? []));
+  }
+
+  function useSpark(prompt: string) {
+    setText(prompt);
+    setSparks(null);
+    box.current?.focus();
+  }
+
   return (
     <div className="chat">
       <aside>
@@ -113,7 +155,12 @@ export function ChatPanel() {
               {msg.sources && msg.sources.length > 0 && <small>근거: {msg.sources.join(", ")}</small>}
             </div>
           ))}
-          {pending && <div className="bubble assistant">문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다.</div>}
+          {pending && (
+            <div className="bubble assistant typing">
+              <span /><span /><span />
+              문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다.
+            </div>
+          )}
           {error && <div className="note">{error}</div>}
         </div>
         <form
@@ -123,19 +170,43 @@ export function ChatPanel() {
             void send(text);
           }}
         >
-          <textarea
-            value={text}
-            maxLength={2000}
-            placeholder="프로젝트에 대해 질문"
-            onChange={(event) => setText(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                void send(text);
-              }
-            }}
-          />
-          <button className="btn" type="submit" disabled={pending}>보내기</button>
+          {sparks && (
+            <div className="sparks" aria-label="추천 질문">
+              {sparks.map((prompt) => (
+                <button key={prompt} type="button" onClick={() => useSpark(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="composer-row">
+            <textarea
+              ref={box}
+              value={text}
+              maxLength={2000}
+              placeholder="프로젝트에 대해 질문"
+              onChange={(event) => setText(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setSparks(null);
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  void send(text);
+                }
+              }}
+            />
+            <button
+              className="bolt"
+              type="button"
+              aria-label="관련 질문 추천"
+              aria-expanded={sparks !== null}
+              onClick={roll}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
+              </svg>
+            </button>
+            <button className="btn" type="submit" disabled={pending}>보내기</button>
+          </div>
         </form>
       </section>
     </div>

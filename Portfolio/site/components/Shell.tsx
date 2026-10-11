@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReadingBar } from "./ReadingBar";
 
 const links = [
   ["/","소개"],
@@ -20,8 +21,8 @@ export function Shell({
 }) {
   return (
     <>
-      <a className="skip" href="#content">본문으로</a>
       <header className="topbar">
+        <ReadingBar />
         <div className="topbar-inner">
           <Link className="brand" href="/">
             <b>컷앤킵 포트폴리오</b>
@@ -36,7 +37,7 @@ export function Shell({
           </nav>
         </div>
       </header>
-      <main id="content" className="wrap">{children}</main>
+      <main id="content" className="wrap page-in">{children}</main>
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-links">

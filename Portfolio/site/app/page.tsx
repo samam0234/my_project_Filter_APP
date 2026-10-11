@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GuideStatus } from "@/components/GuideStatus";
 import { Shell } from "@/components/Shell";
 
 const toc = [
@@ -37,6 +38,7 @@ export default function HomePage() {
             <li>표가 필요하면 ERD와 시트를 엽니다.</li>
             <li>더 묻고 싶으면 안내 챗에 적습니다.</li>
           </ol>
+          <GuideStatus />
         </aside>
       </section>
 
