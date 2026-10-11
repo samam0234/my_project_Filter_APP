@@ -1,7 +1,7 @@
 # 컷앤킵 — 현재 스택 스냅샷
 
 **기준 브랜치:** `develop`  
-**스냅샷 일자:** 2026-10-11 (해석 모델 고르기 · 영상 추적 · 카메라 이동 지우기 · 실제 영상 검증 · LoRA 조합형 재학습 · GPU 오버레이 · 배포 도구 · 의존성 보안 업데이트 반영)  
+**스냅샷 일자:** 2026-10-11 (실서버 배포 · Cloudflare Worker · PC Ollama 터널 · 내 계정 · 이메일 인증 가입 · HTML 메일 · AI 채팅 · 해석 모델 고르기 · 영상 추적 · GPU 오버레이 · 배포 도구 반영)  
 **목적:** 추가·수정·제외된 구성을 한곳에 모아, 다른 문서가 어긋나지 않게 한다.
 
 ---
@@ -103,7 +103,8 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | `celery_worker` | 프로필 `phase2` — 배치를 Redis 워커로 넘길 때만 (`BATCH_USE_CELERY=true`) |
 | `mariadb-backup` | MariaDB 자동 덤프 (서비스 + 학습 DB) |
 | `mailpit` | 프로필 `mail` — 개발용 메일 받은편지함 `127.0.0.1:8025` |
-| `caddy` | `docker-compose.https.yml` 을 겹칠 때만 — HTTPS 인증서 · 80/443 |
+| `caddy` | `docker-compose.https.yml` 을 겹칠 때만 — HTTPS 인증서 · 80/443. `EDGE_SECRET` 이 맞는 요청(Cloudflare Worker)만 `X-Cnk-Real-IP` 를 실제 IP 로 믿는다 |
+| `ollama-bridge` | `docker-compose.pc-ollama.yml` 을 겹칠 때만 — 호스트 네트워크의 socat 이 docker 게이트웨이(172.18.0.1:11434)로 받아 SSH 터널 끝(127.0.0.1:11435)으로 넘김 ([`ollama-server.md`](../guidance/ollama-server.md)) |
 | (GPU) `backend` · `celery_worker` | `docker-compose.gpu.yml` 을 겹칠 때만 — 이미지 `cut_and_keep-backend-gpu`(CUDA torch `GPU_TORCH_INDEX` cu128 기본 · cu130, LoRA 패키지), NVIDIA GPU 예약, 문장 해석 LoRA ([`gpu-deploy.md`](../guidance/gpu-deploy.md)) |
 | ~~GSS 커스텀 MariaDB 이미지~~ | **제외** |
 
@@ -115,6 +116,19 @@ Backend 컨테이너 오버라이드 예:
 - `TRUSTED_PROXIES=172.16.0.0/12` (nginx 가 넘기는 `X-Real-IP` 로 비로그인 한도를 사람마다)
 
 ---
+
+## 5-1. 실서버 배포 현황 (2026-10-11)
+
+| 구성 | 현재 |
+|------|------|
+| 서버 | Oracle Cloud A1.Flex (ARM 4 OCPU · 24GB · Ubuntu 24.04), 저장소 `~/cutnkeep`, 브랜치 `main` |
+| 주소 | `https://168-110-17-193.sslip.io` (무료 와일드카드 DNS · Let's Encrypt). 자체 도메인은 아직 |
+| 화면 | 서버 nginx + **Cloudflare Worker** `cutnkeep-front` (`wrangler deploy`, [`cloudflare-deploy.md`](../guidance/cloudflare-deploy.md)) |
+| 컴포즈 | `docker-compose.yml` + `https` + `pc-ollama` (서버에서 전체 `up` 은 adminer 를 같이 띄운다 — 서비스를 지정: `up -d --build backend frontend caddy`) |
+| 문장 해석 | `LLM_PROVIDER=ollama` — **PC 의 Ollama**(SSH 터널). 끊기면 `LLM_FALLBACK=heuristic` |
+| 메일 | Gmail SMTP(앱 비밀번호) — 가입 인증 · 아이디 찾기 · 비밀번호 재설정 |
+| 운영자 | `CONSOLE_ADMINS` 에 등록 (콘솔은 Compose 에 없음 — 관리자 PC 에서 서버 API 로) |
+| 방화벽 | OCI 보안 목록 80 · 443 + 서버 iptables(22 · 80 · 443, docker 대역 → 11434) |
 
 ## 6. 테스트 · 학습
 
@@ -175,7 +189,7 @@ Backend 컨테이너 오버라이드 예:
 - [ ] 내부 포트 **127.0.0.1** 바인딩 · 공개는 frontend :80
 - [ ] 작업 종류(사진 · 영상 · GIF) · LaMa · 자동 정리 · 자동 백업
 - [ ] 커밋 기록 경로 **branchs/commits**
-- [ ] 오버레이 **https · gpu**, 배포 도구 `make_prod_env` · `deploy_check` · `models_bundle` ([`DEPLOYMENT.md`](../DEPLOYMENT.md))
+- [ ] 오버레이 **https · gpu · pc-ollama**, Cloudflare Worker(`deploy/cloudflare`), 배포 도구 `make_prod_env` · `deploy_check` · `models_bundle` ([`DEPLOYMENT.md`](../DEPLOYMENT.md))
 - [ ] 해석 모델 목록(`llm_models.CATALOG`)과 서버 Ollama 에 설치된 모델 — 큰 모델은 첫 호출이 느리다(nginx 300초)
 - [ ] 의존성 취약점 점검 결과 ([`security.md`](../guidance/security.md) 5절)
 - [ ] Console Compose 미포함
