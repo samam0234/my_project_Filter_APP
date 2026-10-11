@@ -6,7 +6,7 @@ DB 가 둘이다. **서비스 DB (SQLite)** = 계정·작업 기록, **학습 DB
 
 | DB | 테이블 | 기본 엔진 | 엔진 코드 |
 |----|--------|-----------|-----------|
-| 서비스 DB | `users` · `auth_sessions` · `auth_codes` · `jobs` · `batch_jobs` | SQLite `backend/data/cutnkeep.db`(Docker) · `cutnkeep.host.db`(호스트) | `app/db/session.py` (`Base`) |
+| 서비스 DB | `users` · `auth_sessions` · `auth_codes` · `signup_pending` · `jobs` · `batch_jobs` | SQLite `backend/data/cutnkeep.db`(Docker) · `cutnkeep.host.db`(호스트) | `app/db/session.py` (`Base`) |
 | 학습 DB | `feedbacks` · `learning_samples` | MariaDB (`MARIADB_*`) | `app/db/learning.py` (`LearningBase`) |
 
 왜 나눴나: 서비스 데이터는 작고 요청마다 읽혀서 파일 하나짜리 SQLite 가 단순·빠르다.
@@ -178,6 +178,7 @@ mysql+pymysql://admin:...@mariadb:3306/cutnkeep?charset=utf8mb4
 | `users` | username · email (소문자, 유일) · password_hash · failed_logins · locked_until | 비밀번호 원문 저장 없음 |
 | `auth_sessions` | id = 세션 토큰 SHA-256 · user_id · expires_at | 토큰 원문은 쿠키에만 |
 | `auth_codes` | user_id · purpose · code_hash · attempts · expires_at · used_at | 재설정 코드, 1회용 |
+| `signup_pending` | id · email(유일) · username · display_name · password_hash · terms_agreed_at · code_hash · attempts · expires_at · sent_at | 이메일 인증을 기다리는 가입 신청 — 인증하면 `users` 로 옮기고 지움, 만료(30분)되면 주기 작업이 삭제. `create_all` 로 새로 생기며 기존 테이블은 건드리지 않는다 |
 
 #### `jobs`
 | 컬럼 | 타입 | 설명 |

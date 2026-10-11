@@ -26,6 +26,7 @@
 
 | 문서 | 설명 |
 |------|------|
+| [docs/HANDOVER.md](docs/HANDOVER.md) | **인수인계** — 지금 운영 구성 · 접근 방법 · 자주 하는 명령 · 규칙 · 한계 · 겪은 함정 (에이전트 · 새 담당자 첫 문서) |
 | [docs/FEATURES.md](docs/FEATURES.md) | **전체 기능 목록** — 화면 · API · 설정 · 코드 · 문서 |
 | [docs/plan/CURRENT_STACK.md](docs/plan/CURRENT_STACK.md) | **현재 포트·DB·Docker 스냅샷** |
 | [docs/plan/LOGIC_STRUCTURE.md](docs/plan/LOGIC_STRUCTURE.md) | 통합 로직 구조 |
