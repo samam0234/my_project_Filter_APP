@@ -27,6 +27,7 @@ export function SignupVerifyPage() {
   const setUser = useAuthStore((s) => s.setUser);
   const params = new URLSearchParams(search);
   const emailFromLink = params.get("email") ?? "";
+  const mailNotSent = params.get("dev") === "1";
 
   const [email, setEmail] = useState(emailFromLink);
   const [code, setCode] = useState("");
@@ -68,7 +69,7 @@ export function SignupVerifyPage() {
     setError(null);
     try {
       const res = await signupResendRequest(email.trim());
-      setInfo(res.message);
+      setInfo(res.mail_delivered === false ? `${res.message} (메일 서버 미설정 — 서버 로그 확인)` : res.message);
       setCode("");
       setCooldown(RESEND_SECONDS);
     } catch (err) {
@@ -123,6 +124,12 @@ export function SignupVerifyPage() {
           value={code}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(formatSerial(e.target.value))}
         />
+        {mailNotSent && (
+          <Notice tone="error">
+            이 서버는 메일 발송이 설정되지 않아 <b>메일이 실제로 가지 않았어요</b>. (개발 모드) 일련번호는 서버 로그(backend/logs)의
+            [DEV MAIL] 줄에 있어요. 실제 메일을 받으려면 .env 의 SMTP 설정이 필요해요.
+          </Notice>
+        )}
         {info && <Notice tone="info">{info}</Notice>}
         {error && <Notice tone="error">{error}</Notice>}
         <Button type="submit" className="w-full py-2.5" disabled={loading || !emailOk || !codeOk}>

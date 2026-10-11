@@ -19,7 +19,10 @@ tests/
 │   ├── test_segmentation_filter.py # 대상 라벨 필터 · 별칭 · ONNX 가드 (가짜 YOLO)
 │   ├── test_instance_selector.py  # 위치·순서·개수·색 속성 선택 (합성 이미지)
 │   ├── conftest.py                # api_env fixture — 메모리 SQLite 앱 + 메일 가로채기
-│   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정
+│   ├── test_auth.py               # 가입·로그인 잠금·세션·아이디 찾기·재설정·내 계정(이름 · 비밀번호 변경 · 전체 로그아웃 · 탈퇴)
+│   ├── test_signup_verify.py      # 회원가입 이메일 인증 — 일련번호 · 만료 · 횟수 · 재발송 · 우회 차단 · 정리
+│   ├── test_mail_templates.py     # HTML 메일 템플릿 · multipart 발송 · 메일 속 버튼 주소(site_url)
+│   ├── test_chat.py               # 에이전트에게 묻기(AI 채팅) — 모델 선택 · 제한 · 오류 (가짜 Ollama)
 │   ├── test_access.py             # 비로그인 다운로드만 · 회원 본인 작업만 · 배치 · 콘솔 loopback (가짜 파이프라인)
 │   ├── test_lora_dataset.py       # training/lora 데이터 계약·시드·평가셋 누수 차단 (torch 불필요)
 │   ├── test_learning_db.py        # 서비스/학습 DB 분리 · 사이드카 동기화 · MariaDB fallback

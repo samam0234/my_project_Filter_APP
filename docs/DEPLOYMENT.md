@@ -89,6 +89,24 @@ python scripts/deploy_check.py server [--gpu] --models-manifest models.sha256.js
 | 실패 사진으로 세그 개선 | `python scripts/seg_labeling.py export` → 라벨링 → `check` → `python scripts/retrain_yolo.py --extra` |
 | 업데이트 | `git pull` → 같은 `up -d --build` → `deploy_check.py remote` |
 
+## 실제 서버 배포 기록 (2026-10-11)
+
+| 항목 | 결과 |
+|------|------|
+| 서버 | Oracle Cloud A1.Flex ARM 4 OCPU · 24GB, `https://168-110-17-193.sslip.io` (Let's Encrypt), 서버 코드 `main` |
+| 점검 | `deploy_check.py remote` 실패 0 · 경고 0 · 재부팅 복구 · MariaDB 백업 동작 · Gmail SMTP 로 실제 메일 |
+| 화면 | Cloudflare Worker `cutnkeep-front` ([guidance/cloudflare-deploy.md](./guidance/cloudflare-deploy.md)) — 서버와 같은 빌드 |
+| 문장 해석 | 내 PC 의 Ollama ([guidance/ollama-server.md](./guidance/ollama-server.md)) — 서버 직접 주소로 e4b 약 34초 · 12b 약 57초 · 27b 약 184초(사진 1장) |
+| 가입 | 이메일 인증(일련번호) · HTML 메일 — 서버 주소 · Cloudflare 경유 모두 확인, 임시 계정은 탈퇴로 삭제 |
+
+**겪은 일 (재발 방지)**
+- `.env` 변경으로 backend 가 다시 만들어지자 nginx 가 옛 IP 로 접속해 502 → `resolver` 로 해결 ([repeater/nginx-backend-502.md](./repeater/nginx-backend-502.md))
+- 서버에서 전체 `up -d --build` 가 개발 도구(adminer)를 띄웠다 → 서비스를 지정해 올린다
+- 로컬 개발 서버로 가입해 메일이 안 왔다 → SMTP 미설정 개발 모드 ([repeater/local-mail-not-sent.md](./repeater/local-mail-not-sent.md))
+- 서버에서 `git pull` 하기 전에 서버에만 있는 파일(예: `docker-compose.pc-ollama.yml` 의 옛 복사본)은 지운다
+
+**서버 갱신 순서**: `git pull --ff-only origin main` → `docker compose … up -d --build backend frontend caddy` → Cloudflare: `cd frontend && npm run build`(운영자 값 `VITE_OPERATOR_*`) → `cd deploy/cloudflare && npx wrangler deploy` → `deploy_check.py remote`
+
 ## 로컬에서 미리 해 본 결과 (2026-10-09 ~ 10)
 
 - HTTPS(localhost 자체 서명) + GPU(RTX 4070 SUPER) 로컬 리허설: remote 실패 0 · 경고 1(자체 서명)

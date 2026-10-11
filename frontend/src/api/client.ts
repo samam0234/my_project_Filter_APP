@@ -17,6 +17,8 @@ import type {
   JobResponse,
   LlmModelList,
   MessageResponse,
+  ChatMessage,
+  ChatResponse,
   SignupStartResponse,
   UploadResponse,
   VideoFormat,
@@ -75,6 +77,16 @@ export async function processGif(
 /** 문장 해석에 고를 수 있는 모델 목록과 설치 여부 (비로그인도 가능) */
 export async function getLlmModels(): Promise<LlmModelList> {
   const { data } = await api.get<LlmModelList>("/api/v1/llm/models", { timeout: 8_000 });
+  return data;
+}
+
+/** AI 채팅 — 최근 대화를 함께 보낸다 (서버는 저장하지 않음). model 이 없으면 서버 기본 모델 */
+export async function sendChat(messages: ChatMessage[], llmModel?: string): Promise<ChatResponse> {
+  const { data } = await api.post<ChatResponse>(
+    "/api/v1/chat",
+    { messages, ...(llmModel ? { llm_model: llmModel } : {}) },
+    { timeout: 300_000 },
+  );
   return data;
 }
 

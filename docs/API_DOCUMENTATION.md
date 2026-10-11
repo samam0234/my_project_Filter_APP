@@ -250,6 +250,20 @@ ffmpeg 가 없거나 변환이 실패하면 webm(VP8) → MJPG avi(다운로드 
 - `reachable=false` 는 Ollama 에 닿지 않음 — 이때도 서버 기본 모델은 고를 수 있다 (고르지 않았을 때와 같은 동작)
 - 사진 · GIF · 영상의 `llm_model` 이 목록에 없거나 설치되지 않았으면 `400` (설치되지 않았으면 `ollama pull` 안내). 기본 모델이면 설정 그대로
 - 고른 모델은 **그 요청에만** 적용된다. 큰 모델은 첫 호출에 모델을 올리느라 느려 해석 제한 시간이 더 길다 (12b 90초 · 27b 180초)
+
+## Chat — 에이전트에게 묻기 (AI 채팅)
+
+프롬프트 가이드(`/guide?tab=agent`)의 AI 채팅. 서비스 사용법과 알맞은 **요청 문장**을 알려 준다. 문장 해석과 같은 Ollama · 같은 모델 목록을 쓴다.
+
+| 엔드포인트 | 요청 JSON | 응답 |
+|------------|-----------|------|
+| `POST /api/v1/chat` | `messages`: `[{role: "user"\|"assistant", content}]` (마지막은 user), `llm_model?` | 200 `{reply, model, elapsed_ms}` · 400 질문 없음 / 모델 없음·미적용 · 422 role 오류 · 429 속도 제한 · 502 모델 오류·빈 답 · 503 Ollama 연결 불가 또는 Ollama 해석이 아닌 서버 |
+
+- **비로그인도 가능.** 분당 비로그인 IP 10회 · 회원 30회 (`CHAT_RATE_GUEST_PER_MIN` · `CHAT_RATE_MEMBER_PER_MIN`, `Retry-After` 헤더)
+- **서버는 대화를 저장하지 않는다** — 화면이 최근 대화를 매번 함께 보낸다. 서버는 최근 12개만 쓰고 메시지당 `CHAT_MAX_CHARS`(1500)자로 자른다
+- 시스템 프롬프트는 서버가 고정한다 (`services/chat_agent.SYSTEM_PROMPT`) — 요청의 `system` 역할은 422. 서비스가 실제로 하는 것만 적어 없는 기능을 지어내지 않게 한다
+- 답의 `` `백틱` `` 문장은 화면이 "작업실에서 써 보기" 버튼으로 바꿔 작업실 입력 칸에 채운다
+- 큰 모델의 첫 호출은 오래 걸린다 (제한 시간 최소 90초). Cloudflare 주소는 응답을 100초까지만 기다린다 (`docs/guidance/ollama-server.md`)
 - 사진 결과의 `meta.llm_model` 에 실제로 Ollama 가 해석한 모델이 남는다
 
 ## 대상 마스크 처리 — 지정하지 않은 것이 섞이지 않게

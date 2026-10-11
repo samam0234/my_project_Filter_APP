@@ -14,9 +14,11 @@
 | [user-frontend.md](./user-frontend.md) | 사용자 앱 사용법 |
 | [https-deploy.md](./https-deploy.md) | **HTTPS 로 공개하기** — Caddy 자동 인증서, 도메인 · DNS · 포트 |
 | [gpu-deploy.md](./gpu-deploy.md) | **GPU 서버(CUDA)로 띄우기** — docker-compose.gpu.yml, 문장 해석 LoRA · 세그 GPU, 모델 옮기기 · 점검 |
+| [cloudflare-deploy.md](./cloudflare-deploy.md) | **프런트를 Cloudflare Worker 로** — 정적 화면 + `/api` 프록시, `EDGE_SECRET`, 502 진단 |
+| [ollama-server.md](./ollama-server.md) | **서버가 내 PC 의 Ollama 를 쓰기** — SSH 역방향 터널 · 다리 컨테이너 · 방화벽 · 측정값 |
 | [legal.md](./legal.md) | 개인정보 처리방침 · 이용약관 — 운영자 정보 채우기, 실제 동작과의 대응표 |
 | [security.md](./security.md) | **배포 전 보안·운영 점검표** — 설정 · 포트 · 보안 헤더 · 업로드 방어 · 자동 정리 · DB 백업 · 개인정보 |
-| [auth.md](./auth.md) | 로그인 · 회원가입 · 아이디/비밀번호 찾기 · 보안 · SMTP |
+| [auth.md](./auth.md) | 로그인 · 회원가입(**이메일 인증**) · **내 계정** · 아이디/비밀번호 찾기 · **HTML 메일** · 보안 · SMTP(서버 · 로컬) |
 | [docker-run.md](./docker-run.md) | cut_and_keep Compose 가이드 |
 | [learning-loop.md](learning-loop.md) | 새 학습 내용이 RAG · LangChain · LangGraph · LoRA · 세그 모델로 흘러 들어가는 경로, 새 어휘 추가 절차 |
 | [llm-and-vision.md](./llm-and-vision.md) | Ollama E4B · yolo26m-seg · OpenAI/Gemini |

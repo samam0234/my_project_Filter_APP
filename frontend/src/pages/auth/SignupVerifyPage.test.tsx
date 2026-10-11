@@ -82,4 +82,14 @@ describe("회원가입 2단계 — 메일 일련번호 입력", () => {
     fireEvent.change(email, { target: { value: "n@example.com" } });
     expect(submit().disabled).toBe(false);
   });
+
+  it("메일이 안 나가는 개발 서버(dev=1)면 실제 메일이 가지 않았다고 알려 준다", () => {
+    window.history.replaceState(null, "", "/signup/verify?email=n%40example.com&dev=1");
+    render(<SignupVerifyPage />);
+    expect(screen.getByRole("alert").textContent).toContain("메일이 실제로 가지 않았어요");
+    cleanup();
+    window.history.replaceState(null, "", "/signup/verify?email=n%40example.com");
+    render(<SignupVerifyPage />);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });

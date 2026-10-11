@@ -12,7 +12,7 @@
 | `/account` | 내 계정 🔒 | 헤더 프로필 메뉴로 진입 · `?tab=` 구역: 내 정보(표시 이름 수정 · 이용 현황) / 작업 기록 / 보안(비밀번호 변경 · 전체 로그아웃) / 보관 · 탈퇴 | `GET /jobs`, `PATCH /auth/me`, `POST /auth/password/change`, `POST /auth/logout-all`, `DELETE /auth/me` |
 | `/account?tab=history` | 작업 기록 🔒 | **본인 작업**(사진 · 영상 · GIF) 최근 120건 · 종류 필터 · 상태 필터 · 프롬프트 검색 (URL 쿼리 유지). 예전 `/history` 는 여기로 이동 | `GET /jobs?limit=120` |
 | `/jobs/:id` | 작업 상세 🔒 | 결과(영상은 재생) · 해석 JSON 복사 · 메타 · 평가/정답 알려주기 · 같은 문장으로 다시 작업 | `GET /jobs/{id}`, `POST /feedback` |
-| `/guide` | 프롬프트 가이드 | 남기기 vs 지우기 · 위치/크기/순서/개수/색 고르기 · 예시(누르면 작업실로) · 한계 | — |
+| `/guide` | 프롬프트 가이드 | **일반 가이드**(남기기 vs 지우기 · 위치/크기/순서/개수/색 고르기 · 예시 · 한계) / `?tab=agent` **에이전트에게 묻기**(AI 채팅 · 추천 문장을 작업실로 · 답변 모델 선택) | `POST /chat` |
 | `/batch` | 배치 🔒 | 여러 장 등록 · 진행률 · 항목별 원본/결과 · zip 받기 · 내 배치 | `POST /batch`, `GET /batch/{id}` |
 | `/video` | 영상 | 짧은 영상 처리 · 바로 재생 · mp4 저장 · 이 브라우저(IndexedDB)에 마지막 결과 보관 · 회원은 작업 기록 링크 | `POST /video`, `GET /video/{id}` |
 | `/login` | 로그인 | 아이디·비밀번호, `?next=` 로 돌아갈 곳, 아이디/비밀번호 찾기 링크 | `POST /auth/login` |

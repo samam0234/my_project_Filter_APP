@@ -139,6 +139,7 @@ def signup_start(body: SignupRequest, request: Request, response: Response, db: 
         verification_required=True,
         email=pending.email,
         expires_minutes=settings.signup_code_ttl_minutes,
+        mail_delivered=bool(settings.smtp_host),
     )
 
 
@@ -165,6 +166,7 @@ def signup_resend(body: SignupResendRequest, request: Request, db: Session = Dep
         verification_required=True,
         email=pending.email,
         expires_minutes=get_settings().signup_code_ttl_minutes,
+        mail_delivered=bool(get_settings().smtp_host),
     )
 
 

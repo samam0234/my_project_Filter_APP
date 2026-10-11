@@ -74,7 +74,7 @@ def test_send_mail_without_html_stays_plain(monkeypatch):
         def send_message(self, msg): sent.append(msg)
 
     monkeypatch.setattr(mailer.smtplib, "SMTP", FakeSMTP)
-    mailer.send_mail("to@x.test", "제목", "본문", Settings(SMTP_HOST="smtp.test"))
+    mailer.send_mail("to@x.test", "제목", "본문", Settings(SMTP_HOST="smtp.test", SMTP_USER="", SMTP_PASSWORD=""))  # 개인 .env 의 SMTP 값에 영향받지 않게
     assert sent[0].get_content_type() == "text/plain"
 
 

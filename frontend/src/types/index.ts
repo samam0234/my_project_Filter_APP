@@ -45,7 +45,20 @@ export interface SignupStartResponse {
   verification_required: boolean;
   email?: string | null;
   expires_minutes?: number | null;
+  /** false: 서버에 메일 설정(SMTP_HOST)이 없어 메일이 나가지 않았다 (개발 모드) */
+  mail_delivered?: boolean;
   user?: AuthUser | null;
+}
+
+/** POST /chat — AI 채팅 (프롬프트 가이드 "에이전트에게 묻기") */
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+export interface ChatResponse {
+  reply: string;
+  model: string;
+  elapsed_ms: number;
 }
 
 /** 계정 API 공통 안내 응답 */

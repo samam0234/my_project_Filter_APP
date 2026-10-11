@@ -80,6 +80,7 @@ class SlidingWindowLimiter:
 
 
 upload_limiter = SlidingWindowLimiter(60.0)
+chat_limiter = SlidingWindowLimiter(60.0)  # AI 채팅 (routers/chat)
 
 
 def enforce(limiter: SlidingWindowLimiter, key: str, limit: int, what: str = "요청") -> None:

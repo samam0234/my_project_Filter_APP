@@ -12,7 +12,18 @@ import { useLlmModelStore } from "../../store/useLlmModelStore";
 
 const POLL_MS = 30_000;
 
-export function ModelSelect({ disabled = false, className = "" }: { disabled?: boolean; className?: string }) {
+export function ModelSelect({
+  disabled = false,
+  className = "",
+  label = "해석 모델",
+  ariaLabel = "문장 해석 모델",
+}: {
+  disabled?: boolean;
+  className?: string;
+  /** 선택 상자 옆에 보일 이름 (작업실: 해석 모델 · 채팅: 답변 모델) */
+  label?: string;
+  ariaLabel?: string;
+}) {
   const enabled = useLlmModelStore((s) => s.enabled);
   const models = useLlmModelStore((s) => s.models);
   const defaultId = useLlmModelStore((s) => s.defaultId);
@@ -39,9 +50,9 @@ export function ModelSelect({ disabled = false, className = "" }: { disabled?: b
     <div className={`flex flex-col gap-1 ${className}`}>
       <label className="inline-flex items-center gap-2 text-xs text-slate-400">
         <Cpu className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        <span className="sr-only sm:not-sr-only">해석 모델</span>
+        <span className="sr-only sm:not-sr-only">{label}</span>
         <select
-          aria-label="문장 해석 모델"
+          aria-label={ariaLabel}
           value={value}
           disabled={disabled}
           onChange={(e) => select(e.target.value === defaultId ? null : e.target.value)}
