@@ -29,9 +29,27 @@
 | `assets/erd/cutnkeep_erd_2026-10-11.html` | ERD 원본 HTML |
 | `assets/erd/cutnkeep_erd_2026-10-11.png` | ERD 그림 |
 
+## 사이트 실행
+
+```bash
+cd Portfolio/ai
+python -m venv .venv
+.venv/Scripts/pip install -r requirements.txt
+.venv/Scripts/python app.py
+```
+
+```bash
+cd Portfolio/site
+npm install
+npm run dev
+```
+
+화면은 `http://127.0.0.1:5190`, 안내는 `http://127.0.0.1:5055` 이다.
+안내 모델 `gemma4:12b`가 없으면 챗만 멈추고 페이지는 열린다.
+
 ## 사이트
 
-문서 커밋 다음에 이 폴더 안에 두 프로그램을 둔다.
+이 폴더 안에 두 프로그램이 있다.
 
 | 경로 | 역할 |
 |------|------|

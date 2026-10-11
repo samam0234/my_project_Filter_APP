@@ -1,0 +1,67 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>CutNKeep ERD</title><style>
+body{margin:0;background:#f7f8fa;font-family:"WenQuanYi Zen Hei","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+#c{position:relative;width:1780px;height:1230px}
+h1{position:absolute;left:60px;top:16px;margin:0;font-size:24px;color:#1f2937}
+.sub{position:absolute;left:60px;top:54px;font-size:13px;color:#6b7280}
+.zone{position:absolute;border:2px dashed #94a3b8;border-radius:14px}
+.zone b{position:absolute;left:14px;top:-12px;background:#f7f8fa;padding:0 8px;font-size:14px;color:#334155}
+.t{position:absolute;width:330px;background:#fff;border:1.5px solid #94a3b8;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.h{padding:7px 12px;color:#fff;font-weight:bold;font-size:15px}
+.h small{font-weight:normal;opacity:.9;font-size:11.5px;display:block}
+.r{display:flex;font-size:12.5px;padding:4px 10px;border-top:1px solid #eef0f3;align-items:center;height:16px}
+.k{width:46px;white-space:nowrap;font-size:10px;font-weight:bold;color:#b45309}
+.k.fk{color:#2563eb}.k.ix{color:#64748b}
+.n{flex:1;color:#111827}.n.pk{font-weight:bold}
+.ty{color:#6b7280;font-size:11.5px}
+.nl{color:#9ca3af;font-size:10px;margin-left:4px;width:30px;text-align:right}
+svg{position:absolute;left:0;top:0}
+.lab{position:absolute;font-size:12px;color:#374151;background:#f7f8fa;padding:0 4px;white-space:nowrap}
+.legend{position:absolute;left:920px;top:740px;width:780px;font-size:12.5px;color:#374151;line-height:1.75}
+</style></head><body><div id="c">
+<h1>CutNKeep ERD · 실제 DB 구조 (2026-10-11)</h1>
+<div class="sub">출처: backend/app/models/*.py (develop 4468283) · Docker = MariaDB 11, 호스트 개발 = SQLite · 서비스 DB와 학습 DB는 분리되어 서로 FK 없음</div>
+<div class="zone" style="left:30px;top:92px;width:830px;height:1060px"><b>서비스 DB (cutnkeep)</b></div>
+<div class="zone" style="left:890px;top:92px;width:860px;height:1060px"><b>학습 DB (feedbacks · learning_samples)</b></div>
+</div><script>
+const T={
+users:{x:60,y:120,c:'#1d4ed8',d:'회원 계정',cols:[['PK','id','varchar(32)'],['UQ','username','varchar(32)'],['UQ','email','varchar(255)'],['','display_name','varchar(50)',1],['','password_hash','varchar(255)'],['','failed_logins','int'],['','locked_until','datetime',1],['','last_login_at','datetime',1],['','terms_agreed_at','datetime',1],['','created_at','datetime'],['','updated_at','datetime']]},
+auth_sessions:{x:60,y:575,c:'#0369a1',d:'로그인 세션 (id = 토큰 SHA-256)',cols:[['PK','id','varchar(64)'],['FK','user_id','varchar(32)'],['','expires_at','datetime'],['','user_agent','varchar(255)',1],['','created_at','datetime']]},
+auth_codes:{x:60,y:830,c:'#0369a1',d:'비밀번호 재설정 코드 (1회용)',cols:[['PK','id','int auto'],['FK','user_id','varchar(32)'],['','purpose','varchar(32)'],['','code_hash','varchar(64)'],['','attempts','int'],['','expires_at','datetime'],['','used_at','datetime',1],['','created_at','datetime']]},
+jobs:{x:500,y:120,c:'#0f766e',d:'처리 작업 · kind = image | video | gif',cols:[['PK','id','varchar(64)'],['FK','user_id','varchar(32)',1],['','prompt','text'],['','kind','varchar(16)',1],['IX','status','varchar(32)'],['','parsed_prompt','json',1],['','quality_score','float'],['','before_path','varchar(512)',1],['','after_path','varchar(512)',1],['','backend','varchar(64)',1],['','message','text',1],['','labels','json',1],['','confidences','json',1],['','feedback_saved','int'],['','error','text',1],['','created_at','datetime'],['','updated_at','datetime'],['','expires_at','datetime',1]]},
+batch_jobs:{x:500,y:760,c:'#7c3aed',d:'배치 작업 (회원 전용, ≤500장)',cols:[['PK','id','varchar(64)'],['FK','user_id','varchar(32)',1],['','status','varchar(32)'],['','prompt','text'],['','total','int'],['','completed','int'],['','progress','float'],['','message','text',1],['','item_results','json',1],['','created_at','datetime'],['','updated_at','datetime']]},
+feedbacks:{x:920,y:120,c:'#dc2626',d:'피드백 이벤트 (id = 사이드카 파일명)',cols:[['PK','id','varchar(64)'],['IX','job_id','varchar(64)'],['IX','user_id','varchar(32)',1],['','vote','varchar(16)'],['','comment','text',1],['IX','source','varchar(32)'],['','prompt','text',1],['','image_path','varchar(512)',1],['','meta','json',1],['','created_at','datetime']]},
+learning_samples:{x:1390,y:120,c:'#ea580c',d:'학습 데이터 카탈로그 (콘솔 검수)',cols:[['PK','id','varchar(32)'],['IX','kind','varchar(16)'],['IX','source','varchar(32)'],['IX','status','varchar(16)'],['IX','split','varchar(8)',1],['UQ','origin_id','varchar(64)'],['IX','job_id','varchar(64)',1],['IX','user_id','varchar(32)',1],['','prompt','text',1],['','answer','json',1],['','image_path','varchar(512)',1],['','label_path','varchar(512)',1],['','note','text',1],['','reviewed_by','varchar(64)',1],['','reviewed_at','datetime',1],['','created_at','datetime'],['','updated_at','datetime']]},
+};
+const C=document.getElementById('c');
+for(const[n,t]of Object.entries(T)){const e=document.createElement('div');e.className='t';e.style.left=t.x+'px';e.style.top=t.y+'px';
+let h=`<div class="h" style="background:${t.c}">${n}<small>${t.d}</small></div>`;
+for(const[k,c,ty,nl]of t.cols){const cls=k=='FK'?'fk':(k=='IX'?'ix':'');h+=`<div class="r" id="${n}.${c}"><span class="k ${cls}">${k}</span><span class="n ${k=='PK'?'pk':''}">${c}</span><span class="ty">${ty}</span><span class="nl">${nl?'NULL':''}</span></div>`;}
+e.innerHTML=h;C.appendChild(e);}
+const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',1780);svg.setAttribute('height',1230);C.prepend(svg);
+const cr=C.getBoundingClientRect();
+function pt(id,side){const r=document.getElementById(id).getBoundingClientRect();return{x:(side=='r'?r.right:r.left)-cr.left,y:r.top+r.height/2-cr.top}}
+function P(d,dash){const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',d);p.setAttribute('fill','none');p.setAttribute('stroke','#475569');p.setAttribute('stroke-width',1.6);if(dash)p.setAttribute('stroke-dasharray','6 4');svg.appendChild(p)}
+function circ(x,y){const c=document.createElementNS(svg.namespaceURI,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',5);c.setAttribute('fill','#fff');c.setAttribute('stroke','#475569');c.setAttribute('stroke-width',1.6);svg.appendChild(c)}
+function one(p,dir,opt){P(`M${p.x+dir*10},${p.y-8}V${p.y+8}`);if(opt)circ(p.x+dir*20,p.y);else P(`M${p.x+dir*16},${p.y-8}V${p.y+8}`)}
+function many(p,dir,opt){P(`M${p.x+dir*14},${p.y}L${p.x},${p.y-8}M${p.x+dir*14},${p.y}L${p.x},${p.y+8}`);if(opt)circ(p.x+dir*22,p.y);else P(`M${p.x+dir*18},${p.y-8}V${p.y+8}`)}
+function lab(x,y,s){const d=document.createElement('div');d.className='lab';d.style.left=x+'px';d.style.top=y+'px';d.textContent=s;C.appendChild(d)}
+// a 오른쪽 → b 왼쪽
+function link(a,b,ma,mb,label,lp,dash,mxo){const p=pt(a,'r'),q=pt(b,'l');const mx=mxo||(p.x+q.x)/2;P(`M${p.x},${p.y}H${mx}V${q.y}H${q.x}`,dash);ma(p,1);mb(q,-1);const[lx,ly]=lp?lp(p,q,mx):[mx+8,q.y-24];lab(lx,ly,label)}
+// a 왼쪽 → b 왼쪽 (같은 열, 왼쪽 여백으로 우회)
+function linkL(a,b,ma,mb,label,gx){const p=pt(a,'l'),q=pt(b,'l');P(`M${p.x},${p.y}H${gx}V${q.y}H${q.x}`);ma(p,-1);mb(q,-1);const tr=document.getElementById(b).parentElement.getBoundingClientRect();lab(70,tr.top-cr.top-24,label)}
+linkL('users.id','auth_sessions.user_id',(p,d)=>one(p,d),(p,d)=>many(p,d,true),'users 1 : auth_sessions 0..N · ON DELETE CASCADE',40);
+linkL('users.id','auth_codes.user_id',(p,d)=>one(p,d),(p,d)=>many(p,d,true),'users 1 : auth_codes 0..N · ON DELETE CASCADE',40);
+link('users.id','jobs.user_id',(p,d)=>one(p,d,true),(p,d)=>many(p,d,true),'0..1 : N',(p,q,mx)=>[mx-28,q.y+12],false,450);
+link('users.id','batch_jobs.user_id',(p,d)=>one(p,d,true),(p,d)=>many(p,d,true),'0..1 : N',(p,q,mx)=>[mx-28,q.y-28],false,450);
+link('jobs.id','feedbacks.job_id',(p,d)=>one(p,d),(p,d)=>many(p,d,true),'값 참조 1 : 0..N (FK 없음)',(p,q,mx)=>[mx-90,98],true);
+link('feedbacks.id','learning_samples.origin_id',(p,d)=>one(p,d),(p,d)=>many(p,d,true),'1 : 0..2',(p,q,mx)=>[mx+8,q.y-26],true);
+const lg=document.createElement('div');lg.className='legend';lg.innerHTML=
+'<b>표기</b>: crow\'s foot — 막대 = 정확히 1, 원 = 선택(0), 갈래 = 여러 개 · 실선 = 실제 FK, 점선 = 다른 DB 간 값 참조(FK 없음)<br>'+
+'<b>키</b>: PK 기본키 · FK 외래키 · UQ 유일 · IX 인덱스 · NULL = 비어도 되는 컬럼<br>'+
+'<b>삭제 규칙</b>: users 삭제 시 auth_sessions · auth_codes 함께 삭제(CASCADE), jobs · batch_jobs.user_id 는 NULL(SET NULL) · feedbacks 1건 → learning_samples prompt · segment 최대 2건<br><b>유일 제약</b>: learning_samples(origin_id, kind) — 같은 출처를 두 번 적재하지 않음<br>'+
+'<b>값 목록</b>: jobs.status = pending|ok|fallback|failed · feedbacks.vote = like|dislike · feedbacks.source = user|pipeline_failure<br>'+
+'learning_samples.kind = prompt|segment · source = correction|like|request|pipeline_failure|pseudo_label · status = pending|approved|rejected|deleted · split = train|val<br>'+
+'<b>07-27 설계안 대비</b>: parsed_prompts → jobs.parsed_prompt(JSON), pseudo_labels → learning_samples(source=pseudo_label), model_versions 없음(모델은 파일), 계정 테이블 3개 · learning_samples 신규<br>'+
+'<b>파일</b>: 이미지·영상은 DB에 경로만 — backend/data/uploads (24시간), data/feedback (실패 사진 30일)';
+C.appendChild(lg);
+</script></body></html>
