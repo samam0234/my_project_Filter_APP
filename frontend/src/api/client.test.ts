@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { api, downloadFile, processVideo } from "./client";
+import { api, downloadFile, errorMessage, processVideo } from "./client";
 
 const file = new File([new Uint8Array(4)], "v.mp4", { type: "video/mp4" });
 afterEach(() => vi.restoreAllMocks());
@@ -71,5 +71,14 @@ describe("downloadFile", () => {
     const err = { response: { status: 404, data: new Blob([JSON.stringify({ detail: "받을 결과가 없습니다." })]) } };
     vi.spyOn(api, "get").mockRejectedValue(err);
     await expect(downloadFile("/x", "x.zip")).rejects.toMatchObject({ response: { data: { detail: "받을 결과가 없습니다." } } });
+  });
+});
+
+describe("errorMessage — Cloudflare 시간 초과", () => {
+  it("524 는 100초 제한 안내와 모델 변경 방법을 알려 준다", () => {
+    const msg = errorMessage({ response: { status: 524 } });
+    expect(msg).toContain("100초");
+    expect(msg).toContain("e4b");
+    expect(errorMessage({ response: { status: 502 } })).toContain("백엔드");
   });
 });

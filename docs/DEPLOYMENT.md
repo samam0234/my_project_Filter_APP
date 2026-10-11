@@ -62,6 +62,8 @@ docker compose -p cut_and_keep --env-file .env -f docker-compose.yml -f docker-c
 ollama pull gemma4:e4b && ollama pull gemma4:12b && ollama pull qwen3.8:27b   # 27b 는 17GB — GPU 메모리가 모자라면 일부가 CPU 로 돌아 첫 호출이 3분 가깝다
 ```
 
+GPU 가 없는 서버(Oracle ARM 등)는 모델을 따로 받지 않고 **내 PC 의 Ollama 를 SSH 터널로 연결**한다 → [guidance/ollama-server.md](./guidance/ollama-server.md).
+
 GPU 서버(`docker-compose.gpu.yml`)는 LoRA 로 해석하므로 상자가 보이지 않는다. 큰 모델의 첫 호출을 위해 nginx 는 사진 요청을 300초까지 기다린다.
 
 ## 4. 점검
