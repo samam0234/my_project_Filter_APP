@@ -14,7 +14,10 @@
 | `SECRET_KEY` | 32자 이상 난수 `python -c "import secrets; print(secrets.token_urlsafe(48))"` | preflight |
 | `DEBUG` | `false` | preflight |
 | `SESSION_COOKIE_SECURE` | `true` (HTTPS 일 때만 — http 에서 켜면 로그인이 안 된다) | preflight |
-| `SMTP_*` | 실제 메일 서버 — 비우면 비밀번호 재설정 코드가 **서버 로그**에 남는다 | preflight |
+| `SMTP_*` | 실제 메일 서버 — 비우면 재설정 코드 · **가입 인증 일련번호**가 **서버 로그**에 남는다 | preflight |
+| `SIGNUP_EMAIL_VERIFICATION` | `true`(기본) — 켜 두면 `POST /auth/signup` 직접 호출은 403 | [auth.md](./auth.md) |
+| `CORS_ORIGINS` | 화면 주소(서버 + Cloudflare)를 모두 — 메일 속 버튼 주소도 이 목록 안에서만 쓴다 | — |
+| `EDGE_SECRET` | Cloudflare Worker 앞단일 때만 — Worker 와 같은 값. 없으면 실제 사용자 IP 를 믿지 않는다 | [cloudflare-deploy.md](./cloudflare-deploy.md) |
 | `MARIADB_PASSWORD` | 기본값(`cutnkeep`) 금지 | preflight |
 | `CONSOLE_ADMINS` · `CONSOLE_REQUIRE_LOGIN=true` | 운영 콘솔은 관리자 로그인으로만 | [console-admin.md](./console-admin.md) |
 | `CONSOLE_ALLOW_REMOTE` | `false` | — |
@@ -28,6 +31,10 @@
 | 보안 헤더 | 자동 — nginx: CSP(스크립트 같은 출처만) · `X-Frame-Options: DENY` · `nosniff` · `Referrer-Policy` · `Permissions-Policy`, `server_tokens off` |
 | 비로그인 업로드 한도 | 자동 — 분당 `UPLOAD_RATE_GUEST_PER_MIN`. nginx 뒤에서도 사람(IP)마다 따로 세도록 `TRUSTED_PROXIES`(compose 기본 172.16.0.0/12)에서 온 `X-Real-IP` 를 쓴다. 콘솔의 "이 PC" 판정은 이 헤더를 믿지 않는다 |
 | 로그인 | 자동 — 연속 실패 시 계정 잠금, 세션은 HttpOnly 쿠키 ([auth.md](./auth.md)) |
+| 가입 인증 | 자동 — 일련번호 8글자 HMAC 해시, 30분 · 5회 · 재발송 60초, 만료된 신청은 주기 작업이 삭제 |
+| AI 채팅 | 자동 — 분당 비로그인 10 · 회원 30 (`CHAT_RATE_*`), 시스템 프롬프트 서버 고정, 대화 비저장, 메시지 1500자 |
+| Cloudflare Worker | 수동 — `EDGE_SECRET` 은 서버 `.env` 와 Worker secret 에만 (`set_edge_secret.sh`), 저장소 · 채팅에 적지 않는다 |
+| PC Ollama 터널 | 수동 — 터널 끝은 서버 loopback(11435), 다리는 docker 게이트웨이에만, iptables 는 docker 대역(172.18.0.0/16)만 허용. Ollama 에는 인증이 없으니 포트를 `0.0.0.0` 으로 열지 않는다 ([ollama-server.md](./ollama-server.md)) |
 
 ## 3. 업로드
 
@@ -74,3 +81,5 @@ cd frontend && npm audit --omit=dev && cd ../console && npm audit --omit=dev
 
 - 침투 테스트 (pip-audit 은 CI 에 넣었다 — push 마다 · 매주 월요일. npm 개발 도구 7건은 보류)
 - 여러 서버로 늘릴 때 속도 제한을 Redis 로 (지금은 프로세스 메모리)
+- 기존 회원(가입 인증 이전)의 이메일 재인증 · 이메일 변경
+- 운영 콘솔의 공개 접근 제한(Cloudflare Access 등) — 지금은 관리자 PC 에서만 띄운다

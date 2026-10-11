@@ -39,7 +39,8 @@ ollama serve
 로그인 여부: 비로그인은 작업실 처리 결과를 **다운로드만** 할 수 있고(서버에 저장 안 함),
 작업 기록 · 피드백 · 배치는 회원 전용이다 → [`docs/guidance/auth.md`](./docs/guidance/auth.md).
 운영 콘솔(:5174)은 백엔드와 **같은 PC** 에서 실행한다 (콘솔 API 는 loopback 만 허용).
-로컬에서 비밀번호 찾기 코드는 `backend/logs/app_YYYY-MM-DD.log` 의 `[DEV MAIL` 에서 확인 (SMTP 미설정 시).
+로컬에서 비밀번호 찾기 코드 · **회원가입 인증 일련번호**는 `backend/logs/app_YYYY-MM-DD.log` 의 `[DEV MAIL` 에서 확인 (SMTP 미설정 시 — 가입 인증 화면도 "메일이 실제로 가지 않았다"고 알려 준다).
+실제 메일을 받으려면 `bash scripts/set_smtp_local.sh` (앱 비밀번호는 숨겨 입력, `.env` 에만 저장) 후 백엔드를 다시 시작한다. 받는 주소는 어떤 메일이든 된다.
 
 ### 환경변수
 

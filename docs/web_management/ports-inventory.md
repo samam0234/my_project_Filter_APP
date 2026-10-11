@@ -12,7 +12,10 @@
 | 3306 | (호스트 기본 매핑 시) MariaDB | 충돌 시 3309 등 사용 |
 | 6379 | 타 프로젝트 Redis 등 | 점유 시 cut_and_keep 은 6380 |
 | **6380** | cut_and_keep Redis 호스트 맵 | → 컨테이너 6379 |
-| **8081** | **Adminer** | Server=`mariadb` |
+| **8081** | **Adminer** | Server=`mariadb` — 개발용. **운영 서버에서는 띄우지 않는다** |
+| 443 · 80 | 실서버 Caddy (HTTPS) | OCI 보안 목록 + iptables 에서 허용 |
+| 11434 | PC Ollama → 서버 다리(`ollama-bridge`) | docker 게이트웨이 172.18.0.1 에만 열림, iptables 는 docker 대역만 허용 |
+| 11435 | SSH 역방향 터널의 서버 쪽 끝 | 서버 **loopback** 만 (밖에서 안 보임) |
 
 Docker 의 backend · MariaDB · Redis · Adminer 는 모두 `BIND_HOST`(기본 **127.0.0.1**)에만 열린다 — 같은 네트워크의 다른 기기는 :80 만 볼 수 있다.
 

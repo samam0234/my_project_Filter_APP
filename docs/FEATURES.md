@@ -118,6 +118,10 @@
 | 기능 | 설정 | 설명 |
 |------|------|------|
 | 계정 보안 | `LOGIN_MAX_FAILURES` · `LOGIN_LOCK_MINUTES` · `SESSION_TTL_HOURS` · `SESSION_COOKIE_SECURE` · `SECRET_KEY` | scrypt 해시, 연속 실패 잠금, HttpOnly 세션, 이메일 코드 재설정 |
+| 가입 이메일 인증 | `SIGNUP_EMAIL_VERIFICATION` · `SIGNUP_CODE_TTL_MINUTES` · `AUTH_CODE_*` | 일련번호 8글자(해시 저장) · 30분 · 5회 · 재발송 60초, 직접 가입 403, 만료 신청 자동 삭제 |
+| 메일 디자인 | `services/mail_templates.py` | HTML + 텍스트 본문(아이디 안내 · 재설정 · 가입 인증), 버튼 주소는 `CORS_ORIGINS` 안에서만 |
+| AI 채팅 제한 | `CHAT_RATE_GUEST_PER_MIN` · `CHAT_RATE_MEMBER_PER_MIN` · `CHAT_MAX_CHARS` | 에이전트에게 묻기 — 분당 비로그인 10 · 회원 30, 대화 비저장 |
+| Cloudflare 앞단 | `EDGE_SECRET` (서버 `.env` · Worker secret) | Worker 가 보낸 실제 사용자 IP 만 믿는다 — [`guidance/cloudflare-deploy.md`](guidance/cloudflare-deploy.md) |
 | HTTPS | `docker-compose.https.yml` · `DOMAIN` · `ACME_EMAIL` | Caddy 가 인증서 자동 발급·갱신, http→https, Secure 쿠키 · HSTS — [`guidance/https-deploy.md`](guidance/https-deploy.md) |
 | 메일 | `SMTP_*` · `SMTP_SSL` | 587(STARTTLS) · 465(SSL), 개발용 Mailpit(프로필 mail), `scripts/send_test_mail.py` — [`guidance/auth.md`](guidance/auth.md) |
 | 접근 정책 | — | 결과 파일 · 기록은 본인만(404), 비로그인은 저장하지 않음 |
@@ -141,6 +145,7 @@
 |------|------|
 | 로컬 | backend `uvicorn`(:8000) · frontend Vite(:5173) · console Vite(:5174) — [`../RUN.md`](../RUN.md) |
 | Docker (`-p cut_and_keep`) | frontend(nginx :80) · backend · MariaDB · Redis · Adminer · celery_worker(프로필 phase2) — [`guidance/docker-run.md`](guidance/docker-run.md) |
+| 실서버 · Cloudflare | `docker-compose.https.yml` · `docker-compose.pc-ollama.yml` · `deploy/cloudflare/` | Oracle ARM 서버 + Cloudflare Worker 화면 + PC Ollama 터널 — [`DEPLOYMENT.md`](DEPLOYMENT.md) · [`guidance/ollama-server.md`](guidance/ollama-server.md) |
 | 모델 파일 (git 밖) | `backend/models/` — YOLO · SegFormer · LaMa · LoRA ([`backend/models/README.md`](../backend/models/README.md)) |
 | 테스트 | 백엔드 pytest · 프론트/콘솔 vitest · 문서 등록 검사 — [`plan/TESTING.md`](plan/TESTING.md) |
 | 실험 · 평가 | `scripts/experiments/` — 결과는 [`vaildates/README.md`](vaildates/README.md) |

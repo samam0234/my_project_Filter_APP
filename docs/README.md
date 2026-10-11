@@ -40,6 +40,7 @@
 - **DB:** [plan/DATABASE.md](./plan/DATABASE.md) · [../docker/mariadb/README.md](../docker/mariadb/README.md)
 - API: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 - **배포 순서 (운영 `.env` · HTTPS · GPU · 모델 옮기기 · 점검):** [DEPLOYMENT.md](./DEPLOYMENT.md) · [guidance/https-deploy.md](./guidance/https-deploy.md) · [guidance/gpu-deploy.md](./guidance/gpu-deploy.md) · [web_management/ports-inventory.md](./web_management/ports-inventory.md)
+- **프런트를 Cloudflare 에 올리기:** [guidance/cloudflare-deploy.md](./guidance/cloudflare-deploy.md) · **서버가 PC 의 Ollama 쓰기:** [guidance/ollama-server.md](./guidance/ollama-server.md)
 - **개인정보 처리방침 · 약관 운영:** [guidance/legal.md](./guidance/legal.md)
 - 워크플로: [WORKFLOW.md](./WORKFLOW.md)
 - **커밋 메시지:** [guidance/commit-message.md](./guidance/commit-message.md)

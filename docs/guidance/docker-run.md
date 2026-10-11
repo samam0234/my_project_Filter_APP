@@ -28,6 +28,16 @@ docker compose -p cut_and_keep ps
 - 대상 지우기 LaMa 모델(`backend/models/lama_fp32.onnx`, 208MB)은 git 에 없다 — **없으면 backend 가 기동 시 자동으로 받는다**(체크섬 확인, `MODEL_AUTO_DOWNLOAD`). 받는 동안은 Telea (`backend/models/README.md`)
 - backend 는 기동 시 **서비스 DB 백업**(`backend/data/backups/`)과 **보관 기간 지난 업로드 정리**를 스스로 돌린다
 
+## 오버레이 (compose 파일 겹치기)
+
+| 파일 | 용도 |
+|------|------|
+| `docker-compose.https.yml` | Caddy HTTPS (공개 서버) — `EDGE_SECRET` 로 Cloudflare Worker 의 실제 IP 전달을 받을 수 있다 |
+| `docker-compose.gpu.yml` | NVIDIA GPU 서버 — LoRA 문장 해석 ([gpu-deploy.md](./gpu-deploy.md)) |
+| `docker-compose.pc-ollama.yml` | GPU 없는 서버가 **내 PC 의 Ollama** 를 쓰는 다리 ([ollama-server.md](./ollama-server.md)) |
+
+`-f docker-compose.yml -f docker-compose.https.yml -f docker-compose.pc-ollama.yml` 처럼 겹친다. **서버에서 전체 `up -d --build` 는 개발 도구(adminer)까지 띄운다** — 서비스를 지정해 올린다 (`up -d --build backend frontend caddy`).
+
 ## 인증 · DB
 
 - MariaDB: **비밀번호만** (GSS/SSL 미사용)
