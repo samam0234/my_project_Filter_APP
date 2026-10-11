@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `24ff4e0` | develop → main 병합 (no-ff) | [commits/261012_0729_24ff4e0_merge-portfolio_main.md](./commits/261012_0729_24ff4e0_merge-portfolio_main.md) |
 | `cf02b90` | feature/portfolio → develop 병합 (no-ff) | [commits/261012_0729_cf02b90_merge-portfolio_develop.md](./commits/261012_0729_cf02b90_merge-portfolio_develop.md) |
 | `d98fae6` | 안내 챗 깊이 추론과 입력창 높이 | [commits/261012_0722_d98fae6_deep-quota_feature-portfolio.md](./commits/261012_0722_d98fae6_deep-quota_feature-portfolio.md) |
 | `5a64f26` | 안내 챗 학습 예시를 JSON에 저장 | [commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md](./commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md) |
