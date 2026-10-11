@@ -12,7 +12,9 @@ cd "$(dirname "$0")/.."
 HOST="${SMTP_HOST:-smtp.gmail.com}"
 PORT="${SMTP_PORT:-587}"
 SSL="${SMTP_SSL:-false}"
-read -r -p "보내는 메일 주소(SMTP 로그인 계정): " ADDR
+# .env 에 SMTP_USER 가 이미 있으면 그 계정을 쓰고 비밀번호만 묻는다
+ADDR="$(grep -E '^SMTP_USER=' .env 2>/dev/null | head -1 | cut -d= -f2-)"
+if [ -z "$ADDR" ]; then read -r -p "보내는 메일 주소(SMTP 로그인 계정): " ADDR; else echo "보내는 계정: $ADDR (.env 의 SMTP_USER)"; fi
 echo "앱 비밀번호(Gmail 은 16자)를 붙여넣고 Enter — 입력은 화면에 보이지 않습니다."
 read -r -s -p "앱 비밀번호: " PW; echo
 PW="${PW// /}"
