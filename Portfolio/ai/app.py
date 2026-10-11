@@ -1,6 +1,6 @@
 """컷앤킵 포트폴리오 안내 서비스.
 
-제품 FastAPI와 따로 뜬다. 대화는 저장하지 않는다.
+제품 FastAPI와 따로 뜬다. 화면의 대화 목록은 저장하지 않고, 학습 예시만 JSON에 남긴다.
 """
 
 from __future__ import annotations

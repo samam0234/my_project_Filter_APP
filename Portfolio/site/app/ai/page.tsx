@@ -87,7 +87,8 @@ export default function AiPage() {
         <p>
           이 사이트의 Flask 안내는 같은 이름을 설명용으로 씁니다. LangGraph가 분류와 검색과 답변을 나누고,
           LangChain이 Ollama <code>gemma4:12b</code>를 호출하고, 이 폴더의 마크다운을 검색합니다.
-          대화는 서버에 쓰지 않습니다. 브라우저 localStorage가 기록을 들고 요청마다 최근 대화를 다시 보냅니다.
+          화면의 대화 목록은 브라우저 localStorage가 들고, 요청마다 최근 대화를 다시 보냅니다.
+          데이터베이스는 쓰지 않습니다. 배운 질문과 답은 JSON에 남아 비슷한 다음 질문을 보완합니다.
           12b가 없으면 안내만 멈추고, 제품 해석 기본값 e4b는 바꾸지 않습니다.
         </p>
         <p><Link href="/chat">안내 챗 열기</Link></p>

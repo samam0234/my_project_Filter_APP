@@ -37,7 +37,7 @@ export default function ErdPage() {
         <h2>그림 다음에 생긴 표</h2>
         <div className="note">
           이메일 인증 가입의 signup_pending은 이 HTML에 없습니다. 인증 전 가입 정보를 최대 30분 두고, 인증하면 users로 옮긴 뒤 지웁니다.
-          제품 AI 채팅과 이 사이트의 안내 챗은 테이블이 없습니다. 대화를 저장하지 않기 때문입니다.
+          제품 AI 채팅과 이 사이트의 안내 챗은 테이블이 없습니다. 안내 챗의 화면 기록은 브라우저에 있고, 학습 예시는 JSON 파일입니다.
         </div>
         <div className="table-wrap">
           <table>

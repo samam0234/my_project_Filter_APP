@@ -147,7 +147,7 @@ export function ChatPanel() {
       <section className="thread">
         <div className="messages" aria-live="polite">
           {messages.length === 0 && (
-            <p>문서에 있는 내용만 답합니다. 기록은 이 브라우저의 localStorage에만 있습니다.</p>
+            <p>문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 다음 비슷한 질문을 보완하는 JSON에 남습니다.</p>
           )}
           {messages.map((msg, i) => (
             <div key={`${msg.role}-${i}`} className={`bubble ${msg.role}`}>

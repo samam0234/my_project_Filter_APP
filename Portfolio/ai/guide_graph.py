@@ -1,11 +1,12 @@
 """포트폴리오 안내 그래프.
 
-이해 → 다중 검색 → 선별 → 초안 → 문서와 어긋나면 한 번 고친다.
-대화는 인자로만 받고 어디에도 저장하지 않는다.
+이해 → 문서 검색과 배운 대화 검색 → 초안 → 필요하면 수정 → JSON에 학습.
+화면의 대화 목록은 브라우저가 가진다. 학습 JSON은 데이터베이스가 아니다.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -19,6 +20,8 @@ from langgraph.graph import END, StateGraph
 from pydantic import PrivateAttr
 from rank_bm25 import BM25Okapi
 from typing_extensions import TypedDict
+
+from rag_memory import format_examples, remember_exchange, search_memory
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC_DIRS = [ROOT / "markdown"]
@@ -73,6 +76,7 @@ SYSTEM = (
     "- 답이 된 뒤에는 문서가 부족하다는 변명을 붙이지 않는다.\n"
     "- 같은 사실이 어긋나면 HANDOVER와 FEATURES를 우선한다.\n"
     "- 이전 대화가 있으면 그 대상을 이어서 설명한다. 대화와 문서가 충돌하면 문서를 따른다.\n"
+    "- 이전 안내 예시는 말투와 빠진 점을 보완할 때만 쓴다. 예시와 문서가 다르면 문서를 따른다.\n"
     "- 문서가 부족하면 확인된 범위만 말하고, 무엇이 문서에 없는지 한 문장으로 밝힌다.\n"
     "- 사진 처리를 실행해 주지 않고, 공격이나 우회 절차는 거절한다."
 )
@@ -85,10 +89,12 @@ class GuideState(TypedDict, total=False):
     search_query: str
     context: str
     sources: list[str]
+    examples: str
     draft: str
     issues: str
     revised: bool
     answer: str
+    memory_id: str
 
 
 def _windows(body: str) -> list[str]:
@@ -269,7 +275,10 @@ def retrieve(state: GuideState) -> GuideState:
         per_file[source] = per_file.get(source, 0) + 1
     ranked = diverse + deferred
     if not ranked:
-        return {"context": "", "sources": []}
+        remembered = search_memory(question, k=2)
+        examples = format_examples(remembered)
+        sources = ["rag_memory.json · 비슷한 안내"] if remembered else []
+        return {"context": "", "sources": sources, "examples": examples}
     best = ranked[0][0] or 1.0
     kept: list[tuple[float, Document]] = []
     total = 0
@@ -287,7 +296,11 @@ def retrieve(state: GuideState) -> GuideState:
         if label not in sources:
             sources.append(label)
         blocks.append(f"({index}) {label}\n{doc.page_content}")
-    return {"context": "\n\n".join(blocks), "sources": sources}
+    remembered = search_memory(question, k=2)
+    examples = format_examples(remembered)
+    if remembered:
+        sources.append("rag_memory.json · 비슷한 안내")
+    return {"context": "\n\n".join(blocks), "sources": sources, "examples": examples}
 
 
 def _message_text(result: object) -> str:
@@ -361,7 +374,7 @@ draft_chain = (
             ("system", SYSTEM),
             (
                 "human",
-                "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n질문:\n{question}",
+                "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n이전 안내 예시:\n{examples}\n\n질문:\n{question}",
             ),
         ]
     )
@@ -390,6 +403,7 @@ def draft(state: GuideState) -> GuideState:
             "route": state.get("route", "overview"),
             "history": state.get("history") or "(없음)",
             "context": state.get("context") or "(검색 결과 없음)",
+            "examples": state.get("examples") or "(없음)",
             "question": state.get("question", ""),
         }
     )
@@ -417,7 +431,88 @@ def revise(state: GuideState) -> GuideState:
 def _after_draft(state: GuideState) -> str:
     if state.get("issues") and not state.get("revised"):
         return "revise"
-    return "done"
+    return "remember"
+
+
+_SIMILAR_SWAPS = (
+    ("오픈 보캐브", "열린 어휘"),
+    ("열린 어휘", "오픈 보캐브"),
+    ("비로그인 사용자", "로그인하지 않은 손님"),
+    ("비로그인", "게스트"),
+    ("데이터베이스", "DB"),
+    ("운영 콘솔", "어드민 콘솔"),
+    ("콘솔", "운영 콘솔"),
+    ("기본 문장 모델", "기본 해석 모델"),
+)
+
+
+def _local_similar(question: str) -> list[str]:
+    found: list[str] = []
+    for source, target in _SIMILAR_SWAPS:
+        if source in question and target not in question:
+            found.append(question.replace(source, target))
+    return found[:3]
+
+
+def _parse_similar(text: str) -> list[str]:
+    match = re.search(r"\[[\s\S]*\]", text)
+    if not match:
+        return []
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(data, list):
+        return []
+    return [str(item).strip() for item in data if str(item).strip()]
+
+
+_similar_llm = ChatOllama(
+    model=os.environ.get("OLLAMA_MODEL", "gemma4:12b"),
+    base_url=os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+    temperature=0.3,
+    num_predict=180,
+    reasoning=False,
+    client_kwargs={"timeout": 60},
+)
+_similar_chain = (
+    ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "같은 뜻을 묻는 한국어 질문만 만든다. 새 사실, 새 숫자, 새 기능 이름은 넣지 않는다. "
+                "JSON 배열만 출력한다.",
+            ),
+            ("human", "질문: {question}\n\n답의 앞부분: {answer}\n\n같은 뜻의 질문 3개."),
+        ]
+    )
+    | _similar_llm
+    | StrOutputParser()
+)
+
+
+def remember(state: GuideState) -> GuideState:
+    question = (state.get("question") or "").strip()
+    answer = (state.get("answer") or "").strip()
+    if len(question) < 8 or len(answer) < 40 or answer.startswith("문서에서는 답을 만들지 못했습니다"):
+        return {}
+    try:
+        generated = _parse_similar(
+            _message_text(
+                _similar_chain.invoke({"question": question, "answer": answer[:400]})
+            )
+        )
+        similar = _local_similar(question) + generated
+        item_id = remember_exchange(
+            question,
+            answer,
+            list(state.get("sources") or []),
+            state.get("route") or "",
+            similar,
+        )
+    except Exception:
+        return {}
+    return {"memory_id": item_id} if item_id else {}
 
 
 def build_graph():
@@ -426,11 +521,13 @@ def build_graph():
     graph.add_node("retrieve", retrieve)
     graph.add_node("draft", draft)
     graph.add_node("revise", revise)
+    graph.add_node("remember", remember)
     graph.set_entry_point("understand")
     graph.add_edge("understand", "retrieve")
     graph.add_edge("retrieve", "draft")
-    graph.add_conditional_edges("draft", _after_draft, {"revise": "revise", "done": END})
-    graph.add_edge("revise", END)
+    graph.add_conditional_edges("draft", _after_draft, {"revise": "revise", "remember": "remember"})
+    graph.add_edge("revise", "remember")
+    graph.add_edge("remember", END)
     return graph.compile()
 
 

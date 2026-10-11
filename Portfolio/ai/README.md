@@ -2,11 +2,12 @@
 
 제품 FastAPI와 별도다. 사진을 처리하지 않고, 데이터베이스에 연결하지 않는다.
 
-- LangGraph: 이해 → 검색 → 초안 → 문서와 어긋나면 한 번 수정
-- LangChain: `ChatPromptTemplate`, `StrOutputParser`, `ChatOllama`, 문서 검색기
-- 검색: BM25와 글자 2-gram, 제목 일치, 말투를 고유명사로 바꾸는 확장. 벡터 DB 없음
+- LangGraph: 이해 → 검색 → 초안 → 필요하면 수정 → 학습 JSON 저장
+- LangChain: `ChatPromptTemplate`, `StrOutputParser`, `ChatOllama`, 문서 검색기, 비슷한 질문 생성
+- 검색: 문서 BM25와 글자 2-gram, 그리고 `data/rag_memory.json`의 배운 대화. 벡터 DB 없음
 - 모델: Ollama `gemma4:12b`. 생각 토큰은 끄고, 문맥은 6144토큰
-- 기록: 없음. 브라우저가 최근 대화를 요청마다 다시 보낸다
+- 화면 기록: 브라우저 localStorage. 서버 데이터베이스는 없다
+- 학습: 답이 문서에 맞게 나오면 질문, 비슷한 질문, 답을 `data/rag_memory.json`에 남긴다. 다음 비슷한 질문의 보완 예시로만 쓴다
 
 ```bash
 cd Portfolio/ai
