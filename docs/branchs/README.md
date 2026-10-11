@@ -77,6 +77,13 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `cf02b90` | feature/portfolio → develop 병합 (no-ff) | [commits/261012_0729_cf02b90_merge-portfolio_develop.md](./commits/261012_0729_cf02b90_merge-portfolio_develop.md) |
+| `d98fae6` | 안내 챗 깊이 추론과 입력창 높이 | [commits/261012_0722_d98fae6_deep-quota_feature-portfolio.md](./commits/261012_0722_d98fae6_deep-quota_feature-portfolio.md) |
+| `5a64f26` | 안내 챗 학습 예시를 JSON에 저장 | [commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md](./commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md) |
+| `c772fa8` | 안내 챗 검색과 답변 그래프 강화 | [commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md](./commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md) |
+| `843aa1c` | 안내 챗 질문 추천과 화면 움직임 | [commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md](./commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md) |
+| `b531c60` | 설명 사이트와 안내 챗 | [commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md](./commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md) |
+| `b1c6975` | 포트폴리오 설명 문서 | [commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md](./commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md) |
 | `c1af991` | feature/phase2 → develop 병합 (no-ff) | [commits/261006_2253_c1af991_merge-phase2_develop.md](./commits/261006_2253_c1af991_merge-phase2_develop.md) |
 | `205805d` | feature/docs-sync → develop 병합 (no-ff) | [commits/261006_2253_205805d_merge-docs-sync_develop.md](./commits/261006_2253_205805d_merge-docs-sync_develop.md) |
 | `0ed7063` | 배치·영상·오픈보캐브·LLM 폴백 | [commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md](./commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md) |
