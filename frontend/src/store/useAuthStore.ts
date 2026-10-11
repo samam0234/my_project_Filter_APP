@@ -5,7 +5,7 @@
  * status: "loading"(앱 시작 확인 중) · "guest" · "user"
  */
 import { create } from "zustand";
-import { fetchMe, loginRequest, logoutRequest, signupRequest } from "../api/client";
+import { fetchMe, loginRequest, logoutRequest } from "../api/client";
 import type { AuthUser } from "../types";
 
 type AuthStatus = "loading" | "guest" | "user";
@@ -15,7 +15,6 @@ interface AuthState {
   status: AuthStatus;
   refresh: () => Promise<void>;
   login: (username: string, password: string) => Promise<AuthUser>;
-  signup: (body: { username: string; email: string; password: string; display_name?: string; agree_terms: boolean }) => Promise<AuthUser>;
   logout: () => Promise<void>;
   /** 서버가 돌려준 최신 사용자 정보로 바꾼다 (이름 수정 등) */
   setUser: (user: AuthUser) => void;
@@ -39,12 +38,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (username, password) => {
     const user = await loginRequest(username, password);
-    set({ user, status: "user" });
-    return user;
-  },
-
-  signup: async (body) => {
-    const user = await signupRequest(body);
     set({ user, status: "user" });
     return user;
   },

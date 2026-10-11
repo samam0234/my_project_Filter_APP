@@ -37,7 +37,10 @@ Base URL: `http://localhost:8000` · 대화형 문서: `/docs` (Swagger UI)
 
 | 엔드포인트 | 요청 JSON | 응답 |
 |------------|-----------|------|
-| `POST /api/v1/auth/signup` | `username`, `email`, `password`, `display_name?` | 201 사용자 + 세션 쿠키 · 400 규칙 위반 · 409 중복 |
+| `POST /api/v1/auth/signup/start` | `username`, `email`, `password`, `display_name?`, `agree_terms` | 200 `{verification_required, email, expires_minutes}` — 메일로 **일련번호** 발송, 계정은 아직 없음 · 400 규칙 위반 · 409 중복 · 429 재발송 간격 · 503 메일 발송 실패. `SIGNUP_EMAIL_VERIFICATION=false` 면 바로 가입되어 `verification_required:false` + `user` + 세션 쿠키 |
+| `POST /api/v1/auth/signup/verify` | `email`, `code`(메일의 일련번호 `XXXX-XXXX`, 대소문자·하이픈 무시) | 201 사용자 + 세션 쿠키(가입 완료) · 400 번호 불일치(남은 횟수 안내)/만료/5번 초과 · 409 그 사이 같은 아이디·이메일로 가입됨 |
+| `POST /api/v1/auth/signup/resend` | `email` | 200 새 일련번호 발송(이전 번호 무효, 틀린 횟수 초기화) · 404 신청 없음 · 429 재발송 간격 |
+| `POST /api/v1/auth/signup` | `username`, `email`, `password`, `display_name?`, `agree_terms` | 이메일 인증을 끈 서버(`SIGNUP_EMAIL_VERIFICATION=false`)에서만 즉시 가입 201 · 켜져 있으면 **403** (우회 방지) |
 | `POST /api/v1/auth/login` | `username`, `password` | 200 사용자 + 쿠키 · 401 불일치 · 429 잠금 |
 | `POST /api/v1/auth/logout` | — | 200, 서버 세션 폐기 + 쿠키 삭제 |
 | `GET /api/v1/auth/me` | — | 200 사용자 · 401 비로그인 |

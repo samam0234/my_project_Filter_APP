@@ -1,10 +1,11 @@
 /**
- * 회원가입 (/signup) — 입력 즉시 규칙 안내, 가입하면 바로 로그인 상태.
+ * 회원가입 (/signup) 1단계 — 입력 즉시 규칙 안내. [가입하기]를 누르면 서버가 이메일로 일련번호를 보내고
+ * 2단계 화면(/signup/verify)으로 넘어간다. 계정은 일련번호 인증이 끝나야 만들어진다.
  * 규칙은 백엔드(core/passwords.py)와 같다. 최종 판정은 서버.
  */
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { UserPlus } from "lucide-react";
-import { errorMessage } from "../../api/client";
+import { errorMessage, signupStartRequest } from "../../api/client";
 import {
   AuthCard,
   EMAIL_RE,
@@ -21,7 +22,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 
 export function SignupPage() {
   const search = useSearch();
-  const signup = useAuthStore((s) => s.signup);
+  const setUser = useAuthStore((s) => s.setUser);
   const [form, setForm] = useState({ username: "", email: "", name: "", password: "", confirm: "" });
   const [agree, setAgree] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -49,14 +50,23 @@ export function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      await signup({
+      const res = await signupStartRequest({
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
         display_name: form.name.trim() || undefined,
         agree_terms: agree,
       });
-      navigate(safeNext(search), { replace: true });
+      if (!res.verification_required && res.user) {
+        // 이메일 인증이 꺼진 서버(개발 · 메일 서버 없음) — 바로 가입됨
+        setUser(res.user);
+        navigate(safeNext(search), { replace: true });
+        return;
+      }
+      const next = new URLSearchParams(search).get("next");
+      const q = new URLSearchParams({ email: res.email ?? form.email.trim() });
+      if (next) q.set("next", next);
+      navigate(`/signup/verify?${q.toString()}`);
     } catch (err) {
       setError(errorMessage(err, "가입에 실패했습니다."));
     } finally {
@@ -67,7 +77,7 @@ export function SignupPage() {
   return (
     <AuthCard
       title="회원가입"
-      description="이메일은 아이디·비밀번호를 찾을 때 쓰여요."
+      description="가입 정보를 입력하면 이메일로 인증 일련번호를 보내 드려요. (1/2 단계)"
       footer={
         <>
           이미 계정이 있나요?{" "}
@@ -157,7 +167,7 @@ export function SignupPage() {
         </div>
         {error && <Notice tone="error">{error}</Notice>}
         <Button type="submit" className="w-full py-2.5" disabled={loading}>
-          <UserPlus className="h-4 w-4" /> {loading ? "가입 중…" : "가입하기"}
+          <UserPlus className="h-4 w-4" /> {loading ? "메일 보내는 중…" : "가입하기"}
         </Button>
       </form>
     </AuthCard>

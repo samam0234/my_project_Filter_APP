@@ -18,6 +18,15 @@ class SignupRequest(BaseModel):
     agree_terms: bool = False
 
 
+class SignupVerifyRequest(BaseModel):
+    email: str = Field(..., max_length=255)
+    code: str = Field(..., max_length=32)  # 메일의 일련번호 (대소문자 · 하이픈 무시)
+
+
+class SignupResendRequest(BaseModel):
+    email: str = Field(..., max_length=255)
+
+
 class LoginRequest(BaseModel):
     username: str = Field(..., max_length=64)
     password: str = Field(..., max_length=128)
@@ -62,6 +71,17 @@ class UserResponse(BaseModel):
     email: str
     display_name: Optional[str] = None
     created_at: Optional[str] = None
+
+
+class SignupStartResponse(BaseModel):
+    """가입 신청 결과 — 이메일 인증이 필요하면 verification_required, 아니면 바로 가입된 user."""
+
+    ok: bool = True
+    message: str
+    verification_required: bool
+    email: Optional[str] = None
+    expires_minutes: Optional[int] = None
+    user: Optional[UserResponse] = None
 
 
 class MessageResponse(BaseModel):

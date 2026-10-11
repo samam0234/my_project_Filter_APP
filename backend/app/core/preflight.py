@@ -44,7 +44,7 @@ def check(settings: Settings) -> list[Issue]:
     if not settings.session_cookie_secure:
         add("error", "SESSION_COOKIE_SECURE", "false — HTTPS 배포에서는 true (세션 쿠키가 평문 전송될 수 있음)")
     if not settings.smtp_host:
-        add("error", "SMTP_HOST", "비어 있음 — 아이디 찾기·비밀번호 재설정 코드가 메일 대신 서버 로그에 남는다")
+        add("error", "SMTP_HOST", "비어 있음 — 아이디 찾기·비밀번호 재설정 코드와 회원가입 인증 일련번호가 메일 대신 서버 로그에 남는다")
     origins = settings.cors_origin_list
     if "*" in origins:
         add("error", "CORS_ORIGINS", "'*' 는 쿠키 인증과 함께 쓸 수 없다 — 실제 도메인을 나열")

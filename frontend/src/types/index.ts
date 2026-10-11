@@ -38,6 +38,16 @@ export interface AuthUser {
   created_at?: string | null;
 }
 
+/** POST /auth/signup/start · /signup/resend — 이메일 인증이 필요하면 verification_required, 꺼져 있으면 바로 user */
+export interface SignupStartResponse {
+  ok: boolean;
+  message: string;
+  verification_required: boolean;
+  email?: string | null;
+  expires_minutes?: number | null;
+  user?: AuthUser | null;
+}
+
 /** 계정 API 공통 안내 응답 */
 export interface MessageResponse {
   ok: boolean;
