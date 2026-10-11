@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `b1c6975` | 포트폴리오 설명 문서 | [commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md](./commits/261012_0531_b1c6975_portfolio-docs_feature-portfolio.md) |
 | `c1af991` | feature/phase2 → develop 병합 (no-ff) | [commits/261006_2253_c1af991_merge-phase2_develop.md](./commits/261006_2253_c1af991_merge-phase2_develop.md) |
 | `205805d` | feature/docs-sync → develop 병합 (no-ff) | [commits/261006_2253_205805d_merge-docs-sync_develop.md](./commits/261006_2253_205805d_merge-docs-sync_develop.md) |
 | `0ed7063` | 배치·영상·오픈보캐브·LLM 폴백 | [commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md](./commits/261006_2252_0ed7063_phase2-batch-video-llm_feature-phase2.md) |
