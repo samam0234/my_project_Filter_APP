@@ -80,3 +80,26 @@ class AuthCode(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="codes")
+
+
+class SignupPending(Base):
+    """이메일 인증을 기다리는 가입 신청 — 인증이 끝나면 users 로 옮기고 지운다.
+
+    비밀번호는 신청 때 이미 해시해 두므로 원문은 어디에도 남지 않는다. 같은 이메일은 하나만 둔다(다시 신청하면 교체).
+    """
+
+    __tablename__ = "signup_pending"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # uuid4 hex
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    username: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    display_name: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    terms_agreed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)  # HMAC-SHA256 hex
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)  # 마지막 메일 발송 (재발송 간격)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

@@ -12,7 +12,8 @@
  * | /batch        | 배치 (회원 전용)  |
  * | /video        | 영상              |
  * | /login        | 로그인            |
- * | /signup       | 회원가입          |
+ * | /signup       | 회원가입 (1단계 입력)       |
+ * | /signup/verify| 회원가입 (2단계 메일 일련번호) |
  * | /find-id      | 아이디 찾기       |
  * | /find-password| 비밀번호 찾기     |
  * | /privacy      | 개인정보 처리방침 |
@@ -37,6 +38,7 @@ import { FindIdPage } from "./pages/auth/FindIdPage";
 import { FindPasswordPage } from "./pages/auth/FindPasswordPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
+import { SignupVerifyPage } from "./pages/auth/SignupVerifyPage";
 import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { TermsPage } from "./pages/legal/TermsPage";
 import { matchRoute, navigate, usePathname, useSearch } from "./router";
@@ -52,6 +54,7 @@ const TITLES: Record<string, string> = {
   "/video": "영상",
   "/login": "로그인",
   "/signup": "회원가입",
+  "/signup/verify": "회원가입 인증",
   "/find-id": "아이디 찾기",
   "/find-password": "비밀번호 찾기",
   "/privacy": "개인정보 처리방침",
@@ -59,7 +62,7 @@ const TITLES: Record<string, string> = {
 };
 
 /** 로그인 상태면 들어올 필요 없는 화면 */
-const GUEST_ONLY = new Set(["/login", "/signup", "/find-id", "/find-password"]);
+const GUEST_ONLY = new Set(["/login", "/signup", "/signup/verify", "/find-id", "/find-password"]);
 
 /** 예전 주소(/history)를 내 계정의 한 구역으로 보낸다 — 북마크 · 로그인 next 가 깨지지 않게, 필터 쿼리는 유지 */
 function Redirect({ to, tab }: { to: string; tab: string }) {
@@ -82,6 +85,7 @@ function Page({ pathname }: { pathname: string }) {
   if (matchRoute("/video", pathname)) return <VideoPage />;
   if (matchRoute("/login", pathname)) return <LoginPage />;
   if (matchRoute("/signup", pathname)) return <SignupPage />;
+  if (matchRoute("/signup/verify", pathname)) return <SignupVerifyPage />;
   if (matchRoute("/find-id", pathname)) return <FindIdPage />;
   if (matchRoute("/find-password", pathname)) return <FindPasswordPage />;
   if (matchRoute("/privacy", pathname)) return <PrivacyPage />;

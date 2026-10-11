@@ -77,6 +77,21 @@ def new_code() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"
 
 
+# 헷갈리는 글자(0/O · 1/I/L)를 뺀 32자 — 메일에서 보고 손으로 입력하기 쉽게
+SERIAL_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+
+
+def new_serial() -> str:
+    """회원가입 인증 일련번호 — 8자 (예: K7QM-2XWD, 40비트). 틀리면 횟수가 줄어드는 짧은 유효 시간 비밀 값."""
+    raw = "".join(secrets.choice(SERIAL_ALPHABET) for _ in range(8))
+    return f"{raw[:4]}-{raw[4:]}"
+
+
+def normalize_serial(value: str) -> str:
+    """입력한 일련번호를 비교용으로 — 대소문자 · 공백 · 하이픈을 무시한다."""
+    return "".join(ch for ch in value.upper() if ch.isalnum())
+
+
 def code_digest(secret_key: str, user_id: str, code: str) -> str:
     return hmac.new(
         secret_key.encode("utf-8"), f"{user_id}:{code}".encode("utf-8"), hashlib.sha256

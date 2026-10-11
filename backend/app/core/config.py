@@ -174,6 +174,9 @@ class Settings(BaseSettings):
     auth_code_ttl_minutes: int = Field(default=10, alias="AUTH_CODE_TTL_MINUTES")
     auth_code_max_attempts: int = Field(default=5, alias="AUTH_CODE_MAX_ATTEMPTS")
     auth_code_resend_seconds: int = Field(default=60, alias="AUTH_CODE_RESEND_SECONDS")
+    # 회원가입 이메일 인증 — 켜면 가입 정보 입력 → 메일의 일련번호 입력 → 가입 완료 (끄면 입력 즉시 가입)
+    signup_email_verification: bool = Field(default=True, alias="SIGNUP_EMAIL_VERIFICATION")
+    signup_code_ttl_minutes: int = Field(default=30, alias="SIGNUP_CODE_TTL_MINUTES")  # 가입 인증 일련번호 유효 시간
 
     # --- 메일 (아이디 찾기 · 비밀번호 재설정 코드 발송) ---
     # 【수동·배포 필수】 SMTP_HOST 가 비어 있으면 메일을 보내지 않고 서버 로그에만 남긴다 (개발용).

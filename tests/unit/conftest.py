@@ -63,12 +63,14 @@ def api_env(monkeypatch, tmp_path):
     monkeypatch.setattr(
         auth_service,
         "send_mail",
-        lambda to, subject, body, settings=None: mails.append({"to": to, "subject": subject, "body": body})
+        lambda to, subject, body, settings=None, html=None: mails.append({"to": to, "subject": subject, "body": body, "html": html})
         or True,
     )
     # 피드백·의사 라벨 폴더를 임시 폴더로 — 실제 data/(학습·RAG 입력)를 오염시키지 않는다
     from app.core.config import get_settings
 
+    # 기존 계정 테스트는 입력 즉시 가입으로 — 이메일 인증 흐름은 test_signup_verify.py 가 켜서 따로 검증한다
+    monkeypatch.setattr(get_settings(), "signup_email_verification", False)
     monkeypatch.setattr(get_settings(), "feedback_dir", str(tmp_path / "feedback"))
     monkeypatch.setattr(get_settings(), "pseudo_label_dir", str(tmp_path / "pseudo_labels"))
     # 업로드·배치·영상 파일도 임시 폴더로 — 실제 backend/data/uploads 에 테스트 찌꺼기를 남기지 않는다

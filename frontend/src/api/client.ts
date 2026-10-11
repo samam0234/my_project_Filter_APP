@@ -17,6 +17,7 @@ import type {
   JobResponse,
   LlmModelList,
   MessageResponse,
+  SignupStartResponse,
   UploadResponse,
   VideoFormat,
   VideoResult,
@@ -97,15 +98,28 @@ export async function fetchMe(): Promise<AuthUser | null> {
   }
 }
 
-export async function signupRequest(body: {
+/** 가입 신청 — 서버가 메일로 일련번호를 보낸다 (인증이 꺼진 서버면 바로 가입되어 user 를 돌려준다) */
+export async function signupStartRequest(body: {
   username: string;
   email: string;
   password: string;
   display_name?: string;
   /** 만 14세 이상 · 이용약관 · 개인정보 처리방침 동의 — 서버가 true 가 아니면 가입하지 않는다 */
   agree_terms: boolean;
-}): Promise<AuthUser> {
-  const { data } = await api.post<AuthUser>("/api/v1/auth/signup", body);
+}): Promise<SignupStartResponse> {
+  const { data } = await api.post<SignupStartResponse>("/api/v1/auth/signup/start", body);
+  return data;
+}
+
+/** 메일의 일련번호 확인 → 가입 완료 + 로그인 */
+export async function signupVerifyRequest(email: string, code: string): Promise<AuthUser> {
+  const { data } = await api.post<AuthUser>("/api/v1/auth/signup/verify", { email, code });
+  return data;
+}
+
+/** 일련번호 다시 받기 */
+export async function signupResendRequest(email: string): Promise<SignupStartResponse> {
+  const { data } = await api.post<SignupStartResponse>("/api/v1/auth/signup/resend", { email });
   return data;
 }
 

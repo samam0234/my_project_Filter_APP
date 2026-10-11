@@ -1,6 +1,9 @@
 """계정 라우터 — /api/v1/auth/*
 
-  POST /auth/signup          회원가입 (+ 자동 로그인)
+  POST /auth/signup/start    가입 신청 — 메일로 일련번호 발송 (SIGNUP_EMAIL_VERIFICATION 이 꺼져 있으면 바로 가입)
+  POST /auth/signup/verify   메일의 일련번호 확인 → 가입 완료 (+ 자동 로그인)
+  POST /auth/signup/resend   일련번호 다시 받기
+  POST /auth/signup          이메일 인증 없이 바로 가입 — SIGNUP_EMAIL_VERIFICATION=false 일 때만 (켜져 있으면 403)
   POST /auth/login           로그인
   POST /auth/logout          로그아웃 (세션 폐기)
   GET  /auth/me              현재 사용자 (401 이면 비로그인)
@@ -21,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.deps import current_user, session_token
+from app.core.deps import current_user, session_token, site_url
 from app.db.learning import get_learning_db
 from app.db.session import get_db
 from app.models.user import User
@@ -35,6 +38,9 @@ from app.schemas.auth import (
     PasswordResetRequest,
     ProfileUpdate,
     SignupRequest,
+    SignupResendRequest,
+    SignupStartResponse,
+    SignupVerifyRequest,
     UserResponse,
 )
 from app.services.auth_service import AuthError, AuthService, SessionIssue
@@ -82,6 +88,9 @@ def _raise(exc: AuthError) -> None:
 
 @router.post("/signup", response_model=UserResponse, status_code=201)
 def signup(body: SignupRequest, request: Request, response: Response, db: Session = Depends(get_db)):
+    if get_settings().signup_email_verification:
+        # 인증 없이 가입하는 길을 열어 두면 이메일 인증이 의미가 없다
+        raise HTTPException(status_code=403, detail="이메일 인증이 필요합니다. 가입 신청(/auth/signup/start)을 이용해 주세요.")
     try:
         issue = AuthService(db).signup(
             username=body.username,
@@ -95,6 +104,68 @@ def signup(body: SignupRequest, request: Request, response: Response, db: Sessio
         _raise(exc)
     _set_session_cookie(response, issue)
     return to_user_response(issue.user)
+
+
+@router.post("/signup/start", response_model=SignupStartResponse)
+def signup_start(body: SignupRequest, request: Request, response: Response, db: Session = Depends(get_db)):
+    settings = get_settings()
+    service = AuthService(db)
+    try:
+        if not settings.signup_email_verification:
+            issue = service.signup(
+                username=body.username,
+                email=body.email,
+                password=body.password,
+                display_name=body.display_name,
+                user_agent=request.headers.get("user-agent"),
+                agree_terms=body.agree_terms,
+            )
+            _set_session_cookie(response, issue)
+            return SignupStartResponse(
+                message="가입했습니다.", verification_required=False, user=to_user_response(issue.user)
+            )
+        pending = service.signup_start(
+            username=body.username,
+            email=body.email,
+            password=body.password,
+            display_name=body.display_name,
+            agree_terms=body.agree_terms,
+            site_url=site_url(request),
+        )
+    except AuthError as exc:
+        _raise(exc)
+    return SignupStartResponse(
+        message="입력한 이메일로 일련번호를 보냈어요. 메일의 [회원가입 인증] 버튼을 눌러 일련번호를 입력해 주세요.",
+        verification_required=True,
+        email=pending.email,
+        expires_minutes=settings.signup_code_ttl_minutes,
+    )
+
+
+@router.post("/signup/verify", response_model=UserResponse, status_code=201)
+def signup_verify(body: SignupVerifyRequest, request: Request, response: Response, db: Session = Depends(get_db)):
+    try:
+        issue = AuthService(db).signup_verify(
+            email=body.email, code=body.code, user_agent=request.headers.get("user-agent")
+        )
+    except AuthError as exc:
+        _raise(exc)
+    _set_session_cookie(response, issue)
+    return to_user_response(issue.user)
+
+
+@router.post("/signup/resend", response_model=SignupStartResponse)
+def signup_resend(body: SignupResendRequest, request: Request, db: Session = Depends(get_db)):
+    try:
+        pending = AuthService(db).signup_resend(email=body.email, site_url=site_url(request))
+    except AuthError as exc:
+        _raise(exc)
+    return SignupStartResponse(
+        message="일련번호를 다시 보냈어요. 이전 일련번호는 쓸 수 없어요.",
+        verification_required=True,
+        email=pending.email,
+        expires_minutes=get_settings().signup_code_ttl_minutes,
+    )
 
 
 @router.post("/login", response_model=UserResponse)
@@ -124,13 +195,15 @@ def me(user: User = Depends(current_user)):
 
 
 @router.post("/find-id", response_model=MessageResponse)
-def find_id(body: FindIdRequest, db: Session = Depends(get_db)):
-    return MessageResponse(message=AuthService(db).find_username(body.email))
+def find_id(body: FindIdRequest, request: Request, db: Session = Depends(get_db)):
+    return MessageResponse(message=AuthService(db).find_username(body.email, site_url(request)))
 
 
 @router.post("/password/request", response_model=MessageResponse)
-def password_request(body: PasswordResetRequest, db: Session = Depends(get_db)):
-    message = AuthService(db).request_password_reset(username=body.username, email=body.email)
+def password_request(body: PasswordResetRequest, request: Request, db: Session = Depends(get_db)):
+    message = AuthService(db).request_password_reset(
+        username=body.username, email=body.email, site_url=site_url(request)
+    )
     return MessageResponse(message=message)
 
 
