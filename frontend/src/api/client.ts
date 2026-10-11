@@ -367,6 +367,10 @@ export function errorMessage(err: unknown, fallback = "요청 중 오류가 발�
   if (Array.isArray(detail)) return "입력값을 확인하세요.";
   // 백엔드가 꺼져 있으면 Vite 프록시(개발)·nginx(배포)가 본문 없는 500/502/503/504 를 돌려준다
   const status = e?.response?.status ?? 0;
+  if (status === 524 || status === 522) {
+    // Cloudflare 를 거치는 주소는 응답이 100초 안에 와야 한다 (무료 플랜 한계) — 큰 해석 모델의 첫 호출이 걸린다
+    return "처리가 오래 걸려 연결이 끊겼어요 (Cloudflare 100초 제한). 해석 모델을 e4b 로 바꾸거나 잠시 뒤 다시 시도해 주세요. 서버가 이미 처리했을 수 있어요.";
+  }
   if (status >= 500) {
     return "서버에 연결할 수 없거나 서버 오류가 발생했습니다. 백엔드(:8000)가 실행 중인지 확인해 주세요.";
   }
