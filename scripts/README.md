@@ -13,6 +13,8 @@
 | `export_stuff_onnx.py` | 배경 덩어리용 SegFormer → ONNX (`backend/models/segformer-ade.onnx`) |
 | `pseudo_labeling.py` | Phase 2 의사 라벨링 스캐폴드 |
 | `make_prod_env.py` | 운영 `.env.production` 만들기 (운영 값 · 새 비밀 값 · 기동 전 점검) — `--check` 로 기존 파일 점검 |
+| `ollama_tunnel.sh` | **PC 의 Ollama 를 서버가 쓰게** SSH 역방향 터널을 열고 끊기면 재연결 ([`ollama-server.md`](../docs/guidance/ollama-server.md)) |
+| `set_smtp_local.sh` | 이 PC 의 `.env` 에 SMTP 설정 — 앱 비밀번호는 숨겨 입력 (로컬에서 실제 메일을 받을 때) |
 | `deploy_check.py` | 배포 리허설 점검: `remote URL`(인증서 · 리디렉트 · 보안 헤더 · /health · 인증 · CORS · 약관) · `server`(.env 운영 값 · 모델 · 체크섬 · 백업 · Docker) |
 | `models_bundle.py` | 설정이 쓰는 모델만 tar 로 묶고 SHA-256 목록 (`pack`), 서버에서 대조 (`verify`) |
 | `seg_labeling.py` | 세그 실패 사진 라벨링 묶음: `export`(실패 · 싫어요 사진 + yolo26x 초벌 폴리곤 + Label Studio 가져오기 파일) · `check`(고친 라벨 검사, 클래스 순서 `--fix`) → `retrain_yolo.py --extra` |
