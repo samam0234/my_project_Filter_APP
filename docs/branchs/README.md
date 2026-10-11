@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `5a64f26` | 안내 챗 학습 예시를 JSON에 저장 | [commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md](./commits/261012_0644_5a64f26_rag-memory_feature-portfolio.md) |
 | `c772fa8` | 안내 챗 검색과 답변 그래프 강화 | [commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md](./commits/261012_0625_c772fa8_guide-graph_feature-portfolio.md) |
 | `843aa1c` | 안내 챗 질문 추천과 화면 움직임 | [commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md](./commits/261012_0617_843aa1c_chat-suggest_feature-portfolio.md) |
 | `b531c60` | 설명 사이트와 안내 챗 | [commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md](./commits/261012_0554_b531c60_portfolio-site_feature-portfolio.md) |
