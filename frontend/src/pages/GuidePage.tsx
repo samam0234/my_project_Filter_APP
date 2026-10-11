@@ -1,12 +1,15 @@
 /**
- * 프롬프트 가이드 (/guide) — 문장 쓰는 법 · 고르는 조건 · 지원 대상 · 한계 · 예시.
+ * 프롬프트 가이드 (/guide) — 두 구역 (?tab=):
+ *   (기본) 일반 가이드     — 문장 쓰는 법 · 고르는 조건 · 지원 대상 · 한계 · 예시
+ *   ?tab=agent 에이전트에게 묻기 — AI 와 채팅해 알맞은 요청 문장을 얻는다 (components/chat/AgentChat)
  *
- * 내용은 backend/app/services/prompt_spec.py (규격) 와 instance_selector.py (선택 규칙) 를 따른다.
+ * 일반 가이드의 내용은 backend/app/services/prompt_spec.py (규격) 와 instance_selector.py (선택 규칙) 를 따른다.
  */
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, MessageCircle } from "lucide-react";
+import { AgentChat } from "../components/chat/AgentChat";
 import { PageHeader } from "../components/common/PageHeader";
 import { EXAMPLES, GROUP_LABELS } from "../data/examples";
-import { navigate } from "../router";
+import { navigate, useSearch } from "../router";
 import { useAppStore } from "../store/useAppStore";
 
 const KEEP_VS_REMOVE = [
@@ -41,7 +44,7 @@ const LIMITS = [
   "“키 큰 사람”, “웃고 있는 사람”처럼 색·위치 밖의 조건은 아직 이해하지 못해요.",
 ];
 
-export function GuidePage() {
+function GeneralGuide() {
   const setPrompt = useAppStore((s) => s.setPrompt);
   const tryIt = (text: string) => {
     setPrompt(text);
@@ -50,12 +53,6 @@ export function GuidePage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow="프롬프트 가이드"
-        title="이렇게 말하면 잘 알아들어요"
-        description="한 문장에 “무엇을” + “어떤 것을” + “어떻게” 를 담으면 됩니다."
-      />
-
       <section className="card p-5">
         <p className="text-sm text-slate-300">
           <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-brand-100">맨 앞에 빨간 안전모 쓴</span>{" "}
@@ -148,6 +145,44 @@ export function GuidePage() {
           해석 모델을 다시 학습하는 데 쓰입니다.
         </p>
       </section>
+    </div>
+  );
+}
+
+const TABS = [
+  { id: "general", label: "일반 가이드", icon: BookOpen },
+  { id: "agent", label: "에이전트에게 묻기", icon: MessageCircle },
+] as const;
+
+export function GuidePage() {
+  const search = useSearch();
+  const tab = new URLSearchParams(search).get("tab") === "agent" ? "agent" : "general";
+  const goTab = (id: (typeof TABS)[number]["id"]) => navigate(id === "general" ? "/guide" : "/guide?tab=agent", { replace: true });
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="프롬프트 가이드"
+        title="이렇게 말하면 잘 알아들어요"
+        description="한 문장에 “무엇을” + “어떤 것을” + “어떻게” 를 담으면 됩니다. 직접 읽어 보거나, 에이전트에게 물어보세요."
+      />
+      <div role="tablist" aria-label="가이드 구역" className="flex w-fit flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => goTab(id)}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              tab === id ? "bg-slate-800 text-white shadow-card" : "text-slate-400 hover:text-slate-100"
+            }`}
+          >
+            <Icon className="h-4 w-4" /> {label}
+          </button>
+        ))}
+      </div>
+      {tab === "agent" ? <AgentChat /> : <GeneralGuide />}
     </div>
   );
 }
