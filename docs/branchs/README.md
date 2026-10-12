@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `4289564` | 설명 사이트 헤더와 카드 모양 정리 | [commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md](./commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md) |
 | `bf1efd0` | develop → main 병합 (no-ff) | [commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md](./commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md) |
 | `18388b6` | feature/portfolio-deploy → develop 병합 (no-ff) | [commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md](./commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md) |
 | `600bd68` | Vercel Hobby 한도에 맞게 챗 함수 시간 조정 | [commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md](./commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md) |
