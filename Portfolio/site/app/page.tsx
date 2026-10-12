@@ -24,6 +24,11 @@ export default function HomePage() {
             컷앤킵은 사진, 움직이는 GIF, 짧은 영상을 올리고 문장으로 대상을 고릅니다.
             이 사이트는 그 제품을 역할별로 설명합니다. 여기서 이미지를 처리하지는 않습니다.
           </p>
+          <ul className="facts">
+            <li><b>2026-07-27</b><span>시작</span></li>
+            <li><b>2026-10-11</b><span>공개 배포</span></li>
+            <li><b>gemma4:e4b</b><span>제품 해석 기본</span></li>
+          </ul>
           <div className="actions">
             <Link className="btn" href="/frontend">사용자 앱 보기</Link>
             <Link className="btn alt" href="/backend">서버 보기</Link>

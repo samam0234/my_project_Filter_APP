@@ -25,8 +25,11 @@ export function Shell({
         <ReadingBar />
         <div className="topbar-inner">
           <Link className="brand" href="/">
-            <b>컷앤킵 포트폴리오</b>
-            <span>설명 사이트 · 제품과 별도</span>
+            <i className="mark" aria-hidden="true">컷</i>
+            <span className="brand-text">
+              <b>컷앤킵 포트폴리오</b>
+              <small>설명 사이트 · 제품과 별도</small>
+            </span>
           </Link>
           <nav className="nav" aria-label="목차">
             {links.map(([href, label]) => (
