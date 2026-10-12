@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `8958ea2` | 안내 기본 모델을 e4b로 두고 12b를 선택 | [commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md](./commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md) |
 | `06ac333` | 깊이 추론 횟수를 자정 전에 되돌리지 않음 | [commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md](./commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md) |
 | `bf1efd0` | develop → main 병합 (no-ff) | [commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md](./commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md) |
 | `18388b6` | feature/portfolio-deploy → develop 병합 (no-ff) | [commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md](./commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md) |

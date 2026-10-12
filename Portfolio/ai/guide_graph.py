@@ -96,6 +96,7 @@ class GuideState(TypedDict, total=False):
     answer: str
     memory_id: str
     deep: bool
+    model: str
 
 
 def _windows(body: str) -> list[str]:
@@ -418,6 +419,15 @@ def _issues(answer: str, context: str, question: str) -> str:
 BASE_PREDICT = 800
 BASE_CTX = 6144
 DEEP_SCALE = 2.5
+DEFAULT_MODEL = "gemma4:e4b"
+GUIDE_MODELS = ("gemma4:e4b", "gemma4:12b")
+
+
+def guide_model(value: object) -> str:
+    """기본은 낮은 모델 e4b. 화면에서 고른 12b만 높은 모델로 받는다."""
+    if value in GUIDE_MODELS:
+        return str(value)
+    return DEFAULT_MODEL
 
 
 def _bounds(deep: bool) -> tuple[int, int, int]:
@@ -427,9 +437,9 @@ def _bounds(deep: bool) -> tuple[int, int, int]:
     return int(12 * DEEP_SCALE), int(6 * DEEP_SCALE), int(5200 * DEEP_SCALE)
 
 
-def _llm(predict: int, ctx: int, reasoning: bool, timeout: int) -> ChatOllama:
+def _llm(model: str, predict: int, ctx: int, timeout: int) -> ChatOllama:
     return ChatOllama(
-        model=os.environ.get("OLLAMA_MODEL", "gemma4:12b"),
+        model=model,
         base_url=os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
         temperature=0.2,
         top_p=0.9,
@@ -438,77 +448,57 @@ def _llm(predict: int, ctx: int, reasoning: bool, timeout: int) -> ChatOllama:
         num_predict=predict,
         # gemma4는 생각 토큰을 켜면 생성 한도를 생각만 쓰고 본문이 빈다.
         # 깊이 추론도 본문을 쓰고, 깊이는 검색·문맥·생성 길이를 2.5배로 둔다.
-        reasoning=reasoning,
+        reasoning=False,
         client_kwargs={"timeout": timeout},
     )
 
 
-llm = _llm(BASE_PREDICT, BASE_CTX, False, 100)
-deep_llm = _llm(int(BASE_PREDICT * DEEP_SCALE), int(BASE_CTX * DEEP_SCALE), False, 540)
-draft_chain = (
-    ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM),
-            (
-                "human",
-                "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n이전 안내 예시:\n{examples}\n\n질문:\n{question}",
-            ),
-        ]
+_CHAINS: dict[tuple[str, bool], tuple] = {}
+
+
+def _chains(model: str, deep: bool) -> tuple:
+    key = (model, deep)
+    cached = _CHAINS.get(key)
+    if cached is not None:
+        return cached
+    predict = int(BASE_PREDICT * DEEP_SCALE) if deep else BASE_PREDICT
+    ctx = int(BASE_CTX * DEEP_SCALE) if deep else BASE_CTX
+    timeout = 540 if deep else 100
+    brain = _llm(model, predict, ctx, timeout)
+    extra = "\n- 이번 답은 깊이 추론이다. 문서 안의 이유, 예외, 한계를 일반 답보다 길게 펼친다." if deep else ""
+    draft_chain = (
+        ChatPromptTemplate.from_messages(
+            [
+                ("system", SYSTEM + extra),
+                (
+                    "human",
+                    "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n이전 안내 예시:\n{examples}\n\n질문:\n{question}",
+                ),
+            ]
+        )
+        | brain
+        | StrOutputParser()
     )
-    | llm
-    | StrOutputParser()
-)
-deep_draft_chain = (
-    ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                SYSTEM + "\n- 이번 답은 깊이 추론이다. 문서 안의 이유, 예외, 한계를 일반 답보다 길게 펼친다.",
-            ),
-            (
-                "human",
-                "분류: {route}\n\n이전 대화:\n{history}\n\n문서:\n{context}\n\n이전 안내 예시:\n{examples}\n\n질문:\n{question}",
-            ),
-        ]
+    revise_chain = (
+        ChatPromptTemplate.from_messages(
+            [
+                ("system", SYSTEM + extra),
+                (
+                    "human",
+                    "문서:\n{context}\n\n질문:\n{question}\n\n초안:\n{draft}\n\n고칠 점: {issues}\n"
+                    "초안을 고쳐서 최종 답만 다시 써라. 고칠 점을 언급하지 마라.",
+                ),
+            ]
+        )
+        | brain
+        | StrOutputParser()
     )
-    | deep_llm
-    | StrOutputParser()
-)
-revise_chain = (
-    ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM),
-            (
-                "human",
-                "문서:\n{context}\n\n질문:\n{question}\n\n초안:\n{draft}\n\n고칠 점: {issues}\n"
-                "초안을 고쳐서 최종 답만 다시 써라. 고칠 점을 언급하지 마라.",
-            ),
-        ]
-    )
-    | llm
-    | StrOutputParser()
-)
-deep_revise_chain = (
-    ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                SYSTEM + "\n- 이번 답은 깊이 추론이다. 문서 안의 이유, 예외, 한계를 일반 답보다 길게 펼친다.",
-            ),
-            (
-                "human",
-                "문서:\n{context}\n\n질문:\n{question}\n\n초안:\n{draft}\n\n고칠 점: {issues}\n"
-                "초안을 고쳐서 최종 답만 다시 써라. 고칠 점을 언급하지 마라.",
-            ),
-        ]
-    )
-    | deep_llm
-    | StrOutputParser()
-)
+    _CHAINS[key] = (draft_chain, revise_chain)
+    return _CHAINS[key]
 
 
 def draft(state: GuideState) -> GuideState:
-    chain = deep_draft_chain if state.get("deep") else draft_chain
+    chain, _revise = _chains(guide_model(state.get("model")), bool(state.get("deep")))
     raw = chain.invoke(
         {
             "route": state.get("route", "overview"),
@@ -532,7 +522,7 @@ def draft(state: GuideState) -> GuideState:
 
 
 def revise(state: GuideState) -> GuideState:
-    chain = deep_revise_chain if state.get("deep") else revise_chain
+    _draft, chain = _chains(guide_model(state.get("model")), bool(state.get("deep")))
     raw = chain.invoke(
         {
             "context": state.get("context") or "(검색 결과 없음)",
@@ -584,28 +574,29 @@ def _parse_similar(text: str) -> list[str]:
     return [str(item).strip() for item in data if str(item).strip()]
 
 
-_similar_llm = ChatOllama(
-    model=os.environ.get("OLLAMA_MODEL", "gemma4:12b"),
-    base_url=os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
-    temperature=0.3,
-    num_predict=180,
-    reasoning=False,
-    client_kwargs={"timeout": 60},
-)
-_similar_chain = (
-    ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "같은 뜻을 묻는 한국어 질문만 만든다. 새 사실, 새 숫자, 새 기능 이름은 넣지 않는다. "
-                "JSON 배열만 출력한다.",
-            ),
-            ("human", "질문: {question}\n\n답의 앞부분: {answer}\n\n같은 뜻의 질문 3개."),
-        ]
+_SIMILAR: dict[str, object] = {}
+
+
+def _similar_chain(model: str):
+    cached = _SIMILAR.get(model)
+    if cached is not None:
+        return cached
+    chain = (
+        ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "같은 뜻을 묻는 한국어 질문만 만든다. 새 사실, 새 숫자, 새 기능 이름은 넣지 않는다. "
+                    "JSON 배열만 출력한다.",
+                ),
+                ("human", "질문: {question}\n\n답의 앞부분: {answer}\n\n같은 뜻의 질문 3개."),
+            ]
+        )
+        | _llm(model, 180, 2048, 60)
+        | StrOutputParser()
     )
-    | _similar_llm
-    | StrOutputParser()
-)
+    _SIMILAR[model] = chain
+    return chain
 
 
 def remember(state: GuideState) -> GuideState:
@@ -616,7 +607,7 @@ def remember(state: GuideState) -> GuideState:
     try:
         generated = _parse_similar(
             _message_text(
-                _similar_chain.invoke({"question": question, "answer": answer[:400]})
+                _similar_chain(guide_model(state.get("model"))).invoke({"question": question, "answer": answer[:400]})
             )
         )
         similar = _local_similar(question) + generated

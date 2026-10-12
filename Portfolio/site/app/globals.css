@@ -338,6 +338,23 @@ ul.clean li { margin: 4px 0; }
   box-shadow: 0 0 0 3px rgba(154, 52, 18, 0.12);
 }
 .composer-tools { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.composer-go { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.model {
+  min-width: 112px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 6px 8px;
+}
+.model small { display: block; color: var(--muted); font-size: 10px; }
+.model[aria-pressed="true"] { background: var(--copper); color: white; border-color: var(--copper); }
+.model[aria-pressed="true"] small { color: #ffedd5; }
 .brain, .bolt {
   width: 44px;
   height: 44px;

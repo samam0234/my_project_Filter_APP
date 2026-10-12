@@ -30,9 +30,10 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ detail: "JSON이 아닙니다." }, { status: 400 });
   }
-  const payload = body as { messages?: unknown; deep?: unknown };
+  const payload = body as { messages?: unknown; deep?: unknown; model?: unknown };
   const messages = payload.messages;
   const deep = payload.deep === true;
+  const model = payload.model === "gemma4:12b" ? "gemma4:12b" : "gemma4:e4b";
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ detail: "messages가 필요합니다." }, { status: 400 });
   }
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     const res = await fetch(`${AI}/v1/guide`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messages, deep }),
+      body: JSON.stringify({ messages, deep, model }),
       signal: AbortSignal.timeout(deep ? 290000 : 160000),
     });
     const data = await res.json();
