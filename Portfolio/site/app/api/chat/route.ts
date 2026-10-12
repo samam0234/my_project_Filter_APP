@@ -1,4 +1,4 @@
-import { deepStatus, finishDeep, reserveDeep } from "@/lib/deepQuota";
+import { fetchDeepStatus } from "@/lib/deepQuota";
 
 const AI = process.env.PORTFOLIO_AI_URL || "http://127.0.0.1:5055";
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -36,20 +36,6 @@ export async function POST(request: Request) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ detail: "messages가 필요합니다." }, { status: 400 });
   }
-  let reservation = 0;
-  if (deep) {
-    const gate = reserveDeep();
-    if (!gate.ok) {
-      return Response.json(
-        {
-          detail: gate.detail,
-          quota: { limit: gate.limit, used: gate.used, remaining: gate.remaining, resets: gate.resets },
-        },
-        { status: 429, headers: NO_STORE },
-      );
-    }
-    reservation = gate.id;
-  }
   try {
     const res = await fetch(`${AI}/v1/guide`, {
       method: "POST",
@@ -58,15 +44,14 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(deep ? 290000 : 160000),
     });
     const data = await res.json();
-    if (reservation) finishDeep(reservation);
-    const reply = data && typeof data === "object" ? { ...data, quota: deepStatus() } : { quota: deepStatus() };
+    const quota = data && typeof data === "object" && data.quota ? data.quota : await fetchDeepStatus();
+    const reply = data && typeof data === "object" ? { ...data, quota } : { quota };
     return Response.json(reply, { status: res.status, headers: NO_STORE });
   } catch {
-    if (reservation) finishDeep(reservation);
     return Response.json(
       {
         detail: "안내 서비스에 연결하지 못했습니다. Flask가 5055에서 떠 있는지 확인하세요.",
-        quota: deepStatus(),
+        quota: await fetchDeepStatus(),
       },
       { status: 503, headers: NO_STORE },
     );
