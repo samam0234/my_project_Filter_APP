@@ -7,8 +7,9 @@
 
 | 경로 | 쓰는 쪽 | 읽는 쪽 | Git |
 |------|---------|---------|-----|
-| `feedback/` | backend (`FeedbackService`: 👍/👎·파이프라인 실패) | `training/lora`, `scripts/pseudo_labeling.py` | 내용 ignore |
-| `pseudo_labels/` | `scripts/pseudo_labeling.py` | `training/lora`, YOLO 재학습 | 내용 ignore |
+| `feedback/` | backend (`FeedbackService`: 👍/👎·파이프라인 실패) | `training/lora`, `scripts/pseudo_labeling.py`, `scripts/chroma_feedback.py` | 내용 ignore |
+| `chroma/` | `scripts/chroma_feedback.py` (교정·좋아요만) | 백엔드 문장 해석이 확인된 예시를 더할 때 | 내용 ignore. 임베딩 모델은 받지 않음 |
+| `pseudo_labels/` | `scripts/pseudo_labeling.py` | `training/lora`, YOLO 재학습 | 내용 ignore. Chroma에는 넣지 않음 |
 | `mariaDB_datas/` | Docker MariaDB (`docker-compose.yml` bind mount) | MariaDB 컨테이너만 | **전체 ignore** — 비어 있는 채로 시작, `.gitkeep` 금지 |
 
 ## 설정 (저장소 루트 기준 상대 경로)
