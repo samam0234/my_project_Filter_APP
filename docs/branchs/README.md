@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `2296005` | 안내 검색에 Chroma 문단 추가 | [commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md](./commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md) |
 | `e35f0ea` | develop → main 병합 (no-ff) | [commits/261012_0930_e35f0ea_merge-deep-quota_main.md](./commits/261012_0930_e35f0ea_merge-deep-quota_main.md) |
 | `ec93278` | feature/deep-quota-count → develop 병합 (no-ff) | [commits/261012_0929_ec93278_merge-deep-quota_develop.md](./commits/261012_0929_ec93278_merge-deep-quota_develop.md) |
 | `14f2cc2` | 깊이 추론 횟수가 보낼 때 줄어들게 수정 | [commits/261012_0929_14f2cc2_deep-quota-count_feature-deep-quota-count.md](./commits/261012_0929_14f2cc2_deep-quota-count_feature-deep-quota-count.md) |
