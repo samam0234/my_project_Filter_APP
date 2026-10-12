@@ -57,6 +57,7 @@ export function ChatPanel() {
   const [sparks, setSparks] = useState<string[] | null>(null);
   const [quota, setQuota] = useState<Quota | null>(null);
   const [deepOn, setDeepOn] = useState(false);
+  const [highModel, setHighModel] = useState(false);
   const [deepWait, setDeepWait] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   const tools = useRef<HTMLDivElement>(null);
@@ -119,6 +120,8 @@ export function ChatPanel() {
     area.style.overflowY = area.scrollHeight > max + 1 ? "auto" : "hidden";
   }, [text]);
 
+  const model = highModel ? "gemma4:12b" : "gemma4:e4b";
+
   async function send(content: string, deep = false) {
     const question = content.trim();
     if (!question || pending || busy.current) {
@@ -145,6 +148,7 @@ export function ChatPanel() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           deep,
+          model,
           messages: next.slice(-8).map(({ role, content: body }) => ({ role, content: body })),
         }),
       });
@@ -213,6 +217,7 @@ export function ChatPanel() {
             <p>
               문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON과 Chroma에 남습니다.
               뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기와 왼쪽 질문이 그 모드로 나갑니다. 횟수는 보내는 즉시 줄고, 이 사이트 전체에서 하루 10번이며 한국 시간 오전 12시에 초기화됩니다.
+              보내기 위 버튼은 모델을 고릅니다. 기본은 gemma4:e4b이고, 누르면 높은 모델 gemma4:12b입니다.
               횟수는 서버 SQLite에 있으며 이 브라우저에 저장하지 않습니다.
             </p>
           )}
@@ -227,7 +232,7 @@ export function ChatPanel() {
               <span /><span /><span />
               {deepWait
                 ? "깊이 추론 중입니다. 문서를 더 넓게 보고, 생성을 일반 답의 2.5배로 씁니다. 5분에서 10분까지 걸릴 수 있습니다."
-                : "문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다."}
+                : `문서를 찾고 ${model}로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다.`}
             </div>
           )}
           {error && <div className="note">{error}</div>}
@@ -299,7 +304,23 @@ export function ChatPanel() {
                 </svg>
               </button>
             </div>
-            <button className="btn" type="submit" disabled={pending}>보내기</button>
+            <div className="composer-go">
+              <button
+                className="model"
+                type="button"
+                aria-pressed={highModel}
+                title={
+                  highModel
+                    ? "높은 모델 gemma4:12b 가 선택되어 있습니다. 누르면 기본 모델 gemma4:e4b 로 돌아갑니다."
+                    : "기본 모델은 gemma4:e4b 입니다. 누르면 높은 모델 gemma4:12b 를 선택합니다."
+                }
+                onClick={() => setHighModel((current) => !current)}
+              >
+                <small>{highModel ? "높은 모델" : "기본 모델"}</small>
+                {model}
+              </button>
+              <button className="btn" type="submit" disabled={pending}>보내기</button>
+            </div>
           </div>
         </form>
       </section>

@@ -12,39 +12,49 @@ import urllib.request
 
 from flask import Flask, jsonify, request
 
-from guide_graph import guide
+from guide_graph import DEFAULT_MODEL, GUIDE_MODELS, guide, guide_model
 
 app = Flask(__name__)
-MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:12b")
 BASE = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
 
 
-def model_status() -> tuple[bool, str]:
+def installed_models() -> tuple[list[str], str]:
     try:
         with urllib.request.urlopen(f"{BASE}/api/tags", timeout=4) as response:
             payload = json.load(response)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        return False, f"Ollama에 연결하지 못했습니다. {exc}"
-    names = [item.get("name", "") for item in payload.get("models", [])]
-    ready = any(name == MODEL or name.startswith(MODEL + ":") for name in names)
-    if ready:
-        return True, f"{MODEL} 을 사용할 수 있습니다."
-    shown = ", ".join(names) if names else "설치된 모델 없음"
-    return False, f"{MODEL} 이 없습니다. 설치됨: {shown}. ollama pull {MODEL}"
+        return [], f"Ollama에 연결하지 못했습니다. {exc}"
+    return [item.get("name", "") for item in payload.get("models", [])], ""
+
+
+def has_model(names: list[str], model: str) -> bool:
+    return any(name == model or name.startswith(model + ":") for name in names)
 
 
 @app.get("/health")
 def health():
-    ready, detail = model_status()
-    return jsonify(ok=ready, ready=ready, model=MODEL, detail=detail), (200 if ready else 503)
+    names, detail = installed_models()
+    if detail:
+        return jsonify(ok=False, ready=False, model=DEFAULT_MODEL, models={}, detail=detail), 503
+    present = {model: has_model(names, model) for model in GUIDE_MODELS}
+    ready = present[DEFAULT_MODEL]
+    if not ready:
+        shown = ", ".join(names) if names else "설치된 모델 없음"
+        detail = f"{DEFAULT_MODEL} 이 없습니다. 설치됨: {shown}."
+    else:
+        detail = f"{DEFAULT_MODEL} 을 사용할 수 있습니다."
+    return jsonify(ok=ready, ready=ready, model=DEFAULT_MODEL, models=present, detail=detail), (200 if ready else 503)
 
 
 @app.post("/v1/guide")
 def ask():
-    ready, detail = model_status()
-    if not ready:
-        return jsonify(detail=detail), 503
     data = request.get_json(silent=True) or {}
+    model = guide_model(data.get("model"))
+    names, detail = installed_models()
+    if detail or not has_model(names, model):
+        if not detail:
+            detail = f"{model} 이 없습니다. 기본 모델은 {DEFAULT_MODEL} 입니다."
+        return jsonify(detail=detail), 503
     messages = data.get("messages")
     if not isinstance(messages, list) or not messages:
         return jsonify(detail="messages가 필요합니다."), 400
@@ -69,6 +79,7 @@ def ask():
                 "context": "",
                 "answer": "",
                 "deep": bool(data.get("deep")),
+                "model": model,
             }
         )
     except Exception as exc:  # noqa: BLE001 — 모델 오류를 화면 문장으로 돌린다

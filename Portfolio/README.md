@@ -45,7 +45,7 @@ npm run dev
 ```
 
 화면은 `http://127.0.0.1:5190`, 안내는 `http://127.0.0.1:5055` 이다.
-안내 모델 `gemma4:12b`가 없으면 챗만 멈추고 페이지는 열린다.
+안내 기본 모델 `gemma4:e4b`가 없으면 챗만 멈추고 페이지는 열린다. 높은 모델 `gemma4:12b`는 보내기 위 버튼으로 고른다.
 
 ## 사이트
 
@@ -57,7 +57,7 @@ npm run dev
 | `ai/` | Flask. 포트폴리오를 설명하는 AI 안내. 제품 백엔드와 별도 |
 
 화면의 챗 기록은 브라우저 `localStorage`만 쓴다. 대화 본문용 데이터베이스는 두지 않는다. 학습에 쓸 질문과 답은 `Portfolio/ai/data/rag_memory.json`과 `Portfolio/ai/data/chroma`에 남는다. 깊이 추론 횟수만 `site/data/deep_quota.sqlite`에 남고, 사이트 전체로 하루 10번, 한국 시간 오전 12시에 초기화된다. 보내면 바로 줄고, 서버가 요청을 받은 뒤에는 되돌리지 않는다.
-안내 모델은 운영에도 쓰는 Ollama `gemma4:12b`다.
+안내 기본 모델은 Ollama `gemma4:e4b`다. 높은 모델 `gemma4:12b`는 보낼 때 고른다.
 
 ## 제품과 이 사이트의 차이
 
