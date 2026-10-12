@@ -77,6 +77,8 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `18388b6` | feature/portfolio-deploy → develop 병합 (no-ff) | [commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md](./commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md) |
+| `600bd68` | Vercel Hobby 한도에 맞게 챗 함수 시간 조정 | [commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md](./commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md) |
 | `525a789` | develop → main 병합 (no-ff) | [commits/261012_2021_525a789_merge-chroma_main.md](./commits/261012_2021_525a789_merge-chroma_main.md) |
 | `1a6bfc8` | bugfix/chroma-keep-lexical → develop 병합 (no-ff) | [commits/261012_2020_1a6bfc8_merge-keep-lexical_develop.md](./commits/261012_2020_1a6bfc8_merge-keep-lexical_develop.md) |
 | `15fb9af` | 글자 검색 예시를 빼지 않고 Chroma 한 건을 붙임 | [commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md](./commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md) |
