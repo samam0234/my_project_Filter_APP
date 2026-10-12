@@ -89,10 +89,6 @@ export function finishDeep(id: number) {
   open().prepare("UPDATE deep_uses SET status = 'done' WHERE id = ? AND status = 'reserved'").run(id);
 }
 
-export function refundDeep(id: number) {
-  open().prepare("UPDATE deep_uses SET status = 'refunded' WHERE id = ? AND status = 'reserved'").run(id);
-}
-
 export function resetDeepQuotaForTests() {
   if (database) {
     database.close();
