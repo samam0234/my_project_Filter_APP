@@ -22,6 +22,9 @@ Pillow==12.3.0
 # optional ONNX (full torch 스택보다 가벼움)
 onnxruntime==1.19.2
 
+# 문장 해석 근거용 로컬 Chroma. 기본 임베딩 모델은 받지 않는다.
+chromadb==1.5.9
+
 python-dotenv==1.2.4
 aiofiles==24.1.0
 loguru==0.7.2

@@ -31,6 +31,9 @@ data/feedback/*
 data/pseudo_labels/*
 data/*.db
 data/*.db-*
+data/chroma/*
+!data/chroma/.gitkeep
+!data/chroma/README.md
 # MariaDB(Docker) 데이터 파일 — bind mount (docker-compose.yml)
 data/mariaDB_datas/
 data/mariaDB_backups/
@@ -44,6 +47,9 @@ backend/data/feedback/
 backend/data/pseudo_labels/
 backend/data/*.db
 backend/data/*.db-*
+backend/data/chroma/*
+!backend/data/chroma/.gitkeep
+!backend/data/chroma/README.md
 !backend/data/**/.gitkeep
 !backend/data/README.md
 models/*

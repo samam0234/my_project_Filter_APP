@@ -82,7 +82,7 @@ Docker는 MariaDB 11, 호스트 개발은 SQLite다.
 기존 `users` 행을 이 변경이 다시 쓰지 않는다. 기동 시 없는 테이블만 만든다.
 
 제품 AI 채팅은 테이블이 없다. 대화를 저장하지 않기 때문이다.
-포트폴리오 안내 챗의 대화 표는 없다. 화면 기록은 브라우저 `localStorage`이고, 학습 예시는 JSON 파일이다. 깊이 추론 횟수만 사이트 전용 SQLite `deep_uses`에 남는다. 제품 ERD와는 다른 파일이다.
+포트폴리오 안내 챗의 대화 표는 없다. 화면 기록은 브라우저 `localStorage`이고, 학습 예시는 JSON 파일과 `Portfolio/ai/data/chroma`다. 깊이 추론 횟수만 사이트 전용 SQLite `deep_uses`에 남는다. 제품 ERD와는 다른 파일이다.
 
 ## 사이트에서 보는 법
 

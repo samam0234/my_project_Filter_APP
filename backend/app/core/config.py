@@ -152,6 +152,12 @@ class Settings(BaseSettings):
     prompt_rag_refresh_seconds: float = Field(default=30.0, alias="PROMPT_RAG_REFRESH_SECONDS")
     # 저장소 루트 기준 (Docker 이미지에는 training/ 이 없어 피드백만 사용)
     prompt_rag_seed_file: str = Field(default="training/lora/seed/train.jsonl", alias="PROMPT_RAG_SEED_FILE")
+    # 승인 예시를 backend/data/chroma 에 두고, 루트 data/chroma 의 확인 피드백을 한 건 더한다.
+    # 임베딩 모델은 받지 않는다. 패키지가 없거나 저장소를 열지 못하면 n-gram 만 쓴다.
+    prompt_chroma_enabled: bool = Field(default=True, alias="PROMPT_CHROMA_ENABLED")
+    prompt_chroma_dir: str = Field(default="data/chroma", alias="PROMPT_CHROMA_DIR")
+    prompt_chroma_shared_dir: str = Field(default="data/chroma", alias="PROMPT_CHROMA_SHARED_DIR")
+    prompt_chroma_min_score: float = Field(default=0.55, ge=0.0, le=1.0, alias="PROMPT_CHROMA_MIN_SCORE")
 
     # 【수동】 PRELOAD_MODELS — 기동 직후 세그 모델을 백그라운드로 미리 로드 (첫 요청 20초+ 지연 제거)
     preload_models: bool = Field(default=True, alias="PRELOAD_MODELS")
@@ -395,6 +401,16 @@ class Settings(BaseSettings):
     @property
     def feedback_path(self) -> Path:
         return self.resolve_shared_path(self.feedback_dir)
+
+    @property
+    def prompt_chroma_path(self) -> Path:
+        """서비스 런타임 Chroma. 상대 경로면 backend/data/chroma."""
+        return self.resolve_runtime_path(self.prompt_chroma_dir)
+
+    @property
+    def prompt_chroma_shared_path(self) -> Path:
+        """학습 공유 Chroma. 상대 경로면 저장소 루트 data/chroma. Docker 는 절대 경로로 덮어쓴다."""
+        return self.resolve_shared_path(self.prompt_chroma_shared_dir)
 
     @property
     def pseudo_label_path(self) -> Path:

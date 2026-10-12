@@ -11,7 +11,9 @@
   실제로 쓰는 출처는 PROMPT_RAG_SOURCES (기본 correction,like,request).
   승인 전 교정은 쓰지 않는다 — 잘못된 교정 하나가 모든 사용자의 비슷한 요청을 바꾸는 것을 막는다.
 
-검색: 글자 2·3-gram TF-IDF 코사인 (한국어 짧은 문장에 맞고 외부 모델·의존성이 필요 없음).
+검색: 글자 2·3-gram TF-IDF 코사인. 같은 승인 문장을 backend/data/chroma 에도 넣고,
+루트 data/chroma 의 확인된 피드백을 한 건까지 더한다. 임베딩 모델은 받지 않는다.
+Chroma 를 열지 못하면 n-gram 결과만 쓴다.
 갱신: 승인 샘플 수·최종 수정 시각이 바뀌면 PROMPT_RAG_REFRESH_SECONDS 안에 다시 색인.
 load_examples(seed, feedback_dir) 는 파일 기반 평가·테스트용으로 남겨 둔다.
 """
@@ -279,6 +281,7 @@ class PromptRAG:
                 started = time.perf_counter()
                 self._index = ExampleIndex(self._load())
                 self._signature = sig
+                self._sync_chroma()
                 counts = Counter(ex.source for ex in self._index.examples)
                 logger.info(
                     "프롬프트 RAG 색인 {}건 {} ({:.0f} ms)",
@@ -286,10 +289,36 @@ class PromptRAG:
                 )
             return self._index
 
+    def _sync_chroma(self) -> None:
+        if not self.settings.prompt_chroma_enabled or self._index is None:
+            return
+        try:
+            from app.services.prompt_chroma import sync_examples
+
+            sync_examples(self.settings.prompt_chroma_path, self._index.examples)
+        except Exception as exc:
+            logger.warning("프롬프트 Chroma 색인 실패 — 글자 검색만 사용 ({})", exc)
+
     def retrieve(self, prompt: str) -> list[Hit]:
-        return self.index().search(
+        lexical = self.index().search(
             prompt, k=self.settings.prompt_rag_top_k, min_score=self.settings.prompt_rag_min_score
         )
+        if not self.settings.prompt_chroma_enabled:
+            return lexical
+        try:
+            from app.services.prompt_chroma import merge_hits, search_grounding
+
+            vector = search_grounding(
+                self.settings.prompt_chroma_path,
+                self.settings.prompt_chroma_shared_path,
+                prompt,
+                k=self.settings.prompt_rag_top_k,
+                min_similarity=self.settings.prompt_chroma_min_score,
+            )
+        except Exception as exc:
+            logger.warning("프롬프트 Chroma 검색 실패 — 글자 검색만 사용 ({})", exc)
+            return lexical
+        return merge_hits(lexical, vector, self.settings.prompt_rag_top_k)
 
 
 _RAG: Optional[PromptRAG] = None

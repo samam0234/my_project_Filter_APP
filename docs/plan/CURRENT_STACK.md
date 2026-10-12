@@ -74,7 +74,7 @@ Backend Dockerfile: **context = 저장소 루트**, `dockerfile: backend/Dockerf
 | 해석 모델 고르기 | 작업실 처리하기 옆 상자(사진 · GIF · 영상): Ollama `gemma4:e4b`(기본) · `gemma4:12b` · `qwen3.8:27b`, 서버에 설치되지 않은 모델은 "미적용" — `GET /api/v1/llm/models`, 폼 `llm_model`, `services/llm_models.py`. `LLM_PROVIDER` 가 ollama 일 때만 ([`llm-and-vision.md`](../guidance/llm-and-vision.md)) |
 | LLM 설정 | `LLM_PROVIDER` — 기본 Ollama `gemma4:e4b`, 선택 `lora`(Qwen2.5-1.5B 어댑터)·openai·gemini. 실패 시 휴리스틱. **GPU 오버레이는 `lora`** (283문장 94.7% · Ollama 체인 85.2%, [`parser-compare-20261009.md`](../vaildates/parser-compare-20261009.md)) · 혼합 `PROMPT_SECOND_OPINION` |
 | 프롬프트 규격 | `services/prompt_spec.py` — target·effect(`remove_object` = 지우기)·`selector`(위치·순서·개수·색 속성) |
-| 프롬프트 RAG | `services/prompt_rag.py` — 사용자 교정·좋아요 중 비슷한 문장을 LLM 예시로 (글자 n-gram TF-IDF, `PROMPT_RAG_*`) |
+| 프롬프트 RAG | `services/prompt_rag.py` — 사용자 교정·좋아요 중 비슷한 문장을 LLM 예시로 (글자 n-gram TF-IDF, `PROMPT_RAG_*`). `prompt_chroma.py`가 `backend/data/chroma`와 루트 `data/chroma`에서 확인 문장 한 건을 더할 수 있다. 임베딩 모델은 받지 않음 |
 | 해석 체인 | `PROMPT_CHAIN=langchain`(기본) — LLM 답과 키워드 파서(`heuristic_targets.py`)가 다르면 최대 3번 물어 다수결 (`services/prompt_chain.py`) |
 | 인스턴스 선택 | `services/instance_selector.py` — 같은 클래스 중 특정 인스턴스 (학습 아닌 규칙) |
 | 마스크 처리 | 다른 인스턴스 몫 덜어내기 `MASK_EXCLUSIVE=subtract` · GrabCut 끔 · CLAHE 끔 (지정하지 않은 대상이 섞이는 문제 — `docs/vaildates/leak-diagnosis-20261008.md`) |

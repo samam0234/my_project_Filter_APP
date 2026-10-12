@@ -77,6 +77,14 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `1a6bfc8` | bugfix/chroma-keep-lexical → develop 병합 (no-ff) | [commits/261012_2020_1a6bfc8_merge-keep-lexical_develop.md](./commits/261012_2020_1a6bfc8_merge-keep-lexical_develop.md) |
+| `15fb9af` | 글자 검색 예시를 빼지 않고 Chroma 한 건을 붙임 | [commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md](./commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md) |
+| `6f03972` | feature/chroma-portfolio → develop 병합 (no-ff) | [commits/261012_2017_6f03972_merge-chroma-portfolio_develop.md](./commits/261012_2017_6f03972_merge-chroma-portfolio_develop.md) |
+| `79bd76d` | feature/chroma-backend → develop 병합 (no-ff) | [commits/261012_2016_79bd76d_merge-chroma-backend_develop.md](./commits/261012_2016_79bd76d_merge-chroma-backend_develop.md) |
+| `2296005` | 안내 검색에 Chroma 문단 추가 | [commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md](./commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md) |
+| `c26a016` | feature/chroma-data → develop 병합 (no-ff) | [commits/261012_2016_c26a016_merge-chroma-data_develop.md](./commits/261012_2016_c26a016_merge-chroma-data_develop.md) |
+| `8477bf5` | 문장 해석에 확인된 Chroma 예시 추가 | [commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md](./commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md) |
+| `60cd494` | 확인된 피드백을 Chroma에 색인 | [commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md](./commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md) |
 | `e35f0ea` | develop → main 병합 (no-ff) | [commits/261012_0930_e35f0ea_merge-deep-quota_main.md](./commits/261012_0930_e35f0ea_merge-deep-quota_main.md) |
 | `ec93278` | feature/deep-quota-count → develop 병합 (no-ff) | [commits/261012_0929_ec93278_merge-deep-quota_develop.md](./commits/261012_0929_ec93278_merge-deep-quota_develop.md) |
 | `14f2cc2` | 깊이 추론 횟수가 보낼 때 줄어들게 수정 | [commits/261012_0929_14f2cc2_deep-quota-count_feature-deep-quota-count.md](./commits/261012_0929_14f2cc2_deep-quota-count_feature-deep-quota-count.md) |

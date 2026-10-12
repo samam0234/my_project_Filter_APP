@@ -211,7 +211,7 @@ export function ChatPanel() {
         <div className="messages" aria-live="polite">
           {messages.length === 0 && (
             <p>
-              문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON에 남습니다.
+              문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON과 Chroma에 남습니다.
               뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기와 왼쪽 질문이 그 모드로 나갑니다. 횟수는 보내는 즉시 줄고, 이 사이트 전체에서 하루 10번이며 한국 시간 오전 12시에 초기화됩니다.
               횟수는 서버 SQLite에 있으며 이 브라우저에 저장하지 않습니다.
             </p>
