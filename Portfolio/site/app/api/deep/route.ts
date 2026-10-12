@@ -4,5 +4,5 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export function GET() {
-  return Response.json(deepStatus());
+  return Response.json(deepStatus(), { headers: { "Cache-Control": "no-store" } });
 }

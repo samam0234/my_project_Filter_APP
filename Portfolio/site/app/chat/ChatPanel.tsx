@@ -60,14 +60,20 @@ export function ChatPanel() {
   const [deepWait, setDeepWait] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   const tools = useRef<HTMLDivElement>(null);
+  const busy = useRef(false);
+  const quotaTick = useRef(0);
 
   function loadQuota() {
-    fetch("/api/deep")
+    const tick = ++quotaTick.current;
+    fetch("/api/deep", { cache: "no-store" })
       .then((res) => res.json())
       .then((data: Quota) => {
+        if (tick !== quotaTick.current) return;
         if (typeof data.remaining === "number") setQuota(data);
       })
-      .catch(() => setQuota(null));
+      .catch(() => {
+        if (tick === quotaTick.current) setQuota(null);
+      });
   }
 
   useEffect(() => {
@@ -115,16 +121,24 @@ export function ChatPanel() {
 
   async function send(content: string, deep = false) {
     const question = content.trim();
-    if (!question || pending) {
+    if (!question || pending || busy.current) {
       if (deep && !question) setError("질문을 입력한 뒤 보내기를 누르세요.");
       return;
     }
+    busy.current = true;
     const next = [...messages, { role: "user" as const, content: question }];
     setMessages(next);
     setText("");
     setPending(true);
     setDeepWait(deep);
     setError("");
+    if (deep) {
+      quotaTick.current += 1;
+      setQuota((current) => {
+        if (!current || current.remaining <= 0) return current;
+        return { ...current, used: current.used + 1, remaining: current.remaining - 1 };
+      });
+    }
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -134,8 +148,13 @@ export function ChatPanel() {
           messages: next.slice(-8).map(({ role, content: body }) => ({ role, content: body })),
         }),
       });
-      const data = (await res.json()) as { answer?: string; sources?: string[]; detail?: string };
-      if (deep) loadQuota();
+      const data = (await res.json()) as { answer?: string; sources?: string[]; detail?: string; quota?: Quota };
+      if (data.quota && typeof data.quota.remaining === "number") {
+        quotaTick.current += 1;
+        setQuota(data.quota);
+      } else if (deep) {
+        loadQuota();
+      }
       if (!res.ok) {
         setError(data.detail || "답변을 받지 못했습니다.");
         return;
@@ -148,6 +167,7 @@ export function ChatPanel() {
       if (deep) loadQuota();
       setError("네트워크 오류로 답을 받지 못했습니다. 대화는 이 브라우저에 남아 있습니다.");
     } finally {
+      busy.current = false;
       setPending(false);
       setDeepWait(false);
     }
@@ -178,7 +198,7 @@ export function ChatPanel() {
         </div>
         <div className="prompts">
           {prompts.map((prompt) => (
-            <button key={prompt} type="button" onClick={() => send(prompt)} disabled={pending}>
+            <button key={prompt} type="button" onClick={() => send(prompt, deepOn)} disabled={pending}>
               {prompt}
             </button>
           ))}
@@ -192,7 +212,7 @@ export function ChatPanel() {
           {messages.length === 0 && (
             <p>
               문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON에 남습니다.
-              뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기가 그 모드로 나갑니다. 이 사이트 전체에서 하루 10번이고, 한국 시간 오전 12시에 초기화됩니다.
+              뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기와 왼쪽 질문이 그 모드로 나갑니다. 횟수는 보내는 즉시 줄고, 이 사이트 전체에서 하루 10번이며 한국 시간 오전 12시에 초기화됩니다.
               횟수는 서버 SQLite에 있으며 이 브라우저에 저장하지 않습니다.
             </p>
           )}
