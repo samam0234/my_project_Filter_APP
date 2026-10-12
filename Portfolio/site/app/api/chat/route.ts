@@ -4,7 +4,7 @@ const AI = process.env.PORTFOLIO_AI_URL || "http://127.0.0.1:5055";
 const NO_STORE = { "Cache-Control": "no-store" };
 
 export const runtime = "nodejs";
-export const maxDuration = 600;
+export const maxDuration = 300;
 
 export async function GET() {
   try {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ messages, deep }),
-      signal: AbortSignal.timeout(deep ? 600000 : 160000),
+      signal: AbortSignal.timeout(deep ? 290000 : 160000),
     });
     const data = await res.json();
     if (reservation) finishDeep(reservation);
