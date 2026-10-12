@@ -12,6 +12,7 @@ import urllib.request
 
 from flask import Flask, jsonify, request
 
+from deep_quota import reserve, status
 from guide_graph import guide
 
 app = Flask(__name__)
@@ -39,6 +40,11 @@ def health():
     return jsonify(ok=ready, ready=ready, model=MODEL, detail=detail), (200 if ready else 503)
 
 
+@app.get("/v1/deep")
+def deep_count():
+    return jsonify(status())
+
+
 @app.post("/v1/guide")
 def ask():
     ready, detail = model_status()
@@ -59,6 +65,11 @@ def ask():
     if not cleaned or cleaned[-1][0] != "user":
         return jsonify(detail="마지막 메시지는 사용자 질문이어야 합니다."), 400
     history = "\n".join(f"{role}: {content}" for role, content in cleaned[:-1]) or "(없음)"
+    deep = bool(data.get("deep"))
+    if deep:
+        gate = reserve()
+        if not gate["ok"]:
+            return jsonify(detail=gate["detail"], quota=gate), 429
     try:
         result = guide.invoke(
             {
@@ -68,12 +79,18 @@ def ask():
                 "route": "",
                 "context": "",
                 "answer": "",
-                "deep": bool(data.get("deep")),
+                "deep": deep,
             }
         )
     except Exception as exc:  # noqa: BLE001 — 모델 오류를 화면 문장으로 돌린다
-        return jsonify(detail=f"모델 호출에 실패했습니다. {exc}"), 502
-    return jsonify(answer=result.get("answer") or "", sources=result.get("sources") or [])
+        body = {"detail": f"모델 호출에 실패했습니다. {exc}"}
+        if deep:
+            body["quota"] = status()
+        return jsonify(body), 502
+    body = {"answer": result.get("answer") or "", "sources": result.get("sources") or []}
+    if deep:
+        body["quota"] = status()
+    return jsonify(body)
 
 
 if __name__ == "__main__":

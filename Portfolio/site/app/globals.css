@@ -354,7 +354,26 @@ ul.clean li { margin: 4px 0; }
 .brain { color: var(--pine); }
 .bolt { color: var(--copper); }
 .brain:hover, .bolt:hover { transform: translateY(-1px); }
-.brain:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.brain:disabled { opacity: 0.45; cursor: not-allowed; transform: none; pointer-events: none; }
+.tip { position: relative; display: grid; }
+.tip[data-tip]:hover::after,
+.tip[data-tip]:focus-within::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: white;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+  box-shadow: var(--shadow);
+  z-index: 6;
+}
 .brain[aria-pressed="true"] {
   background: var(--pine);
   color: white;
