@@ -63,6 +63,8 @@ services:
       BATCH_USE_CELERY: ${BATCH_USE_CELERY:-false}
       # 호스트 PC Ollama (Docker Desktop Windows/Mac)
       LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
+      # 루트 data/chroma. backend/data/chroma 는 아래 /app/data 마운트 안에 있다.
+      PROMPT_CHROMA_SHARED_DIR: /app/shared/chroma
     volumes:
       # 서비스 런타임 (backend/): 업로드·서비스 SQLite·서빙 모델·앱 로그
       - ./backend/data:/app/data
@@ -71,6 +73,7 @@ services:
       # 학습 공유 (루트 data/): backend 가 기록 → training·scripts 가 읽음
       - ./data/feedback:/app/data/feedback
       - ./data/pseudo_labels:/app/data/pseudo_labels
+      - ./data/chroma:/app/shared/chroma
     depends_on:
       mariadb:
         condition: service_healthy

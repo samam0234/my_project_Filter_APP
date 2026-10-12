@@ -189,7 +189,7 @@ ollama · openai · gemini 에만 적용 (lora 는 학습 템플릿이 고정이
 | 항목 | 내용 |
 |------|------|
 | 지식 베이스 | 학습 DB `learning_samples` 중 **승인된** 문장 — `correction`(사용자 교정) > `like` · `request`(회원 요청). 같은 문장이면 교정이 이김. 승인 전 교정은 쓰지 않음 ([`console-admin.md`](console-admin.md#학습-데이터-검수)) |
-| 검색 | 글자 2·3-gram TF-IDF 코사인 (외부 모델·의존성 없음, 수천 건 규모 ms 단위) |
+| 검색 | 글자 2·3-gram TF-IDF 코사인. 추가로 `backend/data/chroma`의 승인 예시와 루트 `data/chroma`의 확인 피드백을 보고, 글자 검색에 없는 가까운 문장 한 건을 더한다. 임베딩 모델은 받지 않는다. Chroma를 열지 못하면 n-gram만 쓴다 |
 | 갱신 | 승인 샘플 수·최종 수정 시각이 바뀌면 `PROMPT_RAG_REFRESH_SECONDS`(30 s) 안에 자동 재색인. 학습 DB 가 없으면 예시 없이 진행 |
 | 기록 | `meta.prompt_rag` 에 출처·점수만 (다른 사용자의 문장 원문은 남기지 않음) |
 
@@ -198,6 +198,8 @@ PROMPT_RAG_ENABLED=true
 PROMPT_RAG_SOURCES=correction,like,request   # seed 를 넣으면 PROMPT_RAG_SEED_FILE(기본 training/lora/seed/train.jsonl)도 사용 (비권장, 아래)
 PROMPT_RAG_TOP_K=3
 PROMPT_RAG_MIN_SCORE=0.6             # 같은 뜻의 다른 표현 0.62~0.73 / 틀만 같은 문장 0.3~0.46
+PROMPT_CHROMA_ENABLED=true           # backend/data/chroma + 루트 data/chroma. 임베딩 모델은 받지 않음
+PROMPT_CHROMA_MIN_SCORE=0.55         # 이 코사인 미만의 벡터 예시는 붙이지 않음
 ```
 
 평가 (2026-10-04, `seed/eval.jsonl` 40건, gemma4:e4b, 평가 문장과 같은 예시는 지식 베이스에서 제외):

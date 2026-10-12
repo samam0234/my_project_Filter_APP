@@ -78,6 +78,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 | 커밋 | 제목 | 파일 |
 |------|------|------|
 | `c26a016` | feature/chroma-data → develop 병합 (no-ff) | [commits/261012_2016_c26a016_merge-chroma-data_develop.md](./commits/261012_2016_c26a016_merge-chroma-data_develop.md) |
+| `8477bf5` | 문장 해석에 확인된 Chroma 예시 추가 | [commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md](./commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md) |
 | `60cd494` | 확인된 피드백을 Chroma에 색인 | [commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md](./commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md) |
 | `e35f0ea` | develop → main 병합 (no-ff) | [commits/261012_0930_e35f0ea_merge-deep-quota_main.md](./commits/261012_0930_e35f0ea_merge-deep-quota_main.md) |
 | `ec93278` | feature/deep-quota-count → develop 병합 (no-ff) | [commits/261012_0929_ec93278_merge-deep-quota_develop.md](./commits/261012_0929_ec93278_merge-deep-quota_develop.md) |
