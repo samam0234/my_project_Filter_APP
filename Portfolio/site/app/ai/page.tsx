@@ -33,7 +33,7 @@ export default function AiPage() {
               <tr><td>열린 어휘</td><td>Grounding DINO + SAM2. 기본 꺼짐, 가중치 없음</td></tr>
               <tr><td>문장</td><td>ollama, lora, openai, gemini, heuristic</td></tr>
               <tr><td>규격</td><td>prompt_spec.py. 서빙과 LoRA가 공유. 바꾸면 재학습</td></tr>
-              <tr><td>흐름</td><td>LangGraph 1.2, LangChain 다수결, n-gram RAG</td></tr>
+              <tr><td>흐름</td><td>LangGraph 1.2, LangChain 다수결, n-gram과 Chroma RAG</td></tr>
             </tbody>
           </table>
         </div>
@@ -82,13 +82,13 @@ export default function AiPage() {
         <h2>고급 기술</h2>
         <p>
           제품의 LangChain은 도구를 여러 번 부르는 에이전트가 아니라 해석 다수결입니다.
-          LangGraph는 업로드 한 건의 상태 기계입니다. RAG는 메모리에서 다시 색인합니다.
+          LangGraph는 업로드 한 건의 상태 기계입니다. RAG는 글자 n-gram과 Chroma의 확인 문장을 함께 봅니다.
         </p>
         <p>
           이 사이트의 Flask 안내는 같은 이름을 설명용으로 씁니다. LangGraph가 분류와 검색과 답변을 나누고,
           LangChain이 Ollama <code>gemma4:12b</code>를 호출하고, 이 폴더의 마크다운을 검색합니다.
           화면의 대화 목록은 브라우저 localStorage가 들고, 요청마다 최근 대화를 다시 보냅니다.
-          대화 본문은 데이터베이스에 넣지 않습니다. 배운 질문과 답은 JSON에 남아 비슷한 다음 질문을 보완합니다.
+          대화 본문은 데이터베이스에 넣지 않습니다. 배운 질문과 답은 JSON과 Chroma에 남아 비슷한 다음 질문을 보완하고, 가까운 문서 문단도 같이 찾습니다.
           깊이 추론만 사이트 SQLite에 하루 10회를 세고, 한국 시간 오전 12시에 초기화됩니다.
           12b가 없으면 안내만 멈추고, 제품 해석 기본값 e4b는 바꾸지 않습니다.
         </p>

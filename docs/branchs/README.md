@@ -78,6 +78,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 | 커밋 | 제목 | 파일 |
 |------|------|------|
 | `79bd76d` | feature/chroma-backend → develop 병합 (no-ff) | [commits/261012_2016_79bd76d_merge-chroma-backend_develop.md](./commits/261012_2016_79bd76d_merge-chroma-backend_develop.md) |
+| `2296005` | 안내 검색에 Chroma 문단 추가 | [commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md](./commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md) |
 | `c26a016` | feature/chroma-data → develop 병합 (no-ff) | [commits/261012_2016_c26a016_merge-chroma-data_develop.md](./commits/261012_2016_c26a016_merge-chroma-data_develop.md) |
 | `8477bf5` | 문장 해석에 확인된 Chroma 예시 추가 | [commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md](./commits/261012_2010_8477bf5_prompt-chroma_feature-chroma-backend.md) |
 | `60cd494` | 확인된 피드백을 Chroma에 색인 | [commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md](./commits/261012_2007_60cd494_chroma-feedback_feature-chroma-data.md) |
