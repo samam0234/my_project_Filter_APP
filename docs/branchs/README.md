@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `15fb9af` | 글자 검색 예시를 빼지 않고 Chroma 한 건을 붙임 | [commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md](./commits/261012_2019_15fb9af_keep-lexical_bugfix-chroma-keep-lexical.md) |
 | `79bd76d` | feature/chroma-backend → develop 병합 (no-ff) | [commits/261012_2016_79bd76d_merge-chroma-backend_develop.md](./commits/261012_2016_79bd76d_merge-chroma-backend_develop.md) |
 | `2296005` | 안내 검색에 Chroma 문단 추가 | [commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md](./commits/261012_2015_2296005_guide-chroma_feature-chroma-portfolio.md) |
 | `c26a016` | feature/chroma-data → develop 병합 (no-ff) | [commits/261012_2016_c26a016_merge-chroma-data_develop.md](./commits/261012_2016_c26a016_merge-chroma-data_develop.md) |
