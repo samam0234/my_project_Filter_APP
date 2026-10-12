@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `974f3c2` | develop → main 병합 (no-ff) | [commits/261012_2203_974f3c2_merge-develop_main.md](./commits/261012_2203_974f3c2_merge-develop_main.md) |
 | `328ddaf` | bugfix/deep-quota-kst → develop 병합 (no-ff) | [commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md](./commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md) |
 | `7859c14` | feature/portfolio-look → develop 병합 (no-ff) | [commits/261012_2155_7859c14_merge-portfolio-look_develop.md](./commits/261012_2155_7859c14_merge-portfolio-look_develop.md) |
 | `10855c6` | feature/guide-model-select → develop 병합 (no-ff) | [commits/261012_2154_10855c6_merge-guide-model_develop.md](./commits/261012_2154_10855c6_merge-guide-model_develop.md) |
