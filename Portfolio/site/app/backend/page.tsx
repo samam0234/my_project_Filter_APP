@@ -89,7 +89,7 @@ export default function BackendPage() {
         <ul className="clean">
           <li>LangGraph 1.2가 재시도와 최선 시도를 관리합니다.</li>
           <li>LangChain 해석 체인이 LLM과 키워드 파서를 비교합니다. 처음 보는 문장 86.7%에서 96.7%로 오른 기록이 있습니다.</li>
-          <li>RAG는 승인 문장을 글자 n-gram으로 찾습니다. 벡터 데이터베이스는 없습니다.</li>
+          <li>RAG는 승인 문장을 글자 n-gram으로 찾고, 확인된 문장은 Chroma에서 한 건 더합니다. 임베딩 모델은 받지 않습니다.</li>
           <li>ONNX 경로는 torch 없이 YOLO를 돌립니다. 슬림 이미지는 약 1.1GB입니다.</li>
           <li>OpenAI와 Gemini는 설정으로만 연결되어 있고 운영 기본값이 아닙니다. 켜면 문장이 밖으로 나갑니다.</li>
         </ul>

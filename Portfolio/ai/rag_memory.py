@@ -1,7 +1,7 @@
 """안내 챗이 배운 질문과 답을 JSON으로 남긴다.
 
-데이터베이스는 쓰지 않는다. 화면의 대화 목록은 브라우저 localStorage가 가진다.
-이 파일은 비슷한 다음 질문을 보완하는 RAG 예시만 담는다.
+화면의 대화 목록은 브라우저 localStorage가 가진다.
+이 파일은 비슷한 다음 질문을 보완하는 RAG 예시다. 같은 항목을 data/chroma에도 둔다.
 """
 
 from __future__ import annotations
@@ -71,6 +71,15 @@ def load_items() -> list[dict]:
     if not isinstance(items, list):
         return []
     return [item for item in items if isinstance(item, dict) and item.get("question") and item.get("answer")]
+
+
+def _sync_chroma(items: list[dict]) -> None:
+    try:
+        from chroma_store import sync_memory
+
+        sync_memory(items)
+    except Exception:
+        return
 
 
 def _write(items: list[dict]) -> None:
@@ -172,6 +181,7 @@ def remember_exchange(
                 current["sources"] = sources[:8]
             current["updated"] = now
             _write(items)
+            _sync_chroma(items)
             return str(current.get("id") or "")
         item_id = f"m{len(items) + 1:04d}"
         items.append(
@@ -186,4 +196,5 @@ def remember_exchange(
             }
         )
         _write(items)
+        _sync_chroma(items)
         return item_id

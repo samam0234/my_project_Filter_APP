@@ -4,6 +4,9 @@ ai/.venv/
 ai/**/__pycache__/
 ai/data/rag_memory.json
 ai/data/*.tmp
+ai/data/chroma/*
+!ai/data/chroma/.gitkeep
+!ai/data/chroma/README.md
 site/data/*.sqlite
 site/data/*.sqlite-journal
 site/data/*.sqlite-wal

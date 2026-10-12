@@ -4,11 +4,11 @@
 
 - LangGraph: 이해 → 검색 → 초안 → 필요하면 수정 → 학습 JSON 저장
 - LangChain: `ChatPromptTemplate`, `StrOutputParser`, `ChatOllama`, 문서 검색기, 비슷한 질문 생성
-- 검색: 문서 BM25와 글자 2-gram, 그리고 `data/rag_memory.json`의 배운 대화. 벡터 DB 없음
+- 검색: 문서 BM25와 글자 2-gram, `data/chroma`의 문서 벡터, 그리고 `data/rag_memory.json`의 배운 대화. 임베딩 모델은 받지 않는다
 - 모델: Ollama `gemma4:12b`. 일반 답은 생각 토큰을 끄고 문맥 6144, 생성 800이다
 - 깊이 추론: 요청의 `deep`이 참이면 검색·문맥·생성을 2.5배로 한다. 생각 토큰은 켜지 않는다. 켜면 그 한도를 생각만 쓰고 본문이 비기 때문이다. 하루 10번 제한은 이 프로세스가 아니라 Next.js SQLite가 센다
 - 화면 기록: 브라우저 localStorage. 이 Flask는 데이터베이스에 연결하지 않는다
-- 학습: 답이 문서에 맞게 나오면 질문, 비슷한 질문, 답을 `data/rag_memory.json`에 남긴다. 다음 비슷한 질문의 보완 예시로만 쓴다
+- 학습: 답이 문서에 맞게 나오면 질문, 비슷한 질문, 답을 `data/rag_memory.json`과 `data/chroma`에 남긴다. 다음 비슷한 질문의 보완 예시로만 쓴다
 
 ```bash
 cd Portfolio/ai

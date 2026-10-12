@@ -187,7 +187,7 @@ def _focus(question: str, history: str) -> str:
 
 
 class PortfolioRetriever(BaseRetriever):
-    """BM25, 글자 2-gram, 제목 일치를 합친다. 벡터 데이터베이스는 없다."""
+    """BM25, 글자 2-gram, 제목 일치에 Chroma 글자 벡터를 보탠다. 임베딩 모델은 받지 않는다."""
 
     documents: list[Document]
     k: int = 8
@@ -246,6 +246,47 @@ def understand(state: GuideState) -> GuideState:
     return {"route": best, "search_query": _expand(focused)}
 
 
+def _chroma_passages(query: str) -> list[tuple[float, Document]]:
+    """Chroma가 고른 문서 조각. 실패하면 빈 목록이라 BM25 결과만 남는다."""
+    try:
+        from chroma_store import ensure_documents, search_documents
+
+        ensure_documents(state_retriever.documents)
+        found = search_documents(query, k=4, min_similarity=0.42)
+    except Exception:
+        return []
+    passages: list[tuple[float, Document]] = []
+    for hit in found:
+        passages.append(
+            (
+                float(hit["score"]),
+                Document(
+                    page_content=hit["text"],
+                    metadata={"source": hit["source"], "title": hit["title"], "part": hit["part"], "weight": 1.0},
+                ),
+            )
+        )
+    return passages
+
+
+def _with_memory(question: str) -> list[tuple[float, dict]]:
+    remembered = search_memory(question, k=2)
+    try:
+        from chroma_store import search_memory_vectors
+
+        extra = search_memory_vectors(question, k=2, min_similarity=0.5)
+    except Exception:
+        extra = []
+    seen = {str(item.get("question") or "") for _, item in remembered}
+    for score, item in extra:
+        question_text = str(item.get("question") or "")
+        if not question_text or question_text in seen:
+            continue
+        seen.add(question_text)
+        remembered.append((score, item))
+    return remembered[:3]
+
+
 def retrieve(state: GuideState) -> GuideState:
     question = (state.get("question") or "").strip()
     expanded = (state.get("search_query") or "").strip()
@@ -278,10 +319,14 @@ def retrieve(state: GuideState) -> GuideState:
         per_file[source] = per_file.get(source, 0) + 1
     ranked = diverse + deferred
     if not ranked:
-        remembered = search_memory(question, k=2)
-        examples = format_examples(remembered)
-        sources = ["rag_memory.json · 비슷한 안내"] if remembered else []
-        return {"context": "", "sources": sources, "examples": examples}
+        chroma_only = _chroma_passages(question)
+        if chroma_only:
+            ranked = chroma_only
+        else:
+            remembered = _with_memory(question)
+            examples = format_examples(remembered)
+            sources = ["rag_memory.json · 비슷한 안내"] if remembered else []
+            return {"context": "", "sources": sources, "examples": examples}
     best = ranked[0][0] or 1.0
     kept: list[tuple[float, Document]] = []
     total = 0
@@ -294,6 +339,19 @@ def retrieve(state: GuideState) -> GuideState:
             break
         kept.append((score, doc))
         total += len(doc.page_content)
+    present = {
+        (str(doc.metadata.get("source")), str(doc.metadata.get("title")), int(doc.metadata.get("part") or 0))
+        for _, doc in kept
+    }
+    added = 0
+    for score, doc in _chroma_passages(question):
+        key = (str(doc.metadata.get("source")), str(doc.metadata.get("title")), int(doc.metadata.get("part") or 0))
+        if key in present or score < 0.55 or added >= 2 or total + len(doc.page_content) > char_cap:
+            continue
+        kept.append((score, doc))
+        present.add(key)
+        total += len(doc.page_content)
+        added += 1
     blocks: list[str] = []
     sources: list[str] = []
     for index, (_, doc) in enumerate(kept, start=1):
@@ -301,7 +359,7 @@ def retrieve(state: GuideState) -> GuideState:
         if label not in sources:
             sources.append(label)
         blocks.append(f"({index}) {label}\n{doc.page_content}")
-    remembered = search_memory(question, k=2)
+    remembered = _with_memory(question)
     examples = format_examples(remembered)
     if remembered:
         sources.append("rag_memory.json · 비슷한 안내")

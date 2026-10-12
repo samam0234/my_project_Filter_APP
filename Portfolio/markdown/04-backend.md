@@ -122,7 +122,7 @@ MariaDB 접속에 `172.18.0.x`를 호스트 주소로 쓰지 않는다. 그 대�
 
 - LangGraph로 노드 상태와 재시도를 관리한다.
 - LangChain 해석 체인이 LLM 답과 키워드 파서를 비교한다.
-- RAG는 승인된 문장을 예시로 붙인다. 임베딩 모델을 따로 받지 않고 글자 n-gram으로 찾는다.
+- RAG는 승인된 문장을 예시로 붙인다. 글자 n-gram으로 찾고, 루트 `data/chroma`와 `backend/data/chroma`의 확인 문장을 한 건 더할 수 있다. 임베딩 모델은 따로 받지 않는다.
 - 선택적 LoRA는 같은 프로세스에서 Qwen2.5-1.5B 어댑터를 돌린다. GPU가 있을 때의 선택이다.
 - ONNX Runtime 경로는 torch 없이 YOLO 세그를 돌린다. 슬림 이미지는 약 1.1GB다. ultralytics 이미지는 약 2.8GB다.
 
