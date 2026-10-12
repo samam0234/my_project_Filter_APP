@@ -8,6 +8,7 @@
 | `uploads/{job_id}/` | before/after 이미지 | `FILE_RETENTION_HOURS` 뒤 `scripts/cleanup.py` 가 삭제 |
 | `cutnkeep.db` | Docker backend 의 서비스 SQLite (`users`·`auth_*`·`jobs`·`batch_jobs`) | 영구 |
 | `cutnkeep.host.db` | 호스트에서 띄운 backend 의 서비스 SQLite — Docker 와 같은 파일을 쓰면 깨진다 | 영구 |
+| `chroma/` | 승인된 문장 해석 예시의 Chroma (`approved_prompts`) | 승인 목록과 함께 다시 맞춤. Git 제외 |
 
 ## 설정 (backend/ 기준 상대 경로)
 

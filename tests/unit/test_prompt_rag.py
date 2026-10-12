@@ -131,7 +131,7 @@ def test_rag_uses_only_approved_samples_and_reindexes(tmp_path):
     from app.services import learning_review
 
     Session, factory = _learning_db()
-    s = Settings.model_validate({"PROMPT_RAG_REFRESH_SECONDS": 0})
+    s = Settings.model_validate({"PROMPT_RAG_REFRESH_SECONDS": 0, "PROMPT_CHROMA_ENABLED": False})
     rag = PromptRAG(s, session_factory=factory)
     with Session() as db:
         pending = _sample(db, "왼쪽 두 번째 사람 삭제", LEFT2_REMOVE)
@@ -149,8 +149,12 @@ def test_rag_uses_only_approved_samples_and_reindexes(tmp_path):
 def test_seed_is_used_only_when_listed(tmp_path):
     seed = _seed(tmp_path, [{"prompt": "강아지만 남겨", "parsed_prompt": {"target": ["dog"]}}])
     _, factory = _learning_db()
-    default = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed)})
-    with_seed = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed), "PROMPT_RAG_SOURCES": "correction,seed"})
+    default = Settings.model_validate({"PROMPT_RAG_SEED_FILE": str(seed), "PROMPT_CHROMA_ENABLED": False})
+    with_seed = Settings.model_validate({
+        "PROMPT_RAG_SEED_FILE": str(seed),
+        "PROMPT_RAG_SOURCES": "correction,seed",
+        "PROMPT_CHROMA_ENABLED": False,
+    })
     assert PromptRAG(default, session_factory=factory).index().examples == []
     assert [e.source for e in PromptRAG(with_seed, session_factory=factory).index().examples] == ["seed"]
 
@@ -159,7 +163,7 @@ def test_rag_survives_learning_db_outage():
     def broken():
         raise RuntimeError("learning db down")
 
-    rag = PromptRAG(Settings.model_validate({}), session_factory=broken)
+    rag = PromptRAG(Settings.model_validate({"PROMPT_CHROMA_ENABLED": False}), session_factory=broken)
     assert rag.retrieve("사람 지워") == []
 
 

@@ -25,7 +25,7 @@
 | `prompt_lora.py` | LoRA 어댑터 로컬 추론 (transformers + peft, 싱글톤) |
 | `prompt_chain.py` | 해석 체인(LangChain Core) — LLM 답과 키워드 파서가 다르면 다수결 (`PROMPT_CHAIN=langchain`) |
 | `heuristic_targets.py` | 키워드 파서 — 어휘 + 역할 규칙(남길 것 · 뺄 것 · 지울 것), LLM 이 꺼져도 동작 |
-| `prompt_rag.py` | 승인된 교정·좋아요 문장 중 비슷한 것을 LLM 예시로 |
+| `prompt_rag.py` | 승인된 교정·좋아요 문장 중 비슷한 것을 LLM 예시로. 글자 n-gram에 `prompt_chroma.py`의 확인 문장 한 건을 보탤 수 있다 |
 | `segmentation.py` | YOLO-seg 인스턴스 · 대상 라벨 필터 · 라벨 별칭 · stub |
 | `stuff_segmentation.py` | 배경 덩어리(건물 · 하늘 · 도로 등) SegFormer ONNX |
 | `mask_exclusion.py` | 고른 인스턴스에서 다른 인스턴스 몫 덜어내기 · 위험 신호(`meta.leak`) |
