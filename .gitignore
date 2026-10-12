@@ -98,3 +98,7 @@ training/**/wandb/
 
 # Cloudflare wrangler 로컬 캐시
 .wrangler/
+
+# Vercel CLI 연결 정보와 로컬 토큰
+.vercel/
+.env.local
