@@ -1,6 +1,7 @@
-import { finishDeep, refundDeep, reserveDeep } from "@/lib/deepQuota";
+import { deepStatus, finishDeep, reserveDeep } from "@/lib/deepQuota";
 
 const AI = process.env.PORTFOLIO_AI_URL || "http://127.0.0.1:5055";
+const NO_STORE = { "Cache-Control": "no-store" };
 
 export const runtime = "nodejs";
 export const maxDuration = 600;
@@ -40,8 +41,11 @@ export async function POST(request: Request) {
     const gate = reserveDeep();
     if (!gate.ok) {
       return Response.json(
-        { detail: gate.detail, used: gate.used, limit: gate.limit, remaining: gate.remaining },
-        { status: 429 },
+        {
+          detail: gate.detail,
+          quota: { limit: gate.limit, used: gate.used, remaining: gate.remaining, resets: gate.resets },
+        },
+        { status: 429, headers: NO_STORE },
       );
     }
     reservation = gate.id;
@@ -54,18 +58,17 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(deep ? 600000 : 160000),
     });
     const data = await res.json();
-    const answer = typeof data?.answer === "string" ? data.answer : "";
-    const failed = answer.startsWith("문서에서는 답을 만들지 못했습니다");
-    if (reservation) {
-      if (res.ok && !failed) finishDeep(reservation);
-      else refundDeep(reservation);
-    }
-    return Response.json(data, { status: res.status });
+    if (reservation) finishDeep(reservation);
+    const reply = data && typeof data === "object" ? { ...data, quota: deepStatus() } : { quota: deepStatus() };
+    return Response.json(reply, { status: res.status, headers: NO_STORE });
   } catch {
-    if (reservation) refundDeep(reservation);
+    if (reservation) finishDeep(reservation);
     return Response.json(
-      { detail: "안내 서비스에 연결하지 못했습니다. Flask가 5055에서 떠 있는지 확인하세요." },
-      { status: 503 },
+      {
+        detail: "안내 서비스에 연결하지 못했습니다. Flask가 5055에서 떠 있는지 확인하세요.",
+        quota: deepStatus(),
+      },
+      { status: 503, headers: NO_STORE },
     );
   }
 }
