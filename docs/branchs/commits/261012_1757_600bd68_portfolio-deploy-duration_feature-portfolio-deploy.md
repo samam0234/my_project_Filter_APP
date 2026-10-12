@@ -38,13 +38,12 @@
   - `Portfolio/site` → Vercel 프로젝트 `cutnkeep-portfolio` (팀 `saman-33aa`), 주소 `https://cutnkeep-portfolio.vercel.app`
   - 프로젝트 설정 Root Directory = `Portfolio/site`, Node 22.x, 루트 밖 파일 포함 켬 (`../assets/spreadsheet.json` 때문)
   - 환경변수: `PORTFOLIO_AI_URL`(Render 주소), `PORTFOLIO_DEEP_DB=/tmp/deep_quota.sqlite`
-  - `Portfolio/ai` → Render 웹 서비스 `cutnkeep-portfolio-ai`, 주소 `https://cutnkeep-portfolio-ai.onrender.com`
-  - Render 빌드 `cd Portfolio/ai && pip install -r requirements.txt gunicorn`, 시작 `gunicorn app:app --workers 1 --threads 4 --timeout 600`
+  - `Portfolio/ai` 는 Render 웹 서비스 `cutnkeep-portfolio-ai` 로 한 번 올렸으나, Render 에는 `gemma4:12b` 를 올릴 수 없어 사용자가 직접 삭제했다. 지금 배포된 AI 안내 서버는 없다
 - 이 Vercel 계정은 GitHub 로그인 연결이 없어 Git 자동 배포 대신 CLI 로 올렸다. 저장소 전체 업로드는 파일이 3만 7천 개라 느려서 `site` 와 `assets` 만 임시 폴더에 복사해 올렸다
 
 ### 3.4 의도적으로 하지 않은 것
 
-- Ollama 서버 연결 (Render 에는 `gemma4:12b` 를 올릴 수 없어 `OLLAMA_BASE_URL` 은 비어 있음)
+- AI 안내 서버 재배포 (Ollama 를 돌릴 곳이 아직 정해지지 않음)
 - 깊이 추론 횟수의 영구 저장 (Vercel 은 `/tmp` 만 쓸 수 있어 인스턴스가 바뀌면 횟수가 초기화됨)
 
 ## 4. 커밋 관련 결과
@@ -52,19 +51,16 @@
 ### 4.1 동작 결과
 
 - [x] Vercel 배포 완료. `/`, `/frontend`, `/console`, `/backend`, `/ai`, `/project`, `/terms`, `/chat`, `/data/erd`, `/data/spreadsheet`, `/api/deep` 모두 200
-- [x] Render 배포 완료. `/health` 는 Ollama 가 없어 503
-- 챗 질문(`POST /api/chat`)은 Ollama 연결 전이라 동작하지 않는다
+- Render 서비스는 삭제됨. 챗(`/api/chat`)은 AI 안내 서버가 없어 동작하지 않는다
 
 ### 4.2 부작용 / 리스크
 
-- 챗은 Ollama 연결 전까지 503
-- Render 무료 서버는 한동안 요청이 없으면 잠들어 첫 요청이 느림
+- 챗은 AI 안내 서버가 다시 생길 때까지 실패한다. Vercel 의 `PORTFOLIO_AI_URL` 은 삭제된 Render 주소를 가리킨다
 - 깊이 추론 횟수는 Vercel 인스턴스별 `/tmp` 라 사이트 전체 하루 10번이 정확히 지켜지지 않을 수 있음
-- Render 의 `rag_memory.json` 학습 예시는 재시작하면 사라짐
 
 ### 4.3 후속 작업
 
-- Ollama 서버 정하기(Oracle Always Free Ampere A1 또는 PC + Cloudflare Tunnel) 후 Render `OLLAMA_BASE_URL` 설정
+- Ollama 를 돌릴 곳을 정해 `Portfolio/ai` 를 올린 뒤 Vercel `PORTFOLIO_AI_URL` 을 그 주소로 바꾼다
 - 병합은 전체 작업이 끝난 뒤 사용자 지시로
 
 ### 4.4 관련 문서
