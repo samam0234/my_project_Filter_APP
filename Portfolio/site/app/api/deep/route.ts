@@ -1,8 +1,8 @@
-import { deepStatus } from "@/lib/deepQuota";
+import { fetchDeepStatus } from "@/lib/deepQuota";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  return Response.json(deepStatus(), { headers: { "Cache-Control": "no-store" } });
+export async function GET() {
+  return Response.json(await fetchDeepStatus(), { headers: { "Cache-Control": "no-store" } });
 }

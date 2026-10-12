@@ -77,6 +77,14 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `328ddaf` | bugfix/deep-quota-kst → develop 병합 (no-ff) | [commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md](./commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md) |
+| `7859c14` | feature/portfolio-look → develop 병합 (no-ff) | [commits/261012_2155_7859c14_merge-portfolio-look_develop.md](./commits/261012_2155_7859c14_merge-portfolio-look_develop.md) |
+| `10855c6` | feature/guide-model-select → develop 병합 (no-ff) | [commits/261012_2154_10855c6_merge-guide-model_develop.md](./commits/261012_2154_10855c6_merge-guide-model_develop.md) |
+| `2a6e3ba` | feature/deep-quota-hold → develop 병합 (no-ff) | [commits/261012_2153_2a6e3ba_merge-deep-quota-hold_develop.md](./commits/261012_2153_2a6e3ba_merge-deep-quota-hold_develop.md) |
+| `d4647e0` | 한국 시간을 고정 시차로 계산 | [commits/261012_2156_d4647e0_deep-quota-kst_bugfix-deep-quota-kst.md](./commits/261012_2156_d4647e0_deep-quota-kst_bugfix-deep-quota-kst.md) |
+| `4289564` | 설명 사이트 헤더와 카드 모양 정리 | [commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md](./commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md) |
+| `8958ea2` | 안내 기본 모델을 e4b로 두고 12b를 선택 | [commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md](./commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md) |
+| `06ac333` | 깊이 추론 횟수를 자정 전에 되돌리지 않음 | [commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md](./commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md) |
 | `bf1efd0` | develop → main 병합 (no-ff) | [commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md](./commits/261012_2107_bf1efd0_merge-portfolio-deploy_main.md) |
 | `18388b6` | feature/portfolio-deploy → develop 병합 (no-ff) | [commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md](./commits/261012_2106_18388b6_merge-portfolio-deploy_develop.md) |
 | `600bd68` | Vercel Hobby 한도에 맞게 챗 함수 시간 조정 | [commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md](./commits/261012_1757_600bd68_portfolio-deploy-duration_feature-portfolio-deploy.md) |

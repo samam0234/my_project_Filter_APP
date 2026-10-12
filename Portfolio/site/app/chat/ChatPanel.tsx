@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 type Role = "user" | "assistant";
 type Msg = { role: Role; content: string; sources?: string[] };
 type Health = { ok?: boolean; ready?: boolean; model?: string; detail?: string };
-type Quota = { used: number; remaining: number; limit: number; resets: string };
+type Quota = { used: number; remaining: number; limit: number; resets: string; date?: string; ok?: boolean };
+
+const EMPTY_TIP = "토큰 횟수가 전부 떨어졌으니 자정때 까지 기다려주시길 바랍니다.";
 
 const KEY = "cnk-portfolio-chat-v1";
 const prompts = [
@@ -57,6 +59,7 @@ export function ChatPanel() {
   const [sparks, setSparks] = useState<string[] | null>(null);
   const [quota, setQuota] = useState<Quota | null>(null);
   const [deepOn, setDeepOn] = useState(false);
+  const [highModel, setHighModel] = useState(false);
   const [deepWait, setDeepWait] = useState(false);
   const box = useRef<HTMLTextAreaElement>(null);
   const tools = useRef<HTMLDivElement>(null);
@@ -69,7 +72,12 @@ export function ChatPanel() {
       .then((res) => res.json())
       .then((data: Quota) => {
         if (tick !== quotaTick.current) return;
-        if (typeof data.remaining === "number") setQuota(data);
+        if (typeof data.remaining !== "number") return;
+        setQuota((current) => {
+          if (data.ok === false) return current;
+          if (current?.date && data.date === current.date && data.remaining > current.remaining) return current;
+          return data;
+        });
       })
       .catch(() => {
         if (tick === quotaTick.current) setQuota(null);
@@ -119,10 +127,16 @@ export function ChatPanel() {
     area.style.overflowY = area.scrollHeight > max + 1 ? "auto" : "hidden";
   }, [text]);
 
+  const model = highModel ? "gemma4:12b" : "gemma4:e4b";
+
   async function send(content: string, deep = false) {
     const question = content.trim();
     if (!question || pending || busy.current) {
       if (deep && !question) setError("질문을 입력한 뒤 보내기를 누르세요.");
+      return;
+    }
+    if (deep && (!quota || quota.ok === false || quota.remaining <= 0)) {
+      setError(quota && quota.remaining <= 0 ? EMPTY_TIP : "깊이 추론 횟수를 확인하지 못했습니다.");
       return;
     }
     busy.current = true;
@@ -145,13 +159,19 @@ export function ChatPanel() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           deep,
+          model,
           messages: next.slice(-8).map(({ role, content: body }) => ({ role, content: body })),
         }),
       });
       const data = (await res.json()) as { answer?: string; sources?: string[]; detail?: string; quota?: Quota };
       if (data.quota && typeof data.quota.remaining === "number") {
         quotaTick.current += 1;
-        setQuota(data.quota);
+        setQuota((current) => {
+          const incoming = data.quota as Quota;
+          if (incoming.ok === false) return current;
+          if (current?.date && incoming.date === current.date && incoming.remaining > current.remaining) return current;
+          return incoming;
+        });
       } else if (deep) {
         loadQuota();
       }
@@ -212,8 +232,9 @@ export function ChatPanel() {
           {messages.length === 0 && (
             <p>
               문서에 있는 내용만 답합니다. 이 창의 기록은 localStorage에 있고, 배운 질문과 답은 JSON과 Chroma에 남습니다.
-              뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기와 왼쪽 질문이 그 모드로 나갑니다. 횟수는 보내는 즉시 줄고, 이 사이트 전체에서 하루 10번이며 한국 시간 오전 12시에 초기화됩니다.
-              횟수는 서버 SQLite에 있으며 이 브라우저에 저장하지 않습니다.
+              뇌 버튼을 누르면 깊이 추론이 선택되고, 보내기와 왼쪽 질문이 그 모드로 나갑니다. 횟수는 보내는 즉시 줄고, 이 사이트 전체에서 하루 10번이며 한국 시간 오전 12시 전에는 다시 채워지지 않습니다.
+              보내기 위 버튼은 모델을 고릅니다. 기본은 gemma4:e4b이고, 누르면 높은 모델 gemma4:12b입니다.
+              횟수는 안내 서비스 파일에 있으며 이 브라우저에 저장하지 않습니다.
             </p>
           )}
           {messages.map((msg, i) => (
@@ -227,7 +248,7 @@ export function ChatPanel() {
               <span /><span /><span />
               {deepWait
                 ? "깊이 추론 중입니다. 문서를 더 넓게 보고, 생성을 일반 답의 2.5배로 씁니다. 5분에서 10분까지 걸릴 수 있습니다."
-                : "문서를 찾고 12b로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다."}
+                : `문서를 찾고 ${model}로 답을 쓰는 중입니다. 처음이면 모델 로드로 1분 가까이 걸릴 수 있습니다.`}
             </div>
           )}
           {error && <div className="note">{error}</div>}
@@ -264,18 +285,25 @@ export function ChatPanel() {
               }}
             />
             <div className="composer-tools" ref={tools}>
+              <span
+                className="tip"
+                data-tip={quota && quota.remaining <= 0 ? EMPTY_TIP : undefined}
+              >
               <button
                 className="brain"
                 type="button"
                 aria-label="깊이 추론하기"
                 aria-pressed={deepOn}
                 title={
-                  quota
-                    ? `깊이 추론하기. ${deepOn ? "선택됨. 보내기로 전송합니다." : "누르면 선택된 뒤 보내기로 전송합니다."} 오늘 ${quota.remaining}/${quota.limit}. 이 사이트 전체이며 ${quota.resets}에 초기화됩니다.`
-                    : "깊이 추론하기. 오늘 남은 횟수를 확인하는 중입니다."
+                  quota && quota.remaining <= 0
+                    ? EMPTY_TIP
+                    : quota
+                      ? `깊이 추론하기. ${deepOn ? "선택됨. 보내기로 전송합니다." : "누르면 선택된 뒤 보내기로 전송합니다."} 오늘 ${quota.remaining}/${quota.limit}. 이 사이트 전체이며 ${quota.resets}에 초기화됩니다.`
+                      : "깊이 추론하기. 오늘 남은 횟수를 확인하는 중입니다."
                 }
-                disabled={pending || !quota || quota.remaining <= 0}
+                disabled={pending || !quota || quota.ok === false || quota.remaining <= 0}
                 onClick={() => {
+                  if (!quota || quota.ok === false || quota.remaining <= 0) return;
                   setError("");
                   setDeepOn((current) => !current);
                 }}
@@ -287,6 +315,7 @@ export function ChatPanel() {
                 </svg>
                 <span className="brain-count">{quota ? `${quota.remaining}/${quota.limit}` : "…"}</span>
               </button>
+              </span>
               <button
                 className="bolt"
                 type="button"
@@ -299,7 +328,23 @@ export function ChatPanel() {
                 </svg>
               </button>
             </div>
-            <button className="btn" type="submit" disabled={pending}>보내기</button>
+            <div className="composer-go">
+              <button
+                className="model"
+                type="button"
+                aria-pressed={highModel}
+                title={
+                  highModel
+                    ? "높은 모델 gemma4:12b 가 선택되어 있습니다. 누르면 기본 모델 gemma4:e4b 로 돌아갑니다."
+                    : "기본 모델은 gemma4:e4b 입니다. 누르면 높은 모델 gemma4:12b 를 선택합니다."
+                }
+                onClick={() => setHighModel((current) => !current)}
+              >
+                <small>{highModel ? "높은 모델" : "기본 모델"}</small>
+                {model}
+              </button>
+              <button className="btn" type="submit" disabled={pending}>보내기</button>
+            </div>
           </div>
         </form>
       </section>
