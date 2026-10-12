@@ -1,12 +1,11 @@
 """깊이 추론 횟수는 한국 시간 날짜가 바뀌기 전에 10으로 돌아가지 않는다."""
 
 import sqlite3
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from deep_quota import reserve, status
 
-SEOUL = ZoneInfo("Asia/Seoul")
+SEOUL = timezone(timedelta(hours=9))
 
 
 def test_same_kst_day_does_not_restore_and_next_midnight_does(tmp_path):
@@ -37,7 +36,7 @@ def test_same_kst_day_does_not_restore_and_next_midnight_does(tmp_path):
 def test_utc_evening_is_still_the_same_kst_date(tmp_path):
     store = tmp_path / "deep_quota.sqlite"
     legacy = tmp_path / "missing.sqlite"
-    before_midnight = datetime(2026, 10, 12, 14, 30, tzinfo=ZoneInfo("UTC"))
+    before_midnight = datetime(2026, 10, 12, 14, 30, tzinfo=timezone.utc)
     reserve(before_midnight, store, legacy)
     assert status(before_midnight, store, legacy)["date"] == "2026-10-12"
     assert status(before_midnight, store, legacy)["used"] == 1

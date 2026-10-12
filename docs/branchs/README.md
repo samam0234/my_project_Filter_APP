@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `d4647e0` | 한국 시간을 고정 시차로 계산 | [commits/261012_2156_d4647e0_deep-quota-kst_bugfix-deep-quota-kst.md](./commits/261012_2156_d4647e0_deep-quota-kst_bugfix-deep-quota-kst.md) |
 | `4289564` | 설명 사이트 헤더와 카드 모양 정리 | [commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md](./commits/261012_2153_4289564_portfolio-look_feature-portfolio-look.md) |
 | `8958ea2` | 안내 기본 모델을 e4b로 두고 12b를 선택 | [commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md](./commits/261012_2150_8958ea2_guide-model-select_feature-guide-model-select.md) |
 | `06ac333` | 깊이 추론 횟수를 자정 전에 되돌리지 않음 | [commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md](./commits/261012_2146_06ac333_deep-quota-hold_feature-deep-quota-hold.md) |
