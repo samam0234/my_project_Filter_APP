@@ -7,13 +7,13 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 LIMIT = 10
 RESETS = "한국 시간 오전 12시"
-SEOUL = ZoneInfo("Asia/Seoul")
+# 한국은 1988년 이후 서머타임이 없다. tzdata가 없는 Windows 안내 환경에서도 오전 12시를 같게 센다.
+SEOUL = timezone(timedelta(hours=9))
 ROOT = Path(__file__).resolve().parent
 STORE = ROOT / "data" / "deep_quota.sqlite"
 LEGACY = ROOT.parent / "site" / "data" / "deep_quota.sqlite"
