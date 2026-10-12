@@ -23,7 +23,11 @@ def test_merge_keeps_lexical_order_and_one_new_verified_hit():
         Hit(Example("왼쪽에서 두 번째 사람 지워줘", '{"effect":"remove_object"}', "correction"), 0.88),
     ]
     merged = merge_hits(lexical, vector, k=2)
-    assert [hit.example.prompt for hit in merged] == ["강아지만 남기고 배경 블러", "왼쪽에서 두 번째 사람 지워줘"]
+    assert [hit.example.prompt for hit in merged] == [
+        "강아지만 남기고 배경 블러",
+        "흰색 차 없애줘",
+        "왼쪽에서 두 번째 사람 지워줘",
+    ]
     assert merge_hits(lexical, [], k=2) == lexical
 
 
