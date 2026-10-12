@@ -130,15 +130,12 @@ def search_grounding(runtime: Path, shared: Path, query: str, k: int, min_simila
 
 
 def merge_hits(lexical: list[Hit], vector: list[Hit], k: int) -> list[Hit]:
-    """글자 검색을 유지하고, 아직 없는 확인 문장이 있으면 한 자리를 그 예시에 쓴다."""
+    """글자 검색 결과를 빼지 않고, 그 목록에 없는 확인 문장 한 건을 뒤에 붙인다."""
     if k <= 0:
         return []
-    seen = {_normalize(hit.example.prompt) for hit in lexical}
+    base = list(lexical[:k])
+    seen = {_normalize(hit.example.prompt) for hit in base}
     extra = next((hit for hit in vector if _normalize(hit.example.prompt) not in seen), None)
-    if extra is None:
-        return lexical[:k]
-    if not lexical:
-        return [extra]
-    kept = list(lexical[: max(0, k - 1)])
-    kept.append(extra)
-    return kept[:k]
+    if extra is not None:
+        base.append(extra)
+    return base
