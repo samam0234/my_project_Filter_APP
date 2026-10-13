@@ -1,5 +1,7 @@
-# 인수인계 — 컷앤킵 현재 상태와 운영법 (2026-10-12)
+# 인수인계 — 컷앤킵 현재 상태와 운영법 (2026-10-13)
 
+> 2026-10-13에 제품 문서와 설명 사이트(`Portfolio/`)를 코드와 대조했다. 아래 테스트 505 · 95 · 21과 서버 `deploy_check remote` 실패 0 · 경고 0은 **2026-10-12 기록**이다. 이 대조에서 테스트를 다시 돌리지는 않았다.
+>
 > 이 문서는 **새 에이전트(Claude · Codex · Cursor · Gemini · Copilot · Grok …)와 새 담당자**가 이 문서 하나로 지금 상태를 이해하고 이어서 일할 수 있게 쓴다.
 > 규칙은 [`../AGENTS.md`](../AGENTS.md) · [`../.agents/skills/cutnkeep/SKILL.md`](../.agents/skills/cutnkeep/SKILL.md), 기능 전체는 [FEATURES.md](./FEATURES.md), 포트 · DB 스냅샷은 [plan/CURRENT_STACK.md](./plan/CURRENT_STACK.md).
 > **비밀 값(비밀번호 · 키 · 토큰)은 이 문서에도, 저장소 어디에도 없다.** 아래 "접근 방법"을 읽고 사용자에게서 받는다.
@@ -137,3 +139,21 @@ user_admin.delete_user(db, ldb, user_id, confirm=username, actor_username="agent
 2. 문서: API_DOCUMENTATION · FEATURES · user-frontend(화면) · frontend/backend README · `.env.example`(설정) · 필요하면 security · legal(개인정보) · 이 문서
 3. 커밋 + 커밋 기록 md → (사용자 지시 시) develop → main 병합, push
 4. 배포는 위 4절 순서, 끝나면 `deploy_check remote` 와 새 기능을 **실제로 한 번 호출**해 확인
+
+## 10. 설명 사이트 (제품이 아님)
+
+`Portfolio/`는 컷앤킵을 읽어 주는 별도 프로그램이다. 사진을 처리하지 않고, 제품 FastAPI · MariaDB · 운영 `.env`를 바꾸지 않는다.
+
+| 구성 | 사실 |
+|------|------|
+| 화면 | `Portfolio/site` Next.js. 로컬 `http://127.0.0.1:5190`. 제품 Vite(`5173`)와 다른 앱 |
+| 안내 | `Portfolio/ai` Flask. 코드 기본 `http://127.0.0.1:5055`. 제품 API(`8000`)가 아니다 |
+| 모델 | 기본 `gemma4:e4b`. 보내기 **위** 버튼은 `gemma4:12b`를 고르기만 하고 전송하지 않는다. 제품 `OLLAMA_MODEL`을 바꾸지 않는다. e4b가 없으면 챗 health만 503. 12b가 없어도 기본 답은 된다. 고른 모델이 없으면 그 요청만 503이고, 그 전에 깊이 추론 횟수를 줄이지 않는다 |
+| 대화 | 화면 기록은 브라우저 `localStorage` 키 `cnk-portfolio-chat-v1`. 서버에 대화 목록을 두지 않는다 |
+| 학습 예시 | `Portfolio/ai/data/rag_memory.json`과 `Portfolio/ai/data/chroma`. 글자 n-gram. 임베딩 모델은 받지 않는다. 문서와 예시가 다르면 문서를 따른다 |
+| 깊이 추론 | 하루 10번, 사이트 전체. 파일 `Portfolio/ai/data/deep_quota.sqlite`, 표 `deep_day`(`kst_date`, `used`). 날짜는 `ZoneInfo("Asia/Seoul")`가 아니라 UTC+9다. 안내 가상환경에 tzdata가 없다. 한국 시간 오전 12시 전에는 횟수를 지우거나 10으로 채우지 않는다. 안내가 요청을 받은 뒤 답이 실패해도 줄인 횟수는 유지한다. Next는 `GET /api/deep`로 Flask `GET /v1/deep`만 읽고, 자기 디스크에 세지 않는다. 안내에 닿지 않으면 남은 횟수를 10으로 만들지 않는다. 같은 날짜에서 더 큰 남은 횟수가 오면 화면은 무시한다 |
+| 0회 안내 | 뇌 버튼은 눌리지 않는다. 마우스를 올리면 이 문장만 보인다: `토큰 횟수가 전부 떨어졌으니 자정때 까지 기다려주시길 바랍니다.` |
+| 챗 시간 | `Portfolio/site/app/api/chat/route.ts`의 `maxDuration`은 300. 대기는 일반 160초, 깊이 추론 290초. Vercel Hobby 상한이 300초다 |
+| 제품 Chroma | 안내 저장소와 별개다. 루트 `data/chroma`는 확인된 피드백, `backend/data/chroma`는 승인 문장. 없어도 제품 해석은 글자 검색으로 계속된다 |
+
+설명 문서는 `Portfolio/README.md`와 `Portfolio/markdown/`이다. 제품 기능의 정본은 이 문서와 [FEATURES.md](./FEATURES.md)다.

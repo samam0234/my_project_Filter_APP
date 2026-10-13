@@ -6,7 +6,7 @@
 - 엔드포인트가 API 문서에 있는지
 - 설정이 `.env.example` 과 문서에 있는지
 
-기준일: 2026-10-10 (`develop`) · 포트·DB·Docker 는 [`plan/CURRENT_STACK.md`](plan/CURRENT_STACK.md) · API 상세는 [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md)
+기준일: 2026-10-13 (`develop`) · 테스트 505 · 95 · 21은 2026-10-12 인수인계 기록(이 날짜에 다시 세지 않음) · 포트·DB·Docker 는 [`plan/CURRENT_STACK.md`](plan/CURRENT_STACK.md) · API 상세는 [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md) · 설명 사이트는 8절
 
 ---
 
@@ -59,7 +59,7 @@
 | 문장 해석 LLM | `services/prompt_llm.py` | `LLM_PROVIDER`(ollama · lora · openai · gemini) · `LLM_FALLBACK` | 기본 Ollama `gemma4:e4b` |
 | 키워드 파서 | `services/heuristic_targets.py` | — | LLM 이 꺼져도 동작, 역할 규칙(남길 것 · 뺄 것 · 지울 것) |
 | 해석 체인 (LangChain) | `services/prompt_chain.py` | `PROMPT_CHAIN=langchain` · `PROMPT_VOTES` | LLM 답과 키워드 파서가 다르면 다수결 — 처음 본 문장 86.7→96.7% |
-| RAG 예시 | `services/prompt_rag.py` | `PROMPT_RAG_*` | 승인된 교정 문장을 LLM 예시로, 30초 안에 반영 |
+| RAG 예시 | `services/prompt_rag.py` · `services/prompt_chroma.py` | `PROMPT_RAG_*` | 승인된 교정 문장을 LLM 예시로, 30초 안에 반영. 글자 n-gram에 `backend/data/chroma`(`approved_prompts`)와 루트 `data/chroma`(`verified_feedback`)의 확인 문장 한 건을 더할 수 있다. 임베딩 모델은 받지 않는다. 저장소가 없어도 해석은 계속된다 |
 | 해석 혼합 (선택) | `services/prompt_chain.py` | `PROMPT_SECOND_OPINION` | LoRA 먼저, 키워드 파서와 갈릴 때만 다른 provider(Ollama) — 253문장 91.3% · 3.0초 (기본 체인 85.4% · 6.9초) — [`vaildates/parser-compare-20261009.md`](vaildates/parser-compare-20261009.md) |
 | LoRA 해석 모델 | `services/prompt_lora.py` · `training/lora/` | `LLM_PROVIDER=lora` | Qwen2.5-1.5B 어댑터 — [`vaildates/lora-selector-20261009.md`](vaildates/lora-selector-20261009.md) (조합형 + 선택자 문장, 283문장 94.7% · 1.0초/문장 GPU) |
 | 낱개 물체 세그 | `services/segmentation.py` | `YOLO_MODEL_PATH` · `SEG_PREFER_ONNX` · `SEG_IMGSZ` · `SEG_NMS_IOU` (Docker 빌드 인자 `SEG_RUNTIME`) | YOLO26m-seg (.pt / ONNX) |
@@ -145,7 +145,23 @@
 |------|------|
 | 로컬 | backend `uvicorn`(:8000) · frontend Vite(:5173) · console Vite(:5174) — [`../RUN.md`](../RUN.md) |
 | Docker (`-p cut_and_keep`) | frontend(nginx :80) · backend · MariaDB · Redis · Adminer · celery_worker(프로필 phase2) — [`guidance/docker-run.md`](guidance/docker-run.md) |
-| 실서버 · Cloudflare | `docker-compose.https.yml` · `docker-compose.pc-ollama.yml` · `deploy/cloudflare/` | Oracle ARM 서버 + Cloudflare Worker 화면 + PC Ollama 터널 — [`DEPLOYMENT.md`](DEPLOYMENT.md) · [`guidance/ollama-server.md`](guidance/ollama-server.md) |
+| 실서버 · Cloudflare | Oracle ARM 서버 + Cloudflare Worker 화면 + PC Ollama 터널 (`docker-compose.https.yml` · `docker-compose.pc-ollama.yml` · `deploy/cloudflare/`) — [`DEPLOYMENT.md`](DEPLOYMENT.md) · [`guidance/ollama-server.md`](guidance/ollama-server.md) |
 | 모델 파일 (git 밖) | `backend/models/` — YOLO · SegFormer · LaMa · LoRA ([`backend/models/README.md`](../backend/models/README.md)) |
-| 테스트 | 백엔드 pytest · 프론트/콘솔 vitest · 문서 등록 검사 — [`plan/TESTING.md`](plan/TESTING.md) |
+| 테스트 | 백엔드 pytest · 프론트/콘솔 vitest · 문서 등록 검사 — [`plan/TESTING.md`](plan/TESTING.md). 2026-10-12 기록은 백엔드 505 · 프론트 95 · 콘솔 21. 2026-10-13 문서 대조에서 다시 세지 않음 |
 | 실험 · 평가 | `scripts/experiments/` — 결과는 [`vaildates/README.md`](vaildates/README.md) |
+
+## 8. 설명 사이트 (Portfolio, 제품 밖)
+
+이미지를 처리하지 않는다. 제품 화면 · API · DB와 프로세스가 다르다. 정본 운영 상태는 [`HANDOVER.md`](HANDOVER.md) 10절.
+
+| 구성 | 위치 | 설명 |
+|------|------|------|
+| 화면 | `Portfolio/site` · 로컬 5190 | Next.js. 제품 Vite 5173이 아님 |
+| 안내 | `Portfolio/ai` · 코드 기본 5055 | Flask. 제품 FastAPI 8000이 아님. 기본 모델 `gemma4:e4b`. 보내기 위 버튼은 `gemma4:12b` 선택만 하고 전송하지 않음 |
+| 대화 기록 | 브라우저 `localStorage` `cnk-portfolio-chat-v1` | 서버에 대화 목록 없음 |
+| 학습 예시 | `Portfolio/ai/data/rag_memory.json` · `Portfolio/ai/data/chroma` | 글자 n-gram. 임베딩 모델은 받지 않음. 제품 `data/chroma` · `backend/data/chroma`와 다른 저장소 |
+| 깊이 추론 | `Portfolio/ai/data/deep_quota.sqlite` 표 `deep_day` | 사이트 전체 하루 10번. 날짜는 UTC+9. 한국 시간 오전 12시 전에는 횟수를 되돌리거나 10으로 채우지 않음. 안내가 요청을 받은 뒤 실패해도 유지. Next `GET /api/deep`는 Flask `GET /v1/deep`만 읽음 |
+| 0회 | 뇌 버튼 | 눌리지 않음. 안내 문장은 `토큰 횟수가 전부 떨어졌으니 자정때 까지 기다려주시길 바랍니다.` |
+| 챗 시간 | `app/api/chat/route.ts` | `maxDuration` 300. 대기 일반 160초 · 깊이 추론 290초 |
+
+설명 글: [`../Portfolio/README.md`](../Portfolio/README.md) · [`../Portfolio/markdown/`](../Portfolio/markdown/)

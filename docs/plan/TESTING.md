@@ -69,7 +69,7 @@ push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 
 
 - 모델(ultralytics·torch)이 필요한 테스트는 `importorskip` 으로 건너뛰고 세그는 stub 마스크로 동작
 - 매주 월요일에도 돈다(`schedule`) — 코드가 그대로여도 새로 알려진 의존성 취약점을 잡는다
-- 로컬 전체: 2026-10-11 기준 **백엔드 505 · 프론트 95 · 콘솔 21** 통과 (계정 · 이메일 인증 · 메일 템플릿 · AI 채팅 · 내 계정 포함)
+- 로컬 전체: 2026-10-12 인수인계 기록 **백엔드 505 · 프론트 95 · 콘솔 21** 통과 (계정 · 이메일 인증 · 메일 템플릿 · AI 채팅 · 내 계정 포함). 2026-10-13 문서 대조에서는 이 숫자를 다시 세지 않았다
 - 메일 테스트는 개인 `.env` 의 SMTP 값에 영향받지 않게 `Settings(...)` 에 값을 직접 넣는다 (2026-10-11 로컬 `.env` 에 SMTP 를 넣자 깨진 적이 있다)
 - 로컬에서 CI 와 같은 조건 확인 (2026-10-10, 깨끗한 venv · 모델 · `.env` 없이 — 전부 통과, 모델 파일이 필요한 1개만 건너뜀 · pip-audit 0건):
   `pip install -r requirements.docker.txt -r tests/requirements-test.txt` 후 git 파일만 꺼낸 폴더(`git archive`)에서 pytest
@@ -78,8 +78,8 @@ push(`main`·`develop`·`feature/**`·`fix/**`) · PR(`main`·`develop`) 마다 
 ### 프론트 · 콘솔 테스트 (vitest + Testing Library, jsdom)
 
 ```powershell
-cd frontend; npm test      # 50건 — 회원 전용 화면, 로그인, 라우터, 프롬프트 입력, 배치, 영상, GIF 탭, 작업 기록(종류 필터), 포맷
-cd console;  npm test      # 21건 — 학습 데이터 검수, 회원 관리, 시스템·정리, 로그인
+cd frontend; npm test      # 2026-10-12 기록 95건 — 회원 전용 화면, 로그인, 라우터, 프롬프트 입력, 배치, 영상, GIF 탭, 작업 기록(종류 필터), 포맷
+cd console;  npm test      # 2026-10-12 기록 21건 — 학습 데이터 검수, 회원 관리, 시스템·정리, 로그인
 ```
 
 테스트 파일(`*.test.ts[x]`)은 `tsconfig.app.json` 에서 빼 프로덕션 빌드와 분리한다.
