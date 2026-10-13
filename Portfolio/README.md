@@ -56,8 +56,8 @@ npm run dev
 | `site/` | Next.js. 화면과 이 사이트의 API |
 | `ai/` | Flask. 포트폴리오를 설명하는 AI 안내. 제품 백엔드와 별도 |
 
-화면의 챗 기록은 브라우저 `localStorage`만 쓴다. 대화 본문용 데이터베이스는 두지 않는다. 학습에 쓸 질문과 답은 `Portfolio/ai/data/rag_memory.json`과 `Portfolio/ai/data/chroma`에 남는다. 깊이 추론 횟수만 `Portfolio/ai/data/deep_quota.sqlite`에 남고, 사이트 전체로 하루 10번이다. 한국 시간 날짜가 바뀌기 전에는 횟수를 되돌리거나 10으로 채우지 않는다. 안내 서비스가 요청을 받은 뒤에는 답이 실패해도 줄인 횟수를 유지한다.
-안내 기본 모델은 Ollama `gemma4:e4b`다. 높은 모델 `gemma4:12b`는 보낼 때 고른다.
+화면의 챗 기록은 브라우저 `localStorage`만 쓴다. 대화 본문용 데이터베이스는 두지 않는다. 학습에 쓸 질문과 답은 `Portfolio/ai/data/rag_memory.json`과 `Portfolio/ai/data/chroma`에 남는다. 깊이 추론 횟수는 `Portfolio/ai/data/deep_quota.sqlite`의 표 `deep_day`에만 남고, 사이트 전체로 하루 10번이다. 날짜는 UTC+9다. 한국 시간 날짜가 바뀌기 전에는 횟수를 되돌리거나 10으로 채우지 않는다. 안내 서비스가 요청을 받은 뒤에는 답이 실패해도 줄인 횟수를 유지한다. 남은 횟수가 0이면 뇌 버튼은 눌리지 않고, 마우스를 올리면 `토큰 횟수가 전부 떨어졌으니 자정때 까지 기다려주시길 바랍니다.`가 나온다.
+안내 기본 모델은 Ollama `gemma4:e4b`다. 높은 모델 `gemma4:12b`는 보내기 위 버튼으로 고른다. 그 버튼은 전송하지 않는다.
 
 ## 제품과 이 사이트의 차이
 
