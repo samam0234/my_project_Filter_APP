@@ -1,7 +1,7 @@
 # 컷앤킵 — 현재 스택 스냅샷
 
 **기준 브랜치:** `develop`  
-**스냅샷 일자:** 2026-10-11 (실서버 배포 · Cloudflare Worker · PC Ollama 터널 · 내 계정 · 이메일 인증 가입 · HTML 메일 · AI 채팅 · 해석 모델 고르기 · 영상 추적 · GPU 오버레이 · 배포 도구 반영)  
+**스냅샷 일자:** 2026-10-11 제품 구성(실서버 배포 · Cloudflare Worker · PC Ollama 터널 · 내 계정 · 이메일 인증 가입 · HTML 메일 · AI 채팅 · 해석 모델 고르기 · 영상 추적 · GPU 오버레이 · 배포 도구). 2026-10-13에 설명 사이트와 Chroma 경로를 코드와 맞췄다. 제품 테스트 숫자 505 · 95 · 21은 2026-10-12 기록이며 이 날 다시 세지 않았다.  
 **목적:** 추가·수정·제외된 구성을 한곳에 모아, 다른 문서가 어긋나지 않게 한다.
 
 ---
@@ -13,6 +13,8 @@
 | Backend FastAPI | `:8000` | **`127.0.0.1:${BACKEND_PORT:-8000}`** (호스트에서 uvicorn 을 따로 띄우면 `BACKEND_PORT=8001`) |
 | Frontend (사용자) | Vite 7 `:5173` | nginx **`:80` — 유일한 공개 포트** (보안 헤더 · 영상/GIF 85MB · 600초 · 사진 300초) |
 | Console (운영) | Vite 7 `:5174` | **Compose 미포함** → 로컬만. 콘솔 API 는 관리자 로그인(`CONSOLE_ADMINS`) 또는 서버 PC |
+| 설명 사이트 | Next.js `:5190` | **제품 Compose 밖.** `Portfolio/site`. 이미지를 처리하지 않는다 |
+| 설명 안내 | Flask `:5055` (코드 기본) | **제품 API 아님.** `Portfolio/ai`. 기본 모델 `gemma4:e4b`. 12b는 보내기 위 버튼으로만 고른다 |
 | MariaDB | (선택) 호스트 클라이언트 | **`127.0.0.1:${MARIADB_PORT}`** (예: 3309) → 컨테이너 `3306` |
 | Redis | — | **`127.0.0.1:6380`** → 컨테이너 `6379` |
 | Adminer | — | **`127.0.0.1:8081`** (Server=`mariadb`) |
@@ -160,6 +162,9 @@ Backend 컨테이너 오버라이드 예:
 | `.github/Read_for_we.md` | GitHub 폴더 내부 안내 (구 README — 홈 아님) |
 | `.agents/`, `.grok/`, `.claude/` 등 | 에이전트 도구 설정 (앱 런타임 아님) |
 | `AGENTS.md` | 에이전트 프로젝트 규칙 요약 |
+| `Portfolio/site` | 설명 사이트. 제품 `frontend/`가 아님 |
+| `Portfolio/ai` | 설명용 Flask 안내. 제품 `backend/`가 아님 |
+| `Portfolio/markdown` | 설명 글. 제품 기능이 여기와 다르면 `docs/HANDOVER.md` · `docs/FEATURES.md`가 우선 |
 
 ---
 
@@ -173,6 +178,8 @@ Backend 컨테이너 오버라이드 예:
 | 학습 공유 | `data/` | `feedback/`, `pseudo_labels/` | 루트 상대 |
 | 학습 공유 | `models/` | 모델 원본·후보·LoRA 어댑터 보관소 | 루트 상대 |
 | 학습 공유 | `logs/` | 학습·스크립트 로그 | 루트 상대 |
+| 확인 문장 벡터 | `data/chroma` · `backend/data/chroma` | 교정·좋아요와 승인 문장. Git 제외. 임베딩 모델은 받지 않음. 없어도 글자 검색으로 해석 | 루트 · `backend/` |
+| 안내 전용 | `Portfolio/ai/data/` | `rag_memory.json` · `chroma/` · `deep_quota.sqlite`(표 `deep_day`). 제품 DB와 별도. Git 제외 | `Portfolio/ai/` 상대 |
 
 - 코드: `Settings.resolve_runtime_path` / `resolve_shared_path` (`backend/app/core/config.py`)
 - 배포: `training/yolo/apply_best.py` → `backend/models/`
@@ -187,6 +194,7 @@ Backend 컨테이너 오버라이드 예:
 - [ ] requirements **루트** 위치
 - [ ] YOLO **m-seg** 기본
 - [ ] 내부 포트 **127.0.0.1** 바인딩 · 공개는 frontend :80
+- [ ] 설명 사이트(`Portfolio/`, 5190 · 5055)를 제품 화면 · API로 적지 않음
 - [ ] 작업 종류(사진 · 영상 · GIF) · LaMa · 자동 정리 · 자동 백업
 - [ ] 커밋 기록 경로 **branchs/commits**
 - [ ] 오버레이 **https · gpu · pc-ollama**, Cloudflare Worker(`deploy/cloudflare`), 배포 도구 `make_prod_env` · `deploy_check` · `models_bundle` ([`DEPLOYMENT.md`](../DEPLOYMENT.md))

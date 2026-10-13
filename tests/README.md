@@ -48,14 +48,14 @@ tests/
     └── test_imports.py
 ```
 
-2026-10-10 기준 **463 passed** (프론트 65 · 콘솔 21) (모델이 필요한 테스트는 `importorskip` 으로 건너뜀). 테스트는 실제 `backend/data` 를 건드리지 않는다 — 업로드 · 피드백 폴더는 임시 폴더로, 서비스 · 학습 DB 는 엔진 싱글톤까지 메모리 DB 로 바꾼다 (라우터 밖 직접 세션 포함).
+2026-10-12 인수인계 기록은 **백엔드 505 · 프론트 95 · 콘솔 21** 이다. 2026-10-10의 463 · 65 · 21은 그 전 기록이라 현재 숫자로 쓰지 않는다. 2026-10-13 문서 대조에서는 다시 세지 않았다. 모델이 필요한 테스트는 `importorskip` 으로 건너뛴다. 테스트는 실제 `backend/data` 를 건드리지 않는다 — 업로드 · 피드백 폴더는 임시 폴더로, 서비스 · 학습 DB 는 엔진 싱글톤까지 메모리 DB 로 바꾼다 (라우터 밖 직접 세션 포함).
 
 ## 실행 방법
 
 ### 전체
 
 ```powershell
-cd d:\my_project\CutNKeep
+cd d:\vscode\CutAndKeep\my_project_Filter_APP
 
 # backend venv (Python 3.11 권장) 활성화 후
 pip install -r requirements.txt
