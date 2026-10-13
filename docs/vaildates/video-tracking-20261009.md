@@ -1,7 +1,7 @@
 # 영상 · GIF 고른 대상 따라가기 (2026-10-09)
 
 > 실행: `python scripts/experiments/video_tracking_eval.py --n 40 --seg oracle` · `--n 20 --reps 2 --seg yolo`
-> 원자료: [`video_tracking_eval_oracle_20261009.json`](./video_tracking_eval_oracle_20261009.json) · [`video_tracking_eval_yolo_20261009.json`](./video_tracking_eval_yolo_20261009.json)
+> 원자료: [`video_tracking_eval_oracle_20261009.json`](./json_files/video_tracking_eval_oracle_20261009.json) · [`video_tracking_eval_yolo_20261009.json`](./json_files/video_tracking_eval_yolo_20261009.json)
 > 코드: `backend/app/services/instance_tracker.py` · `video_processor.FrameRenderer` · 설정 `VIDEO_TRACK_INSTANCES` (기본 true)
 
 ## 문제

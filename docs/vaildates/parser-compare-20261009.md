@@ -1,7 +1,7 @@
 # 문장 해석기 비교 — Ollama 체인 vs LoRA vs 혼합 (2026-10-09)
 
-> 실행: `python scripts/experiments/parser_compare.py --out docs/vaildates/parser_compare_20261009.json`
-> 원자료: [`parser_compare_20261009.json`](./parser_compare_20261009.json) (평가셋 · 파서별 정확도 · 호출 수 · 오답 전부)
+> 실행: `python scripts/experiments/parser_compare.py --out docs/vaildates/json_files/parser_compare_20261009.json`
+> 원자료: [`parser_compare_20261009.json`](./json_files/parser_compare_20261009.json) (평가셋 · 파서별 정확도 · 호출 수 · 오답 전부)
 > 앞 단계: [`lora-compositional-20261009.md`](./lora-compositional-20261009.md)
 
 ## 왜
@@ -47,7 +47,7 @@ LoRA 는 greedy 생성이라 같은 문장에 늘 같은 답을 낸다. 지금 �
 
 LoRA 를 개수 + 위치 선택자 문장으로 다시 학습한 뒤([`lora-selector-20261009.md`](./lora-selector-20261009.md)) 같은 스크립트로 다시 쟀다. 평가셋에 선택자 30문장(fresh3)을 더해 7개 · 283문장이다.
 Ollama 체인은 모델이 바뀌지 않아 fresh3 만 새로 쟀다.
-원자료: [`parser_compare_lora2_20261009.json`](./parser_compare_lora2_20261009.json) · [`parser_compare_fresh3_ollama_20261009.json`](./parser_compare_fresh3_ollama_20261009.json)
+원자료: [`parser_compare_lora2_20261009.json`](./json_files/parser_compare_lora2_20261009.json) · [`parser_compare_fresh3_ollama_20261009.json`](./json_files/parser_compare_fresh3_ollama_20261009.json)
 
 | 평가셋 | chain_ollama | lora (새) | chain_hybrid (새) |
 |--------|--------------|-----------|-------------------|

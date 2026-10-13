@@ -1,6 +1,6 @@
 # LoRA 재학습 — 방해물 문장 시드 반영 (2026-10-08)
 
-> 실행: `python scripts/retrain_lora.py --force` · 실행 이름 `user_261008_1509` · 원자료 [`lora_retrain_20261008.json`](./lora_retrain_20261008.json)  
+> 실행: `python scripts/retrain_lora.py --force` · 실행 이름 `user_261008_1509` · 원자료 [`lora_retrain_20261008.json`](./json_files/lora_retrain_20261008.json)  
 > 배경: [`leak-diagnosis-20261008.md`](./leak-diagnosis-20261008.md) — "X 말고 Y만"처럼 지정하지 않은 대상이 같이 언급되는 문장을 LLM 이 대상에 섞는 문제
 
 ## 요약

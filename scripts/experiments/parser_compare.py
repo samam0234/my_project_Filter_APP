@@ -12,7 +12,7 @@ LoRA 는 greedy 생성이라 같은 문장에 늘 같은 답을 낸다 → 지�
                 (셋이 다 다르면 LoRA). Ollama 는 의견이 갈릴 때만 부른다
 
 RAG 예시는 붙이지 않는다 (모든 파서 같은 조건). 시간은 문장당 평균 (모델 로드 제외).
-실행: python scripts/experiments/parser_compare.py --out docs/vaildates/parser_compare_20261009.json
+실행: python scripts/experiments/parser_compare.py --out docs/vaildates/json_files/parser_compare_20261009.json
 """
 
 from __future__ import annotations

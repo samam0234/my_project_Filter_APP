@@ -11,7 +11,7 @@
   - 처리 시간 (ms)
 구멍 크기(사진 면적 대비)별로 나눠 본다 — "큰 물체일수록 번진다"를 확인하려고.
 
-실행: python scripts/experiments/inpaint_eval.py --n 60 --out docs/vaildates/inpaint_eval_20261009.json
+실행: python scripts/experiments/inpaint_eval.py --n 60 --out docs/vaildates/json_files/inpaint_eval_20261009.json
 """
 
 from __future__ import annotations

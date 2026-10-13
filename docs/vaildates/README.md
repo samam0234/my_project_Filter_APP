@@ -4,6 +4,8 @@
 
 기능·배포 전 검증 체크리스트와 결과를 기록한다.
 
+마크다운은 이 폴더에 그대로 둔다. 원자료 JSON은 [`json_files/`](./json_files/)에, 비교 이미지는 [`images/`](./images/)에 둔다.
+
 ## 목록
 
 | 파일 | 설명 |
@@ -30,6 +32,6 @@
 | [lora-retrain-20261008.md](./lora-retrain-20261008.md) | LoRA 재학습(방해물 문장 180 시드): 방해물 문장 대상 78.7→95.7%, 홀드아웃 70.0→87.5%, 처음 본 30문장 70.0→73.3% — 판정 통과해 배포본 교체, 기본 LLM 은 ollama+체인 유지(96.7%) |
 | [leak-diagnosis-20261008.md](./leak-diagnosis-20261008.md) | 지정하지 않은 인물·동물·물체가 대상에 섞이는 문제: 정답 주석으로 섞임을 재는 도구, 100+개 라운드(가설 검증·레시피·모델·신호·문장 해석), 원인 4곳과 수정 (섞임 6.3→4.1%, 경계 F 0.52→0.61), 효과 없던 것 기록 |
 | [stuff-segmentation-20261008.md](./stuff-segmentation-20261008.md) | 건물·하늘·도로 같은 배경 덩어리 인식: 학습 없이 SegFormer(ADE20K, ONNX) 추가, b0/b2/b5 비교(ADE20K 100장, 건물 IoU 0.85~0.86), Docker 요청 확인, 큰 영역 지우기 한계 |
-| [edge-tuning-20261008.md](./edge-tuning-20261008.md) | 경계·영상 흔들림 튜닝: GrabCut 2번→1번(경계 F +25%, 시간 절반), 경계 안티앨리어싱, 흐름 보정 스무딩(흔들림 −50%) + `edge_quality_20261008.json` |
-| [open-vocab-20261007.md](./open-vocab-20261007.md) | 오픈 보캐브(DINO+SAM2) 실가동 + 박스 임계값 측정(COCO 3,000쌍: 0.25→0.35 오검출 17.9%→7.4%, 재현율 −3.9%p) + `open_vocab_threshold_20261007.json` |
-| [experiments-20261006.md](./experiments-20261006.md) | 실험: 확장 평가 · 실제 이미지 인스턴스 선택 · GrabCut 속도 · 동시 요청 부하 (+ `*.json` 원자료) |
+| [edge-tuning-20261008.md](./edge-tuning-20261008.md) | 경계·영상 흔들림 튜닝: GrabCut 2번→1번(경계 F +25%, 시간 절반), 경계 안티앨리어싱, 흐름 보정 스무딩(흔들림 −50%) + `json_files/edge_quality_20261008.json` |
+| [open-vocab-20261007.md](./open-vocab-20261007.md) | 오픈 보캐브(DINO+SAM2) 실가동 + 박스 임계값 측정(COCO 3,000쌍: 0.25→0.35 오검출 17.9%→7.4%, 재현율 −3.9%p) + `json_files/open_vocab_threshold_20261007.json` |
+| [experiments-20261006.md](./experiments-20261006.md) | 실험: 확장 평가 · 실제 이미지 인스턴스 선택 · GrabCut 속도 · 동시 요청 부하 (+ `json_files/*.json` 원자료) |

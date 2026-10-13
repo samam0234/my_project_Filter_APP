@@ -1,6 +1,6 @@
 # 영상 · GIF 대상 지우기 — 카메라가 움직여도 배경판 쓰기 (2026-10-09)
 
-> 도구: [`scripts/experiments/video_removal_eval.py`](../../scripts/experiments/video_removal_eval.py) · 원자료 [`video_removal_pan_eval_20261009.json`](./video_removal_pan_eval_20261009.json) · 코드 `backend/app/services/video_inpaint.py`
+> 도구: [`scripts/experiments/video_removal_eval.py`](../../scripts/experiments/video_removal_eval.py) · 원자료 [`video_removal_pan_eval_20261009.json`](./json_files/video_removal_pan_eval_20261009.json) · 코드 `backend/app/services/video_inpaint.py`
 > 앞 단계: [`video-removal-20261009.md`](./video-removal-20261009.md) (고정 카메라 배경판)
 
 ## 문제

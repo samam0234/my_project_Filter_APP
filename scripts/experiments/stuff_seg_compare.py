@@ -6,7 +6,7 @@
 지표: 서비스가 쓰는 **묶음 클래스**(건물 = building+house+skyscraper+hovel 등)별 IoU · 장당 시간(GPU · CPU) · 파일 크기
   ※ 정답과 예측을 같은 묶음으로 합쳐서 잰다 — 사용자는 "건물" 이라고 말하지 "house" 와 "building" 을 구분하지 않는다
 
-실행: python scripts/experiments/stuff_seg_compare.py --limit 200 --out docs/vaildates/stuff_seg_compare_20261008.json
+실행: python scripts/experiments/stuff_seg_compare.py --limit 200 --out docs/vaildates/json_files/stuff_seg_compare_20261008.json
 결과: docs/vaildates/stuff-segmentation-20261008.md
 """
 

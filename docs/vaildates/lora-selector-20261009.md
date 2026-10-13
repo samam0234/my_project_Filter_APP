@@ -1,7 +1,7 @@
 # LoRA 재학습: 개수 + 위치 선택자 조합 문장 (2026-10-09)
 
 > 실행: `python training/lora/seed/build_compositional.py` → `python scripts/retrain_lora.py --force` · 실행 이름 `user_261009_2023`
-> 원자료: [`lora_retrain_selector_20261009.json`](./lora_retrain_selector_20261009.json) (평가셋별 정확도 · 오답 전부)
+> 원자료: [`lora_retrain_selector_20261009.json`](./json_files/lora_retrain_selector_20261009.json) (평가셋별 정확도 · 오답 전부)
 > 앞 단계: [`lora-compositional-20261009.md`](./lora-compositional-20261009.md)
 
 ## 요약
