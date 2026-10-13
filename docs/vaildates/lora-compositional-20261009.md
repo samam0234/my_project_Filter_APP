@@ -1,7 +1,7 @@
 # LoRA 재학습: 조합형 학습 문장 (2026-10-09)
 
 > 실행: `python training/lora/seed/build_compositional.py` → `python scripts/retrain_lora.py --force` · 실행 이름 `user_261009_0956`
-> 원자료: [`lora_retrain_20261009.json`](./lora_retrain_20261009.json) (평가셋별 정확도 · 오답 전부, 새 평가셋의 다른 파서 점수)
+> 원자료: [`lora_retrain_20261009.json`](./json_files/lora_retrain_20261009.json) (평가셋별 정확도 · 오답 전부, 새 평가셋의 다른 파서 점수)
 > 이전 재학습: [`lora-retrain-20261008.md`](./lora-retrain-20261008.md)
 
 ## 요약

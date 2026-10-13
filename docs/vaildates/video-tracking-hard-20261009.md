@@ -1,7 +1,7 @@
 # 영상 · GIF 대상 추적 — 어려운 경우와 실제 검출기 잡음 (2026-10-09)
 
 > 실행: `python scripts/experiments/video_tracking_eval.py --scenario {cross,turn,lookalike,pan} --seg {oracle,yolo}`
-> 원자료(YOLO): [`video_tracking_hard_cross_yolo_20261009.json`](./video_tracking_hard_cross_yolo_20261009.json) 외 `turn` · `lookalike` · `pan`
+> 원자료(YOLO): [`video_tracking_hard_cross_yolo_20261009.json`](./json_files/video_tracking_hard_cross_yolo_20261009.json) 외 `turn` · `lookalike` · `pan`
 > 앞 단계: [`video-tracking-20261009.md`](./video-tracking-20261009.md) · 코드 `backend/app/services/instance_tracker.py`
 
 ## 어려운 경우 추가

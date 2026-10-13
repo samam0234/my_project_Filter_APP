@@ -6,9 +6,9 @@
 | # | 실험 | 스크립트 · 결과 파일 | 결과 요약 | 반영 |
 |---|------|----------------------|-----------|------|
 | 1 | 프롬프트 해석 확장 평가 (56건) | `training/lora/eval_parser.py --eval-file seed/eval_ext.jsonl` | Ollama 85.7% · LoRA v2 80.4% — 규격 밖 단어로 파싱 실패 | 어휘 정규화 → **91.1% · 83.9%** |
-| 2 | 인스턴스 선택 (실제 이미지 600장, 정답 폴리곤) | `scripts/experiments/selection_e2e.py` → `selection_e2e_20261006.json` | 명확한 문항 64.0% — 멀리 찍힌 작은 인스턴스가 "맨 왼쪽"이 됨 | 작은 인스턴스 제외 → **71.6%** |
+| 2 | 인스턴스 선택 (실제 이미지 600장, 정답 폴리곤) | `scripts/experiments/selection_e2e.py` → `json_files/selection_e2e_20261006.json` | 명확한 문항 64.0% — 멀리 찍힌 작은 인스턴스가 "맨 왼쪽"이 됨 | 작은 인스턴스 제외 → **71.6%** |
 | 3 | 마스크 정제(GrabCut) 속도·품질 | `scripts/experiments/refine_speed.py` | 전체 이미지 GrabCut 중앙값 690 ms, 정답 대비 IoU 개선 없음 | ROI GrabCut → 216 ms, IoU 동일 |
-| 4 | 동시 요청 부하 | `scripts/experiments/load_test.py` → `load_test_20261006*.json` | 오류 0, 처리 중 `/health` < 13 ms, 처리량 상한 약 21~23 건/분 (LLM 병목) | 3번으로 단건 지연 7.4 → 6.2 s |
+| 4 | 동시 요청 부하 | `scripts/experiments/load_test.py` → `json_files/load_test_20261006*.json` | 오류 0, 처리 중 `/health` < 13 ms, 처리량 상한 약 21~23 건/분 (LLM 병목) | 3번으로 단건 지연 7.4 → 6.2 s |
 
 ---
 
@@ -95,7 +95,7 @@
 ```powershell
 # 저장소 루트, training venv. load_test 는 실서버(uvicorn :8000)가 떠 있어야 한다
 python training/lora/eval_parser.py --eval-file training/lora/seed/eval_ext.jsonl --parsers heuristic,ollama
-python scripts/experiments/selection_e2e.py --limit 600 --report docs/vaildates/selection_e2e_20261006.json
+python scripts/experiments/selection_e2e.py --limit 600 --report docs/vaildates/json_files/selection_e2e_20261006.json
 python scripts/experiments/refine_speed.py --limit 80
 python scripts/experiments/load_test.py --levels 1,2,4,8 --per-level 8
 ```

@@ -38,7 +38,7 @@ COCO 80 클래스 밖 대상("shirt", "helmet")이 YOLO 대신 Grounding DINO + 
 - COCO val2017 300장(`coco_val_sel`) × 10개 클래스 = 3,000 쌍. 이미지마다 클래스 이름 하나로 질의해 최고 박스 점수 기록
 - 정답: 원본 COCO 주석 `instances_val2017.json` (대상이 있는 쌍 565 · 없는 쌍 2,435)
 - 오픈 보캐브의 실제 대상(COCO 밖)은 정답 주석이 없어, 정답이 있는 COCO 클래스로 점수 분포를 대신 잰 것이다
-- 원자료 요약: [`open_vocab_threshold_20261007.json`](./open_vocab_threshold_20261007.json)
+- 원자료 요약: [`open_vocab_threshold_20261007.json`](./json_files/open_vocab_threshold_20261007.json)
 - ※ 첫 측정은 `coco_val_sel/labels`(프로젝트 4클래스로 재매핑됨)를 정답으로 써서 사람 외 클래스가 전부 "없음"이 되는 잘못이 있었다 —
   버리고 원본 주석으로 다시 쟀다
 

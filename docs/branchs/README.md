@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `aebf39f` | 검증 원자료와 이미지를 폴더로 나눔 | [commits/261013_1802_aebf39f_vaildates-assets_feature-vaildates-assets.md](./commits/261013_1802_aebf39f_vaildates-assets_feature-vaildates-assets.md) |
 | `bbe24ec` | develop → main 병합 (no-ff) | [commits/261013_1746_bbe24ec_merge-docs_main.md](./commits/261013_1746_bbe24ec_merge-docs_main.md) |
 | `886db20` | feature/docs-portfolio-facts → develop 병합 (no-ff) | [commits/261013_1746_886db20_merge-docs-portfolio_develop.md](./commits/261013_1746_886db20_merge-docs-portfolio_develop.md) |
 | `3705724` | feature/docs-product-current → develop 병합 (no-ff) | [commits/261013_1746_3705724_merge-docs-product_develop.md](./commits/261013_1746_3705724_merge-docs-product_develop.md) |

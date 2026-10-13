@@ -11,7 +11,7 @@ A 는 왼쪽 → 오른쪽, B 는 오른쪽 → 왼쪽으로 걸어 **가운데�
   iou     : 대상 정답과의 평균 IoU
 
 세그: --seg oracle (정답 마스크를 인스턴스로 — 추적 논리만), --seg yolo (실제 모델, 붙여 넣은 사람을 검출)
-실행: python scripts/experiments/video_tracking_eval.py --n 40 --seg oracle --out docs/vaildates/video_tracking_eval_oracle_20261009.json
+실행: python scripts/experiments/video_tracking_eval.py --n 40 --seg oracle --out docs/vaildates/json_files/video_tracking_eval_oracle_20261009.json
 """
 
 from __future__ import annotations

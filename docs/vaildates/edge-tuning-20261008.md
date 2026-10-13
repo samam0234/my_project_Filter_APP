@@ -1,7 +1,7 @@
 # 경계 품질 · 영상 흔들림 튜닝 — 2026-10-08
 
 "배경 제거는 잘 되는데 튜닝하면 더 좋아질 것 같다"는 요청에 따라, 감으로 고치지 않고 **먼저 재고 → 고치고 → 다시 쟀다**.
-측정 스크립트: [`scripts/experiments/edge_quality.py`](../../scripts/experiments/edge_quality.py) · 원자료: [`edge_quality_20261008.json`](./edge_quality_20261008.json)
+측정 스크립트: [`scripts/experiments/edge_quality.py`](../../scripts/experiments/edge_quality.py) · 원자료: [`edge_quality_20261008.json`](./json_files/edge_quality_20261008.json)
 
 ## 1. 측정 방법
 
@@ -36,12 +36,12 @@ COCO 폴리곤은 거칠어서 경계 F 의 절대값은 낮게 나온다 — **
 - 경계 안티앨리어싱은 거친 폴리곤 정답으로는 좋아짐이 잡히지 않는다(soft IoU −0.003). **눈으로 본 계단 제거**가 채택 이유 — 아래 그림
 
 ### 경계 처리 방식 비교 (3배 확대 사진, 흰 바탕 합성, 경계 2배 확대)
-![경계 방식 비교](./edge-tuning-20261008-feather.jpg)
+![경계 방식 비교](./images/edge-tuning-20261008-feather.jpg)
 
 왼쪽부터 딱 자름 · **가우시안 1.5px(채택)** · 작은 가이드 필터. 처음 시도한 **넓은 가이드 필터**(이미지 밝기 경계를 따라 알파를 퍼뜨림)는
 잔디 같은 질감 있는 배경을 끌어와 반투명 번짐 띠가 생겨 버렸다 (soft IoU −0.011):
 
-![가이드 필터 번짐](./edge-tuning-20261008-guided-halo.jpg)
+![가이드 필터 번짐](./images/edge-tuning-20261008-guided-halo.jpg)
 
 ## 4. 결과 — 영상 (클립 30개)
 
