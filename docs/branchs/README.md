@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `bbe24ec` | develop → main 병합 (no-ff) | [commits/261013_1746_bbe24ec_merge-docs_main.md](./commits/261013_1746_bbe24ec_merge-docs_main.md) |
 | `886db20` | feature/docs-portfolio-facts → develop 병합 (no-ff) | [commits/261013_1746_886db20_merge-docs-portfolio_develop.md](./commits/261013_1746_886db20_merge-docs-portfolio_develop.md) |
 | `3705724` | feature/docs-product-current → develop 병합 (no-ff) | [commits/261013_1746_3705724_merge-docs-product_develop.md](./commits/261013_1746_3705724_merge-docs-product_develop.md) |
 | `795af4c` | 안내 횟수 표와 모델 버튼을 코드에 맞춤 | [commits/261013_1746_795af4c_docs-portfolio-facts_feature-docs-portfolio-facts.md](./commits/261013_1746_795af4c_docs-portfolio-facts_feature-docs-portfolio-facts.md) |
