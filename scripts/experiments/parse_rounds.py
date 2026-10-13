@@ -22,7 +22,7 @@
   ollama_rag_seed  RAG 지식 베이스 = 시드 train.jsonl (800문장). 평가 문장은 빼서 정답 누수를 막는다
   ollama_rag_new   위 + train_distractor.jsonl (방해물 학습 문장 — "새 학습 내용" 이 RAG 로 바로 반영되는지)
 
-실행: python scripts/experiments/parse_rounds.py --parsers ollama,ollama_rag_seed,ollama_rag_new --repeat 3 --out docs/vaildates/parse_rounds_20261008.json
+실행: python scripts/experiments/parse_rounds.py --parsers ollama,ollama_rag_seed,ollama_rag_new --repeat 3 --out docs/vaildates/json_files/parse_rounds_20261008.json
 """
 
 from __future__ import annotations

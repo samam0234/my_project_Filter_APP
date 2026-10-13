@@ -1,7 +1,7 @@
 # 실제 영상(DAVIS 2017)으로 영상 추적 · 지우기 검증 (2026-10-10)
 
 > 도구: [`scripts/experiments/davis_eval.py`](../../scripts/experiments/davis_eval.py)
-> 원자료: [`davis_tracking_20261010.json`](./davis_tracking_20261010.json) · [`davis_removal_20261010.json`](./davis_removal_20261010.json)
+> 원자료: [`davis_tracking_20261010.json`](./json_files/davis_tracking_20261010.json) · [`davis_removal_20261010.json`](./json_files/davis_removal_20261010.json)
 > 데이터: DAVIS 2017 trainval 480p — 실제 촬영 영상 90개, 사람이 그린 인스턴스 정답 마스크
 > (CC BY 4.0, Pont-Tuset et al. *The 2017 DAVIS Challenge on Video Object Segmentation*, arXiv:1704.00675). git 밖 `training/datasets/davis/`
 

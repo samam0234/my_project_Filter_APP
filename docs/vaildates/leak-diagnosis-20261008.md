@@ -128,7 +128,7 @@ COCO val2017 **인스턴스 정답 폴리곤**(사람·동물·물체 전부)으
 
 GrabCut 이 정답에서 불리할 수 있다는 의심(정답이 COCO 폴리곤 = 모델 학습 스타일)을 눈으로 확인했다:
 
-![GrabCut 대 원본 마스크](./leak-diagnosis-20261008-grabcut.jpg)
+![GrabCut 대 원본 마스크](./images/leak-diagnosis-20261008-grabcut.jpg)
 
 세 번째 사진은 GrabCut 쪽에 **배경 띠가 따라 붙었고**, 첫 번째는 바깥으로 각진 영역이 늘었다. 두 번째처럼 머리카락 결은 GrabCut 이 조금 더 선명한 경우도 있어 기본은 끄고 `MASK_GRABCUT=true` 옵션으로 남겼다.
 
@@ -229,7 +229,7 @@ A 첫 답만(현재) · B 3번 다수결 · C 체인(첫 답이 키워드 파서
 ```bash
 python scripts/experiments/leak_eval.py --list                       # 라운드 목록
 python scripts/experiments/leak_eval.py --rounds A01,A04,B01 --n 48   # 일부만
-python scripts/experiments/leak_eval.py --rounds all --n 100 --out docs/vaildates/leak_eval_ALL.json
+python scripts/experiments/leak_eval.py --rounds all --n 100 --out docs/vaildates/json_files/leak_eval_ALL.json
 python scripts/experiments/parse_rounds.py --parsers heuristic,ollama,ollama_rag_seed,ollama_rag_new --repeat 3
 ```
-원자료: `leak_eval_{A,B,D,E,F,G}_20261008.json`, `parse_rounds_20261008.json`
+원자료: `json_files/leak_eval_{A,B,D,E,F,G}_20261008.json`, `json_files/parse_rounds_20261008.json`

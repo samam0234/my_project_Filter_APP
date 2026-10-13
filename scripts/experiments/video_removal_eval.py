@@ -11,7 +11,7 @@
   zoom   : 카메라가 천천히 확대된다 (호모그래피로 맞출 수 있는 움직임)
 지표 (구멍 안): L1 · PSNR, 깜빡임(연속 프레임 사이 결과 차이 — 정답은 0), 처리 시간, 고정 카메라 판정
 
-실행: python scripts/experiments/video_removal_eval.py --n 20 --out docs/vaildates/video_removal_eval_20261009.json
+실행: python scripts/experiments/video_removal_eval.py --n 20 --out docs/vaildates/json_files/video_removal_eval_20261009.json
 """
 
 from __future__ import annotations

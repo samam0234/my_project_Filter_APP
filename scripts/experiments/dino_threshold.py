@@ -11,7 +11,7 @@
 정답:   training/datasets/coco_raw/annotations/instances_val2017.json
   ※ coco_val_sel/labels 는 프로젝트 4클래스로 재매핑돼 있어 쓰면 안 된다 (사람 외 클래스가 전부 '없음'이 됨)
 
-실행: python scripts/experiments/dino_threshold.py --limit 300 --out docs/vaildates/open_vocab_threshold_20261007.json
+실행: python scripts/experiments/dino_threshold.py --limit 300 --out docs/vaildates/json_files/open_vocab_threshold_20261007.json
 결과: docs/vaildates/open-vocab-20261007.md
 """
 

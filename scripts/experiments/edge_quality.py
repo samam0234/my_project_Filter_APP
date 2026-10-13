@@ -21,7 +21,7 @@
   지표
     정답 IoU 평균, 흔들림 = 1 − IoU(현재 마스크, 알려진 이동만큼 옮긴 이전 마스크) 평균 — 낮을수록 안정
 
-실행: python scripts/experiments/edge_quality.py --limit 200 --clips 30 --out docs/vaildates/edge_quality_20261008.json
+실행: python scripts/experiments/edge_quality.py --limit 200 --clips 30 --out docs/vaildates/json_files/edge_quality_20261008.json
 결과: docs/vaildates/edge-tuning-20261008.md
 """
 

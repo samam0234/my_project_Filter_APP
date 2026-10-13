@@ -8,7 +8,7 @@ COCO 정답 사람 마스크로 실제 배경 제거 결과(부드러운 경계�
   light : 흰색과 미리 섞음 (밝은 배경용)
   dark  : 어두운 색과 미리 섞음 (어두운 배경용)
 
-실행: python scripts/experiments/gif_matte_eval.py --n 30 --out docs/vaildates/gif_matte_eval_20261009.json
+실행: python scripts/experiments/gif_matte_eval.py --n 30 --out docs/vaildates/json_files/gif_matte_eval_20261009.json
 """
 
 from __future__ import annotations

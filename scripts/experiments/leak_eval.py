@@ -20,7 +20,7 @@
   pick_ok    = 고른 인스턴스가 정답 대상과 IoU 0.5 이상인 비율 (선택 단계 정확도)
 
 실행: python scripts/experiments/leak_eval.py --list
-      python scripts/experiments/leak_eval.py --rounds all --n 48 --out docs/vaildates/leak_eval_20261008.json
+      python scripts/experiments/leak_eval.py --rounds all --n 48 --out docs/vaildates/json_files/leak_eval_20261008.json
 """
 
 from __future__ import annotations

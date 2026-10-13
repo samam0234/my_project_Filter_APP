@@ -1,6 +1,6 @@
 # 영상 · GIF 대상 지우기 — 다른 프레임에서 보인 배경으로 메우기 (2026-10-09)
 
-> 도구: [`scripts/experiments/video_removal_eval.py`](../../scripts/experiments/video_removal_eval.py) · 원자료 [`video_removal_eval_20261009.json`](./video_removal_eval_20261009.json) · 코드 `backend/app/services/video_inpaint.py`
+> 도구: [`scripts/experiments/video_removal_eval.py`](../../scripts/experiments/video_removal_eval.py) · 원자료 [`video_removal_eval_20261009.json`](./json_files/video_removal_eval_20261009.json) · 코드 `backend/app/services/video_inpaint.py`
 
 ## 문제
 
@@ -31,7 +31,7 @@ COCO 사진(사람 없는 것)을 배경으로 고정하고 다른 사진의 사
 
 [ ] 는 쌍 비교 차이의 95% 신뢰구간.
 
-![원본 · 예전(프레임마다 Telea) · 배경판](./video-removal-20261009-sample.jpg)
+![원본 · 예전(프레임마다 Telea) · 배경판](./images/video-removal-20261009-sample.jpg)
 
 왼쪽부터 원본(사람이 지나가는 중), 예전 방식(번진 얼룩), 배경판(고양이 머리 · 리모컨이 그대로 돌아옴).
 

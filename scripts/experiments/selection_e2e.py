@@ -15,7 +15,7 @@
   - ambiguous : 정답 후보끼리 기준 값 차이가 작아(위치 3%·면적 10% 미만) 사람도 헷갈리는 경우 — 따로 집계
 
 실행 (저장소 루트, training venv):
-  python scripts/experiments/selection_e2e.py --limit 600 --report docs/vaildates/selection_e2e.json
+  python scripts/experiments/selection_e2e.py --limit 600 --report docs/vaildates/json_files/selection_e2e.json
 """
 
 from __future__ import annotations

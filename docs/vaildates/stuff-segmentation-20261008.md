@@ -11,7 +11,7 @@
 
 ## 2. 모델 선택 (ADE20K 검증 100장, 묶음 단위 IoU)
 
-원자료: [`stuff_seg_compare_20261008.json`](./stuff_seg_compare_20261008.json) · 스크립트 [`stuff_seg_compare.py`](../../scripts/experiments/stuff_seg_compare.py)
+원자료: [`stuff_seg_compare_20261008.json`](./json_files/stuff_seg_compare_20261008.json) · 스크립트 [`stuff_seg_compare.py`](../../scripts/experiments/stuff_seg_compare.py)
 사용자는 "건물"이라고 말하지 "house"와 "building"을 구분하지 않으므로 **정답·예측을 같은 묶음으로 합쳐** 쟀다 (건물 = building + house + skyscraper + hovel).
 예측은 서빙과 똑같이: 클래스 확률을 묶음으로 합산 → 이미지 크기로 선형 확대 → 0.5 임계.
 
@@ -43,7 +43,7 @@
 ## 4. 확인
 
 ### 4.1 ADE20K 거리 사진 (건물이 34~64%) — 위: 원본 · 아래: 건물만 남김
-![건물만 남기기](./stuff-segmentation-20261008-building.jpg)
+![건물만 남기기](./images/stuff-segmentation-20261008-building.jpg)
 
 건물(위층 창·간판 포함)은 남고 나무·사람·도로·하늘이 지워진다. 인스턴스 1~4개, 신뢰도 0.58~0.98.
 
@@ -56,7 +56,7 @@
 | 왼쪽 건물만 남기고 배경 블러 | `building` · blur · **selector left** | 왼쪽 건물만 선명 |
 | 건물 지워줘 | `building` · remove_object | 지워지지만 **번져 보임** (아래) |
 
-![문장별 결과](./stuff-segmentation-20261008-prompts.jpg)
+![문장별 결과](./images/stuff-segmentation-20261008-prompts.jpg)
 
 ### 4.3 한계 — 큰 영역 지우기
 건물 크기의 영역을 지우면 OpenCV 기본 인페인팅(Telea)이 주변색을 번지게 메워 부자연스럽다 (세 번째 그림). 코드에 이미 "큰 물체는 학습형 인페인팅(LaMa 등)으로 교체 후보"로 적혀 있던 한계다.

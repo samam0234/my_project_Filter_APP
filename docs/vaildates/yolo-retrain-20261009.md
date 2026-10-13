@@ -1,7 +1,7 @@
 # 세그 모델(YOLO26m-seg) 재학습 루프 — 첫 실행 (2026-10-09)
 
 > 코드: `scripts/retrain_yolo.py` (수집 → 라벨 → 이어 학습 → 평가 → 판정 → `--deploy`)
-> 원자료: [`yolo_retrain_20261009.json`](./yolo_retrain_20261009.json) (두 실행의 시나리오별 점수 · 에폭별 mAP · 설정)
+> 원자료: [`yolo_retrain_20261009.json`](./json_files/yolo_retrain_20261009.json) (두 실행의 시나리오별 점수 · 에폭별 mAP · 설정)
 > 배경: [`leak-diagnosis-20261008.md`](./leak-diagnosis-20261008.md) — 맞닿거나 겹친 사람에서 섞임 · 오선택이 남는다
 
 ## 요약

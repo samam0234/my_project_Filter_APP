@@ -13,8 +13,8 @@ DAVIS 2017 trainval 480p: 실제 촬영 영상 90개, 사람이 그린 인스턴
              원래 영상이 정답 → 구멍 안 L1 · 깜빡임. 예전(프레임마다 Telea) vs 지금(배경판: static / aligned / frame 자동)
              원래 영상의 움직이는 대상(DAVIS 정답 객체)이 있는 자리는 채점에서 뺀다 (배경판이 그 물체를 지운 것과 섞이지 않게)
 
-실행: python scripts/experiments/davis_eval.py tracking --out docs/vaildates/davis_tracking_20261010.json
-      python scripts/experiments/davis_eval.py removal --n 30 --out docs/vaildates/davis_removal_20261010.json
+실행: python scripts/experiments/davis_eval.py tracking --out docs/vaildates/json_files/davis_tracking_20261010.json
+      python scripts/experiments/davis_eval.py removal --n 30 --out docs/vaildates/json_files/davis_removal_20261010.json
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 # 섞임 · 오선택 기준 수치 — 큰 표본으로 다시 재기 (2026-10-09)
 
-> 원자료: [`leak_baseline_20261009.json`](./leak_baseline_20261009.json) · 평가 도구 `scripts/experiments/leak_eval.py` · 서빙 경로 그대로(`scripts/retrain_yolo.py` 의 평가 함수)
+> 원자료: [`leak_baseline_20261009.json`](./json_files/leak_baseline_20261009.json) · 평가 도구 `scripts/experiments/leak_eval.py` · 서빙 경로 그대로(`scripts/retrain_yolo.py` 의 평가 함수)
 > 모델: `backend/models/yolo26m-seg.pt` (배포 모델), 후처리는 지금 서비스 설정
 
 ## 왜
