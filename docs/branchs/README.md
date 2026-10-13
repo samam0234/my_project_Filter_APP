@@ -77,6 +77,7 @@ YYMMDD_HHMM_[커밋ID]_[커밋이름]_[커밋브랜치].md
 
 | 커밋 | 제목 | 파일 |
 |------|------|------|
+| `795af4c` | 안내 횟수 표와 모델 버튼을 코드에 맞춤 | [commits/261013_1746_795af4c_docs-portfolio-facts_feature-docs-portfolio-facts.md](./commits/261013_1746_795af4c_docs-portfolio-facts_feature-docs-portfolio-facts.md) |
 | `974f3c2` | develop → main 병합 (no-ff) | [commits/261012_2203_974f3c2_merge-develop_main.md](./commits/261012_2203_974f3c2_merge-develop_main.md) |
 | `328ddaf` | bugfix/deep-quota-kst → develop 병합 (no-ff) | [commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md](./commits/261012_2157_328ddaf_merge-deep-quota-kst_develop.md) |
 | `7859c14` | feature/portfolio-look → develop 병합 (no-ff) | [commits/261012_2155_7859c14_merge-portfolio-look_develop.md](./commits/261012_2155_7859c14_merge-portfolio-look_develop.md) |
