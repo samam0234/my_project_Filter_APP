@@ -1,7 +1,21 @@
 # 컷앤킵 (Cut & Keep)
 
-> **말로 하면, 원하는 것만 남습니다.**
-> 사진 · 움직이는 GIF · 짧은 영상을 올리고 한 문장으로 요청하면, 원하는 대상만 남기거나 필요 없는 대상을 지워 주는 웹 서비스.
+<p align="center">
+  <strong>말로 하면, 원하는 것만 남습니다.</strong><br/>
+  사진 · 움직이는 GIF · 짧은 영상을 한 문장으로 다루는 웹 서비스의 기술 노트
+</p>
+
+<p align="center">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.143-009688?style=flat-square&logo=fastapi&logoColor=white" />
+  <img alt="React 18" src="https://img.shields.io/badge/React-18-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img alt="Vite 7" src="https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img alt="LangGraph 1.2" src="https://img.shields.io/badge/LangGraph-1.2-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-gemma4-000000?style=flat-square&logo=ollama&logoColor=white" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" />
+  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white" />
+</p>
+
+한 문장을 구조로 읽고, 그 대상만 픽셀 단위로 남기거나 지웁니다. 이 글은 그 서비스를 만든 이유, 요청이 결과를 내기까지의 네 단계, 그리고 각 단계를 맡은 프레임워크를 적습니다. 실행 명령과 운영 한계는 글 뒤에 그대로 둡니다. 이 프로젝트를 읽어 주는 별도 사이트는 [Portfolio](./Portfolio/README.md)이고, 사진을 처리하지 않습니다.
 
 ```text
 "강아지만 남기고 배경 제거"        → 강아지만 남은 투명 PNG
@@ -26,7 +40,7 @@
 2. [무엇을 할 수 있나](#2-무엇을-할-수-있나)
 3. [어떻게 동작하나](#3-어떻게-동작하나)
 4. [시스템 구성](#4-시스템-구성)
-5. [기술 스택](#5-기술-스택)
+5. [프레임워크](#5-프레임워크)
 6. [AI — 문장을 이해하는 방법](#6-ai--문장을-이해하는-방법)
 7. [학습 순환 — 틀리면 가르친다](#7-학습-순환--틀리면-가르친다)
 8. [데이터 · 보관 · 보안 원칙](#8-데이터--보관--보안-원칙)
@@ -171,7 +185,99 @@ flowchart LR
 
 ---
 
-## 5. 기술 스택
+## 5. 프레임워크
+
+요청 한 건은 화면, API, 문장 해석, 마스크, 저장소가 나눠 맡는다. 아이콘 옆의 버전은 저장소에 고정된 값이다. 설명 사이트의 핀은 제품과 다르므로 맨 아래에서 따로 적는다.
+
+### 화면
+
+<p>
+  <img alt="React 18" src="https://img.shields.io/badge/React-18-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img alt="TypeScript 5" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Vite 7" src="https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS 3" src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+</p>
+
+사용자 앱([`frontend/`](frontend/README.md), 로컬 5173)과 운영 콘솔([`console/`](console/README.md), 로컬 5174)은 React 18이다. TypeScript가 화면의 타입을 잡고, Vite 7이 개발 서버와 프로덕션 빌드를 맡는다. Tailwind CSS 3이 간격을 맞추고, Zustand 4가 로그인과 모델 선택 같은 화면 상태를 들고 있다. Node.js는 22.12 이상이다. 글꼴은 Pretendard다.
+
+이 화면은 사진을 직접 자르지 않는다. `/api`로 FastAPI에 올리고, 돌아온 마스크 결과와 "이렇게 이해했어요" 칩을 보여 준다.
+
+### API
+
+<p>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img alt="FastAPI 0.143" src="https://img.shields.io/badge/FastAPI-0.143-009688?style=flat-square&logo=fastapi&logoColor=white" />
+  <img alt="Pydantic 2" src="https://img.shields.io/badge/Pydantic-2-E92063?style=flat-square&logo=pydantic&logoColor=white" />
+  <img alt="SQLAlchemy 2" src="https://img.shields.io/badge/SQLAlchemy-2-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white" />
+</p>
+
+백엔드는 Python 3.11과 FastAPI 0.143이다. 요청 본문은 Pydantic 2가 검사하고, SQLAlchemy 2가 운영 MariaDB 또는 개발용 SQLite에 붙는다. Uvicorn이 프로세스를 띄운다. 로컬 주소는 8000이고, 운영 Swagger는 열지 않는다.
+
+계층은 고정이다. 라우터는 SQL을 직접 쓰지 않고, 레포지토리는 OpenCV와 LLM을 모르며, ORM 모델과 API 스키마를 섞지 않는다.
+
+### 파이프라인
+
+<p>
+  <img alt="LangGraph 1.2.14" src="https://img.shields.io/badge/LangGraph-1.2.14-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+  <img alt="LangChain 1.4.4" src="https://img.shields.io/badge/LangChain-1.4.4-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+</p>
+
+한 장의 처리는 LangGraph 1.2.14 상태 기계다. 순서는 `prompt_analyzer → preprocessor → segmentor → validator → effect_applier → feedback_collector`다. 검증이 실패에 가까우면 조건을 바꿔 한 번 더 찾고, 더 나쁜 마스크면 첫 시도를 유지한다.
+
+문장 해석이 갈리면 LangChain 1.4.4가 LLM 답과 키워드 파서를 최대 3번 물어 다수결로 정한다. LLM이 꺼져 있어도 키워드 파서만으로 동작한다. 설명 사이트 안내의 LangGraph는 다른 프로세스이고 핀도 다르다.
+
+### 보는 일
+
+<p>
+  <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-mask-5C3EE8?style=flat-square&logo=opencv&logoColor=white" />
+  <img alt="Ultralytics" src="https://img.shields.io/badge/Ultralytics-YOLO26m--seg-111F68?style=flat-square&logo=ultralytics&logoColor=white" />
+  <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX_Runtime-SegFormer_%C2%B7_LaMa-000000?style=flat-square" />
+</p>
+
+사람 · 동물 · 사물 마스크는 YOLO26m-seg다. 실행은 Ultralytics 또는 ONNX Runtime이다. 건물 · 하늘 · 도로 같은 덩어리는 SegFormer ADE20K ONNX가, 빈자리는 LaMa ONNX가 메운다. LaMa가 없으면 Telea로 내려간다. OpenCV와 Pillow가 이미지 입출력을, ffmpeg가 H.264를 맡는다. Grounding DINO와 SAM2는 코드만 있고 기본은 꺼 둔다.
+
+### 문장
+
+<p>
+  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-gemma4%3Ae4b-000000?style=flat-square&logo=ollama&logoColor=white" />
+</p>
+
+기본 해석 모델은 운영자 PC의 Ollama `gemma4:e4b`다. 화면에서 `gemma4:12b`와 `qwen3.8:27b`를 고를 수 있고, 서버에 없는 모델은 "미적용"으로 나온다. 운영 서버는 ARM이라 GPU가 없다. SSH 역방향 터널로 PC의 Ollama를 쓴다. 터널이 끊기면 키워드 파서로 내려가고 서비스는 계속된다. 선택 사항인 LoRA는 Qwen2.5-1.5B 어댑터이고, 운영 기본값은 아니다. OpenAI와 Gemini 연결 코드는 있으나 운영에서 켜지 않는다. 켜면 문장이 밖으로 나간다.
+
+### 데이터
+
+<p>
+  <img alt="MariaDB 11" src="https://img.shields.io/badge/MariaDB-11-003545?style=flat-square&logo=mariadb&logoColor=white" />
+  <img alt="Redis 7" src="https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white" />
+  <img alt="Chroma 1.5.9" src="https://img.shields.io/badge/Chroma-1.5.9-000000?style=flat-square" />
+  <img alt="SQLite" src="https://img.shields.io/badge/SQLite-dev-003B57?style=flat-square&logo=sqlite&logoColor=white" />
+</p>
+
+운영 데이터베이스는 MariaDB 11이다. 서비스 표와 학습 표는 데이터베이스를 나눈다. 둘은 외래 키로 잇지 않는다. Redis 7은 캐시와 속도 제한에 쓴다. 승인된 문장 예시는 Chroma 1.5.9에 글자 n-gram으로 둔다. 임베딩 모델은 받지 않는다. 호스트에서 개발할 때는 SQLite를 쓴다. Celery 5.4는 선택이다.
+
+### 배포
+
+<p>
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" />
+  <img alt="Caddy" src="https://img.shields.io/badge/Caddy-HTTPS-1F88C0?style=flat-square&logo=caddy&logoColor=white" />
+  <img alt="nginx" src="https://img.shields.io/badge/nginx-frontend-009639?style=flat-square&logo=nginx&logoColor=white" />
+  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white" />
+</p>
+
+Docker Compose가 서버 프로세스를 묶는다. Caddy가 Let's Encrypt HTTPS를 끝내고, nginx가 사용자 앱 정적 파일을 준다. 공개 화면의 정적 파일과 `/api` 프록시는 Cloudflare Worker `cutnkeep-front`다. 서버는 Oracle Cloud ARM(Ubuntu 24.04)이고 브랜치는 `main`이다. 운영 콘솔은 이 서버에 올리지 않는다.
+
+### 설명 사이트
+
+<p>
+  <img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15.5-000000?style=flat-square&logo=nextdotjs&logoColor=white" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img alt="Flask" src="https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&logo=flask&logoColor=white" />
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-site-000000?style=flat-square&logo=vercel&logoColor=white" />
+</p>
+
+[`Portfolio/`](./Portfolio/README.md)는 이 제품을 읽어 주는 별도 프로그램이다. 화면은 Next.js 15.5.27과 React 19.1.1이고, 안내는 Flask 3.1.2다. 제품의 Vite(5173) · FastAPI(8000)와 포트도 의존성 핀도 다르다. 사진을 처리하지 않는다.
+
+### 한눈에
 
 | 영역 | 사용 기술 |
 |------|-----------|
@@ -179,11 +285,11 @@ flowchart LR
 | 영상 · 이미지 | OpenCV · Pillow · ffmpeg (H.264) · 광학 흐름 스무딩 |
 | 비전 모델 | **YOLO26m-seg** (Ultralytics 또는 ONNX Runtime) · SegFormer ADE20K ONNX · LaMa ONNX · (선택) Grounding DINO + SAM2 |
 | 언어 모델 | **Ollama** `gemma4:e4b`(기본) · `gemma4:12b` · `qwen3.8:27b` · 선택 LoRA(Qwen2.5-1.5B 어댑터) · OpenAI · Gemini |
-| 흐름 · 해석 | **LangGraph** 1.2 (파이프라인 상태 기계) · **LangChain Core** (해석 다수결) · 글자 n-gram RAG · Chroma |
+| 흐름 · 해석 | **LangGraph** 1.2.14 (파이프라인 상태 기계) · **LangChain** 1.4.4 (해석 다수결) · 글자 n-gram RAG · Chroma 1.5.9 |
 | 데이터 | **MariaDB 11** (Docker) · SQLite (호스트 개발) · Redis 7 · (선택) Celery 5.4 |
 | 사용자 앱 · 콘솔 | **React 18** · TypeScript 5 · Vite 7 · Tailwind CSS 3 · Zustand 4 · Vitest · Pretendard |
 | 배포 | Docker Compose · Caddy (Let's Encrypt) · nginx · **Cloudflare Worker** · Oracle Cloud |
-| 포트폴리오 | Next.js 15 · React 19 · Flask · LangGraph · BM25 · Chroma · Vercel |
+| 포트폴리오 | Next.js 15.5.27 · React 19.1.1 · Flask 3.1.2 · LangGraph 0.6.6 · BM25 · Chroma 1.5.9 · Vercel |
 | 테스트 | pytest · Vitest · Playwright(브라우저 확인 스크립트) |
 
 ---

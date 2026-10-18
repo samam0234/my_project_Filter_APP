@@ -1,9 +1,20 @@
 # Portfolio — 컷앤킵 설명 사이트
 
-> 컷앤킵이 **무엇이고, 어떻게 만들었고, 어디까지 되었는지**를 읽는 별도 사이트와 그 원고.
+<p align="center">
+  <strong>제품을 읽는 별도의 기술 노트.</strong><br/>
+  컷앤킵이 무엇이고, 어떻게 만들었고, 어디까지 되었는지를 장으로 나눈 사이트
+</p>
 
-이 폴더는 제품이 아니다. 컷앤킵(Cut & Keep)을 설명하는 **문서**와, 그 문서를 읽는 **전용 사이트**, 그리고 문서로 답하는 **AI 안내 챗**을 둔다.
-기능을 다시 구현하지 않고, 이미 저장소와 운영 서버에 있는 구성을 역할별로 짧게 보여 준다.
+<p align="center">
+  <img alt="Next.js 15.5" src="https://img.shields.io/badge/Next.js-15.5.27-000000?style=flat-square&logo=nextdotjs&logoColor=white" />
+  <img alt="React 19.1" src="https://img.shields.io/badge/React-19.1.1-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img alt="Flask 3.1" src="https://img.shields.io/badge/Flask-3.1.2-000000?style=flat-square&logo=flask&logoColor=white" />
+  <img alt="LangGraph 0.6.6" src="https://img.shields.io/badge/LangGraph-0.6.6-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-gemma4%3Ae4b-000000?style=flat-square&logo=ollama&logoColor=white" />
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-site-000000?style=flat-square&logo=vercel&logoColor=white" />
+</p>
+
+이 폴더는 컷앤킵을 설명하는 문서, 그 문서를 보여주는 전용 사이트, 문서로만 답하는 AI 안내 챗을 둔다. 사진을 처리하지 않고, 제품 FastAPI · MariaDB · 운영 `.env`를 바꾸지 않는다. 기능을 다시 구현하지 않고, 이미 저장소와 운영 서버에 있는 구성을 역할별로 짧게 보여 준다.
 
 | 항목 | 내용 |
 |------|------|
@@ -35,7 +46,52 @@
 
 ---
 
-## 2. 구성
+## 2. 프레임워크
+
+이 사이트의 의존성은 제품과 이름이 겹쳐도 핀과 프로세스가 다르다. 제품 화면은 React 18 · Vite 7이고, 제품 API는 FastAPI 0.143 · LangGraph 1.2.14다. 아래 숫자는 `Portfolio/site/package.json`과 `Portfolio/ai/requirements.txt`에 고정된 값이다.
+
+### 화면 — Next.js, React, TypeScript
+
+<p>
+  <img alt="Next.js 15.5.27" src="https://img.shields.io/badge/Next.js-15.5.27-000000?style=flat-square&logo=nextdotjs&logoColor=white" />
+  <img alt="React 19.1.1" src="https://img.shields.io/badge/React-19.1.1-149ECA?style=flat-square&logo=react&logoColor=white" />
+  <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+</p>
+
+`site/`는 Next.js 15.5.27이다. 로컬 개발 서버는 `next dev -p 5190`이라 주소가 http://127.0.0.1:5190 이다. React는 19.1.1이고, 제품 사용자 앱의 React 18과 다른 앱이다. Tailwind는 쓰지 않는다. `next.config.ts`는 `reactStrictMode`와 `poweredByHeader: false`만 둔다. 페이지는 원고 마크다운을 장으로 보여주고, 챗 요청은 이 앱의 `/api/chat` · `/api/deep`가 Flask로 넘긴다.
+
+### 안내 — Flask, LangGraph, LangChain
+
+<p>
+  <img alt="Flask 3.1.2" src="https://img.shields.io/badge/Flask-3.1.2-000000?style=flat-square&logo=flask&logoColor=white" />
+  <img alt="LangGraph 0.6.6" src="https://img.shields.io/badge/LangGraph-0.6.6-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+  <img alt="LangChain 0.3.27" src="https://img.shields.io/badge/LangChain-0.3.27-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
+</p>
+
+`ai/`는 Flask 3.1.2다. 코드 기본 주소는 http://127.0.0.1:5055 이고, 제품 API 8000이 아니다. 사진을 받지 않고 제품 데이터베이스에 연결하지 않는다.
+
+답의 흐름은 LangGraph 0.6.6이다. 질문 이해 → 문서 검색 → 초안 → 필요하면 한 번 수정 → 학습 저장. LangChain 0.3.27과 `langchain-ollama` 0.3.7이 그 모델 호출을 맡는다. 검색은 BM25, 한국어 2-gram, 제목, 동의어, 파일별 다양성을 원고와 인수인계 · 기능 목록에 대해 돌린다. 초안에 문서에 없는 숫자나 파일명이 있으면 한 번 고친다.
+
+### 모델과 검색 저장소 — Ollama, Chroma
+
+<p>
+  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-gemma4%3Ae4b-000000?style=flat-square&logo=ollama&logoColor=white" />
+  <img alt="Chroma 1.5.9" src="https://img.shields.io/badge/Chroma-1.5.9-000000?style=flat-square" />
+</p>
+
+기본 모델은 Ollama `gemma4:e4b`다. 보내기 바로 위의 버튼은 `gemma4:12b`를 고르기만 하고, 그 버튼은 질문을 보내지 않는다. 다른 이름은 거절한다. `gemma4:e4b`가 없으면 챗 health만 503이고, 12b가 없어도 기본 답은 된다. 고른 모델이 없으면 그 요청만 503이며, 그 전에 깊이 추론 횟수를 줄이지 않는다.
+
+Chroma 1.5.9는 `ai/data/chroma`에 둔다. 글자 n-gram이고 임베딩 모델은 받지 않는다. 제품의 `data/chroma`, `backend/data/chroma`와 저장소가 다르다. 배운 예시가 문서와 다르면 문서를 따른다.
+
+### 배포 — Vercel
+
+<p>
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-cutnkeep--portfolio-000000?style=flat-square&logo=vercel&logoColor=white" />
+</p>
+
+공개 화면은 Vercel 프로젝트 `cutnkeep-portfolio`다. 주소는 https://cutnkeep-portfolio.vercel.app 이다. 챗 함수의 `maxDuration`은 300초이고, 화면의 대기는 일반 160초, 깊이 추론 290초다. Vercel 함수 디스크에는 깊이 추론 횟수를 세지 않는다. 횟수 파일은 Flask 쪽 `deep_quota.sqlite`에만 있다.
+
+## 3. 구성
 
 ```mermaid
 flowchart LR
@@ -68,7 +124,7 @@ flowchart LR
 
 ---
 
-## 3. 원고
+## 4. 원고
 
 | 파일 | 내용 |
 |------|------|
@@ -99,7 +155,7 @@ flowchart LR
 
 ---
 
-## 4. 안내 챗
+## 5. 안내 챗
 
 사이트의 `/chat`에서 이 프로젝트에 대해 질문하면, Flask 안내가 원고와 핵심 제품 문서를 검색해 답한다.
 
@@ -122,7 +178,7 @@ flowchart LR
 
 ---
 
-## 5. 로컬 실행
+## 6. 로컬 실행
 
 두 프로그램을 각각 띄운다. 안내 기본 모델 `gemma4:e4b`가 없으면 챗만 멈추고 페이지는 열린다.
 
@@ -143,7 +199,7 @@ Ollama에는 `ollama pull gemma4:e4b`(필수)와 `ollama pull gemma4:12b`(선택
 
 ---
 
-## 6. 공개 배포 (2026-10-12 기준)
+## 7. 공개 배포 (2026-10-12 기준)
 
 ```text
 방문자 ─▶ Vercel (Portfolio/site) ─ /api/chat · /api/deep ─▶ Cloudflare 임시 터널 ─▶ 운영자 PC의 Flask (Portfolio/ai) ─▶ PC의 Ollama
