@@ -115,4 +115,4 @@ Flask 안내가 꺼져 있어도 페이지는 모두 열린다. 챗만 "안내 �
 저장소 전체는 파일이 많아 느리므로 `Portfolio/site`와 `Portfolio/assets`만 같은 구조로 복사한 폴더에서 `npx vercel deploy --prod`를 실행한다.
 `node_modules` · `.next` · `site/data`는 빼되 **`app/data`는 빼지 않는다** (빠지면 `/data/erd` · `/data/spreadsheet`가 404).
 
-전체 순서: [`../README.md` 6절](../README.md#6-공개-배포-2026-10-12-기준)
+전체 순서: [`../README.md` 7절](../README.md#7-공개-배포-2026-10-12-기준)

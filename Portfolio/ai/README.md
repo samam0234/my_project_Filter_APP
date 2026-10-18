@@ -118,7 +118,7 @@ python -m venv .venv
 
 Ollama에 `gemma4:e4b`가 없으면 `/health`가 503이다. `gemma4:12b`가 없어도 기본 답은 된다.
 
-서버는 `127.0.0.1`에만 열린다. 밖에서 쓰려면 Cloudflare 터널 같은 앞단을 둔다 → [`../README.md` 6절](../README.md#6-공개-배포-2026-10-12-기준)
+서버는 `127.0.0.1`에만 열린다. 밖에서 쓰려면 Cloudflare 터널 같은 앞단을 둔다 → [`../README.md` 7절](../README.md#7-공개-배포-2026-10-12-기준)
 
 ### 테스트
 
