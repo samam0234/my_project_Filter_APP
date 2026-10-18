@@ -3,8 +3,30 @@
 > 폴더명 표기는 요청 스펠링 `vaildates` 를 따름 (validate 의미).
 
 기능·배포 전 검증 체크리스트와 결과를 기록한다.
+**README · 포트폴리오 · 인수인계 문서에 적힌 수치는 모두 이 폴더의 문서가 근거다.** 수치를 인용할 때는 이 폴더의 문서를 링크한다.
 
-마크다운은 이 폴더에 그대로 둔다. 원자료 JSON은 [`json_files/`](./json_files/)에, 비교 이미지는 [`images/`](./images/)에 둔다.
+마크다운은 이 폴더에 그대로 둔다. 원자료 JSON은 [`json_files/`](./json_files/)에, 비교 이미지는 [`images/`](./images/)에 둔다. 실험 스크립트는 [`scripts/experiments/`](../../scripts/README.md#5-실험)에 있다.
+
+## 영역별 핵심 결과
+
+| 영역 | 결과 | 근거 |
+|------|------|------|
+| 문장 해석 | 처음 보는 문장 완전 일치 86.7% → **96.7%** (해석 체인) · 혼합(LoRA 먼저 · 갈리면 Ollama) 253문장 91.3% · 3.0초 — 기본값은 Ollama 체인 유지 | [parser-compare-20261009.md](./parser-compare-20261009.md) · [lora-retrain-20261008.md](./lora-retrain-20261008.md) |
+| LoRA | 조합형 재학습 후 새 40문장 전 항목 일치 50.0 → 87.5% · 선택자 새 30문장 33.3 → 96.7% — 배포본 교체 | [lora-compositional-20261009.md](./lora-compositional-20261009.md) · [lora-selector-20261009.md](./lora-selector-20261009.md) |
+| 대상 고르기 · 섞임 | "왼쪽 사람" 선택 **90.0%** [85.3, 94.7] · 섞임 6.3 → 4.1% · 경계 F 0.52 → 0.61 | [leak-baseline-20261009.md](./leak-baseline-20261009.md) · [leak-diagnosis-20261008.md](./leak-diagnosis-20261008.md) |
+| 영상 추적 | 실제 영상(DAVIS) 맞은 비율 72.8 → **92.1%** · 합성 영상 서로 지나간 뒤 유지 91.4 → 99.4% | [davis-real-video-20261010.md](./davis-real-video-20261010.md) · [video-tracking-hard-20261009.md](./video-tracking-hard-20261009.md) |
+| 지우기 | 사진 Telea → LaMa: L1 20.2 → 16.2 · PSNR +2.3dB · 영상 배경판: 움직이는 대상 깜빡임 22.5 → 0 · 카메라 팬 L1 27.5 → 6.9 | [inpaint-20261009.md](./inpaint-20261009.md) · [video-removal-20261009.md](./video-removal-20261009.md) · [video-removal-pan-20261009.md](./video-removal-pan-20261009.md) |
+| 경계 · GIF | GrabCut 2번 → 1번 경계 F +25% · 영상 흔들림 −50% · GIF 매트로 경계 오차 2.6~3.6배 감소 | [edge-tuning-20261008.md](./edge-tuning-20261008.md) · [gif-matte-20261009.md](./gif-matte-20261009.md) |
+| 배경 덩어리 | 학습 없이 SegFormer ADE20K — 건물 IoU 0.85~0.86 | [stuff-segmentation-20261008.md](./stuff-segmentation-20261008.md) |
+| 채택하지 않은 것 | COCO만 추가한 YOLO 재학습 두 번 모두 불채택 · 오픈 보캐브는 측정만 | [yolo-retrain-20261009.md](./yolo-retrain-20261009.md) · [open-vocab-20261007.md](./open-vocab-20261007.md) |
+| 화면 | 디자인 고도화 후 화면 18개 가로 스크롤 · 오류 0건 · 브라우저 2차 확인 17개 흐름 문제 0건 | [ui-design-20261008.md](./ui-design-20261008.md) · [ui-check-20261007-console.md](./ui-check-20261007-console.md) |
+
+## 읽는 법
+
+- **수치는 실험 기록이다.** 정해진 표본 · 조건에서 잰 값이며, 모든 문장과 모든 영상에 대한 보장이 아니다. 각 문서에 표본 크기와 조건이 있다.
+- **전후 비교**는 같은 표본 · 같은 스크립트로 잰다. 다른 날짜의 숫자를 섞어 비교하지 않는다.
+- **효과가 없었던 것도 남긴다.** 채택하지 않은 실험(예: COCO만 추가한 재학습, 학습 시드를 RAG 예시로 넣기)은 다음 사람이 같은 시도를 반복하지 않게 하는 기록이다.
+- 큰 데이터셋(COCO · DAVIS)은 Git에 없다. 다시 재려면 각 문서의 "받기" 안내를 따른다.
 
 ## 목록
 
