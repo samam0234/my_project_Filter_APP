@@ -75,7 +75,7 @@
 **파일:** `training/configs/dataset_seg.example.yaml` 을 복사해 사용
 
 ```powershell
-cd d:\my_project\CutNKeep\training
+cd training   # 저장소 루트에서
 copy configs\dataset_seg.example.yaml configs\dataset_seg.yaml
 # 그다음 dataset_seg.yaml 편집
 ```
@@ -248,7 +248,7 @@ targets = targets or ["person"]   # 【수동】 여기도 동일 정책으로 �
 (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.3`)
 
 ```powershell
-cd d:\my_project\CutNKeep\training
+cd training   # 저장소 루트에서
 
 # 1) venv + 경량 패키지 (torch 원격 대용량 자동 설치 안 함)
 .\setup_cuda_env.ps1
@@ -288,7 +288,7 @@ python -c "import ultralytics; print(ultralytics.__version__)"
 ### 4.0 사전 확인
 
 ```powershell
-cd d:\my_project\CutNKeep\training
+cd training   # 저장소 루트에서
 . .\env_cuda.ps1
 .\.venv\Scripts\Activate.ps1
 
@@ -303,7 +303,7 @@ dir datasets\my_seg\labels\train
 ### 4.1 세그 학습 (권장 · 서비스 본선)
 
 ```powershell
-cd d:\my_project\CutNKeep\training
+cd training   # 저장소 루트에서
 . .\env_cuda.ps1
 .\.venv\Scripts\Activate.ps1
 
@@ -370,7 +370,7 @@ YOLO_MODEL_PATH=models/yolo26s-seg.onnx
 ### 4.4 구조 스모크 (저장소 루트)
 
 ```powershell
-cd d:\my_project\CutNKeep
+# 저장소 루트에서
 pytest tests/structure -q
 ```
 
